@@ -17,7 +17,8 @@ angular.module('app')
       function ($stateProvider,   $urlRouterProvider, JQ_CONFIG) {
           
           $urlRouterProvider
-              .otherwise('/app/dashboard-v1');
+              .otherwise('/access/signin');
+
           $stateProvider
               .state('app', {
                   abstract: true,
@@ -30,7 +31,11 @@ angular.module('app')
                   resolve: {
                     deps: ['$ocLazyLoad',
                       function( $ocLazyLoad ){
-                        return $ocLazyLoad.load(['js/controllers/chart.js']);
+                        return $ocLazyLoad.load(['js/controllers/chart.js']).then(
+                            function(){
+                               return $ocLazyLoad.load('js/controllers/dashboard.js');
+                            }
+                        );
                     }]
                   }
               })
@@ -40,7 +45,11 @@ angular.module('app')
                   resolve: {
                     deps: ['$ocLazyLoad',
                       function( $ocLazyLoad ){
-                        return $ocLazyLoad.load(['js/controllers/chart.js']);
+                        return $ocLazyLoad.load(['js/controllers/chart.js']).then(
+                            function(){
+                               return $ocLazyLoad.load('js/controllers/dashboard.js');
+                            }
+                        );
                     }]
                   }
               })

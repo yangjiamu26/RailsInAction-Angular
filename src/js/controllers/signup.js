@@ -7,11 +7,13 @@ app.controller('SignupFormController', ['$scope', '$http', '$state', function($s
     $scope.signup = function() {
       $scope.authError = null;
       // Try to create
-      $http.post('api/signup', {name: $scope.user.name, email: $scope.user.email, password: $scope.user.password})
+      $http.post('http://localhost:3000/users.json', {user: {email: $scope.user.email, password: $scope.user.password}})
       .then(function(response) {
-        if ( !response.data.user ) {
+        if ( !response.data.authentication_token ) {
           $scope.authError = response;
         }else{
+          $scope.user.email = response.data.email;
+          $scope.user.authentication_token = response.data.authentication_token;
           $state.go('app.dashboard-v1');
         }
       }, function(x) {
