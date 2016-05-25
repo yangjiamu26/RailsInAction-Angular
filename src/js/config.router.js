@@ -347,11 +347,11 @@ angular.module('app')
                   resolve: {
                       deps: ['$ocLazyLoad',
                         function( $ocLazyLoad ){
-                          return $ocLazyLoad.load('textAngular').then(
-                              function(){
+                          //return $ocLazyLoad.load('textAngular').then(
+                          //    function(){
                                   return $ocLazyLoad.load('js/controllers/editor.js');
-                              }
-                          );
+                          //    }
+                          //);
                       }]
                   }
               })

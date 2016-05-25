@@ -94,25 +94,25 @@
     };
   }])
   ; 
-  app.controller('ModalInstanceCtrl', ['$scope', '$modalInstance', 'items', function($scope, $modalInstance, items) {
+  app.controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', function($scope, $uibModalInstance, items) {
     $scope.items = items;
     $scope.selected = {
       item: $scope.items[0]
     };
 
     $scope.ok = function () {
-      $modalInstance.close($scope.selected.item);
+      $uibModalInstance.close($scope.selected.item);
     };
 
     $scope.cancel = function () {
-      $modalInstance.dismiss('cancel');
+      $uibModalInstance.dismiss('cancel');
     };
   }])
   ; 
-  app.controller('ModalDemoCtrl', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+  app.controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
     $scope.items = ['item1', 'item2', 'item3'];
     $scope.open = function (size) {
-      var modalInstance = $modal.open({
+      var modalInstance = $uibModal.open({
         templateUrl: 'myModalContent.html',
         controller: 'ModalInstanceCtrl',
         size: size,

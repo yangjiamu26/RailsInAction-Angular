@@ -28,4 +28,5 @@ angular.module('app')
     $translateProvider.preferredLanguage('zh-CN');
     // Tell the module to store the language in the local storage
     $translateProvider.useLocalStorage();
+    $translateProvider.useSanitizeValueStrategy('sanitize');
   }]);
