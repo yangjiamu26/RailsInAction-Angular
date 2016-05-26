@@ -1,4 +1,4 @@
 module.exports = {
   angular: ['angular/*'],
-  html: ['html/*']
+  html: ['static/*']
 };

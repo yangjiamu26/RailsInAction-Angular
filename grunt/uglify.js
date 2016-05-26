@@ -9,6 +9,6 @@ module.exports = {
     src:[
       'html/js/app.src.js'
     ],
-    dest:'html/js/app.min.js'
+    dest:'static/js/app.min.js'
   }
 }

@@ -50,6 +50,6 @@ module.exports = {
       'bower_components/bootstrap/dist/js/bootstrap.js',
       'html/js/*.js'
     ],
-    dest:'html/js/app.src.js'
+    dest:'static/js/app.src.js'
   }
 }

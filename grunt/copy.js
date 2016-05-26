@@ -15,14 +15,14 @@ module.exports = {
     },
     html: {
         files: [
-            {expand: true, src: "**", cwd: 'bower_components/bootstrap/fonts',         dest: "html/fonts"},
-            {expand: true, src: "**", cwd: 'bower_components/font-awesome/fonts',      dest: "html/fonts"},
-            {expand: true, src: "**", cwd: 'bower_components/Simple-Line-Icons/fonts', dest: "html/fonts"},
-            {expand: true, src: '**', cwd:'src/fonts/', dest: 'html/fonts/'},
-            {expand: true, src: "**", cwd: 'src/api',     dest: "html/api"},
-            {expand: true, src: '**', cwd:'src/img/', dest: 'html/img/'},
-            {expand: true, src: '*.css', cwd:'src/css/', dest: 'html/css/'},
-            {expand: true, src: '**', cwd:'swig/js/', dest: 'html/js/'}
+            {expand: true, src: "**", cwd: 'bower_components/bootstrap/fonts',         dest: "static/fonts"},
+            {expand: true, src: "**", cwd: 'bower_components/font-awesome/fonts',      dest: "static/fonts"},
+            {expand: true, src: "**", cwd: 'bower_components/Simple-Line-Icons/fonts', dest: "static/fonts"},
+            {expand: true, src: '**', cwd:'html/fonts/', dest: 'static/fonts/'},
+            {expand: true, src: "**", cwd: 'html/api/', dest: "static/api/"},
+            {expand: true, src: '**', cwd:'html/img/', dest: 'static/img/'},
+            {expand: true, src: '*.css', cwd:'html/css/', dest: 'static/css/'},
+            {expand: true, src: '*.html', cwd:'html/*', dest: 'static/js/'}
         ]
     },
     landing: {
