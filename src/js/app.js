@@ -1,8 +1,9 @@
 'use strict';
 
-
 angular.module('app', [
+    'ngAria',
     'ngLocale',
+    'ngMessages',
     'ngAnimate',
     'ngCookies',
     'ngResource',
@@ -16,5 +17,6 @@ angular.module('app', [
     'ui.jq',
     'oc.lazyLoad',
     'pascalprecht.translate',
+    'ngMaterial',
     'textAngular'
 ]);

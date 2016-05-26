@@ -52,121 +52,129 @@ angular.module('app')
                       
     }
   )
+  .constant('MODULE_CONFIG', [
+      {
+          name: 'ui.grid',
+          files: [
+              '../bower_components/angular-ui-grid/ui-grid.min.js',
+              '../bower_components/angular-ui-grid/ui-grid.min.css'
+          ]
+      },
+      {
+          name: 'ui.select',
+          files: [
+              '../bower_components/angular-ui-select/dist/select.min.js',
+              '../bower_components/angular-ui-select/dist/select.min.css'
+          ]
+      },
+      {
+          name:'angularFileUpload',
+          files: [
+            '../bower_components/angular-file-upload/dist/angular-file-upload.min.js'
+          ]
+      },
+      {
+          name:'ui.calendar',
+          files: ['../bower_components/angular-ui-calendar/src/calendar.js']
+      },
+      {
+          name: 'ngImgCrop',
+          files: [
+              '../bower_components/ng-img-crop/compile/minified/ng-img-crop.js',
+              '../bower_components/ng-img-crop/compile/minified/ng-img-crop.css'
+          ]
+      },
+      {
+          name: 'angularBootstrapNavTree',
+          files: [
+              '../bower_components/angular-bootstrap-nav-tree/dist/abn_tree_directive.js',
+              '../bower_components/angular-bootstrap-nav-tree/dist/abn_tree.css'
+          ]
+      },
+      {
+          name: 'toaster',
+          files: [
+              '../bower_components/angularjs-toaster/toaster.js',
+              '../bower_components/angularjs-toaster/toaster.css'
+          ]
+      },
+      {
+          name: 'vr.directives.slider',
+          files: [
+              '../bower_components/angular-slider/build/angular-slider.min.js',
+              '../lib/angular-slider/build/angular-slider.css'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular',
+          files: [
+              '../bower_components/videogular/videogular.min.js'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.themes.default',
+          files: [
+              '../bower_components/videogular-themes-default/videogular.css'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.plugins.controls',
+          files: [
+              '../bower_components/videogular-controls/vg-controls.min.js'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.plugins.buffering',
+          files: [
+              '../bower_components/videogular-buffering/vg-buffering.min.js'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.plugins.overlayplay',
+          files: [
+              '../bower_components/videogular-overlay-play/vg-overlay-play.min.js'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.plugins.poster',
+          files: [
+              '../bower_components/videogular-poster/vg-poster.min.js'
+          ]
+      },
+      {
+          name: 'com.2fdevs.videogular.plugins.imaads',
+          files: [
+              '../bower_components/videogular-ima-ads/vg-ima-ads.min.js'
+          ]
+      },
+      {
+          name: 'xeditable',
+          files: [
+              '../bower_components/angular-xeditable/dist/js/xeditable.min.js',
+              '../bower_components/angular-xeditable/dist/css/xeditable.css'
+          ]
+      },
+      {
+          name: 'smart-table',
+          files: [
+              '../bower_components/angular-smart-table/dist/smart-table.min.js'
+          ]
+      },
+      {
+          name: 'angular-skycons',
+          files: [
+              '../lib/angular-skycons/angular-skycons.js'
+          ]
+      }
+    ]
+  )
   // oclazyload config
-  .config(['$ocLazyLoadProvider', function($ocLazyLoadProvider) {
+  .config(['$ocLazyLoadProvider', 'MODULE_CONFIG', function($ocLazyLoadProvider, MODULE_CONFIG) {
       // We configure ocLazyLoad to use the lib script.js as the async loader
       $ocLazyLoadProvider.config({
-          debug:  true,
+          debug:  false,
           events: true,
-          modules: [
-              {
-                  name: 'ui.grid',
-                  files: [
-                      '../bower_components/angular-ui-grid/ui-grid.min.js',
-                      '../bower_components/angular-ui-grid/ui-grid.min.css'
-                  ]
-              },
-              {
-                  name: 'ui.select',
-                  files: [
-                      '../bower_components/angular-ui-select/dist/select.min.js',
-                      '../bower_components/angular-ui-select/dist/select.min.css'
-                  ]
-              },
-              {
-                  name:'angularFileUpload',
-                  files: [
-                    '../bower_components/angular-file-upload/dist/angular-file-upload.min.js'
-                  ]
-              },
-              {
-                  name:'ui.calendar',
-                  files: ['../bower_components/angular-ui-calendar/src/calendar.js']
-              },
-              {
-                  name: 'ngImgCrop',
-                  files: [
-                      '../bower_components/ng-img-crop/compile/minified/ng-img-crop.js',
-                      '../bower_components/ng-img-crop/compile/minified/ng-img-crop.css'
-                  ]
-              },
-              {
-                  name: 'angularBootstrapNavTree',
-                  files: [
-                      '../bower_components/angular-bootstrap-nav-tree/dist/abn_tree_directive.js',
-                      '../bower_components/angular-bootstrap-nav-tree/dist/abn_tree.css'
-                  ]
-              },
-              {
-                  name: 'toaster',
-                  files: [
-                      '../bower_components/angularjs-toaster/toaster.js',
-                      '../bower_components/angularjs-toaster/toaster.css'
-                  ]
-              },
-              {
-                  name: 'vr.directives.slider',
-                  files: [
-                      '../bower_components/angular-slider/build/angular-slider.min.js',
-                      '../lib/angular-slider/build/angular-slider.css'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular',
-                  files: [
-                      '../bower_components/videogular/videogular.min.js'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.themes.default',
-                  files: [
-                      '../bower_components/videogular-themes-default/videogular.css'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.plugins.controls',
-                  files: [
-                      '../bower_components/videogular-controls/vg-controls.min.js'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.plugins.buffering',
-                  files: [
-                      '../bower_components/videogular-buffering/vg-buffering.min.js'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.plugins.overlayplay',
-                  files: [
-                      '../bower_components/videogular-overlay-play/vg-overlay-play.min.js'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.plugins.poster',
-                  files: [
-                      '../bower_components/videogular-poster/vg-poster.min.js'
-                  ]
-              },
-              {
-                  name: 'com.2fdevs.videogular.plugins.imaads',
-                  files: [
-                      '../bower_components/videogular-ima-ads/vg-ima-ads.min.js'
-                  ]
-              },
-              {
-                  name: 'xeditable',
-                  files: [
-                      '../bower_components/angular-xeditable/dist/js/xeditable.min.js',
-                      '../bower_components/angular-xeditable/dist/css/xeditable.css'
-                  ]
-              },
-              {
-                  name: 'smart-table',
-                  files: [
-                      '../bower_components/angular-smart-table/dist/smart-table.min.js'
-                  ]
-              }
-          ]
+          modules: MODULE_CONFIG
       });
   }])
 ;
