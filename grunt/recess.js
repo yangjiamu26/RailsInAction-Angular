@@ -17,7 +17,8 @@ module.exports = {
                 'bower_components/font-awesome/css/font-awesome.css',
                 'bower_components/simple-line-icons/css/simple-line-icons.css',
                 'bower_components/textAngular/dist/textAngular.css',
-                'src/css/*.css'
+                'src/css/font.css',
+                'src/css/app.css'
             ]
         },
         options: {
@@ -31,8 +32,8 @@ module.exports = {
                 'bower_components/font-awesome/css/font-awesome.css',
                 'bower_components/simple-line-icons/css/simple-line-icons.css',
                 'bower_components/textAngular/dist/textAngular.css',
-                'bower_components/angular-material/angular-material.css',
-                'bower_components/bootstrap/dist/css/bootstrap.css'
+                'bower_components/bootstrap/dist/css/bootstrap.css',
+                'src/css/app.material.css'
             ]
         },
         options: {

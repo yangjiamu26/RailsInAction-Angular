@@ -15,16 +15,16 @@ module.exports = {
     },
     material: {
         files: [
-            {expand: true, src: "**", cwd: 'bower_components/bootstrap/fonts',         dest: "angular/fonts"},
-            {expand: true, src: "**", cwd: 'bower_components/font-awesome/fonts',      dest: "angular/fonts"},
-            {expand: true, src: "**", cwd: 'bower_components/Simple-Line-Icons/fonts', dest: "angular/fonts"},
+            {expand: true, src: "**", cwd: 'bower_components/bootstrap/fonts',         dest: "material/fonts"},
+            {expand: true, src: "**", cwd: 'bower_components/font-awesome/fonts',      dest: "material/fonts"},
+            {expand: true, src: "**", cwd: 'bower_components/Simple-Line-Icons/fonts', dest: "material/fonts"},
             {expand: true, src: "**", cwd: 'src/fonts',   dest: "material/fonts"},
             {expand: true, src: "**", cwd: 'src/api',     dest: "material/api"},
             {expand: true, src: "**", cwd: 'src/l10n',    dest: "material/l10n"},
             {expand: true, src: "**", cwd: 'src/img',     dest: "material/img"},
             {expand: true, src: "**", cwd: 'src/js',      dest: "material/js"},
             {expand: true, src: "**", cwd: 'src/tpl',     dest: "material/tpl"},
-            {src: 'src/index.min.html', dest : 'material/index.html'}
+            {src: 'src/material.min.html', dest : 'material/material.html'}
         ]
     },
     html: {
