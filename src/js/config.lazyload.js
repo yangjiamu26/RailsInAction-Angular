@@ -118,33 +118,39 @@ angular.module('app')
                   ]
               },
               {
+                  name: 'com.2fdevs.videogular.themes.default',
+                  files: [
+                      '../bower_components/videogular-themes-default/videogular.css'
+                  ]
+              },
+              {
                   name: 'com.2fdevs.videogular.plugins.controls',
                   files: [
-                      '../bower_components/videogular-controls/controls.min.js'
+                      '../bower_components/videogular-controls/vg-controls.min.js'
                   ]
               },
               {
                   name: 'com.2fdevs.videogular.plugins.buffering',
                   files: [
-                      '../bower_components/videogular-buffering/buffering.min.js'
+                      '../bower_components/videogular-buffering/vg-buffering.min.js'
                   ]
               },
               {
                   name: 'com.2fdevs.videogular.plugins.overlayplay',
                   files: [
-                      '../bower_components/videogular-overlay-play/overlay-play.min.js'
+                      '../bower_components/videogular-overlay-play/vg-overlay-play.min.js'
                   ]
               },
               {
                   name: 'com.2fdevs.videogular.plugins.poster',
                   files: [
-                      '../bower_components/videogular-poster/poster.min.js'
+                      '../bower_components/videogular-poster/vg-poster.min.js'
                   ]
               },
               {
                   name: 'com.2fdevs.videogular.plugins.imaads',
                   files: [
-                      '../bower_components/videogular-ima-ads/ima-ads.min.js'
+                      '../bower_components/videogular-ima-ads/vg-ima-ads.min.js'
                   ]
               },
               {

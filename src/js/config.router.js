@@ -587,6 +587,7 @@ angular.module('app')
                         function( $ocLazyLoad ){
                           return $ocLazyLoad.load([
                             'com.2fdevs.videogular', 
+                            'com.2fdevs.videogular.themes.default',
                             'com.2fdevs.videogular.plugins.controls', 
                             'com.2fdevs.videogular.plugins.overlayplay',
                             'com.2fdevs.videogular.plugins.poster',
