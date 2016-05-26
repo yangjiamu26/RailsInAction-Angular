@@ -5,6 +5,12 @@ module.exports = {
     ],
     dest:'angular/js/app.min.js'
   },
+  material:{
+    src:[
+      'material/js/app.src.js'
+    ],
+    dest:'material/js/app.min.js'
+  },  
   html:{
     src:[
       'html/js/app.src.js'
