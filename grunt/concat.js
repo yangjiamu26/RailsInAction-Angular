@@ -5,6 +5,7 @@ module.exports = {
 
       'bower_components/angular/angular.js',
       
+      'bower_components/angular-locale_zh-cn/angular-locale_zh-cn.js',
       'bower_components/angular-animate/angular-animate.js',
       'bower_components/angular-cookies/angular-cookies.js',
       'bower_components/angular-resource/angular-resource.js',
@@ -13,7 +14,14 @@ module.exports = {
 
       'bower_components/angular-ui-router/release/angular-ui-router.js', 
       'bower_components/ngstorage/ngStorage.js',
-      'bower_components/angular-ui-utils/ui-utils.js',
+      'bower_components/angular-ui-scroll/dist/ui-scroll.js',
+      'bower_components/angular-ui-scrollpoint/dist/scrollpoint.js',
+      'bower_components/angular-ui-event/dist/event.js',
+      'bower_components/angular-ui-mask/dist/mask.js',
+      'bower_components/angular-ui-validate/dist/validate.js',
+      'bower_components/angular-ui-indeterminate/dist/indeterminate.js',
+      'bower_components/angular-ui-uploader/dist/uploader.js',
+      'bower_components/angular-ui-utils/index.js',
 
       'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
      
@@ -23,6 +31,10 @@ module.exports = {
       'bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.js',
       'bower_components/angular-translate-storage-cookie/angular-translate-storage-cookie.js',
       'bower_components/angular-translate-storage-local/angular-translate-storage-local.js',
+
+      'bower_components/textAngular/dist/textAngular-rangy.min.js',
+      'bower_components/textAngular/dist/textAngular-sanitize.min.js',
+      'bower_components/textAngular/dist/textAngular.min.js',
 
       'src/js/*.js',
       'src/js/directives/*.js',
