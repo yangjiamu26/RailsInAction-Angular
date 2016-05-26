@@ -36,7 +36,7 @@ angular.module('app')
       vectorMap:      [   '../bower_components/bower-jvectormap/jquery-jvectormap-1.2.2.min.js', 
                           '../bower_components/bower-jvectormap/jquery-jvectormap-world-mill-en.js',
                           '../lib/bower-jvectormap/jquery-jvectormap-us-aea-en.js',
-                          '../bower_components/bower-jvectormap/jquery-jvectormap-1.2.2.css'],
+                          '../lib/bower-jvectormap/jquery-jvectormap-1.2.2.css'],
       footable:       [   '../bower_components/footable/compiled/footable.min.js',
                           '../bower_components/footable/compiled/footable.core.bootstrap.css'],
       fullcalendar:   [   '../bower_components/moment/moment.js',
@@ -59,14 +59,6 @@ angular.module('app')
           debug:  true,
           events: true,
           modules: [
-              {
-                  name: 'ngGrid',
-                  files: [
-                      '../bower_components/ng-grid/build/ng-grid.min.js',
-                      '../bower_components/ng-grid/ng-grid.min.css',
-                      '../bower_components/ng-grid/ng-grid.bootstrap.css'
-                  ]
-              },
               {
                   name: 'ui.grid',
                   files: [
@@ -112,15 +104,6 @@ angular.module('app')
                       '../bower_components/angularjs-toaster/toaster.css'
                   ]
               },
-              // {
-              //     name: 'textAngular',
-              //     files: [
-              //         '../bower_components/textAngular/dist/textAngular.css',
-              //         '../bower_components/textAngular/dist/textAngular-rangy.min.js',
-              //         '../bower_components/textAngular/dist/textAngular-sanitize.min.js',
-              //         '../bower_components/textAngular/dist/textAngular.min.js'
-              //     ]
-              // },
               {
                   name: 'vr.directives.slider',
                   files: [

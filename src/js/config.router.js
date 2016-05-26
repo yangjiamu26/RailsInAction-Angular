@@ -182,20 +182,6 @@ angular.module('app')
                   url: '/footable',
                   templateUrl: 'tpl/table_footable.html'
               })
-              .state('app.table.grid', {
-                  url: '/grid',
-                  templateUrl: 'tpl/table_grid.html',
-                  resolve: {
-                      deps: ['$ocLazyLoad',
-                        function( $ocLazyLoad ){
-                          return $ocLazyLoad.load('ngGrid').then(
-                              function(){
-                                  return $ocLazyLoad.load('js/controllers/grid.js');
-                              }
-                          );
-                      }]
-                  }
-              })
               .state('app.table.uigrid', {
                   url: '/uigrid',
                   templateUrl: 'tpl/table_uigrid.html',
