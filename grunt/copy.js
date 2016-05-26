@@ -24,7 +24,7 @@ module.exports = {
             {expand: true, src: "**", cwd: 'src/img',     dest: "material/img"},
             {expand: true, src: "**", cwd: 'src/js',      dest: "material/js"},
             {expand: true, src: "**", cwd: 'src/tpl',     dest: "material/tpl"},
-            {src: 'src/material.min.html', dest : 'material/material.html'}
+            {src: 'src/material.min.html', dest : 'material/index.html'}
         ]
     },
     html: {
