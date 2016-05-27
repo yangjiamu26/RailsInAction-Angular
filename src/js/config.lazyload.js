@@ -179,6 +179,14 @@ angular.module('app')
               '../bower_components/ckeditor/ckeditor.js',
               '../bower_components/angular-ckeditor/angular-ckeditor.js'
           ]
+      },
+      {
+          name: 'ueditor',
+          files: [
+              '../bower_components/angular-bdeditor/dist/ueditor.config.js',
+              '../bower_components/angular-bdeditor/dist/ueditor.all.min.js',
+              '../bower_components/angular-bdeditor/dist/angular-ueditor.js'
+          ]
       }
     ]
   )

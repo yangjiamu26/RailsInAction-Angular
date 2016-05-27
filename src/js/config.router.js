@@ -204,7 +204,7 @@ angular.module('app')
                   url: '/editor',
                   templateUrl: 'tpl/form_editor.html',
                   controller: 'EditorCtrl',
-                  resolve: load(['ckeditor', 'js/controllers/editor.js'])
+                  resolve: load(['ckeditor', 'ueditor', 'js/controllers/editor.js'])
               })
               .state('app.form.xeditable', {
                   url: '/xeditable',

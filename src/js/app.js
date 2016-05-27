@@ -1,5 +1,7 @@
 'use strict';
 
+window.UEDITOR_HOME_URL = "/bower_components/angular-bdeditor/";
+
 angular.module('app', [
     'ngAria',
     'ngLocale',
