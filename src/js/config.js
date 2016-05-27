@@ -29,4 +29,10 @@ angular.module('app')
     // Tell the module to store the language in the local storage
     $translateProvider.useLocalStorage();
     $translateProvider.useSanitizeValueStrategy('sanitize');
-  }]);
+  }])
+  .config(['authProvider', function(authProvider){
+    authProvider.setLoginState("access.signin");
+  }])
+  .run(['auth', function(auth) {
+    auth.initialize();
+  }]);;

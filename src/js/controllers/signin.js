@@ -2,7 +2,7 @@
 
 /* Controllers */
   // signin controller
-app.controller('SigninFormController', ['$scope', '$http', '$state', function($scope, $http, $state) {
+app.controller('SigninFormController', ['$scope', '$http', '$state', 'auth', function($scope, $http, $state, auth) {
     $scope.user = {};
     $scope.authError = null;
     $scope.login = function() {
@@ -14,8 +14,13 @@ app.controller('SigninFormController', ['$scope', '$http', '$state', function($s
           $scope.authError = 'Email or Password not right';
         }else{
           $scope.user.email = response.data.email;
-          $scope.user.authentication_token = response.data.authentication_token;
-          $state.go('app.dashboard-v1');
+          $scope.user.roles = ["admin"];
+
+          if(response.data.authentication_token){
+            alert("登陆成功");
+            auth.login(response.data.authentication_token, $scope.user);
+            $state.go('app.dashboard-v1');
+          }
         }
       }, function(x) {
         $scope.authError = 'Server Error';

@@ -29,7 +29,13 @@ angular.module('app')
               .state('app', {
                   abstract: true,
                   url: '/app',
-                  templateUrl: layout
+                  templateUrl: layout,
+                  data: {
+                    //*: any user, including both anonymous and authenticated users.
+                    //?: anonymous users.
+                    //@: authenticated users.
+                    roles: '@'
+                  }
               })
               .state('app.dashboard-v1', {
                   url: '/dashboard-v1',
@@ -39,7 +45,10 @@ angular.module('app')
               .state('app.dashboard-v2', {
                   url: '/dashboard-v2',
                   templateUrl: 'tpl/app_dashboard_v2.html',
-                  resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js'])
+                  resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js']),
+                  data: {
+                    roles: ['admin']
+                  }
               })
               .state('app.dashboard-v3', {
                   url: '/dashboard-v3',
