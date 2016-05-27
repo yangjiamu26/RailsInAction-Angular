@@ -46,6 +46,7 @@
         "FORM_WIZARD" : "表单向导"
       },
       "CHART" : "图表",
+      "BaiduEcharts" : "百度Echarts",
       "pages" : {
         "PAGES" : "页面",
         "PROFILE" : "个人资料",

@@ -165,6 +165,13 @@ angular.module('app')
           files: [
               '../lib/angular-skycons/angular-skycons.js'
           ]
+      },
+      {
+          name: 'echarts',
+          files: [
+              '../bower_components/echarts/build/dist/echarts-all.js',
+              '../bower_components/angular-echarts/dist/angular-echarts.js'
+          ]
       }
     ]
   )

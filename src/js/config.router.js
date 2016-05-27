@@ -112,6 +112,11 @@ angular.module('app')
                   templateUrl: 'tpl/ui_chart.html',
                   resolve: load('js/controllers/chart.js')
               })
+              .state('app.echarts', {
+                  url: '/echarts',
+                  templateUrl: 'tpl/ui_echarts.html',
+                  resolve: load(['echarts', 'js/controllers/echarts.js'])
+              })
               // table
               .state('app.table', {
                   url: '/table',
