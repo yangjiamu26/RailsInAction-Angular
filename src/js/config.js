@@ -34,5 +34,5 @@ angular.module('app')
     authProvider.setLoginState("access.signin");
   }])
   .run(['auth', function(auth) {
-    auth.initialize();
+    //auth.initialize();
   }]);;

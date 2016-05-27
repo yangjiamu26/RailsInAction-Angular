@@ -172,6 +172,13 @@ angular.module('app')
               '../bower_components/echarts/build/dist/echarts-all.js',
               '../bower_components/angular-echarts/dist/angular-echarts.js'
           ]
+      },
+      {
+          name: 'ckeditor',
+          files: [
+              '../bower_components/ckeditor/ckeditor.js',
+              '../bower_components/angular-ckeditor/angular-ckeditor.js'
+          ]
       }
     ]
   )

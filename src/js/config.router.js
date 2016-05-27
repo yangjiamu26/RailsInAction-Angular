@@ -29,13 +29,14 @@ angular.module('app')
               .state('app', {
                   abstract: true,
                   url: '/app',
-                  templateUrl: layout,
+                  templateUrl: layout
+                  /*,
                   data: {
                     //*: any user, including both anonymous and authenticated users.
                     //?: anonymous users.
                     //@: authenticated users.
                     roles: '@'
-                  }
+                  }*/
               })
               .state('app.dashboard-v1', {
                   url: '/dashboard-v1',
@@ -119,12 +120,7 @@ angular.module('app')
               .state('app.chart', {
                   url: '/chart',
                   templateUrl: 'tpl/ui_chart.html',
-                  resolve: load('js/controllers/chart.js')
-              })
-              .state('app.echarts', {
-                  url: '/echarts',
-                  templateUrl: 'tpl/ui_echarts.html',
-                  resolve: load(['echarts', 'js/controllers/echarts.js'])
+                  resolve: load(['echarts', 'js/controllers/chart.js'])
               })
               // table
               .state('app.table', {
@@ -208,7 +204,7 @@ angular.module('app')
                   url: '/editor',
                   templateUrl: 'tpl/form_editor.html',
                   controller: 'EditorCtrl',
-                  resolve: load(['js/controllers/editor.js'])
+                  resolve: load(['ckeditor', 'js/controllers/editor.js'])
               })
               .state('app.form.xeditable', {
                   url: '/xeditable',
