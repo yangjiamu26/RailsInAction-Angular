@@ -1,4 +1,4 @@
-app.controller('FileUploadCtrl', ['$scope', 'FileUploader', function($scope, FileUploader) {
+app.controller('FileUploadCtrl', ['$scope', '$timeout', 'FileUploader', function($scope, $timeout, FileUploader) {
     var uploader = $scope.uploader = new FileUploader({
         url: 'js/controllers/upload.php'
     });
@@ -49,4 +49,30 @@ app.controller('FileUploadCtrl', ['$scope', 'FileUploader', function($scope, Fil
     };
 
     console.info('uploader', uploader);
+
+    /*****
+     plupload
+    *****/
+    $scope.fileUpload = {
+      url: '/posts/1/attachments',
+      callbacks: {
+        filesAdded: function(uploader, files) {
+          $scope.loading = true;
+          $timeout(function() { 
+            uploader.start(); 
+          }, 1);
+        },
+        uploadProgress: function(uploader, file) {
+          $scope.loading = file.percent/100.0;
+        },
+        fileUploaded: function(uploader, file, response) {
+          $scope.loading = false;
+          alert('Upload Complete!');
+        },
+        error: function(uploader, error) {
+          $scope.loading = false;
+          alert(error.message);
+        }
+      }
+    }
 }]);

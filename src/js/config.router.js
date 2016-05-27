@@ -181,7 +181,16 @@ angular.module('app')
               .state('app.form.fileupload', {
                   url: '/fileupload',
                   templateUrl: 'tpl/form_fileupload.html',
-                  resolve: load(['angularFileUpload','js/controllers/file-upload.js'])
+                  resolve: load(['angularFileUpload','plupload','js/controllers/file-upload.js'], function(){
+                    angular.module('app').config(['pluploadOptionProvider', function (pluploadOptionProvider) {
+                      // global setting
+                      pluploadOptionProvider.setOptions({
+                        flash_swf_url: '/bower_components/plupload/js/Moxie.swf',
+                        silverlight_xap_url: '/bower_components/plupload/js/Moxie.xap',
+                        max_file_size: '10mb'
+                      });
+                    }]);
+                  })
               })
               .state('app.form.imagecrop', {
                   url: '/imagecrop',

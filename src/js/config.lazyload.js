@@ -74,6 +74,13 @@ angular.module('app')
           ]
       },
       {
+          name:'plupload',
+          files: [
+            '../bower_components/plupload/js/plupload.full.min.js',
+            '../bower_components/angular-plupload/dist/angular-plupload.min.js'
+          ]
+      },
+      {
           name:'ui.calendar',
           files: ['../bower_components/angular-ui-calendar/src/calendar.js']
       },
