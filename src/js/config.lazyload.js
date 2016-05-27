@@ -54,6 +54,24 @@ angular.module('app')
   )
   .constant('MODULE_CONFIG', [
       {
+          name: 'malhar.dashboard',
+          files: [
+              '../bower_components/lodash/dist/lodash.min.js',
+              '../bower_components/jquery-ui/jquery-ui.min.js',
+              '../bower_components/angular-ui-sortable/sortable.min.js',
+              '../bower_components/d3/d3.js',
+              '../bower_components/nvd3/nv.d3.js',
+              '../bower_components/angularjs-nvd3-directives/dist/angularjs-nvd3-directives.js',
+              '../bower_components/malhar-angular-dashboard/dist/malhar-angular-dashboard.css',
+              '../bower_components/malhar-angular-dashboard/dist/malhar-angular-dashboard.js',
+              '../bower_components/malhar-angular-widgets/dist/malhar-angular-widgets.js',
+              '../bower_components/malhar-angular-table/dist/mlhr-table.js',
+              '../bower_components/pines-notify/pnotify.core.js',
+              '../bower_components/angular-pines-notify/src/pnotify.js',
+              '../bower_components/visibilityjs/lib/visibility.core.js'
+          ]
+      },
+      {
           name: 'ui.grid',
           files: [
               '../bower_components/angular-ui-grid/ui-grid.min.js',

@@ -56,6 +56,21 @@ angular.module('app')
                   templateUrl: 'tpl/app_dashboard_v3.html',
                   resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js'])
               })
+              .state('app.dashboard-v4', {
+                  url: '/dashboard-v4',
+                  templateUrl: 'tpl/app_dashboard_v4.html',
+                  resolve: load([
+                    'malhar.dashboard',
+                    'js/services/settings.js',
+                    'js/services/datamodel.js',
+                    'js/services/service.js',
+                    'js/services/gateway.js',
+                    'js/services/widgets.js',
+                    '../lib/google-jsapi/google-jsapi.js',
+                    'js/controllers/malhar.dashboard.js'], function(){
+                      //google.load('visualization', '1', {'packages':['corechart']});
+                    })
+              })
               .state('app.ui', {
                   url: '/ui',
                   template: '<div ui-view class="fade-in-up"></div>'
