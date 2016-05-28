@@ -46,6 +46,9 @@ angular.module('app')
   .run(['$rootScope', '$state', function($rootScope, $state) {
 
     $rootScope.$on('$stateChangeStart', function(evt, to, params) {
+      if(to.ncyBreadcrumb && to.ncyBreadcrumb.label){
+        $rootScope.$title = to.ncyBreadcrumb.label;
+      }
       if (to.redirectTo) {
         if(to.redirectTo != $state.$current.name){
           evt.preventDefault();
@@ -54,5 +57,5 @@ angular.module('app')
           $state.go(to.redirectTo, params)
         }
       }
-    });
+    });    
 }]);
