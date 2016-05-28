@@ -29,6 +29,7 @@ app.controller('TodoCtrl', ['$scope', '$location', '$filter', 'todoStorage', fun
     $scope.$watch('location.path()', function (path) {
         console.log(path);
         $scope.statusFilter = { '/app/todo/active': {completed: false}, '/app/todo/completed': {completed: true} }[path];
+        $scope.fold = { '/app/todo/active': 'active', '/app/todo/completed': 'completed'}[path];
     });
 
     $scope.$watch('remainingCount == 0', function (val) {

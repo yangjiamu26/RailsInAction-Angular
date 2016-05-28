@@ -30,9 +30,29 @@ angular.module('app')
     $translateProvider.useLocalStorage();
     $translateProvider.useSanitizeValueStrategy('sanitize');
   }])
+  .config(['$breadcrumbProvider', function($breadcrumbProvider) {
+    $breadcrumbProvider.setOptions({
+      //prefixStateName: '首页',
+      //template: 'bootstrap2'
+      includeAbstract: true
+    });
+  }])
   .config(['authProvider', function(authProvider){
     authProvider.setLoginState("access.signin");
   }])
   .run(['auth', function(auth) {
     //auth.initialize();
-  }]);;
+  }])
+  .run(['$rootScope', '$state', function($rootScope, $state) {
+
+    $rootScope.$on('$stateChangeStart', function(evt, to, params) {
+      if (to.redirectTo) {
+        if(to.redirectTo != $state.$current.name){
+          evt.preventDefault();
+          $state.go(to.redirectTo, params, {location: 'replace'})
+        }else{
+          $state.go(to.redirectTo, params)
+        }
+      }
+    });
+}]);

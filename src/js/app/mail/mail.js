@@ -45,6 +45,7 @@ app.controller('MailListCtrl', ['$scope', 'mails', '$stateParams', function($sco
 }]);
 
 app.controller('MailDetailCtrl', ['$scope', 'mails', '$stateParams', function($scope, mails, $stateParams) {
+  $scope.mailId = $stateParams.mailId;
   mails.get($stateParams.mailId).then(function(mail){
     $scope.mail = mail;
   })
