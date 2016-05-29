@@ -27,7 +27,7 @@ angular.module('app')
           
           $stateProvider
               .state('app', {
-                  //abstract: true,
+                  abstract: '.dashboard-v1',
                   url: '/app',
                   templateUrl: layout,
                   data: {
@@ -38,8 +38,7 @@ angular.module('app')
                   },
                   ncyBreadcrumb: {
                     label: 'Home'
-                  },
-                  redirectTo: 'app.dashboard-v1'
+                  }
               })
               .state('app.dashboard-v1', {
                   url: '/dashboard-v1',
@@ -87,13 +86,12 @@ angular.module('app')
                   }
               })
               .state('app.ui', {
-                  //abstract: true,
+                  abstract: '.buttons',
                   url: '/ui',
                   template: '<div ui-view class="fade-in-up"></div>',
                   ncyBreadcrumb: {
                     label: 'UI'
-                  },
-                  redirectTo: 'app.ui.buttons',
+                  }
               })
               .state('app.ui.buttons', {
                   url: '/buttons',
@@ -201,12 +199,12 @@ angular.module('app')
               })
               // table
               .state('app.table', {
+                  abstract: '.static',
                   url: '/table',
                   template: '<div ui-view></div>',
                   ncyBreadcrumb: {
                     label: 'Table'
-                  },
-                  redirectTo: 'app.table.static'
+                  }
               })
               .state('app.table.static', {
                   url: '/static',
@@ -256,13 +254,13 @@ angular.module('app')
               })
               // form
               .state('app.form', {
+                  abstract: '.elements',
                   url: '/form',
                   template: '<div ui-view class="fade-in"></div>',
                   resolve: load('js/controllers/form.js'),
                   ncyBreadcrumb: {
                     label: 'Form'
-                  },
-                  redirectTo: 'app.form.elements'
+                  }
               })
               .state('app.form.components', {
                   url: '/components',
@@ -356,12 +354,12 @@ angular.module('app')
               })
               // pages
               .state('app.page', {
+                  abstract: '.profile',
                   url: '/page',
                   template: '<div ui-view class="fade-in-down"></div>',
                   ncyBreadcrumb: {
                     label: 'Page'
-                  },
-                  redirectTo: 'app.page.profile'
+                  }
               })
               .state('app.page.profile', {
                   url: '/profile',
@@ -414,12 +412,12 @@ angular.module('app')
                   }
               })
               .state('access', {
+                  abstract: '.signin',
                   url: '/access',
                   template: '<div ui-view class="fade-in-right-big smooth"></div>',
                   ncyBreadcrumb: {
                     label: 'Access'
-                  },
-                  redirectTo: 'app.signin'
+                  }
               })
               .state('access.signin', {
                   url: '/signin',
@@ -465,15 +463,14 @@ angular.module('app')
 
               // mail
               .state('app.mail', {
-                  //abstract: true,
+                  abstract: '.list',
                   url: '/mail',
                   templateUrl: 'tpl/mail.html',
                   // use resolve to load other dependences
                   resolve: load( ['js/app/mail/mail.js','js/app/mail/mail-service.js','moment'] ),
                   ncyBreadcrumb: {
                     label: 'Mail'
-                  },
-                  redirectTo: 'app.mail.list'
+                  }
               })
               .state('app.mail.list', {
                   url: '/inbox/{fold}',
@@ -500,13 +497,12 @@ angular.module('app')
               })
 
               .state('layout', {
-                  //abstract: true,
+                  abstract: '.fullwidth',
                   url: '/layout',
                   templateUrl: 'tpl/layout.html',
                   ncyBreadcrumb: {
                     label: 'Layout'
-                  },
-                  redirectTo: 'layout.fullwidth'
+                  }
               })
               .state('layout.fullwidth', {
                   url: '/fullwidth',
@@ -553,13 +549,12 @@ angular.module('app')
                   }
               })
               .state('apps', {
-                  //abstract: true,
+                  abstract: '.note',
                   url: '/apps',
                   templateUrl: 'tpl/layout.html',
                   ncyBreadcrumb: {
                     label: 'Apps'
-                  },
-                  redirectTo: 'app.note'
+                  }
               })
               .state('apps.note', {
                   url: '/note',
@@ -609,6 +604,7 @@ angular.module('app')
                   }
               })
               .state('music', {
+                  abstract: '.home',
                   url: '/music',
                   templateUrl: 'tpl/music.html',
                   controller: 'MusicCtrl',
@@ -624,8 +620,7 @@ angular.module('app')
                           ]),
                   ncyBreadcrumb: {
                     label: 'Music'
-                  },
-                  redirectTo: 'music.home'
+                  }
               })
               .state('music.home', {
                   url: '/home',
@@ -670,13 +665,13 @@ angular.module('app')
                   }
               })
               .state('app.material', {
+                  abstract: '.buttons',
                   url: '/material',
                   template: '<div ui-view class="wrapper-md"></div>',
                   resolve: load(['js/controllers/material.js']),
                   ncyBreadcrumb: {
                     label: 'Material'
-                  },
-                  redirectTo: 'app.material.buttons'
+                  }
               })
               .state('app.material.button', {
                   url: '/button',
