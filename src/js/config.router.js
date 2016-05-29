@@ -48,7 +48,8 @@ angular.module('app')
                   },
                   menu: {
                     name: 'Dashboard',
-                    icon: 'glyphicon-stats text-primary-dker'
+                    icon: 'glyphicon-stats text-primary-dker',
+                    tag: 'Navigation'
                   }
               })
               .state('app.dashboard-v1', {
@@ -124,7 +125,8 @@ angular.module('app')
                   redirectTo: 'app.ui.buttons',
                   menu: {
                     name: 'UI Kits',
-                    icon: 'glyphicon-briefcase'
+                    icon: 'glyphicon-briefcase',
+                    tag: 'Components'
                   }
               })
               .state('app.ui.buttons', {
@@ -271,7 +273,8 @@ angular.module('app')
                   },
                   menu: {
                     name: 'Chart',
-                    icon: 'glyphicon-signal'
+                    icon: 'glyphicon-signal',
+                    tag: 'Components'
                   }
               })
               // table
@@ -284,7 +287,8 @@ angular.module('app')
                   redirectTo: 'app.table.static',
                   menu: {
                     name: 'Table',
-                    icon: 'glyphicon-list'
+                    icon: 'glyphicon-list',
+                    tag: 'Components'
                   }
               })
               .state('app.table.static', {
@@ -362,7 +366,8 @@ angular.module('app')
                   redirectTo: 'app.form.elements',
                   menu: {
                     name: 'Form',
-                    icon: 'glyphicon-edit'
+                    icon: 'glyphicon-edit',
+                    tag: 'Components'
                   }
               })
               .state('app.form.components', {
@@ -495,7 +500,8 @@ angular.module('app')
                   redirectTo: 'app.page.profile',
                   menu: {
                     name: 'Page',
-                    icon: 'glyphicon-file'
+                    icon: 'glyphicon-file',
+                    tag: 'Components'
                   }
               })
               .state('app.page.profile', {
@@ -612,7 +618,9 @@ angular.module('app')
                     label: 'Calendar'
                   },
                   menu: {
-                    name: 'Calendar'
+                    name: 'Calendar',
+                    icon: 'glyphicon-calendar text-info-dker',
+                    tag: 'Navigation'
                   }
               })
 
