@@ -19,10 +19,10 @@ angular.module('app')
           if(window.location.href.indexOf("material") > 0){
             layout = "tpl/blocks/material.layout.html";
             $urlRouterProvider
-              .otherwise('/app/dashboard-v3');
+              .otherwise('/app/dashboard/dashboard-v3');
           }else{
             $urlRouterProvider
-              .otherwise('/app/dashboard-v1');
+              .otherwise('/app/dashboard/dashboard-v1');
           }
           
           $stateProvider
@@ -38,18 +38,33 @@ angular.module('app')
                   },
                   ncyBreadcrumb: {
                     label: 'Home'
+                  }
+              })
+              .state('app.dashboard', {
+                  url: '/dashboard',
+                  template: "<div ui-view></div>",
+                  ncyBreadcrumb: {
+                    label: 'Dashboard'
                   },
-                  redirectTo: 'app.dashboard-v1'
+                  menu: {
+                    name: 'Dashboard',
+                    icon: 'glyphicon-stats text-primary-dker'
+                  }
               })
               .state('app.dashboard-v1', {
+                  parent: 'app.dashboard',
                   url: '/dashboard-v1',
                   templateUrl: 'tpl/app_dashboard_v1.html',
                   resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js']),
                   ncyBreadcrumb: {
                     label: 'Dashboard V1'
+                  },
+                  menu: {
+                    name: 'Dashboard v1'
                   }
               })
               .state('app.dashboard-v2', {
+                  parent: 'app.dashboard',
                   url: '/dashboard-v2',
                   templateUrl: 'tpl/app_dashboard_v2.html',
                   resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js']),
@@ -58,17 +73,27 @@ angular.module('app')
                   },
                   ncyBreadcrumb: {
                     label: 'Dashboard V2'
+                  },
+                  menu: {
+                    name: 'Dashboard V2',
+                    isNew: true
                   }
               })
               .state('app.dashboard-v3', {
+                  parent: 'app.dashboard',
                   url: '/dashboard-v3',
                   templateUrl: 'tpl/app_dashboard_v3.html',
                   resolve: load(['js/controllers/dashboard.js','js/controllers/chart.js']),
                   ncyBreadcrumb: {
                     label: 'Dashboard V3'
+                  },
+                  menu: {
+                    name: 'Dashboard v3',
+                    hidden: true
                   }
               })
               .state('app.dashboard-v4', {
+                  parent: 'app.dashboard',
                   url: '/dashboard-v4',
                   templateUrl: 'tpl/app_dashboard_v4.html',
                   resolve: load([
@@ -84,6 +109,9 @@ angular.module('app')
                     }),
                   ncyBreadcrumb: {
                     label: 'Dashboard V4'
+                  },
+                  menu: {
+                    name: 'Dashboard V4'
                   }
               })
               .state('app.ui', {
@@ -94,12 +122,19 @@ angular.module('app')
                     label: 'UI'
                   },
                   redirectTo: 'app.ui.buttons',
+                  menu: {
+                    name: 'UI Kits',
+                    icon: 'glyphicon-briefcase'
+                  }
               })
               .state('app.ui.buttons', {
                   url: '/buttons',
                   templateUrl: 'tpl/ui_buttons.html',
                   ncyBreadcrumb: {
                     label: 'Buttons'
+                  },
+                  menu: {
+                    name: 'Buttons'
                   }
               })
               .state('app.ui.icons', {
@@ -107,6 +142,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_icons.html',
                   ncyBreadcrumb: {
                     label: 'Icons'
+                  },
+                  menu: {
+                    name: 'Icons'
                   }
               })
               .state('app.ui.grid', {
@@ -114,6 +152,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_grid.html',
                   ncyBreadcrumb: {
                     label: 'Grid'
+                  },
+                  menu: {
+                    name: 'Grid'
                   }
               })
               .state('app.ui.widgets', {
@@ -121,6 +162,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_widgets.html',
                   ncyBreadcrumb: {
                     label: 'Widgets'
+                  },
+                  menu: {
+                    name: 'Widgets'
                   }
               })          
               .state('app.ui.bootstrap', {
@@ -128,6 +172,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_bootstrap.html',
                   ncyBreadcrumb: {
                     label: 'Bootstrap'
+                  },
+                  menu: {
+                    name: 'Bootstrap'
                   }
               })
               .state('app.ui.sortable', {
@@ -135,6 +182,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_sortable.html',
                   ncyBreadcrumb: {
                     label: 'Sortable'
+                  },
+                  menu: {
+                    name: 'Sortable'
                   }
               })
               .state('app.ui.scroll', {
@@ -143,6 +193,9 @@ angular.module('app')
                   resolve: load('js/controllers/scroll.js'),
                   ncyBreadcrumb: {
                     label: 'Scroll'
+                  },
+                  menu: {
+                    name: 'Scroll'
                   }
               })
               .state('app.ui.portlet', {
@@ -150,6 +203,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_portlet.html',
                   ncyBreadcrumb: {
                     label: 'Portlet'
+                  },
+                  menu: {
+                    name: 'Portlet'
                   }
               })
               .state('app.ui.timeline', {
@@ -157,6 +213,9 @@ angular.module('app')
                   templateUrl: 'tpl/ui_timeline.html',
                   ncyBreadcrumb: {
                     label: 'Timeline'
+                  },
+                  menu: {
+                    name: 'TimeLine'
                   }
               })
               .state('app.ui.tree', {
@@ -165,6 +224,9 @@ angular.module('app')
                   resolve: load(['angularBootstrapNavTree', 'js/controllers/tree.js']),
                   ncyBreadcrumb: {
                     label: 'Tree'
+                  },
+                  menu: {
+                    name: 'Tree'
                   }
               })
               .state('app.ui.toaster', {
@@ -173,6 +235,9 @@ angular.module('app')
                   resolve: load(['toaster', 'js/controllers/toaster.js']),
                   ncyBreadcrumb: {
                     label: 'Toaster'
+                  },
+                  menu: {
+                    name: 'Toaster'
                   }
               })
               .state('app.ui.jvectormap', {
@@ -181,6 +246,9 @@ angular.module('app')
                   resolve: load('js/controllers/vectormap.js'),
                   ncyBreadcrumb: {
                     label: 'Vector Map'
+                  },
+                  menu: {
+                    name: 'Vector Map'
                   }
               })
               .state('app.ui.googlemap', {
@@ -189,6 +257,9 @@ angular.module('app')
                   resolve: load(['js/app/map/load-google-maps.js', 'js/app/map/ui-map.js', 'js/app/map/map.js'], function(){ return loadGoogleMaps(); }),
                   ncyBreadcrumb: {
                     label: 'Google Map'
+                  },
+                  menu: {
+                    name: 'Google Map'
                   }
               })
               .state('app.chart', {
@@ -197,6 +268,10 @@ angular.module('app')
                   resolve: load(['echarts', 'js/controllers/chart.js']),
                   ncyBreadcrumb: {
                     label: 'Chart'
+                  },
+                  menu: {
+                    name: 'Chart',
+                    icon: 'glyphicon-signal'
                   }
               })
               // table
@@ -206,13 +281,20 @@ angular.module('app')
                   ncyBreadcrumb: {
                     label: 'Table'
                   },
-                  redirectTo: 'app.table.static'
+                  redirectTo: 'app.table.static',
+                  menu: {
+                    name: 'Table',
+                    icon: 'glyphicon-list'
+                  }
               })
               .state('app.table.static', {
                   url: '/static',
                   templateUrl: 'tpl/table_static.html',
                   ncyBreadcrumb: {
                     label: 'Table Static'
+                  },
+                  menu: {
+                    name: 'Table Static'
                   }
               })
               .state('app.table.datatable', {
@@ -220,6 +302,9 @@ angular.module('app')
                   templateUrl: 'tpl/table_datatable.html',
                   ncyBreadcrumb: {
                     label: 'Datatable'
+                  },
+                  menu: {
+                    name: 'Datatable'
                   }
               })
               .state('app.table.footable', {
@@ -227,6 +312,9 @@ angular.module('app')
                   templateUrl: 'tpl/table_footable.html',
                   ncyBreadcrumb: {
                     label: 'Footable'
+                  },
+                  menu: {
+                    name: 'Footable'
                   }
               })
               .state('app.table.uigrid', {
@@ -235,6 +323,9 @@ angular.module('app')
                   resolve: load(['ui.grid','js/controllers/uigrid.js']),
                   ncyBreadcrumb: {
                     label: 'Grid'
+                  },
+                  menu: {
+                    name: 'Grid'
                   }
               })
               .state('app.table.editable', {
@@ -244,6 +335,9 @@ angular.module('app')
                   resolve: load(['xeditable','js/controllers/xeditable.js']),
                   ncyBreadcrumb: {
                     label: 'Editable'
+                  },
+                  menu: {
+                    name: 'Editable'
                   }
               })
               .state('app.table.smart', {
@@ -252,6 +346,9 @@ angular.module('app')
                   resolve: load(['smart-table','js/controllers/table.js']),
                   ncyBreadcrumb: {
                     label: 'Smart Table'
+                  },
+                  menu: {
+                    name: 'Smart Table'
                   }
               })
               // form
@@ -262,7 +359,11 @@ angular.module('app')
                   ncyBreadcrumb: {
                     label: 'Form'
                   },
-                  redirectTo: 'app.form.elements'
+                  redirectTo: 'app.form.elements',
+                  menu: {
+                    name: 'Form',
+                    icon: 'glyphicon-edit'
+                  }
               })
               .state('app.form.components', {
                   url: '/components',
@@ -270,6 +371,9 @@ angular.module('app')
                   resolve: load(['ngBootstrap','daterangepicker','js/controllers/form.components.js']),
                   ncyBreadcrumb: {
                     label: 'Form Components'
+                  },
+                  menu: {
+                    name: 'Form Components'
                   }
               })
               .state('app.form.elements', {
@@ -277,6 +381,9 @@ angular.module('app')
                   templateUrl: 'tpl/form_elements.html',
                   ncyBreadcrumb: {
                     label: 'Form Elements'
+                  },
+                  menu: {
+                    name: 'Form Elements'
                   }
               })
               .state('app.form.validation', {
@@ -284,6 +391,9 @@ angular.module('app')
                   templateUrl: 'tpl/form_validation.html',
                   ncyBreadcrumb: {
                     label: 'Form Validation'
+                  },
+                  menu: {
+                    name: 'Form Validation'
                   }
               })
               .state('app.form.wizard', {
@@ -291,6 +401,9 @@ angular.module('app')
                   templateUrl: 'tpl/form_wizard.html',
                   ncyBreadcrumb: {
                     label: 'Form Wizard'
+                  },
+                  menu: {
+                    name: 'Form Wizard'
                   }
               })
               .state('app.form.fileupload', {
@@ -308,6 +421,9 @@ angular.module('app')
                   }),
                   ncyBreadcrumb: {
                     label: 'File Upload'
+                  },
+                  menu: {
+                    name: 'File Upload'
                   }
               })
               .state('app.form.imagecrop', {
@@ -316,6 +432,9 @@ angular.module('app')
                   resolve: load(['ngImgCrop','js/controllers/imgcrop.js']),
                   ncyBreadcrumb: {
                     label: 'Image Crop'
+                  },
+                  menu: {
+                    name: 'Image Crop'
                   }
               })
               .state('app.form.select', {
@@ -325,6 +444,9 @@ angular.module('app')
                   resolve: load(['ui.select','js/controllers/select.js']),
                   ncyBreadcrumb: {
                     label: 'Select'
+                  },
+                  menu: {
+                    name: 'Select'
                   }
               })
               .state('app.form.slider', {
@@ -334,6 +456,9 @@ angular.module('app')
                   resolve: load(['vr.directives.slider','js/controllers/slider.js']),
                   ncyBreadcrumb: {
                     label: 'Slider'
+                  },
+                  menu: {
+                    name: 'Slider'
                   }
               })
               .state('app.form.editor', {
@@ -343,6 +468,9 @@ angular.module('app')
                   resolve: load(['ckeditor', 'ueditor', 'js/controllers/editor.js']),
                   ncyBreadcrumb: {
                     label: 'Editor'
+                  },
+                  menu: {
+                    name: 'Editor'
                   }
               })
               .state('app.form.xeditable', {
@@ -352,6 +480,9 @@ angular.module('app')
                   resolve: load(['xeditable','js/controllers/xeditable.js']),
                   ncyBreadcrumb: {
                     label: 'Xeditable'
+                  },
+                  menu: {
+                    name: 'Xeditable'
                   }
               })
               // pages
@@ -361,13 +492,20 @@ angular.module('app')
                   ncyBreadcrumb: {
                     label: 'Page'
                   },
-                  redirectTo: 'app.page.profile'
+                  redirectTo: 'app.page.profile',
+                  menu: {
+                    name: 'Page',
+                    icon: 'glyphicon-file'
+                  }
               })
               .state('app.page.profile', {
                   url: '/profile',
                   templateUrl: 'tpl/page_profile.html',
                   ncyBreadcrumb: {
                     label: 'Profile'
+                  },
+                  menu: {
+                    name: 'Profile'
                   }
               })
               .state('app.page.post', {
@@ -375,6 +513,9 @@ angular.module('app')
                   templateUrl: 'tpl/page_post.html',
                   ncyBreadcrumb: {
                     label: 'Post'
+                  },
+                  menu: {
+                    name: 'Post'
                   }
               })
               .state('app.page.search', {
@@ -382,6 +523,9 @@ angular.module('app')
                   templateUrl: 'tpl/page_search.html',
                   ncyBreadcrumb: {
                     label: 'Search'
+                  },
+                  menu: {
+                    name: 'Search'
                   }
               })
               .state('app.page.invoice', {
@@ -389,6 +533,9 @@ angular.module('app')
                   templateUrl: 'tpl/page_invoice.html',
                   ncyBreadcrumb: {
                     label: 'Invoice'
+                  },
+                  menu: {
+                    name: 'Invoice'
                   }
               })
               .state('app.page.price', {
@@ -396,6 +543,9 @@ angular.module('app')
                   templateUrl: 'tpl/page_price.html',
                   ncyBreadcrumb: {
                     label: 'Price'
+                  },
+                  menu: {
+                    name: 'Price'
                   }
               })
               .state('app.docs', {
@@ -460,6 +610,9 @@ angular.module('app')
                   resolve: load(['moment','fullcalendar','ui.calendar','js/app/calendar/calendar.js']),
                   ncyBreadcrumb: {
                     label: 'Calendar'
+                  },
+                  menu: {
+                    name: 'Calendar'
                   }
               })
 
