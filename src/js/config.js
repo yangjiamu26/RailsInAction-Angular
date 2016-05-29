@@ -33,12 +33,7 @@ angular.module('app')
   .config(['$breadcrumbProvider', function($breadcrumbProvider) {
     $breadcrumbProvider.setOptions({
       //prefixStateName: '首页',
-      template: '<ol class="breadcrumb">' +
-            '<li ng-repeat="step in steps" ng-class="{active: $last}" ng-switch="$last || (step.abstract==true)">' +
-            '<a ng-switch-when="false" href="{{step.ncyBreadcrumbLink}}">{{step.ncyBreadcrumbLabel}}</a>' +
-            '<span ng-switch-when="true">{{step.ncyBreadcrumbLabel}}</span>' +
-            '</li>' +
-            '</ol>',
+      //template: 'bootstrap2'
       includeAbstract: true
     });
   }])
@@ -53,6 +48,14 @@ angular.module('app')
     $rootScope.$on('$stateChangeStart', function(evt, to, params) {
       if(to.ncyBreadcrumb && to.ncyBreadcrumb.label){
         $rootScope.$title = to.ncyBreadcrumb.label;
+      }
+      if (to.redirectTo) {
+        if(to.redirectTo != $state.$current.name){
+          evt.preventDefault();
+          $state.go(to.redirectTo, params, {location: 'replace'})
+        }else{
+          $state.go(to.redirectTo, params)
+        }
       }
     });    
 }]);
