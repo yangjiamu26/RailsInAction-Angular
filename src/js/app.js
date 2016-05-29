@@ -23,5 +23,7 @@ angular.module('app', [
     'oc.lazyLoad',
     'pascalprecht.translate',
     'ngMaterial',
-    'textAngular'
+    'textAngular',
+    
+    'com.tutsplus.ComparingFrontEndFrameworks'
 ]);
