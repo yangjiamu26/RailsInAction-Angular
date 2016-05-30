@@ -2,29 +2,22 @@
 
 /* Controllers */
   // signin controller
-app.controller('SigninFormController', ['$scope', '$http', '$state', 'auth', function($scope, $http, $state, auth) {
+app.controller('SigninFormController', ['$scope', '$state', 'auth', '$auth', function($scope, $state, auth, $auth) {
     $scope.user = {};
     $scope.authError = null;
+    $scope.roles = ["user", "admin"];
+    $scope.$on('auth:login-success', function(ev, user) {
+      user.roles = [ $scope.roles[user.role_id] ];
+      auth.login(user.authentication_token, user);
+      $state.go('app.dashboard-v1');
+    });
+    $scope.$on('auth:login-error', function(ev, reason) {
+      $scope.authError = reason.errors[0];
+    });
     $scope.login = function() {
-      $scope.authError = null;
-      // Try to login
-      $http.post('http://localhost:3000/users/sign_in.json', {user: {email: $scope.user.email, password: $scope.user.password}})
-      .then(function(response) {
-        if ( !response.data.authentication_token ) {
-          $scope.authError = 'Email or Password not right';
-        }else{
-          $scope.user.email = response.data.email;
-          $scope.user.roles = ["admin"];
-
-          if(response.data.authentication_token){
-            alert("登陆成功");
-            auth.login(response.data.authentication_token, $scope.user);
-            $state.go('app.dashboard-v1');
-          }
-        }
-      }, function(x) {
-        $scope.authError = 'Server Error';
-      });
+      $scope.authError = "";
+      $auth.submitLogin($scope.user);
     };
+
   }])
 ;

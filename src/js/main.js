@@ -3,8 +3,8 @@
 /* Controllers */
 
 angular.module('app')
-  .controller('AppCtrl', ['$scope', '$translate', '$localStorage', '$window', 'auth', 
-    function(              $scope,   $translate,   $localStorage,   $window, auth ) {
+  .controller('AppCtrl', ['$scope', '$translate', '$localStorage', '$window', 'auth', '$auth',
+    function(              $scope,   $translate,   $localStorage,   $window, auth, $auth) {
       // add 'ie' classes to html
       var isIE = !!navigator.userAgent.match(/MSIE/i);
       isIE && angular.element($window.document.body).addClass('ie');
@@ -74,7 +74,14 @@ angular.module('app')
       }
 
       $scope.logout = function(){
-        auth.logout();
+        $auth.signOut()
+        .then(function(resp) {
+          auth.logout();
+        })
+        .catch(function(resp) {
+          //still have bugs in /api/auth/sign_out
+          auth.logout();
+        });
       }
 
   }]);

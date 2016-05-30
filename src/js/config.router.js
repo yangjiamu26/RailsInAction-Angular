@@ -34,7 +34,7 @@ angular.module('app')
                     //*: any user, including both anonymous and authenticated users.
                     //?: anonymous users.
                     //@: authenticated users.
-                    roles: '*'
+                    roles: '@'
                   },
                   ncyBreadcrumb: {
                     label: 'Home'

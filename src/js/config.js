@@ -41,7 +41,7 @@ angular.module('app')
     authProvider.setLoginState("access.signin");
   }])
   .run(['auth', function(auth) {
-    //auth.initialize();
+    auth.initialize();
   }])
   .config(['$authProvider', function($authProvider) {
 
@@ -102,9 +102,6 @@ angular.module('app')
         return response.data;
       }
     });
-  }])
-  .run(['$auth', function($auth) {
-    //$auth.signOut();
   }])
   .run(['$rootScope', '$state', function($rootScope, $state) {
 
