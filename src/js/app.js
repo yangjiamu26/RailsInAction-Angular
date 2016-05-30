@@ -15,6 +15,7 @@ angular.module('app', [
     'LocalStorageModule',
     'ui.router',
     'ui.router.menus',
+    'ui.router.tabs',
     'ncy-angular-breadcrumb',
     'boundstate.auth',
     'ui.bootstrap',

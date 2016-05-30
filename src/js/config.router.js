@@ -546,11 +546,35 @@ angular.module('app')
               .state('app.page.search', {
                   url: '/search',
                   templateUrl: 'tpl/page_search.html',
+                  controller: 'SearchDemoCtrl',
+                  resolve: load("js/controllers/form.search.js"),
                   ncyBreadcrumb: {
                     label: 'Search'
                   },
                   menu: {
                     name: 'Search'
+                  },
+                  redirectTo: 'app.page.search.all'
+              })
+              .state('app.page.search.all', {
+                  url: '/all',
+                  templateUrl: 'tpl/page_search_all.html',
+                  ncyBreadcrumb: {
+                    label: 'All'
+                  }
+              })
+              .state('app.page.search.users', {
+                  url: '/users',
+                  templateUrl: 'tpl/page_search_users.html',
+                  ncyBreadcrumb: {
+                    label: 'Users'
+                  }
+              })
+              .state('app.page.search.comments', {
+                  url: '/comments',
+                  templateUrl: 'tpl/page_search_comments.html',
+                  ncyBreadcrumb: {
+                    label: 'Comments'
                   }
               })
               .state('app.page.invoice', {
