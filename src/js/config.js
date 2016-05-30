@@ -58,4 +58,51 @@ angular.module('app')
         }
       }
     });    
-}]);
+  }])
+  .config(['IdleProvider', 'KeepaliveProvider', function(IdleProvider, KeepaliveProvider) {
+    // configure Idle settings
+    IdleProvider.idle(60); // in seconds
+    IdleProvider.timeout(10); // in seconds
+    KeepaliveProvider.interval(10); // in seconds
+  }])
+  .run(['$rootScope', '$state', 'Idle', function($rootScope, $state, Idle){
+    // start watching when the app runs. also starts the Keepalive service by default.
+    
+    $rootScope.stateWhenLocked = null;
+    $rootScope.$on('IdleStart', function() {
+        $rootScope.stateWhenLocked = $state.$current.name;
+        if($rootScope.stateWhenLocked=="lockme"){
+          $rootScope.stateWhenLocked = null;
+        }
+        // the user appears to have gone idle
+    });
+    $rootScope.$on('IdleWarn', function(e, countdown) {
+        // follows after the IdleStart event, but includes a countdown until the user is considered timed out
+        // the countdown arg is the number of seconds remaining until then.
+        // you can change the title or display a warning dialog from here.
+        // you can let them resume their session by calling Idle.watch()
+    });
+    $rootScope.$on('IdleTimeout', function() {
+        // the user has timed out (meaning idleDuration + timeout has passed without any activity)
+        // this is where you'd log them
+        $state.go("lockme");
+    });
+    $rootScope.$on('IdleEnd', function() {
+        // the user has come back from AFK and is doing stuff. if you are warning them, you can use this to hide the dialog
+    });
+    $rootScope.$on('Keepalive', function() {
+        // do something to keep the user's session alive
+    });
+
+    $rootScope.unlock = function(){
+      if($rootScope.stateWhenLocked){
+        $state.go($rootScope.stateWhenLocked);
+      }else{
+        $state.go("app");
+      }
+      Idle.watch();      
+    }
+
+    Idle.watch();
+
+  }]);

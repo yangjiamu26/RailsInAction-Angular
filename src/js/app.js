@@ -26,6 +26,7 @@ angular.module('app', [
     'ngMaterial',
     'textAngular',
     'angular.filter',
+    'ngIdle',
     
     'com.tutsplus.ComparingFrontEndFrameworks'
 ]);

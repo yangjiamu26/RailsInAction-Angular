@@ -38,7 +38,8 @@ angular.module('app')
                   },
                   ncyBreadcrumb: {
                     label: 'Home'
-                  }
+                  },
+                  redirectTo: 'app.dashboard-v1'
               })
               .state('app.dashboard', {
                   url: '/dashboard',
@@ -50,7 +51,8 @@ angular.module('app')
                     name: 'Dashboard',
                     icon: 'glyphicon-stats text-primary-dker',
                     tag: 'Navigation'
-                  }
+                  },
+                  redirectTo: 'app.dashboard-v1'
               })
               .state('app.dashboard-v1', {
                   parent: 'app.dashboard',
