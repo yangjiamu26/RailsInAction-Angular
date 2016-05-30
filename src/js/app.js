@@ -18,6 +18,7 @@ angular.module('app', [
     'ui.router.tabs',
     'ncy-angular-breadcrumb',
     'boundstate.auth',
+    'ng-token-auth',
     'ui.bootstrap',
     'ui.router.modal',
     'ui.utils',
