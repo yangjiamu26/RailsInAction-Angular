@@ -94,40 +94,32 @@
     };
   }])
   ; 
-  app.controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', function($scope, $uibModalInstance, items) {
+  app.controller('ModalInstanceCtrl', ['$scope', 'items', 'itemIndex', '$state', function($scope, items, itemIndex, $state) {
     $scope.items = items;
     $scope.selected = {
-      item: $scope.items[0]
+      item: $scope.items[itemIndex]
     };
 
     $scope.ok = function () {
-      $uibModalInstance.close($scope.selected.item);
-    };
+      $state.go('^', {'itemIndex': $scope.items.indexOf($scope.selected.item)});
+    }
 
-    $scope.cancel = function () {
-      $uibModalInstance.dismiss('cancel');
-    };
+    $scope.close = function() {
+      $state.go('^');
+    }
   }])
   ; 
-  app.controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
+  app.controller('ModalDemoCtrl', ['$scope', '$log', '$state','$stateParams', function($scope, $log, $state, $stateParams) {
     $scope.items = ['item1', 'item2', 'item3'];
-    $scope.open = function (size) {
-      var modalInstance = $uibModal.open({
-        templateUrl: 'myModalContent.html',
-        controller: 'ModalInstanceCtrl',
-        size: size,
-        resolve: {
-          items: function () {
-            return $scope.items;
-          }
-        }
-      });
 
-      modalInstance.result.then(function (selectedItem) {
-        $scope.selected = selectedItem;
-      }, function () {
-        $log.info('Modal dismissed at: ' + new Date());
-      });
+    $scope.itemIndex = $stateParams.itemIndex || 0;
+    if($scope.itemIndex==-1){
+      $scope.itemIndex = 0;
+    }
+    $scope.selectedItem = $scope.items[$scope.itemIndex];
+
+    $scope.open = function (size) {
+      $state.go("app.ui.bootstrap.modal", {'itemIndex': $scope.itemIndex});
     };
   }])
   ; 

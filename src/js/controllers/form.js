@@ -3,7 +3,7 @@
 /* Controllers */
 
   // Form controller
-app.controller('FormDemoCtrl', ['$scope', function($scope) {
+app.controller('FormDemoCtrl', ['$scope', '$state', function($scope, $state) {
     $scope.notBlackListed = function(value) {
       var blacklist = ['bad@domain.com','verybad@domain.com'];
       return blacklist.indexOf(value) === -1;
@@ -38,5 +38,9 @@ app.controller('FormDemoCtrl', ['$scope', function($scope) {
 
     $scope.datePicker = function (start, end, label) {
       
+    }
+
+    $scope.open = function(){
+      $state.go("app.form.elements.modal");
     }
 }]);

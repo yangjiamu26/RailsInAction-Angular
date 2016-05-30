@@ -172,13 +172,27 @@ angular.module('app')
                   }
               })          
               .state('app.ui.bootstrap', {
-                  url: '/bootstrap',
+                  url: '/bootstrap?itemIndex',
                   templateUrl: 'tpl/ui_bootstrap.html',
                   ncyBreadcrumb: {
                     label: 'Bootstrap'
                   },
                   menu: {
                     name: 'Bootstrap'
+                  }
+              })
+              .state('app.ui.bootstrap.modal', {
+                  url: '/modal',
+                  modal: ['items', 'itemIndex'],
+                  templateUrl: 'tpl/modal.html',
+                  controller: 'ModalInstanceCtrl',
+                  resolve: {
+                    items: function(){
+                      return ['item1', 'item2', 'item3']
+                    },
+                    itemIndex: ['$stateParams', function($stateParams){
+                      return $stateParams.itemIndex;
+                    }]
                   }
               })
               .state('app.ui.sortable', {
@@ -393,6 +407,12 @@ angular.module('app')
                     name: 'Form Elements'
                   }
               })
+              .state('app.form.elements.modal', {
+                  url: '/modal',
+                  modal: true,
+                  size: 'lg',
+                  templateUrl: 'tpl/modal.form.html'
+              })              
               .state('app.form.validation', {
                   url: '/validation',
                   templateUrl: 'tpl/form_validation.html',

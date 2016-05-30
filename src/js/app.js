@@ -18,6 +18,7 @@ angular.module('app', [
     'ncy-angular-breadcrumb',
     'boundstate.auth',
     'ui.bootstrap',
+    'ui.router.modal',
     'ui.utils',
     'ui.load',
     'ui.jq',
@@ -27,6 +28,6 @@ angular.module('app', [
     'textAngular',
     'angular.filter',
     'ngIdle',
-    
+
     'com.tutsplus.ComparingFrontEndFrameworks'
 ]);
