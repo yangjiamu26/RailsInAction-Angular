@@ -25,6 +25,7 @@ angular.module('app', [
     'pascalprecht.translate',
     'ngMaterial',
     'textAngular',
+    'angular.filter',
     
     'com.tutsplus.ComparingFrontEndFrameworks'
 ]);
