@@ -511,9 +511,6 @@ angular.module('app')
                   templateUrl: 'tpl/page_profile.html',
                   ncyBreadcrumb: {
                     label: 'Profile'
-                  },
-                  menu: {
-                    name: 'Profile'
                   }
               })
               .state('app.page.post', {

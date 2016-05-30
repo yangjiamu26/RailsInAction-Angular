@@ -62,8 +62,8 @@ angular.module('app')
   .config(['IdleProvider', 'KeepaliveProvider', function(IdleProvider, KeepaliveProvider) {
     // configure Idle settings
     IdleProvider.idle(60); // in seconds
-    IdleProvider.timeout(10); // in seconds
-    KeepaliveProvider.interval(10); // in seconds
+    IdleProvider.timeout(60); // in seconds
+    KeepaliveProvider.interval(60); // in seconds
   }])
   .run(['$rootScope', '$state', 'Idle', function($rootScope, $state, Idle){
     // start watching when the app runs. also starts the Keepalive service by default.
