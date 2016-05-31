@@ -8,6 +8,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
         var is_v1 = (href.indexOf("is_v1") > -1);
         var is_v2 = (href.indexOf("is_v2") > -1);
         var is_v3 = (href.indexOf("is_v3") > -1);
+        var is_v4 = (href.indexOf("is_v4") > -1);
         var isMaterial = isAndroid || (href.indexOf("material") > -1);
 
         $scope.isAndroid = isAndroid;
@@ -15,6 +16,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
         $scope.is_v1 = is_v1;
         $scope.is_v2 = is_v2;
         $scope.is_v3 = is_v3;
+        $scope.is_v4 = is_v4;
 
         $scope.setColorTheme = function(color){
             $scope.color_theme = "theme-" + color;
@@ -58,9 +60,8 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
                 switch (page.name) {
                     case "ContactTabVC":
                         var linksView = '#view-contact';
-                        if(is_v1) linksView = "#view-contact-main";
-                        if(is_v2) linksView = ".view-main";
-                        if(is_v3) linksView = ".view-main";
+                        if(is_v1 || is_v4) linksView = "#view-contact-main";
+                        if(is_v2 || is_v3) linksView = ".view-main";
 
                         myApp.addView("#contact-tab1", {dynamicNavbar: false, domCache: true, linksView: linksView}).router.load({url: "UserListVC.html",     animatePages: false});
                         myApp.addView("#contact-tab2", {dynamicNavbar: false, domCache: true, linksView: linksView}).router.load({url: "GroupListVC.html",    animatePages: false});
@@ -97,7 +98,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
 
             myApp.addView('#view-login', {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'LoginVC.html',animatePages: false});
             
-            if (is_v1) {
+            if (is_v1 || is_v4) {
                 myApp.addView("#view-home-left",    {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-home-main"}).router.load({url: "HomeVC.html",animatePages: false});
                 myApp.addView("#view-work-left",    {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-work-main"}).router.load({url: "WorkVC.html",animatePages: false});
                 myApp.addView("#view-chat-left",    {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-chat-main"}).router.load({url: "ChatListVC.html",animatePages: false});
