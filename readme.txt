@@ -8,8 +8,6 @@ http://localhost/landing/index.html
 
 
 2: Documents locate "src/tpl/docs.html" or "http://localhost/src/index.html#/app/docs"
-online: http://flatfull.com/themes/angulr/angular/#/app/docs
-
 
 3: Use Grunt and Bower
 
