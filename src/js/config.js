@@ -41,7 +41,7 @@ angular.module('app')
     authProvider.setLoginState("access.signin");
   }])
   .run(['auth', function(auth) {
-    auth.initialize();
+    //auth.initialize();
   }])
   .config(['$authProvider', function($authProvider) {
 
@@ -49,7 +49,7 @@ angular.module('app')
     // will extend the defaults using angular.extend
 
     $authProvider.configure({
-      apiUrl:                  'http://localhost:3000/api',
+      apiUrl:                  'http://10.10.114.43:3000/api',
       tokenValidationPath:     '/auth/validate_token',
       signOutUrl:              '/auth/sign_out',
       emailRegistrationPath:   '/auth',
