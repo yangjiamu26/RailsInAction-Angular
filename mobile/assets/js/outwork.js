@@ -4,14 +4,12 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     function($scope, $compile, $timeout, $location) {
 
         var href = document.location.href;
-        var isAndroid = (href.indexOf("android") > -1);
+        var isMaterial = (href.indexOf("material") > -1);
         var is_v1 = (href.indexOf("is_v1") > -1);
         var is_v2 = (href.indexOf("is_v2") > -1);
         var is_v3 = (href.indexOf("is_v3") > -1);
         var is_v4 = (href.indexOf("is_v4") > -1);
-        var isMaterial = isAndroid || (href.indexOf("material") > -1);
 
-        $scope.isAndroid = isAndroid;
         $scope.isMaterial = isMaterial;
         $scope.is_v1 = is_v1;
         $scope.is_v2 = is_v2;
@@ -90,8 +88,8 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
                         myApp.addView("#notice-tab3", {dynamicNavbar: false,domCache: true, linksView: '#view-work'}).router.load({url: "tpl/outwork/work/notice/NoticeListVC.html",animatePages: false});
                         break;
                     case "AttentionTabVC":
-                        myApp.addView("#attention-tab1", {dynamicNavbar: false,domCache: true, linksView: '#view-mine'}).router.load({url: "tpl/outwork/user/attention/AttentionListVC.html",animatePages: false});
-                        myApp.addView("#attention-tab2", {dynamicNavbar: false,domCache: true, linksView: '#view-mine'}).router.load({url: "tpl/outwork/user/attention/AttentionListVC.html",animatePages: false});
+                        myApp.addView("#attention-tab1", {dynamicNavbar: false,domCache: true, linksView: '#view-mine'}).router.load({url: "tpl/outwork/contact/attention/AttentionListVC.html",animatePages: false});
+                        myApp.addView("#attention-tab2", {dynamicNavbar: false,domCache: true, linksView: '#view-mine'}).router.load({url: "tpl/outwork/contact/attention/AttentionListVC.html",animatePages: false});
                         break;
                 }
             });
