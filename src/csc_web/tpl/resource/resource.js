@@ -1,41 +1,31 @@
 
-angular.module('app').controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
-  $scope.items = ['item1', 'item2', 'item3'];
-  $scope.open = function(size, url) {
 
-    var modalInstance = $uibModal.open({
-      templateUrl: url,
-      controller: 'ModalInstanceCtrl',
-      size: size,
-      resolve: {
-        items: function() {
-          return $scope.items;
-        }
+angular.module('app').controller('ResourceResourceCtrl', function($scope, $timeout) {
+
+
+    $scope.tabData   = [
+      {
+        heading: '云主机',
+        route:   'app.resource.resource.host'
+      },
+      {
+        heading: '云硬盘',
+        route:   'app.resource.resource.storage'
+      },
+      {
+        heading: '云模板',
+        route:   'app.resource.resource.template'
+      },
+      {
+        heading: '资源回收',
+        route:   'app.resource.resource.recovery'
+      },
+      {
+        heading: 'IP池',
+        route:   'app.resource.resource.ippool'
       }
-    });
+    ];
 
-    modalInstance.result.then(function(selectedItem) {
-      $scope.selected = selectedItem;
-    }, function() {
-      $log.info('Modal dismissed at: ' + new Date());
-    });
-  };
-}]);
-angular.module('app').controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', function($scope, $uibModalInstance, items) {
-  $scope.items = items;
-  $scope.selected = {
-    item: $scope.items[0]
-  };
-
-  $scope.ok = function() {
-    $uibModalInstance.close($scope.selected.item);
-  };
-
-  $scope.cancel = function() {
-    $uibModalInstance.dismiss('cancel');
-  };
-}]);
-angular.module('app').controller('AbnTestController', function($scope, $timeout) {
   $scope.ztreeSetting = {
     view: {
       selectedMulti: false

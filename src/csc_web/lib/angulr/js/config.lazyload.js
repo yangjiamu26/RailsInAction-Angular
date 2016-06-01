@@ -220,6 +220,14 @@ angular.module('app')
             'bower_components/zTree/js/jquery.ztree.all.min.js',
             'lib/zTree/ng-ztree.js'
         ]
+      },
+      {
+        name: 'jquery.steps',
+        files: [
+            'bower_components/jquery.steps/demo/css/jquery.steps.css',
+            'bower_components/jquery.steps/build/jquery.steps.js',
+            'lib/jquery.steps/ng.jquery.steps.js'
+        ]
       }
     ]
   )

@@ -20,12 +20,12 @@ angular.module('app')
               
           $stateProvider
           .state('app', {
-              abstract: true,
               url: '/app',
               templateUrl: 'tpl/blocks/app.html',
               ncyBreadcrumb: {
                 label: '首页'
-              }
+              },
+              redirectTo: 'app.home'
           })
           .state('app.home', {
               url: '/home',
@@ -50,12 +50,12 @@ angular.module('app')
           ********/
 
         .state('app.service', {
-          abstract: true,
           url: '/service',
           template: '<div id="app_service" ui-view></div>',
           ncyBreadcrumb: {
             label: '服务'
-          }
+          },
+          redirectTo: 'app.service.productlist.host'
         })
         .state('app.service.productlist', {
           url: '/productlist',
@@ -63,21 +63,66 @@ angular.module('app')
           ncyBreadcrumb: {
             label: '产品'
           },
-          resolve: load("tpl/service/productlist.js")
+          resolve: load("tpl/service/productlist.js"),
+          redirectTo: 'app.service.productlist.host'
+        })
+        .state('app.service.productlist.host', {
+          url: '/host',
+          templateUrl: 'tpl/service/productlist.host.html',
+          ncyBreadcrumb: {
+            label: '云主机'
+          }
+        })
+        .state('app.service.productlist.disk', {
+          url: '/disk',
+          templateUrl: 'tpl/service/productlist.disk.html',
+          ncyBreadcrumb: {
+            label: '云硬盘'
+          }
+        })
+        .state('app.service.productlist.host.online', {
+          modal: true,
+          url: '/online',
+          templateUrl: 'tpl/service/productlist.online.html',
+          ncyBreadcrumb: {
+            label: '产品上线'
+          }
+        })
+        .state('app.service.productlist.host.offline', {
+          modal: true,
+          url: '/offline',
+          templateUrl: 'tpl/service/productlist.offline.html',
+          ncyBreadcrumb: {
+            label: '产品下线'
+          }
+        })
+        .state('app.service.productlist.disk.online', {
+          modal: true,
+          url: '/online',
+          templateUrl: 'tpl/service/productlist.online.html',
+          ncyBreadcrumb: {
+            label: '产品上线'
+          }
+        })
+        .state('app.service.productlist.disk.offline', {
+          modal: true,
+          url: '/offline',
+          templateUrl: 'tpl/service/productlist.offline.html',
+          ncyBreadcrumb: {
+            label: '产品下线'
+          }
         })
         .state('app.service.product', {
           url: '/product',
           templateUrl: 'tpl/service/product.html',
-          controller: 'serviceProductCtrl',
           ncyBreadcrumb: {
-            label: '???'
+            label: '产品详情'
           },
-          resolve: load(['xeditable', 'angularBootstrapNavTree'])
+          resolve: load(['xeditable', 'angularBootstrapNavTree', 'tpl/service/product.js'])
         })
         .state('app.service.productlist-add-steps', {
           url: '/productlist-add-steps',
           templateUrl: 'tpl/service/productlist-add-steps.html',
-          controller: 'proAddStepsCtrl',
           ncyBreadcrumb: {
             label: '???'
           },
@@ -108,14 +153,16 @@ angular.module('app')
         .state('app.service.requis-steps', {
           url: '/requis-steps',
           templateUrl: 'tpl/service/requis-steps.html',
-          //controller:'appServiceRequisStepsCtrl',
-          resolve: load('ngJquerySteps')
+          ncyBreadcrumb: {
+            label: '申请'
+          },
+          resolve: load(['jquery.steps', 'tpl/service/requis-steps.js'])
         })
         .state('app.service.requis-custom-steps', {
           url: '/requis-custom-steps',
           templateUrl: 'tpl/service/requis-custom-steps.html',
           //controller:'appServiceRequisStepsCtrl',
-          resolve: load('ngJquerySteps')
+          resolve: load('jquery.steps')
         })
         .state('app.service.constructionlist', {
           url: '/constructionlist',
@@ -124,11 +171,29 @@ angular.module('app')
           ncyBreadcrumb: {
             label: '施工'
           },
-          resolve: load(['moment', 'daterangepicker', 'tpl/service/constructionlist.js'])
+          resolve: load(['moment', 'daterangepicker', 'tpl/service/constructionlist.js']),
+          redirectTo: 'app.service.constructionlist.virtual'
+        })
+        .state('app.service.constructionlist.virtual', {
+          url: '/virtual',
+          templateUrl: 'tpl/service/constructionlist.virtual.html',
+          ncyBreadcrumb: {
+            label: '虚资源施工'
+          }
+        })
+        .state('app.service.constructionlist.software', {
+          url: '/software',
+          templateUrl: 'tpl/service/constructionlist.software.html',
+          ncyBreadcrumb: {
+            label: '软件施工'
+          }
         })
         .state('app.service.construction', {
           url: '/construction',
-          templateUrl: 'tpl/service/construction.html'
+          templateUrl: 'tpl/service/construction.html',
+          ncyBreadcrumb: {
+            label: '施工详情'
+          }
         })
         .state('app.service.pricesetup', {
           url: '/pricesetup',
@@ -140,7 +205,6 @@ angular.module('app')
         .state('app.service.billlist', {
           url: '/billlist',
           templateUrl: 'tpl/service/billlist.html',
-          controller: 'serviceBillCtrl',
           ncyBreadcrumb: {
             label: '账单'
           }
@@ -176,10 +240,10 @@ angular.module('app')
         .state('app.service.loglist', {
           url: '/loglist',
           templateUrl: 'tpl/service/loglist.html',
-          controller: 'serviceLogCtrl',
           ncyBreadcrumb: {
             label: '安装日志'
-          }
+          },
+          resolve: load('tpl/service/loglist.js')
         })
 
         /********
@@ -193,32 +257,33 @@ angular.module('app')
           template: '<div class="app-content-body" ui-view></div>',
           ncyBreadcrumb: {
             label: '业务'
-          }
+          },
+          redirectTo: 'app.business.domain'
         })
         .state('app.business.domain', {
           url: '/domain',
           templateUrl: 'tpl/business/domain.html',
-          controller: 'businessZtreeController',
           ncyBreadcrumb: {
             label: '业务域'
           },
-          resolve: load('ztree')
+          resolve: load(['ztree', 'tpl/business/domain.js'])
         })
 
       .state('app.business.system', {
           url: '/system',
           templateUrl: 'tpl/business/system.html',
-          controller: 'businessZtreeController',
           ncyBreadcrumb: {
             label: '业务系统'
           },
-          resolve: load('ztree')
+          resolve: load(['ztree', 'tpl/business/system.js'])
         })
         .state('app.business.sysdetails', {
           url: '/sysdetails',
           templateUrl: 'tpl/business/sysdetails.html',
-          controller: 'businessZtreeController',
-          resolve: load('ztree')
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          },
+          resolve: load(['ztree', 'tpl/business/sysdetails.js'])
         })
 
 
@@ -230,88 +295,105 @@ angular.module('app')
 
         .state('app.resource', {
           url: '/resource',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          },
+          redirectTo: 'app.resource.resource.host'
         })
-        .state('app.resource.host', {
+        .state('app.resource.resource', {
+          url: '/resource',
+          templateUrl: 'tpl/resource/resource.html',
+          ncyBreadcrumb: {
+            label: '资产'
+          },
+          resolve: load('tpl/resource/resource.js'),
+          redirectTo: 'app.resource.resource.host'
+        })
+        .state('app.resource.resource.host', {
           url: '/host',
-          templateUrl: 'tpl/resource/host.html'
+          templateUrl: 'tpl/resource/resource.host.html',
+          ncyBreadcrumb: {
+            label: '云主机'
+          }
         })
-        .state('app.resource.storage', {
+        .state('app.resource.resource.storage', {
           url: '/storage',
-          templateUrl: 'tpl/resource/storage.html'
+          templateUrl: 'tpl/resource/resource.storage.html',
+          ncyBreadcrumb: {
+            label: '云硬盘'
+          }
         })
-        .state('app.resource.operationhost', {
-          url: '/operationhost',
-          templateUrl: 'tpl/resource/operationhost.html'
-        })
-        .state('app.resource.operationstorage', {
-          url: '/operationstorage',
-          templateUrl: 'tpl/resource/operationstorage.html'
-        })
-        .state('app.resource.template', {
+        .state('app.resource.resource.template', {
           url: '/template',
-          templateUrl: 'tpl/resource/template.html'
+          templateUrl: 'tpl/resource/resource.template.html',
+          ncyBreadcrumb: {
+            label: '模板'
+          }
         })
 
-      .state('app.resource.resourcesrecovery', {
+      .state('app.resource.resource.recovery', {
           url: '/resourcesrecovery',
-          templateUrl: 'tpl/resource/resourcesrecovery.html'
+          templateUrl: 'tpl/resource/resource.recovery.html',
+          ncyBreadcrumb: {
+            label: '资源回收'
+          }
         })
-        .state('app.resource.ippool', {
+        .state('app.resource.resource.ippool', {
           url: '/ippool',
-          templateUrl: 'tpl/resource/ippool.html'
+          templateUrl: 'tpl/resource/resource.ippool.html',
+          ncyBreadcrumb: {
+            label: 'IP池'
+          }
         })
         .state('app.resource.cabinettype', {
           url: '/cabinettype',
-          templateUrl: 'tpl/resource/cabinettype.html'
-        })
-        .state('app.resource.property', {
-          url: '/property',
-          templateUrl: 'tpl/resource/property.html',
-          controller: 'AbnTestController',
-          resolve: load('ztree')
-        })
-        .state('app.resource.computerroom', {
-          url: '/computerroom',
-          templateUrl: 'tpl/resource/computerroom.html',
-          controller: 'AbnTestController',
-          resolve: load('ztree')
-        })
-        .state('app.resource.hostlevel', {
-          url: '/hostlevel',
-          templateUrl: 'tpl/resource/hostlevel.html',
-          controller: 'AbnTestController',
-          resolve: load('ztree')
-        })
-        .state('app.resource.cabinet', {
-          url: '/cabinet',
-          templateUrl: 'tpl/resource/cabinet.html',
-          controller: 'AbnTestController',
-          resolve: load('ztree')
+          templateUrl: 'tpl/resource/cabinettype.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.cloudview', {
           url: '/cloudview',
-          templateUrl: 'tpl/resource/cloudview.html'
+          templateUrl: 'tpl/resource/cloudview.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.synthesizeview', {
           url: '/synthesizeview',
-          templateUrl: 'tpl/resource/synthesizeview.html'
+          templateUrl: 'tpl/resource/synthesizeview.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.mould', {
           url: '/mould',
-          templateUrl: 'tpl/resource/mould.html'
+          templateUrl: 'tpl/resource/mould.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.software', {
           url: '/software',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.software.install', {
           url: '/install',
-          templateUrl: 'tpl/resource/install.html'
+          templateUrl: 'tpl/resource/install.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })
         .state('app.resource.software.installlog', {
           url: '/installlog',
-          templateUrl: 'tpl/resource/install-log.html'
+          templateUrl: 'tpl/resource/install-log.html',
+          ncyBreadcrumb: {
+            label: '业务系统详情'
+          }
         })              
 
 
@@ -323,15 +405,26 @@ angular.module('app')
 
         .state('app.order', {
           url: '/order',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          redirectTo: 'app.order.backlogorder',
+          ncyBreadcrumb: {
+            label: '订单'
+          }
         })
         .state('app.order.backlogorder', {
           url: '/backlogorder',
-          templateUrl: 'tpl/order/backlogorder.html'
+          templateUrl: 'tpl/order/backlogorder.html',
+          ncyBreadcrumb: {
+            label: '待办订单'
+          },
+          resolve: load('tpl/order/backlogorder.js')
         })
         .state('app.order.myorder', {
           url: '/myorder',
-          templateUrl: 'tpl/order/myorder.html'
+          templateUrl: 'tpl/order/myorder.html',
+          ncyBreadcrumb: {
+            label: '我的订单'
+          }
         })
 
         /********
@@ -342,15 +435,25 @@ angular.module('app')
 
         .state('app.report', {
           url: '/report',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '报表'
+          },
+          redirectTo: 'app.report.businessreport'
         })
         .state('app.report.businessreport', {
           url: '/businessreport',
-          templateUrl: 'tpl/report/businessreport.html'
+          templateUrl: 'tpl/report/businessreport.html',
+          ncyBreadcrumb: {
+            label: '业务系统报表'
+          }
         })
         .state('app.report.vmreport', {
           url: '/vmreport',
-          templateUrl: 'tpl/report/vmreport.html'
+          templateUrl: 'tpl/report/vmreport.html',
+          ncyBreadcrumb: {
+            label: '虚拟机报表'
+          }
         })
 
 
@@ -361,20 +464,32 @@ angular.module('app')
         ********/       
 
         .state('app.monitor', {
-            url: '/monitor',
-            template: '<div class="app-content-body" ui-view></div>'
+          url: '/monitor',
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '监控'
+          }
         })
         .state('app.monitor.warning', {
-            url: '/warning',
-            templateUrl: 'tpl/monitor/warning.html'
+          url: '/warning',
+          templateUrl: 'tpl/monitor/warning.html',
+          ncyBreadcrumb: {
+            label: '告警'
+          }
         })
-        .state('app.monitor.notic', {
-            url: '/notic',
-            templateUrl: 'tpl/monitor/notic.html'
+        .state('app.monitor.notice', {
+          url: '/notice',
+          templateUrl: 'tpl/monitor/notice.html',
+          ncyBreadcrumb: {
+            label: '通知'
+          }
         })
         .state('app.monitor.log', {
-            url: '/log',
-            templateUrl: 'tpl/monitor/log.html'
+          url: '/log',
+          templateUrl: 'tpl/monitor/log.html',
+          ncyBreadcrumb: {
+            label: '操作日志'
+          }
         })
 
 
@@ -386,29 +501,47 @@ angular.module('app')
 
         .state('app.setting', {
           url: '/setting',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '操作日志'
+          }
         })
         .state('app.setting.organization', {
           url: '/organization',
           templateUrl: 'tpl/setting/organization.html',
-          resolve: load('ztree')
+          resolve: load(['ztree', 'tpl/setting/organization.js']),
+          ncyBreadcrumb: {
+            label: '组织结构'
+          }
         })
         .state('app.setting.user', {
           url: '/user',
           templateUrl: 'tpl/setting/user.html',
-          resolve: load('ztree')
+          resolve: load(['ztree', 'tpl/setting/user.js']),
+          ncyBreadcrumb: {
+            label: '用户'
+          }
         })
         .state('app.setting.role', {
           url: '/role',
-          templateUrl: 'tpl/setting/role.html'
+          templateUrl: 'tpl/setting/role.html',
+          ncyBreadcrumb: {
+            label: '角色'
+          }
         })
         .state('app.setting.config', {
           url: '/config',
-          templateUrl: 'tpl/setting/config.html'
+          templateUrl: 'tpl/setting/config.html',
+          ncyBreadcrumb: {
+            label: '配置'
+          }
         })
         .state('app.setting.dictionary', {
           url: '/dictionary',
-          templateUrl: 'tpl/setting/dictionary.html'
+          templateUrl: 'tpl/setting/dictionary.html',
+          ncyBreadcrumb: {
+            label: '字典'
+          }
         })
 
 

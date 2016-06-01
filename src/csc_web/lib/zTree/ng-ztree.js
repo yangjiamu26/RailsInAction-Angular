@@ -1,5 +1,5 @@
 'use strict';
-angular.module('ngZtree', []).directive('ngztree', function() {
+angular.module('ngZtree', []).directive('ngZtree', function() {
 	return {
 		restrict: 'E',
 		scope: {
@@ -7,7 +7,6 @@ angular.module('ngZtree', []).directive('ngztree', function() {
             data: "="
         },
 		link: function($scope, $element, $attrs) {
-			alert()
 			$element.append("<div class='ztree'></div>");
 			$.fn.zTree.init($element.find('div.ztree'), $scope.setting, $scope.data);
 		}
