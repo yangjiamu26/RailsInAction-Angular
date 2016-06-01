@@ -15,24 +15,17 @@ $(function(){
 		var demo_ajax_options = {
 			 'close_active': true,
 			 
-			 'default_url': 'page/index',//default hash
+			 'default_url': 'pages/dashboard',//default hash
 			 'content_url': function(hash) {
 				//***NOTE***
 				//this is for Ace demo only, you should change it to return a valid URL
 				//please refer to documentation for more info
-				if( hash.match(/^page_404\//) 
-				 || hash.match(/^page_forgotpwd\//) 
-				 || hash.match(/^page_lockme\//) 
-				 || hash.match(/^page_signin\//) 
-				 || hash.match(/^page_signup\//) ){
-					return false;
-				}
-				if( !hash.match(/^page\//) ) return false;
+				if( !hash.match(/^pages\//) ) return false;
 				var path = document.location.pathname;
 
 				//for example in Ace HTML demo version we convert /ajax/index.html#page/gallery to > /ajax/content/gallery.html and load it
-				if(path.match(/(ajax\/)(index\.html)?/))
-					return path.replace(/(ajax\/)(index\.html)?/, 'ajax/content/'+hash.replace(/^page\//, '')+'.html') ;
+				if(path.match(/(macroCloud\/)(index\.html)?/))
+					return path.replace(/(macroCloud\/)(index\.html)?/, 'macroCloud/pages/'+hash.replace(/^pages\//, '')+'.html') ;
 
 				//for example in Ace PHP demo version we convert "ajax.php#page/dashboard" to "ajax.php?page=dashboard" and load it
 				return path + "?" + hash.replace(/\//, "=");
