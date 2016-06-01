@@ -46,7 +46,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }
@@ -58,7 +58,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }
@@ -70,7 +70,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }
@@ -82,7 +82,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }

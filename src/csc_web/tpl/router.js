@@ -23,16 +23,9 @@ angular.module('app')
               abstract: true,
               url: '/app',
               templateUrl: 'tpl/blocks/app.html',
-              resolve: load([
-                "tpl/home/home.js",
-                "tpl/service/service.js",
-                "tpl/business/business.js",
-                "tpl/resource/resource.js",
-                "tpl/monitor/monitor.js",
-                "tpl/order/order.js",
-                "tpl/report/report.js",
-                "tpl/setting/setting.js"
-              ])
+              ncyBreadcrumb: {
+                label: '首页'
+              }
           })
 
           function load(srcs, callback) {

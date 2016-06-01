@@ -12,7 +12,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree').then(
+                return $ocLazyLoad.load('ztree').then(
                   function() {}
                 );
               }
@@ -25,7 +25,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree').then(
+                return $ocLazyLoad.load('ztree').then(
                   function() {}
                 );
               }

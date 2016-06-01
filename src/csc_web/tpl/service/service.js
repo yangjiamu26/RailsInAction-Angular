@@ -6,15 +6,24 @@ angular.module('app').config(
           abstract: true,
           url: '/service',
           template: '<div id="app_service" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '服务'
+          }
         })
         .state('app.service.productlist', {
           url: '/productlist',
           templateUrl: 'tpl/service/productlist.html',
+          ncyBreadcrumb: {
+            label: '产品'
+          }
         })
         .state('app.service.product', {
           url: '/product',
           templateUrl: 'tpl/service/product.html',
           controller: 'serviceProductCtrl',
+          ncyBreadcrumb: {
+            label: '???'
+          },
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
@@ -31,10 +40,13 @@ angular.module('app').config(
           url: '/productlist-add-steps',
           templateUrl: 'tpl/service/productlist-add-steps.html',
           controller: 'proAddStepsCtrl',
+          ncyBreadcrumb: {
+            label: '???'
+          },
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree').then(
+                return $ocLazyLoad.load('ztree').then(
                   function() {
                     return $ocLazyLoad.load('daterangepicker');
                   });
@@ -44,15 +56,24 @@ angular.module('app').config(
         })
         .state('app.service.requisition', {
           url: '/requisition',
-          templateUrl: 'tpl/service/requisition.html'
+          templateUrl: 'tpl/service/requisition.html',
+          ncyBreadcrumb: {
+            label: '我的申请单'
+          }
         })
         .state('app.service.requisitionlist', {
           url: '/requisitionlist',
-          templateUrl: 'tpl/service/requisitionlist.html'
+          templateUrl: 'tpl/service/requisitionlist.html',
+          ncyBreadcrumb: {
+            label: '申请服务'
+          }
         })
         .state('app.service.requisition-detailed', {
           url: '/requisition-detailed',
-          templateUrl: 'tpl/service/requisition-detailed.html'
+          templateUrl: 'tpl/service/requisition-detailed.html',
+          ncyBreadcrumb: {
+            label: '申请详情'
+          }
         })
         .state('app.service.requis-steps', {
           url: '/requis-steps',
@@ -90,6 +111,9 @@ angular.module('app').config(
           url: '/constructionlist',
           templateUrl: 'tpl/service/constructionlist.html',
           controller: 'serviceCstlCtrl',
+          ncyBreadcrumb: {
+            label: '施工'
+          },
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
@@ -104,33 +128,54 @@ angular.module('app').config(
         })
         .state('app.service.pricesetup', {
           url: '/pricesetup',
-          templateUrl: 'tpl/service/pricesetup.html'
+          templateUrl: 'tpl/service/pricesetup.html',
+          ncyBreadcrumb: {
+            label: '计费配置'
+          }
         })
         .state('app.service.billlist', {
           url: '/billlist',
           templateUrl: 'tpl/service/billlist.html',
-          controller: 'serviceBillCtrl'
+          controller: 'serviceBillCtrl',
+          ncyBreadcrumb: {
+            label: '账单'
+          }
         })
         .state('app.service.softwarelist', {
           url: '/softwarelist',
-          templateUrl: 'tpl/service/softwarelist.html'
+          templateUrl: 'tpl/service/softwarelist.html',
+          ncyBreadcrumb: {
+            label: '软件库'
+          }
         })
         .state('app.service.softwaretype', {
           url: '/softwaretype',
-          templateUrl: 'tpl/service/softwaretype.html'
+          templateUrl: 'tpl/service/softwaretype.html',
+          ncyBreadcrumb: {
+            label: '软件类型配置'
+          }
         })
         .state('app.service.scriptlist', {
           url: '/scriptlist',
-          templateUrl: 'tpl/service/scriptlist.html'
+          templateUrl: 'tpl/service/scriptlist.html',
+          ncyBreadcrumb: {
+            label: '脚本库'
+          }
         })
         .state('app.service.installlist', {
           url: '/installlist',
-          templateUrl: 'tpl/service/installlist.html'
+          templateUrl: 'tpl/service/installlist.html',
+          ncyBreadcrumb: {
+            label: '软件安装'
+          }
         })
         .state('app.service.loglist', {
           url: '/loglist',
           templateUrl: 'tpl/service/loglist.html',
-          controller: 'serviceLogCtrl'
+          controller: 'serviceLogCtrl',
+          ncyBreadcrumb: {
+            label: '安装日志'
+          }
         })
     }
   ]

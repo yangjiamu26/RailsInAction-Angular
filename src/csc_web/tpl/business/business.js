@@ -4,16 +4,22 @@ angular.module('app').config(
       $stateProvider
         .state('app.business', {
           url: '/business',
-          template: '<div class="app-content-body" ui-view></div>'
+          template: '<div class="app-content-body" ui-view></div>',
+          ncyBreadcrumb: {
+            label: '业务'
+          }
         })
         .state('app.business.domain', {
           url: '/domain',
           templateUrl: 'tpl/business/domain.html',
           controller: 'businessZtreeController',
+          ncyBreadcrumb: {
+            label: '业务域'
+          },
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }
@@ -23,10 +29,13 @@ angular.module('app').config(
           url: '/system',
           templateUrl: 'tpl/business/system.html',
           controller: 'businessZtreeController',
+          ncyBreadcrumb: {
+            label: '业务系统'
+          },
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }
@@ -38,7 +47,7 @@ angular.module('app').config(
           resolve: {
             deps: ['$ocLazyLoad',
               function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngZtree');
+                return $ocLazyLoad.load('ztree');
               }
             ]
           }

@@ -1,19 +1,3 @@
-angular.module('app').config(
-    [
-        '$stateProvider',
-        '$urlRouterProvider',
-        function($stateProvider, $urlRouterProvider) {
-            $stateProvider
-                .state('app.home', {
-                    url: '/home',
-                    templateUrl: 'tpl/home/index.html'
-                })
-                .state('app.customhome', {
-                    url: '/customhome',
-                    templateUrl: 'tpl/home/custom_index.html'
-                })
-        },
-    ]);
 angular.module('app').controller('homeCtrl', ['$scope', 'resStatistics', 'countOnIndex', 'expiredtodelete', 'areaResCount', 'productCount', function($scope, resStatistics, countOnIndex, expiredtodelete, areaResCount, productCount) {
     resStatistics.getResStatistics(function(data) {
         $scope.ResStatisticData = data;
