@@ -1,0 +1,76 @@
+  <div class="modal-dialog">
+  <form class="form-horizontal" id="form-register">    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">现在登记，送2000元优惠券</h4>
+      </div>
+      <div class="modal-body" style="padding-top:40px">
+        <div class="form-group">
+          <label class="col-xs-2 control-label">企业名称：</label>
+          <div class="col-xs-9"><input class="form-control validate[required]" id="companyName" type="text" /></div>
+          <div class="col-xs-1"><span class="red">*</span></div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-2 control-label">姓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：</label>
+          <div class="col-xs-9"><input class="form-control validate[required]" id="userName" type="text" /></div>
+          <div class="col-xs-1"><span class="red">*</span></div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-2 control-label">联系电话：</label>
+          <div class="col-xs-9"><input class="form-control validate[required,custom[phone]]" id="userPhone" type="text" /></div>
+          <div class="col-xs-1"><span class="red">*</span></div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-2 control-label">联系邮箱：</label>
+          <div class="col-xs-9"><input class="form-control validate[required,custom[email]]" id="userEmail" type="text" /></div>
+          <div class="col-xs-1"><span class="red">*</span></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:none;text-align:center">
+        <button type="submit" class="btn btn-danger" id="submitBtn" style="width:160px">发送优惠券短信</button>
+      </div>      
+    </div><!-- /.modal-content -->
+  </form>
+  </div><!-- /.modal-dialog -->
+  <script type="text/javascript">
+
+    $("#form-register").validationEngine({ 
+      scroll:false,
+      //binded:false,
+      //showArrow:false,
+      // promptPosition:"topLeft",
+      maxErrorsPerField:1,
+      showOneMessage:true,
+
+      onValidationComplete: function(form, status){
+        if(status)
+          $.ajax({
+            url:"http://10.10.111.205:803/micloud/customers/register",
+            type:"post",
+            data:{
+              "company":$("#companyName").val(),
+              "contact":$("#userName").val(),
+              "phone":$("#userPhone").val(),
+              "email":$("#userEmail").val()
+            },
+            success:function(data){
+              if(data == 200 || data == "200")
+                {
+                  alert("优惠券短信已发送，请查看手机短信！");
+                  $('#ajax-modal').modal('hide');
+                }
+              else
+                {
+                  alert("登记失败，请稍后再试！");
+                }
+            },
+            error:function(data){
+              alert("请求服务器失败！");
+            }
+          })
+      }  
+
+    });
+
+  </script>
