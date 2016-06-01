@@ -1,61 +1,4 @@
-angular.module('app').config(
-  ['$stateProvider', '$urlRouterProvider',
-    function($stateProvider, $urlRouterProvider) {
-      $stateProvider
-        .state('app.business', {
-          url: '/business',
-          template: '<div class="app-content-body" ui-view></div>',
-          ncyBreadcrumb: {
-            label: '业务'
-          }
-        })
-        .state('app.business.domain', {
-          url: '/domain',
-          templateUrl: 'tpl/business/domain.html',
-          controller: 'businessZtreeController',
-          ncyBreadcrumb: {
-            label: '业务域'
-          },
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ztree');
-              }
-            ]
-          }
-        })
-
-      .state('app.business.system', {
-          url: '/system',
-          templateUrl: 'tpl/business/system.html',
-          controller: 'businessZtreeController',
-          ncyBreadcrumb: {
-            label: '业务系统'
-          },
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ztree');
-              }
-            ]
-          }
-        })
-        .state('app.business.sysdetails', {
-          url: '/sysdetails',
-          templateUrl: 'tpl/business/sysdetails.html',
-          controller: 'businessZtreeController',
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ztree');
-              }
-            ]
-          }
-        })
-    }
-  ]
-);
-app.controller('businessZtreeController', function($scope, $timeout) {
+angular.module('app').controller('businessZtreeController', function($scope, $timeout) {
   $scope.ztreeSetting = {
     view: {
       selectedMulti: false
@@ -111,7 +54,7 @@ app.controller('businessZtreeController', function($scope, $timeout) {
   ];
 });
 
-app.controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', function($scope, $uibModalInstance, items) {
+angular.module('app').controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', function($scope, $uibModalInstance, items) {
   $scope.items = items;
   $scope.selected = {
     item: $scope.items[0]
@@ -126,7 +69,7 @@ app.controller('ModalInstanceCtrl', ['$scope', '$uibModalInstance', 'items', fun
   };
 }]);
 
-app.controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
+angular.module('app').controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
   $scope.items = ['item1', 'item2', 'item3'];
   $scope.open = function(size) {
     var modalInstance = $uibModal.open({

@@ -1,185 +1,3 @@
-angular.module('app').config(
-  ['$stateProvider', '$urlRouterProvider',
-    function($stateProvider, $urlRouterProvider) {
-      $stateProvider
-        .state('app.service', {
-          abstract: true,
-          url: '/service',
-          template: '<div id="app_service" ui-view></div>',
-          ncyBreadcrumb: {
-            label: '服务'
-          }
-        })
-        .state('app.service.productlist', {
-          url: '/productlist',
-          templateUrl: 'tpl/service/productlist.html',
-          ncyBreadcrumb: {
-            label: '产品'
-          }
-        })
-        .state('app.service.product', {
-          url: '/product',
-          templateUrl: 'tpl/service/product.html',
-          controller: 'serviceProductCtrl',
-          ncyBreadcrumb: {
-            label: '???'
-          },
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('xeditable').then(
-                  function() {
-                    return $ocLazyLoad.load('angularBootstrapNavTree');
-                  }
-                );
-              }
-            ]
-          }
-        })
-        .state('app.service.productlist-add-steps', {
-          url: '/productlist-add-steps',
-          templateUrl: 'tpl/service/productlist-add-steps.html',
-          controller: 'proAddStepsCtrl',
-          ncyBreadcrumb: {
-            label: '???'
-          },
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ztree').then(
-                  function() {
-                    return $ocLazyLoad.load('daterangepicker');
-                  });
-              }
-            ]
-          }
-        })
-        .state('app.service.requisition', {
-          url: '/requisition',
-          templateUrl: 'tpl/service/requisition.html',
-          ncyBreadcrumb: {
-            label: '我的申请单'
-          }
-        })
-        .state('app.service.requisitionlist', {
-          url: '/requisitionlist',
-          templateUrl: 'tpl/service/requisitionlist.html',
-          ncyBreadcrumb: {
-            label: '申请服务'
-          }
-        })
-        .state('app.service.requisition-detailed', {
-          url: '/requisition-detailed',
-          templateUrl: 'tpl/service/requisition-detailed.html',
-          ncyBreadcrumb: {
-            label: '申请详情'
-          }
-        })
-        .state('app.service.requis-steps', {
-          url: '/requis-steps',
-          templateUrl: 'tpl/service/requis-steps.html',
-          //controller:'appServiceRequisStepsCtrl',
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngJquerySteps').then(
-                  function() {
-                    //return $ocLazyLoad.load('appServiceRequisStepsCtrl');
-                  }
-                );
-              }
-            ]
-          }
-        })
-        .state('app.service.requis-custom-steps', {
-          url: '/requis-custom-steps',
-          templateUrl: 'tpl/service/requis-custom-steps.html',
-          //controller:'appServiceRequisStepsCtrl',
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('ngJquerySteps').then(
-                  function() {
-                    //return $ocLazyLoad.load('appServiceRequisStepsCtrl');
-                  }
-                );
-              }
-            ]
-          }
-        })
-        .state('app.service.constructionlist', {
-          url: '/constructionlist',
-          templateUrl: 'tpl/service/constructionlist.html',
-          controller: 'serviceCstlCtrl',
-          ncyBreadcrumb: {
-            label: '施工'
-          },
-          resolve: {
-            deps: ['$ocLazyLoad',
-              function($ocLazyLoad) {
-                return $ocLazyLoad.load('daterangepicker');
-              }
-            ]
-          }
-        })
-        .state('app.service.construction', {
-          url: '/construction',
-          templateUrl: 'tpl/service/construction.html'
-        })
-        .state('app.service.pricesetup', {
-          url: '/pricesetup',
-          templateUrl: 'tpl/service/pricesetup.html',
-          ncyBreadcrumb: {
-            label: '计费配置'
-          }
-        })
-        .state('app.service.billlist', {
-          url: '/billlist',
-          templateUrl: 'tpl/service/billlist.html',
-          controller: 'serviceBillCtrl',
-          ncyBreadcrumb: {
-            label: '账单'
-          }
-        })
-        .state('app.service.softwarelist', {
-          url: '/softwarelist',
-          templateUrl: 'tpl/service/softwarelist.html',
-          ncyBreadcrumb: {
-            label: '软件库'
-          }
-        })
-        .state('app.service.softwaretype', {
-          url: '/softwaretype',
-          templateUrl: 'tpl/service/softwaretype.html',
-          ncyBreadcrumb: {
-            label: '软件类型配置'
-          }
-        })
-        .state('app.service.scriptlist', {
-          url: '/scriptlist',
-          templateUrl: 'tpl/service/scriptlist.html',
-          ncyBreadcrumb: {
-            label: '脚本库'
-          }
-        })
-        .state('app.service.installlist', {
-          url: '/installlist',
-          templateUrl: 'tpl/service/installlist.html',
-          ncyBreadcrumb: {
-            label: '软件安装'
-          }
-        })
-        .state('app.service.loglist', {
-          url: '/loglist',
-          templateUrl: 'tpl/service/loglist.html',
-          controller: 'serviceLogCtrl',
-          ncyBreadcrumb: {
-            label: '安装日志'
-          }
-        })
-    }
-  ]
-)
 angular.module('app').controller('appServiceCtrl', ['$scope', function($scope) {
 
 }])
@@ -221,28 +39,7 @@ angular.module('app').controller('timePickerCtrl', ['$scope', function($scope) {
   $scope.formats = ['dd-MMMM-yyyy', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'];
   $scope.format = $scope.formats[0];
 }])
-angular.module('app').controller('proModalCtrl', ['$scope', '$uibModal', '$log', function($scope, $uibModal, $log) {
-  $scope.items = ['item1', 'item2', 'item3'];
-  $scope.open = function(url, size) {
-    var modalInstance = $uibModal.open({
-      //templateUrl: 'myModalContent.html',
-      templateUrl: url,
-      controller: 'ModalInstanceCtrl',
-      size: size,
-      resolve: {
-        items: function() {
-          return $scope.items;
-        }
-      }
-    });
 
-    modalInstance.result.then(function(selectedItem) {
-      $scope.selected = selectedItem;
-    }, function() {
-      $log.info('Modal dismissed at: ' + new Date());
-    });
-  };
-}])
 angular.module('app').controller('proAddStepsCtrl', ['$scope', '$timeout', function($scope, $timeout) {
   $scope.inputGroupSuccessTree = "none";
   $scope.showTree = function() {
@@ -379,17 +176,7 @@ angular.module('app').controller('serviceProductStorageListCtrl', ['$scope', '$f
     $scope.datas = data.services;
   });
 }])
-angular.module('app').controller('serviceServerHostListCtrl', ['$scope', '$filter', 'server', function($scope, $filter, server) {
-  server.getHostData(function(data) {
-    var Data = data.cloudHostServices;
-    _.map(Data, function(num, key) {
-      num.priceType = "小时计费";
-      num.parameter = num.cpuSize + "core/" + num.memorySize + "G/" + num.diskSize + "G";
-    });
-    $scope.datas = data.cloudHostServices;
 
-  });
-}])
 angular.module('app').controller('serviceProductCtrl', ['$scope', '$filter', function($scope, $filter) {
   $scope.serviceText = {
     text: '这是一个XX产品，它主要的功能是…………这是一个XX产品，它主要的功能是…………这是一个XX产品，它主要的功能是…………这是一个XX产品，它主要的功能是…………',
@@ -547,13 +334,7 @@ angular.module('app').controller('serviceProductCtrl', ['$scope', '$filter', fun
     });
   };
 }])
-angular.module('app').controller('serviceCstlCtrl', ['$scope', function($scope) {
-  $scope.switchFilter = function() {
-    $('.adv-filter-btn').toggleClass('filterhasbg');
-    $('.adv-filter-btn').find("span").toggleClass('rotate180');
-    $(".adv-filter").toggleClass('hide');
-  }
-}])
+
 angular.module('app').controller('serviceBillCtrl', ['$scope', function($scope) {
   $scope.switchFilter = function() {
     $('.adv-filter-btn').toggleClass('filterhasbg');

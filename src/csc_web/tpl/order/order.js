@@ -1,25 +1,4 @@
-angular.module('app').config(
-  [
-    '$stateProvider',
-    '$urlRouterProvider',
-    function($stateProvider, $urlRouterProvider) {
-      $stateProvider
-      $stateProvider
-        .state('app.order', {
-          url: '/order',
-          template: '<div class="app-content-body" ui-view></div>'
-        })
-        .state('app.order.backlogorder', {
-          url: '/backlogorder',
-          templateUrl: 'tpl/order/backlogorder.html'
-        })
-        .state('app.order.myorder', {
-          url: '/myorder',
-          templateUrl: 'tpl/order/myorder.html'
-        })
-    },
-  ]
-)
+
 app.controller('DatepickerDemoCtrl', ['$scope', function($scope) {
   $scope.today = function() {
     $scope.dt = new Date();
