@@ -523,6 +523,18 @@ angular.module('app')
                     name: 'Xeditable'
                   }
               })
+              .state('app.form.dynamicForm', {
+                  url: '/dynamicForm',
+                  templateUrl: 'tpl/components/form/form_dynamic.html',
+                  controller: 'DynamicFormCtrl',
+                  resolve: load(['dynamic-form','tpl/components/form/form_dynamic.js']),
+                  ncyBreadcrumb: {
+                    label: 'Dynamic Form'
+                  },
+                  menu: {
+                    name: 'Dynamic Form'
+                  }
+              })              
               // pages
               .state('app.page', {
                   url: '/page',
