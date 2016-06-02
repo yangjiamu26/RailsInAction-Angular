@@ -371,6 +371,17 @@ angular.module('app')
                     name: 'Smart Table'
                   }
               })
+              .state('app.table.objectTable', {
+                  url: '/objectTable',
+                  templateUrl: 'tpl/components/table/table_object.html',
+                  resolve: load(['object-table','tpl/components/table/table_object.js']),
+                  ncyBreadcrumb: {
+                    label: 'Object Table'
+                  },
+                  menu: {
+                    name: 'Object Table'
+                  }
+              })              
               // form
               .state('app.form', {
                   url: '/form',
