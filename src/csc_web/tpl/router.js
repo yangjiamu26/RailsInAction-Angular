@@ -25,6 +25,7 @@ angular.module('app')
               ncyBreadcrumb: {
                 label: '首页'
               },
+              resolve: load('moment'),
               redirectTo: 'app.home'
           })
           .state('app.home', {
@@ -51,119 +52,61 @@ angular.module('app')
 
         .state('app.service', {
           url: '/service',
-          template: '<div id="app_service" ui-view></div>',
+          template: '<div id="app_service" class="app-content-full with-ncy-breadcrumb" ui-view></div>',
           ncyBreadcrumb: {
             label: '服务'
           },
-          redirectTo: 'app.service.productlist.host'
-        })
-        .state('app.service.productlist', {
-          url: '/productlist',
-          templateUrl: 'tpl/service/productlist.html',
-          ncyBreadcrumb: {
-            label: '产品'
-          },
-          resolve: load("tpl/service/productlist.js"),
-          redirectTo: 'app.service.productlist.host'
-        })
-        .state('app.service.productlist.host', {
-          url: '/host',
-          templateUrl: 'tpl/service/productlist.host.html',
-          ncyBreadcrumb: {
-            label: '云主机'
-          }
-        })
-        .state('app.service.productlist.disk', {
-          url: '/disk',
-          templateUrl: 'tpl/service/productlist.disk.html',
-          ncyBreadcrumb: {
-            label: '云硬盘'
-          }
-        })
-        .state('app.service.productlist.host.online', {
-          modal: true,
-          url: '/online',
-          templateUrl: 'tpl/service/productlist.online.html',
-          ncyBreadcrumb: {
-            label: '产品上线'
-          }
-        })
-        .state('app.service.productlist.host.offline', {
-          modal: true,
-          url: '/offline',
-          templateUrl: 'tpl/service/productlist.offline.html',
-          ncyBreadcrumb: {
-            label: '产品下线'
-          }
-        })
-        .state('app.service.productlist.disk.online', {
-          modal: true,
-          url: '/online',
-          templateUrl: 'tpl/service/productlist.online.html',
-          ncyBreadcrumb: {
-            label: '产品上线'
-          }
-        })
-        .state('app.service.productlist.disk.offline', {
-          modal: true,
-          url: '/offline',
-          templateUrl: 'tpl/service/productlist.offline.html',
-          ncyBreadcrumb: {
-            label: '产品下线'
-          }
+          redirectTo: 'app.service.product'
         })
         .state('app.service.product', {
           url: '/product',
-          templateUrl: 'tpl/service/product.html',
+          templateUrl: 'tpl/product/index.html',
           ncyBreadcrumb: {
-            label: '产品详情'
+            label: '产品定义'
           },
-          resolve: load(['xeditable', 'angularBootstrapNavTree', 'tpl/service/product.js'])
+          resolve: load(['xeditable',"tpl/product/index.js"])
         })
-        .state('app.service.productlist-add-steps', {
-          url: '/productlist-add-steps',
-          templateUrl: 'tpl/service/productlist-add-steps.html',
+        .state('app.service.index', {
+          url: '/index',
+          templateUrl: 'tpl/service/index.html',
           ncyBreadcrumb: {
-            label: '???'
+            label: '服务管理'
           },
-          resolve: load(['ztree', 'daterangepicker'])
-        })
-        .state('app.service.requisition', {
-          url: '/requisition',
-          templateUrl: 'tpl/service/requisition.html',
+          resolve: load(["tpl/service/index.js"])
+        })        
+        .state('app.service.sales', {
+          url: '/sales',
+          templateUrl: 'tpl/service/sales.html',
           ncyBreadcrumb: {
-            label: '我的申请单'
-          }
+            label: '服务列表'
+          },
+          resolve: load("tpl/service/sales.js"),
+          redirectTo: 'app.service.sales.list'
         })
-        .state('app.service.requisitionlist', {
-          url: '/requisitionlist',
-          templateUrl: 'tpl/service/requisitionlist.html',
+        .state('app.service.sales.list', {
+          url: '/list/{fold}',
+          templateUrl: 'tpl/service/sales.list.html',
+          ncyBreadcrumb: {
+            label: '{{fold}}'
+          },
+          resolve: load("tpl/service/sales.list.js")
+        })
+        .state('app.service.cartnew', {
+          url: '/cartnew',
+          templateUrl: 'tpl/cart/new.html',
           ncyBreadcrumb: {
             label: '申请服务'
           },
-          resolve: load("tpl/service/requisitionlist.js")
+          resolve: load(['xeditable', 'tpl/cart/new.js'])
         })
-        .state('app.service.requisition-detailed', {
-          url: '/requisition-detailed',
-          templateUrl: 'tpl/service/requisition-detailed.html',
+        .state('app.service.cart', {
+          url: '/cart',
+          templateUrl: 'tpl/cart/list.html',
           ncyBreadcrumb: {
-            label: '申请详情'
+            label: '申请清单'
           }
         })
-        .state('app.service.requis-steps', {
-          url: '/requis-steps',
-          templateUrl: 'tpl/service/requis-steps.html',
-          ncyBreadcrumb: {
-            label: '申请'
-          },
-          resolve: load(['jquery.steps', 'tpl/service/requis-steps.js'])
-        })
-        .state('app.service.requis-custom-steps', {
-          url: '/requis-custom-steps',
-          templateUrl: 'tpl/service/requis-custom-steps.html',
-          //controller:'appServiceRequisStepsCtrl',
-          resolve: load('jquery.steps')
-        })
+
         .state('app.service.constructionlist', {
           url: '/constructionlist',
           templateUrl: 'tpl/service/constructionlist.html',

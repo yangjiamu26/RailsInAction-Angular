@@ -1,0 +1,126 @@
+<!-- hbox layout -->
+<div class="hbox hbox-auto-xs hbox-auto-sm bg-light " ng-init="
+  app.settings.asideFixed = true;
+  app.settings.asideDock = false;
+  app.settings.container = false;
+  app.hideAside = false;
+  app.hideFooter = true;
+  " ng-controller="ServiceIndexCtrl">
+
+  <!-- column -->
+  <div class="col w b-r">
+    <div class="vbox">
+      <div class="row-row">
+        <div class="cell scrollable hover">
+          <div class="cell-inner">
+            <div class="list-group no-radius no-border no-bg m-b-none">
+              <a class="list-group-item b-b" ng-class="{'focus': (filter == '')}" ng-click="selectGroup({name:''})">全部目录</a>
+              <a ng-repeat="item in groups" ng-dblclick="editItem(item)" class="list-group-item m-l hover-anchor b-a no-select" ng-class="{'focus m-l-none': item.selected}" ng-click="selectGroup(item)">
+                <span ng-click='deleteGroup(item)' class="pull-right text-muted hover-action"><i class="fa fa-times"></i></span>
+                <span class="block m-l-n" ng-class="{'m-n': item.selected }">{{ item.name ? item.name : 'Untitled' }}</span>
+                <input type="text" class="form-control pos-abt" ng-show="item.editing" ng-blur="doneEditing(item)" ng-model="item.name" style="top:3px;left:2px;width:98%" ui-focus="item.editing">
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wrapper b-t">
+        <span uib-tooltip="双击就可以进行修改" class="pull-right text-muted inline wrapper-xs m-r-sm"><i class="fa fa-question"></i></span>
+        <a href class="btn btn-sm btn-default" ng-click="createGroup()"><i class="fa fa-plus fa-fw m-r-xs"></i> 新增服务目录</a>
+      </div>
+    </div>
+  </div>
+  <!-- /column -->
+  <!-- column -->
+  <div class="col w-lg lter b-r">
+    <div class="vbox">
+      <div class="wrapper-xs b-b">
+        <div class="input-group m-b-xxs">
+          <span class="input-group-addon input-sm no-border no-bg"><i class="icon-magnifier text-md m-t-xxs"></i></span>
+          <input type="text" class="form-control input-sm no-border no-bg text-md" placeholder="在 {{group.name ? group.name : '全部目录'}} 中搜索" ng-model="query">
+        </div>
+      </div>
+      <div class="row-row">
+        <div class="cell scrollable hover">
+          <div class="cell-inner">
+            <div class="m-t-n-xxs">
+              <div class="list-group list-group-lg no-radius no-border no-bg m-b-none">
+                <a ng-repeat="item in items | filter:{group:filter} | filter:query | orderBy:'first'" class="list-group-item m-l" ng-class="{'select m-l-none': item.selected }" ng-click="selectItem(item)">
+                  <span class="block text-ellipsis m-l-n text-md" ng-class="{'m-l-none': item.selected }">
+                    {{ item.first }} <strong>{{ item.last }}</strong>
+                    <span ng-hide="item.first || item.last">No Name</span>
+                  </span>
+                </a>
+              </div>
+            </div>
+            <div class="text-center pos-abt w-full" style="top:50%;" ng-hide="(items | filter:{group:filter} | filter:query).length">No Contacts</div>
+          </div>
+        </div>
+      </div>
+      <div class="wrapper b-t text-center">
+        <a href class="btn btn-sm btn-info btn-addon" ng-click="createItem()"><i class="fa fa-plus fa-fw m-r-xs"></i> 新增服务</a>
+      </div>
+    </div>
+  </div>
+  <!-- /column -->
+
+  <!-- column -->
+  <div class="col bg-white-only">
+    <div class="vbox">
+      <div class="wrapper-sm b-b">
+        <div class="m-t-n-xxs m-b-n-xxs m-l-xs">
+          <a class="btn btn-xs btn-danger pull-right" ng-hide="!item" ng-click="deleteItem(item)"><i class="fa fa-times"></i> 删除</a>
+          <a class="btn btn-xs btn-default" ng-hide="item.editing" ng-click="editItem(item)">修改</a>
+          <a class="btn btn-xs btn-default" ng-show="item.editing" ng-click="doneEditing(item)">提交</a>
+        </div>
+      </div>
+      <div class="row-row">
+        <div class="cell">
+          <div class="cell-inner wrapper-md">
+            <uib-tabset justified="true" class="tab-container">
+              <uib-tab heading="基本信息">
+                <form class="bs-example form-horizontal">
+                  <div class="form-group">
+                    <label class="col-lg-2 control-label">服务名称</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" placeholder="服务名称">
+                      <span class="help-block m-b-none">Example block-level help text here.</span>
+                    </div>
+                    <label class="col-lg-2 control-label">服务目录</label>
+                    <div class="col-lg-10">
+                      <select name="account" class="form-control m-b">
+                        <option>option 1</option>
+                        <option>option 2</option>
+                        <option>option 3</option>
+                        <option>option 4</option>
+                      </select>
+                    </div>
+                    <label class="col-lg-2 control-label">产品</label>
+                    <div class="col-lg-10">
+                      <select name="account" class="form-control m-b">
+                        <option>option 1</option>
+                        <option>option 2</option>
+                        <option>option 3</option>
+                        <option>option 4</option>
+                      </select>
+                    </div>
+                    <label class="col-lg-2 control-label">服务介绍</label>
+                    <div class="col-lg-10">
+                      <textarea rows="4" class="form-control m-b"></textarea>
+                    </div>
+                  </div>
+
+                </form>
+              </uib-tab>
+              <uib-tab heading="服务资源">服务资源</uib-tab>
+              <uib-tab heading="服务计费">服务计费</uib-tab>
+              <uib-tab heading="发布范围">发布范围</uib-tab>
+            </uib-tabset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /column -->
+</div>
+<!-- /hbox layout -->

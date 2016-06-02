@@ -1,0 +1,223 @@
+<!-- hbox layout -->
+<div class="hbox hbox-auto-xs bg-light " ng-init="
+  app.settings.asideFixed = true;
+  app.settings.asideDock = false;
+  app.settings.container = false;
+  app.hideAside = false;
+  app.hideFooter = true;
+  " ng-controller="ProductIndexCtrl">
+  <!-- column -->
+  <div class="col w-lg lt b-r">
+    <div class="vbox">
+      <div class="wrapper">
+        <a href class="pull-right btn btn-sm btn-info m-t-n-xs" ng-click="createproduct()">新增</a>
+        <div class="h4">产品</div>
+      </div>
+      <div class="wrapper b-t m-t-xxs">
+        <div class="input-group">
+          <span class="input-group-addon input-sm"><i class="fa fa-search"></i></span>
+          <input type="text" class="form-control input-sm" placeholder="search" ng-model="query">
+        </div>
+      </div>
+      <div class="row-row">
+        <div class="cell scrollable hover">
+          <div class="cell-inner">
+            <div class="padder">
+              <div class="list-group">
+                <a ng-repeat="product in products | filter:query | orderBy:'date':true" class="list-group-item b-l-{{product.color}} b-l-3x hover-anchor" ng-class="{'hover': product.selected }" ng-click="selectproduct(product)">
+                  <span ng-click='deleteproduct(product)' class="pull-right text-muted hover-action"><i class="fa fa-times"></i></span>
+                  <span class="block text-ellipsis">{{ product.content ? product.content : 'Empty product' }}</span>
+                  <small class="text-muted">{{ product.date | fromNow }}</small>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /column -->
+
+  <!-- column -->
+  <div class="col">
+    <div class="vbox">
+      <div class="wrapper bg-light lt b-b">
+        <span class="text-muted">Created on:</span> <span>{{ product.date  | date:'MMM-dd-yyyy H:mm' }}</span>
+        <div class="m-l inline dropdown" uib-dropdown>
+          <a class="v-middle pos-rlt inline bg-{{product.color}}" uib-dropdown-toggle style="width:16px;height:16px;top:-2px"></a>
+          <div class="dropdown-menu animated fadeInUp w wrapper">
+            <a ng-repeat="color in colors" class="inline m-xs bg-{{color}}" style="width:18px;height:18px" ng-click=" product.color = color "></a>
+          </div>
+        </div>
+      </div>
+      <div class="wrapper-md">
+        <div class="panel">
+          <div class="panel-body">
+            <a href class="thumb pull-right m-l m-t-xs avatar">
+              <img src="img/a4.jpg" alt="...">
+              <i class="on md b-white bottom"></i>
+            </a>
+            <div class="clear">
+              <p class="form-control-static">
+              <a editable-text="user.name">产品名称</a>
+              </p>
+              <a href class="btn btn-addon btn-sm btn-info m-t-xs"><i class="fa fa-eye"></i>上传图片</a>
+            </div>
+          </div>
+        </div>  
+
+
+        <h4>产品配置项</h4>
+        <table class="table table-bordered table-hover table-condensed bg-white-only">
+          <tr style="font-weight: bold">
+            <td style="width:35%">配置名称</td>
+            <td style="width:20%">是否必填</td>
+            <td style="width:20%">是否计费项</td>
+            <td style="width:25%">操作</td>
+          </tr>
+          <tr ng-repeat="config in configs">
+            <td class="v-middle">
+              <!-- editable configname (text with validation) -->
+              <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                {{ config.name || 'empty' }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable status (select-local) -->
+              <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                {{ showStatus(config) }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable group (select-remote) -->
+              <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                {{ showGroup(config) }}
+              </span>
+            </td>
+            <td style="white-space: nowrap">
+              <!-- form -->
+              <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                  save
+                </button>
+                <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                  cancel
+                </button>
+              </form>
+              <div class="buttons" ng-show="!rowform.$visible">
+                <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+              </div>  
+            </td>
+          </tr>
+        </table>
+
+        <button class="btn btn-default m-b-lg" ng-click="addconfig()">添加产品配置项</button>
+
+        <h4>产品配置项关系</h4>
+        <table class="table table-bordered table-hover table-condensed bg-white-only">
+          <tr style="font-weight: bold">
+            <td style="width:35%">配置名称</td>
+            <td style="width:20%">关联关系</td>
+            <td style="width:20%">关联配置项</td>
+            <td style="width:25%">操作</td>
+          </tr>
+          <tr ng-repeat="config in configs">
+            <td class="v-middle">
+              <!-- editable configname (text with validation) -->
+              <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                {{ config.name || 'empty' }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable status (select-local) -->
+              <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                {{ showStatus(config) }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable group (select-remote) -->
+              <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                {{ showGroup(config) }}
+              </span>
+            </td>
+            <td style="white-space: nowrap">
+              <!-- form -->
+              <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                  save
+                </button>
+                <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                  cancel
+                </button>
+              </form>
+              <div class="buttons" ng-show="!rowform.$visible">
+                <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+              </div>  
+            </td>
+          </tr>
+        </table>
+
+        <button class="btn btn-default m-b-lg" ng-click="addconfig()">添加产品配置项关系</button>
+
+        <h4>产品关联关系</h4>
+        <table class="table table-bordered table-hover table-condensed bg-white-only">
+          <tr style="font-weight: bold">
+            <td style="width:20%">本产品名称</td>
+            <td style="width:20%">关联关系</td>
+            <td style="width:20%">其他产品名称</td>
+            <td style="width:20%">是否必须依赖</td>
+            <td style="width:20%">操作</td>
+          </tr>
+          <tr ng-repeat="config in configs">
+            <td class="v-middle">
+              <!-- editable configname (text with validation) -->
+              <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                {{ config.name || 'empty' }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable status (select-local) -->
+              <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                {{ showStatus(config) }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable group (select-remote) -->
+              <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                {{ showGroup(config) }}
+              </span>
+            </td>
+            <td class="v-middle">
+              <!-- editable group (select-remote) -->
+              <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                {{ showGroup(config) }}
+              </span>
+            </td>            
+            <td style="white-space: nowrap">
+              <!-- form -->
+              <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                  save
+                </button>
+                <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                  cancel
+                </button>
+              </form>
+              <div class="buttons" ng-show="!rowform.$visible">
+                <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+              </div>  
+            </td>
+          </tr>
+        </table>
+
+        <button class="btn btn-default m-b-lg" ng-click="addconfig()">添加产品关联关系</button>
+      </div>
+
+    </div>
+  </div>
+  <!-- /column -->
+</div>
+<!-- /hbox layout -->

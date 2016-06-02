@@ -1,0 +1,497 @@
+<div class="hbox hbox-auto-xs bg-light " ng-init="
+  app.settings.asideFixed = true;
+  app.settings.asideDock = false;
+  app.settings.container = false;
+  app.hideAside = false;
+  app.hideFooter = true;
+  " ng-controller="CartNewCtrl">
+
+  <!-- column -->
+  <div class="col">
+    <div class="vbox">
+
+      <div class="bg-light lter b-b wrapper-md">
+        <h1 class="m-n font-thin h3">申请服务</h1>
+      </div>
+      <div class="wrapper-md">
+        <uib-tabset class="tab-container" ng-init="steps={percent:0, step1:true, step2:false, step3:false, step4:false, step5: false}">
+          <uib-tab heading="基本信息" active="steps.step1" select="steps.percent=0">
+            <p class="m-b">Use the Bootstrap tab components and ngForm to build the form wizard.</p>
+            <uib-progressbar value="steps.percent" class="progress-xs" type="success"></uib-progressbar>
+            
+             <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:10%">序号</td>
+                <td style="width:15%">云主机名称</td>
+                <td style="width:15%">计算机名称</td>
+                <td style="width:10%">业务系统</td>
+                <td style="width:10%">所属VDC</td>
+                <td style="width:20%">用途</td>
+                <td style="width:10%">申请时长</td>
+                <td style="width:10%">操作</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+
+
+
+            <form name="step1" class="form-validation">
+              <div class="m-t m-b">
+                <button type="submit" ng-disabled="step1.$invalid" class="btn btn-default btn-rounded" ng-click="steps.step2=true">下一步</button>
+              </div>
+            </form>
+          </uib-tab>
+          <uib-tab heading="规格配置" disabled="step1.$invalid" active="steps.step2" select="steps.percent=20">
+            <p class="m-b">Continue the next step</p>
+            <uib-progressbar value="steps.percent" class="progress-xs" type="success"></uib-progressbar>
+
+             <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:10%">序号</td>
+                <td style="width:15%">云主机名称</td>
+                <td style="width:15%">操作系统</td>
+                <td style="width:20%">操作系统版本</td>
+                <td style="width:10%">CPU(核)</td>
+                <td style="width:10%">内存(G)</td>
+                <td style="width:10%">存储(G)</td>
+                <td style="width:10%">操作</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+
+
+
+            <form name="step2" class="form-validation">
+              <div class="m-t m-b">
+                <button type="button" class="btn btn-default btn-rounded" ng-click="steps.step1=true">上一步</button>
+                <button type="submit" ng-disabled="step2.$invalid" class="btn btn-default btn-rounded" ng-click="steps.step3=true">下一步</button>
+              </div>
+            </form>
+          </uib-tab>
+          <uib-tab heading="网络配置" disabled="step2.$invalid" active="steps.step3" select="steps.percent=40">
+            <p class="m-b">Continue the next step</p>
+            <uib-progressbar value="steps.percent" class="progress-xs" type="success"></uib-progressbar>
+
+             <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:10%">序号</td>
+                <td style="width:15%">云主机名称</td>
+                <td style="width:15%">网络类型</td>
+                <td style="width:20%">网络名称</td>
+                <td style="width:25%">指定IP</td>
+                <td style="width:10%">操作</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+
+
+            <form name="step3" class="form-validation">
+              <div class="m-t m-b">
+                <button type="button" class="btn btn-default btn-rounded" ng-click="steps.step2=true">上一步</button>
+                <button type="submit" ng-disabled="step2.$invalid" class="btn btn-default btn-rounded" ng-click="steps.step4=true">下一步</button>
+              </div>
+            </form>
+          </uib-tab>
+          <uib-tab heading="软件安装" disabled="step3.$invalid" active="steps.step4" select="steps.percent=60">
+            <p class="m-b">Continue the next step</p>
+            <uib-progressbar value="steps.percent" class="progress-xs" type="success"></uib-progressbar>
+
+            <h4>云主机1</h4>
+             <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:15%">软件名称</td>
+                <td style="width:15%">软件分类</td>
+                <td style="width:10%">软件类型</td>
+                <td style="width:10%">软件版本</td>
+                <td style="width:10%">静默安装属性</td>
+                <td style="width:10%">操作</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+             <h4>云主机2</h4>
+             <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:15%">软件名称</td>
+                <td style="width:15%">软件分类</td>
+                <td style="width:10%">软件类型</td>
+                <td style="width:10%">软件版本</td>
+                <td style="width:10%">静默安装属性</td>
+                <td style="width:10%">操作</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+            <button class="btn btn-default m-b-lg" ng-click="addconfig()">添加软件</button>
+            
+
+
+            <form name="step4" class="form-validation">
+              <div class="m-t m-b">
+                <button type="button" class="btn btn-default btn-rounded" ng-click="steps.step3=true">上一步</button>
+                <button type="submit" ng-disabled="step2.$invalid" class="btn btn-default btn-rounded" ng-click="steps.step5=true">下一步</button>
+              </div>
+            </form>
+          </uib-tab>        
+          <uib-tab heading="信息确认" disabled="step4.$invalid" active="steps.step5" select="steps.percent=80">
+            <p class="m-b">Congraduations! You got the last step.</p>
+            <uib-progressbar value="steps.percent" class="progress-xs" type="success"></uib-progressbar>
+            <p>Just one click to finish it.</p>
+
+
+
+            <table class="table table-bordered table-hover table-condensed bg-white-only">
+              <tr style="font-weight: bold">
+                <td style="width:10%">序号</td>
+                <td style="width:20%">云主机名称</td>
+                <td style="width:10%">CPU</td>
+                <td style="width:10%">内存</td>
+                <td style="width:10%">存储</td>
+                <td style="width:10%">安装软件</td>
+                <td style="width:10%">所属VDC</td>
+                <td style="width:10%">申请时长</td>
+                <td style="width:10%">收费标准</td>
+              </tr>
+              <tr ng-repeat="config in configs">
+                <td class="v-middle">
+                  <!-- editable configname (text with validation) -->
+                  <span editable-text="config.name" e-name="name" e-form="rowform" onbeforesave="checkName($data, config.id)" e-required>
+                    {{ config.name || 'empty' }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>  
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable status (select-local) -->
+                  <span editable-select="config.status" e-name="status" e-form="rowform" e-ng-options="s.value as s.text for s in statuses">
+                    {{ showStatus(config) }}
+                  </span>
+                </td>
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>   
+                <td class="v-middle">
+                  <!-- editable group (select-remote) -->
+                  <span editable-select="config.group" e-name="group" onshow="loadGroups()" e-form="rowform" e-ng-options="g.id as g.text for g in groups">
+                    {{ showGroup(config) }}
+                  </span>
+                </td>                                                         
+                <td style="white-space: nowrap">
+                  <!-- form -->
+                  <form editable-form name="rowform" onbeforesave="saveconfig($data, config.id)" ng-show="rowform.$visible" class="form-buttons form-inline" shown="inserted == config">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-sm btn-info">
+                      save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-sm btn-default">
+                      cancel
+                    </button>
+                  </form>
+                  <div class="buttons" ng-show="!rowform.$visible">
+                    <button class="btn btn-sm btn-info" ng-click="rowform.$show()">edit</button>
+                    <button class="btn btn-sm btn-danger" ng-click="removeconfig($index)">del</button>
+                  </div>  
+                </td>
+              </tr>
+            </table>
+
+
+            <div class="m-t m-b">
+              <button type="button" class="btn btn-default btn-rounded" ng-click="steps.step4=true">上一步</button>
+              <button type="button" class="btn btn-info btn-rounded" ng-click="steps.percent=100">添加到申请清单</button>
+              <button type="button" class="btn btn-success btn-rounded" ng-click="steps.percent=100">提交订单</button>
+            </div>
+          </uib-tab>
+        </uib-tabset>
+      </div>
+
+    </div>
+  </div>
+</div>
