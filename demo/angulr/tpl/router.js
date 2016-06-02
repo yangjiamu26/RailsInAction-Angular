@@ -620,6 +620,17 @@ angular.module('app')
                     name: 'Price'
                   }
               })
+              .state('apps.iframe', {
+                  url: '/iframe',
+                  templateUrl: 'tpl/components/page/page_iframe.html',
+                  ncyBreadcrumb: {
+                    label: 'Iframe'
+                  },
+                  menu: {
+                    name: 'Iframe'
+                  },
+                  resolve: load('iframe-resizer')
+              })              
               .state('app.docs', {
                   url: '/docs',
                   templateUrl: 'tpl/docs.html',
