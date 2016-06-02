@@ -184,6 +184,7 @@ angular.module('app')
               .state('app.ui.bootstrap.modal', {
                   url: '/modal',
                   modal: ['items', 'itemIndex'],
+                  size: 'lg',
                   templateUrl: 'tpl/components/ui/modal.html',
                   controller: 'ModalInstanceCtrl',
                   resolve: {
@@ -195,6 +196,20 @@ angular.module('app')
                     }]
                   }
               })
+              .state('app.ui.bootstrap.modal.modal', {
+                  url: '/modal',
+                  modal: ['items', 'itemIndex'],
+                  templateUrl: 'tpl/components/ui/modal.html',
+                  controller: 'ModalInstanceCtrl',
+                  resolve: {
+                    items: function(){
+                      return ['item1', 'item2', 'item3']
+                    },
+                    itemIndex: ['$stateParams', function($stateParams){
+                      return $stateParams.itemIndex;
+                    }]
+                  }
+              })              
               .state('app.ui.sortable', {
                   url: '/sortable',
                   templateUrl: 'tpl/components/ui/ui_sortable.html',
