@@ -37,7 +37,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
 
     var myApp = new Framework7({
       animateNavBackIcon: true,
-      cache: true,
+      cache: false,
       cacheDuration: 1000 * 60 * 1,
       cacheIgnoreGetParameters: true,
       pushState: false,
@@ -107,12 +107,12 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     $scope.$on("$includeContentLoaded", function(event, src){
         console.log("src="+src)
         if (src=='tpl/tablet_v1.html' || src=="tpl/tablet_v4.html") {
-            myApp.addView("#view-home",          {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/home/index.html",animatePages: false});
-            myApp.addView("#view-business",      {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/business/index.html",animatePages: false});
-            myApp.addView("#view-pool",          {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/pool/index.html",animatePages: false});
-            myApp.addView("#view-host",          {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/host/index.html",animatePages: false});
-            myApp.addView("#view-vm",            {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/vm/index.html",animatePages: false});
-            myApp.addView("#view-storage",       {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/storage/index.html",animatePages: false});
+            myApp.addView("#view-home",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-home"}).router.load({url: "tpl/home/index.html",animatePages: false});
+            myApp.addView("#view-business",      {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-business"}).router.load({url: "tpl/business/index.html",animatePages: false});
+            myApp.addView("#view-pool",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-pool"}).router.load({url: "tpl/pool/index.html",animatePages: false});
+            myApp.addView("#view-host",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-host"}).router.load({url: "tpl/host/index.html",animatePages: false});
+            myApp.addView("#view-vm",            {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-vm"}).router.load({url: "tpl/vm/index.html",animatePages: false});
+            myApp.addView("#view-storage",       {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-storage"}).router.load({url: "tpl/storage/index.html",animatePages: false});
             
             myApp.addView("#view-settings-left", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/MineVC.html",animatePages: false});
             myApp.addView("#view-settings-main", {dynamicNavbar: !isMaterial,domCache: true});
