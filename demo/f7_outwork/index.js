@@ -105,14 +105,14 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
                 myApp.addView("#view-contact-left", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-contact-main"}).router.load({url: "tpl/contact/ContactTabVC.html",animatePages: false});
                 myApp.addView("#view-mine-left",    {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-mine-main"}).router.load({url: "tpl/mine/MineVC.html",animatePages: false});
 
-                myApp.addView("#view-home-main",    {dynamicNavbar: !isMaterial,domCache: true})
-                myApp.addView("#view-work-main",    {dynamicNavbar: !isMaterial,domCache: true})
-                myApp.addView("#view-chat-main",    {dynamicNavbar: !isMaterial,domCache: true})
-                myApp.addView("#view-contact-main", {dynamicNavbar: !isMaterial,domCache: true})
-                myApp.addView("#view-mine-main",    {dynamicNavbar: !isMaterial,domCache: true})
+                myApp.addView("#view-home-main",    {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/work/checkout/CheckinoutListVC.html",animatePages: false});
+                myApp.addView("#view-work-main",    {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/work/workcycle/WorkCycleListVC.html",animatePages: false});
+                myApp.addView("#view-chat-main",    {dynamicNavbar: !isMaterial,domCache: true});
+                myApp.addView("#view-contact-main", {dynamicNavbar: !isMaterial,domCache: true});
+                myApp.addView("#view-mine-main",    {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/mine/GeRenJianJie.html",animatePages: false});
             } else if (src=='tpl/tablet_v2.html' || src=="tpl/tablet_v3.html") {
                 myApp.addView('.view-left', {dynamicNavbar: !isMaterial,domCache: true})
-                myApp.addView('.view-main', {dynamicNavbar: !isMaterial,domCache: true})
+                myApp.addView('.view-main', {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: "tpl/work/checkout/CheckinoutListVC.html",animatePages: false});
 
                 myApp.addView("#view-home",    {dynamicNavbar: !isMaterial,domCache: true,linksView: ".view-main"}).router.load({url: "tpl/home/HomeVC.html",      animatePages: false});
                 myApp.addView("#view-work",    {dynamicNavbar: !isMaterial,domCache: true,linksView: ".view-main"}).router.load({url: "tpl/work/WorkVC.html",      animatePages: false});
