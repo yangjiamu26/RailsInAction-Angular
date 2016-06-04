@@ -468,7 +468,8 @@ angular.module('app')
                   },
                   menu: {
                     name: 'Form Wizard'
-                  }
+                  },
+                  resolve: load(['wizard', 'tpl/components/form/form_wizard.js'])
               })
               .state('app.form.fileupload', {
                   url: '/fileupload',
