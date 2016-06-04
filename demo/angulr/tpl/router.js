@@ -340,7 +340,8 @@ angular.module('app')
                   },
                   menu: {
                     name: 'Datatable'
-                  }
+                  },
+                  resolve: load('datatables')
               })
               .state('app.table.footable', {
                   url: '/footable',
