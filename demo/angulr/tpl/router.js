@@ -396,6 +396,17 @@ angular.module('app')
                   menu: {
                     name: 'Object Table'
                   }
+              })   
+              .state('app.table.handsonTable', {
+                  url: '/handsonTable',
+                  templateUrl: 'tpl/components/table/table_handson.html',
+                  resolve: load(['handsontable','ng-handsontable', 'tpl/components/table/table_handson.js']),
+                  ncyBreadcrumb: {
+                    label: 'Handson Table'
+                  },
+                  menu: {
+                    name: 'Handson Table'
+                  }
               })              
               // form
               .state('app.form', {
