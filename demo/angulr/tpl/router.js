@@ -273,6 +273,17 @@ angular.module('app')
                     name: 'Toaster'
                   }
               })
+              .state('app.ui.dragdrop', {
+                  url: '/dragdrop',
+                  templateUrl: 'tpl/components/ui/ui_dragdrop.html',
+                  resolve: load(['dragdrop', 'tpl/components/ui/ui_dragdrop.css', 'tpl/components/ui/ui_dragdrop.js']),
+                  ncyBreadcrumb: {
+                    label: 'Dragdrop'
+                  },
+                  menu: {
+                    name: 'Dragdrop'
+                  }
+              })
               .state('app.ui.jvectormap', {
                   url: '/jvectormap',
                   templateUrl: 'tpl/components/ui/ui_jvectormap.html',
