@@ -306,6 +306,17 @@ angular.module('app')
                     name: 'Google Map'
                   }
               })
+              .state('app.ui.raphaelmap', {
+                  url: '/raphaelmap',
+                  templateUrl: 'tpl/components/ui/ui_raphaelmap.html',
+                  resolve: load(['raphael-map', 'tpl/components/ui/ui_raphaelmap.js']),
+                  ncyBreadcrumb: {
+                    label: 'Raphael Map'
+                  },
+                  menu: {
+                    name: 'Raphael Map'
+                  }
+              })
               .state('app.chart', {
                   url: '/chart',
                   templateUrl: 'tpl/components/ui/ui_chart.html',
