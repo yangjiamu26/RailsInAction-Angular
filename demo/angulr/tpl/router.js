@@ -407,6 +407,17 @@ angular.module('app')
                   menu: {
                     name: 'Handson Table'
                   }
+              }) 
+              .state('apps.agGrid', {
+                  url: '/agGrid',
+                  templateUrl: 'tpl/components/table/table_aggrid.html',
+                  resolve: load(['ag-grid', 'tpl/components/table/table_aggrid.js']),
+                  ncyBreadcrumb: {
+                    label: 'AG Grid'
+                  },
+                  menu: {
+                    name: 'AG Grid'
+                  }
               })              
               // form
               .state('app.form', {
