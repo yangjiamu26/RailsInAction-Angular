@@ -39,7 +39,8 @@ angular.module('app')
                   ncyBreadcrumb: {
                     label: 'Home'
                   },
-                  redirectTo: 'app.dashboard-v1'
+                  redirectTo: 'app.dashboard-v1',
+                  resolve: load('qr')
               })
               .state('app.dashboard', {
                   url: '/dashboard',
