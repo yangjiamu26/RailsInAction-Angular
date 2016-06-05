@@ -59,7 +59,7 @@ angular.module('app')
                   parent: 'app.dashboard',
                   url: '/dashboard-v1',
                   templateUrl: 'tpl/dashboard/dashboard_v1.html',
-                  resolve: load(['tpl/dashboard/dashboard.js','tpl/components/ui/ui_chart.js']),
+                  resolve: load(['fullscreen', 'tpl/dashboard/dashboard.js','tpl/components/ui/ui_chart.js']),
                   ncyBreadcrumb: {
                     label: 'Dashboard V1'
                   },
