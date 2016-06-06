@@ -131,10 +131,11 @@
   //   };
   // }])
   // ;   
-  app.controller('ModalInstanceCtrl', ['$scope', 'items', 'itemIndex', '$state', function($scope, items, itemIndex, $state) {
-    $scope.items = items;
+  app.controller('ModalInstanceCtrl', ['$scope', '$state', function($scope, $state) {
+    $scope.items = $state.params.items;
+
     $scope.selected = {
-      item: $scope.items[itemIndex]
+      item: $scope.items[parseInt($state.params.itemIndex) || 0]
     };
 
     $scope.ok = function () {
@@ -144,19 +145,40 @@
     $scope.close = function() {
       $state.go('^');
     }
+
+    $scope.goInner = function(){
+      $state.go('app.ui.bootstrap.modal.modal', {'items2': $scope.items, 'itemIndex2': $scope.items.indexOf($scope.selected.item)});
+    }
   }])
   ; 
-  app.controller('ModalDemoCtrl', ['$scope', '$log', '$state','$stateParams', function($scope, $log, $state, $stateParams) {
+  app.controller('ModalInstanceCtrl2', ['$scope', '$state', function($scope, $state) {
+    $scope.items = $state.params.items2;
+
+    $scope.selected = {
+      item: $scope.items[parseInt($state.params.itemIndex2) || 0]
+    };
+
+    $scope.ok = function () {
+      $state.go('^', {'itemIndex': $scope.items.indexOf($scope.selected.item)});
+    }
+
+    $scope.close = function() {
+      $state.go('^');
+    }
+
+  }])
+  ; 
+  app.controller('ModalDemoCtrl', ['$scope', '$log', '$state', function($scope, $log, $state) {
     $scope.items = ['item1', 'item2', 'item3'];
 
-    $scope.itemIndex = $stateParams.itemIndex || 0;
+    $scope.itemIndex = parseInt($state.params.itemIndex) || 0;
     if($scope.itemIndex==-1){
       $scope.itemIndex = 0;
     }
     $scope.selectedItem = $scope.items[$scope.itemIndex];
 
     $scope.open = function (size) {
-      $state.go("app.ui.bootstrap.modal", {'itemIndex': $scope.itemIndex});
+      $state.go("app.ui.bootstrap.modal", {'items': $scope.items, 'itemIndex': $scope.itemIndex});
     };
   }])
   ; 
