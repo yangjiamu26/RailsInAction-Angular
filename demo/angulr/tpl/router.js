@@ -173,7 +173,10 @@ angular.module('app')
                   }
               })          
               .state('app.ui.bootstrap', {
-                  url: '/bootstrap?itemIndex',
+                  url: '/bootstrap',
+                  params: {
+                    itemIndex: -1
+                  },
                   templateUrl: 'tpl/components/ui/ui_bootstrap.html',
                   ncyBreadcrumb: {
                     label: 'Bootstrap'
@@ -184,32 +187,24 @@ angular.module('app')
               })
               .state('app.ui.bootstrap.modal', {
                   url: '/modal',
-                  modal: ['items', 'itemIndex'],
+                  params: {
+                    items: [],
+                    itemIndex: -1
+                  },
+                  modal: true,
                   size: 'lg',
                   templateUrl: 'tpl/components/ui/modal.html',
-                  controller: 'ModalInstanceCtrl',
-                  resolve: {
-                    items: function(){
-                      return ['item1', 'item2', 'item3']
-                    },
-                    itemIndex: ['$stateParams', function($stateParams){
-                      return $stateParams.itemIndex;
-                    }]
-                  }
+                  controller: 'ModalInstanceCtrl'
               })
               .state('app.ui.bootstrap.modal.modal', {
                   url: '/modal',
-                  modal: ['items', 'itemIndex'],
+                  params: {
+                    items2: [],
+                    itemIndex2: -1
+                  },
+                  modal: true,
                   templateUrl: 'tpl/components/ui/modal.html',
-                  controller: 'ModalInstanceCtrl',
-                  resolve: {
-                    items: function(){
-                      return ['item1', 'item2', 'item3']
-                    },
-                    itemIndex: ['$stateParams', function($stateParams){
-                      return $stateParams.itemIndex;
-                    }]
-                  }
+                  controller: 'ModalInstanceCtrl2'
               })              
               .state('app.ui.sortable', {
                   url: '/sortable',
