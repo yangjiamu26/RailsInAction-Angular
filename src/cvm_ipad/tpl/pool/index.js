@@ -22,7 +22,7 @@ function initPool_vtype_chart() {
           padding:0,
           labelFormat: '{name}：<b>{y}</b> 个',
           itemStyle: {
-            fontFamily:'Microsoft YaHei',
+            
             fontWeight: 'normal',
             fontSize:'12px'
           },          
@@ -89,7 +89,7 @@ function initPool_cpu_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },
@@ -160,7 +160,7 @@ function initPool_memory_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },
@@ -231,7 +231,7 @@ function initPool_storage_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },

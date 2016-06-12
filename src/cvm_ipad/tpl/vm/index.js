@@ -24,7 +24,7 @@ function initVm_os_chart() {
           labelFormat: '{name}：<b>{y}</b> 台',
           itemMarginTop: 10,
           itemStyle: {
-            fontFamily:'Microsoft YaHei',
+            
             fontWeight: 'normal',
             fontSize:'12px'
           },          
@@ -90,7 +90,7 @@ function initVm_status_chart() {
           labelFormat: '{name}：<b>{y}</b> 台',
           itemMarginTop: 10,
           itemStyle: {
-            fontFamily:'Microsoft YaHei',
+            
             fontWeight: 'normal',
             fontSize:'12px'
           },          

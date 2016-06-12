@@ -28,7 +28,7 @@ function initSinglePool_cpu_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },
@@ -99,7 +99,7 @@ function initSinglePool_memory_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },
@@ -170,7 +170,7 @@ function initSinglePool_storage_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal',
           fontSize:'12px'
         },

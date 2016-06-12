@@ -31,7 +31,7 @@ function initStorage_share_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal'
         },
         labelFormat: '{name}：<b>{y}</b>GHz',
@@ -106,7 +106,7 @@ function initStorage_use_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal'
         },
         labelFormat: '{name}：<b>{y}</b>GHz',

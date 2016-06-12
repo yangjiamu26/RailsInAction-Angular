@@ -28,7 +28,7 @@ function initTotal_cpu_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal'
         },
         // labelFormatter: function() {  
@@ -101,7 +101,7 @@ function initTotal_memory_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal'
         },
         labelFormat: '{name}：<b>{y}</b>GHz',
@@ -171,7 +171,7 @@ function initTotal_storage_chart() {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          fontFamily:'Microsoft YaHei',
+          
           fontWeight: 'normal'
         },
         labelFormat: '{name}：<b>{y}</b>GHz',
