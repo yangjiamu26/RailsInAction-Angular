@@ -90,14 +90,50 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
         case "host-index":
           initHost_status_chart();
           break;
+        case "host-show":
+          myApp.addView('#view_host_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/host/summary.html',animatePages: false});
+          myApp.addView('#view_host_vm',      {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+          myApp.addView('#view_host_storage', {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
+          break;
+        case "host-summary":
+          initSingleHost_cpu_chart();
+          initSingleHost_memory_chart();
+          initSingleHost_storage_chart();
+          break;          
         case "vm-index":
           initVm_os_chart();
           initVm_status_chart();
+          break;
+        case "vm-show":
+          myApp.addView('#view_vm_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/summary.html',animatePages: false});
+          myApp.addView('#view_vm_performance',      {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html',animatePages: false});
+          myApp.addView('#view_vm_volumn', {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
+          break;
+        case "vm-performance":
+          var calendarRange = myApp.calendar({
+              input: '#vmPerformanceDate',
+              dateFormat: 'yyyy.mm.dd',
+              rangePicker: true,
+              monthNames: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+              dayNames: ['周日','周一','周二','周三','周四','周五','周六'],
+              dayNamesShort: ['周日','周一','周二','周三','周四','周五','周六']
+          });     
+          initMemoryUse_chart();
+          initcpuUse_chart1();
+          initcpuUse_chart2();      
           break;
         case "storage-index":
           initStorage_share_chart();
           initStorage_use_chart();
           break;
+        case "storage-show":
+          myApp.addView('#view_storage_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/storage/summary.html',animatePages: false});
+          myApp.addView('#view_storage_volumn', {dynamicNavbar: true,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
+          break;
+        case "storage-summary":
+          initsingleStorage_use_chart();
+          initsingleStorage_assigned_chart();
+          break;          
       }
     });
 
