@@ -1,3 +1,6 @@
+// Expose Internal DOM library
+var $$ = Dom7;
+
 // Determine theme depending on device
 
 angular.module('app', []).controller('IndexController', ['$scope', '$compile', '$timeout', '$location',
@@ -24,12 +27,12 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     }
 
     // Welcome Screen
-    //var ipc = new myapp.pages.IndexPageController(myApp, Dom7);
+    //var ipc = new myapp.pages.IndexPageController(myApp, $$);
 
-    //Dom7(document).on('ajaxStart', function (e) {
+    //$$(document).on('ajaxStart', function (e) {
     //                myApp.showIndicator();
     //                });
-    //Dom7(document).on('ajaxComplete', function () {
+    //$$(document).on('ajaxComplete', function () {
     //                myApp.hideIndicator();
     //                });
 
@@ -37,6 +40,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
 
     var myApp = new Framework7({
       animateNavBackIcon: true,
+      modalTitle: '',
       cache: false,
       cacheDuration: 1000 * 60 * 1,
       cacheIgnoreGetParameters: true,
@@ -48,7 +52,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     });
 
 
-    Dom7(document).on('pageInit', function(e) {
+    $$(document).on('pageInit', function(e) {
       //console.log("pageInit");
       $compile(e.detail.page.navbarInnerContainer)($scope);
       $compile(e.srcElement)($scope);
@@ -57,7 +61,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
       var page = e.detail.page;
       switch (page.name) {
         case "LoginVC":
-          Dom7('.open-dashboard').on('click', function () {
+          $$('.open-dashboard').on('click', function () {
             myApp.popup('.popup-dashboard');
           });
           break;
@@ -134,15 +138,19 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initsingleStorage_use_chart();
           initsingleStorage_assigned_chart();
           break;          
+        case "settings":
+          $$('#logout').on('click', function () {
+            myApp.loginScreen();
+          });
+          break;          
+        case "password":
+          $$('.save-password').on('click', function () {
+              myApp.alert('恭喜，密码修改成功!');
+          });
+          break;          
       }
     });
 
-    Dom7('.open-dashboard').on('click', function () {
-      myApp.popup('.popup-dashboard');
-    });
-    Dom7('#logout').on('click', function () {
-      myApp.loginScreen();
-    });
 
     myApp.addView('#view-login', {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/LoginVC.html',animatePages: false});
   
@@ -154,10 +162,9 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     myApp.addView("#view-vm",            {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-vm"}).router.load({url: "tpl/vm/index.html",animatePages: false});
 
     myApp.addView("#view-storage",       {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-storage"}).router.load({url: "tpl/storage/index.html",animatePages: false});    
-    myApp.addView("#view-settings-left", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/MineVC.html",animatePages: false});
-    myApp.addView("#view-settings-main", {dynamicNavbar: !isMaterial,domCache: true});
+    myApp.addView("#view-settings-left", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/index.html",animatePages: false});
+    myApp.addView("#view-settings-main", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/profile.html",animatePages: false});
 
-    myApp.addView('#view-passwordformvc',   {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/settings/PasswordFormVC.html',   animatePages: false});
-    myApp.addView('#view-feedbackformvc',   {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/settings/FeedbackFormVC.html',   animatePages: false});
+    // myApp.addView('#view-passwordformvc',   {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/settings/PasswordFormVC.html',   animatePages: false});
   }
 ]);
