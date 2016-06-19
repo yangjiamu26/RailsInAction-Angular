@@ -22,9 +22,9 @@ $(function(){
         //if( !hash.match(/^pages\//) ) return false;
         var path = document.location.pathname;
         //for example in Ace HTML demo version we convert /ajax/index.html#page/gallery to > /ajax/content/gallery.html and load it
-        if(path.match(/(index\.html)?/))
-          return path.replace(/(index\.html)?/, '/pages/'+hash.replace(/^pages\//, '')+'.html') ;
-
+        //if(path.match(/(index\.html)?/))
+        //  return path.replace(/(index\.html)?/, '/pages/'+hash.replace(/^pages\//, '')+'.html') ;
+        path = hash + ".html";
         //for example in Ace PHP demo version we convert "ajax.php#page/dashboard" to "ajax.php?page=dashboard" and load it
         return path + "?" + hash.replace(/\//, "=");
         }       
