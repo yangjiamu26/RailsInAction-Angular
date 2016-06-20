@@ -1,0 +1,198 @@
+<style type="text/css">
+.monitor-right-info{position:absolute;z-index:999;width:170px;right:40px;font-size:14px;}
+.monitor-right-info strong{font-size:26px;color:#364961;text-align:center;width:100%;display:block;margin:40px 0 30px;}
+.monitor-right-info .bbox{padding:8px 0;border:1px solid #57bbe5;font-size:14px;color:#fff;}
+.bbox span{display:inline-block;width:14px;height:14px;position:relative;top:2px;margin-right:12px;}
+.bbox span.level0{background:#6fcaee;}
+.bbox span.level1{background:#16b27e;}
+.bbox span.level2{background:#ed7218;}
+.bbox span.level3{background:#e60012;}
+.monitor-right-info .progress{border-radius:0;background-color: #fbe7e7;padding:1px;border:1px solid #e60012;}
+.panel-1{border:0;font-size: 12px;color: #fff;}
+.panel-1 .panel-1-header{font-weight: bold;font-size:18px;padding:10px 0;}
+.panel-1 .panel-1-block{position: relative;padding:10px;border:1px solid #77d400;background:rgba(40,80,70,.8);}
+.panel-1 .panel-1-block.color-yellow{border:1px solid #ff9000;background:rgba(255,144,0,.1);}
+.panel-1 .panel-1-block.color-blue{border:1px solid #39bee8;background:rgba(57,190,232,.1);}
+.panel-1 .panel-1-block-title{padding:7px 10px;width:80px;display: table-cell;}
+.panel-1 .panel-1-block-value{padding:7px 10px;display: table-cell;}
+.panel-1-block p.title {
+    margin-bottom: 6px;
+    margin-left: 0px;
+    white-space: nowrap;
+}
+.panel-1 .panel-1-block.dblue3{background:rgba(77,104,141,.1);border-color:#4d688d;}
+.panel-1 .panel-1-block .progress{height:22px;margin: 0 0 10px;padding:1px;border-width:1px;border-style:solid;background:rgba(0,0,0,.1);}
+.progress.border-info{border-color:#52aed4;}
+.progress.border-warning{border-color:#fbb254;}
+.progress.border-danger{border-color:#f05050;}
+
+.panel-1 .panel-1-block .icon{position:relative;top:2px;display:inline-block;width:28px;height:28px;}
+</style>
+<div class="gradientBg" style="height:100%;position:fixed;width:100%;top:0;">
+	<div style="padding:0 20px;height:92%;top:4%;position:relative;">
+		<div style="height:100%;">
+			<div class="bigview-border">
+				<i class="top-left"></i>
+				<i class="top-right"></i>
+				<i class="bottom-left"></i>
+				<i class="bottom-right"></i>
+				<h3>{{ selected_dcName }}</h3>
+				<div style="position:relative;height:88%;">
+					<div style="position:absolute;z-index:11;width:280px;height:100%;padding:0;border-right:1px #6fd4fd dashed;padding-right:24px;">
+						<div class="panel-1">
+							<div class="panel-1-header" style="padding-top:0;">计算资源</div>
+							<div class="panel-1-body">
+								<div class="panel-1-block" style="padding:20px 10px;margin-bottom:10px;">
+									<div class="row text-center">
+										<div class="col-xs-4 withborder">
+											<div style="font-size:16px;">主机</div>
+											<div>{{ statics.totalHost }}台</div>
+										</div>
+										<div class="col-xs-4 withborder">
+											<div style="font-size:16px;">CPU</div>
+											<div>{{ statics.totalCpu }}核</div>
+										</div>
+										<div class="col-xs-4">
+											<div style="font-size:16px;">内存</div>
+											<div>{{ statics.totalMemory }}G</div>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-6" style="padding-left:0;">
+									<div class="panel-1-block clearfix color-yellow">
+										<div class="pull-left">
+											<span class="icon icon-resouce-color icon-big"></span>
+										</div>
+										<div class="pull-left info">
+											<div><span>存储池</span></div>
+											<div><span>{{ statics.totalStorage }}G</span></div>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-6" style="padding-right:0;">
+									<div class="panel-1-block clearfix color-blue">
+										<div class="pull-left">
+											<span class="icon icon-ip-color icon-big"></span>
+										</div>
+										<div class="pull-left info">
+											<div><span>IP池：</span><span>{{ statics.totalIpPool }}个</span></div>
+											<div><span>IP：</span><span>{{ statics.totalIp }}个</span></div>
+										</div>
+									</div>
+								</div>
+								<div class="clearfix"></div>
+							</div>
+						</div>
+						<div class="panel-1">
+							<div class="panel-1-header">性能资源</div>
+							<div class="panel-1-body">
+								<div class="panel-1-block success dblue3" style="padding:12px 8px;">
+									<div class="col-xs-2">
+										<p class="title">CPU</p>
+									</div>
+									<div class="col-xs-10">
+										<div class="progress bg-dblue border-info" ng-class="{'border-warning':(statics.usedCpu/statics.totalCpu)*100>70,'border-danger':(statics.usedCpu/statics.totalCpu)*100>90}" value="35" animate="true" type="info">
+										  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedCpu/statics.totalCpu)*100>70,'progress-bar-danger':(statics.usedCpu/statics.totalCpu)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedCpu/statics.totalCpu)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedCpu,statics.totalCpu)||0 }}%</strong></div>
+										  <span class="info">{{ statics.totalCpu }}核</span>
+										</div>
+									</div>
+									<div class="clearfix"></div>
+									<div class="col-xs-2">
+										<p class="title">内存</p>
+									</div>
+									<div class="col-xs-10">
+										<div class="progress bg-dblue border-info" ng-class="{'border-warning':(statics.usedMemory/statics.totalMemory)*100>70,'border-danger':(statics.usedMemory/statics.totalMemory)*100>90}" value="35" animate="true" type="info">
+										  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedMemory/statics.totalMemory)*100>70,'progress-bar-danger':(statics.usedMemory/statics.totalMemory)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedMemory/statics.totalMemory)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedMemory,statics.totalMemory)||0 }}%</strong></div>
+										  <span class="info">{{ statics.totalMemory }}G</span>
+										</div>
+									</div>
+									<div class="clearfix"></div>
+									<div class="col-xs-2">
+										<p class="title">存储</p>
+									</div>
+									<div class="col-xs-10">
+										<div class="progress bg-dblue border-info" ng-class="{'border-warning':(statics.usedStorage/statics.totalStorage)*100>70,'border-danger':(statics.usedStorage/statics.totalStorage)*100>90}" value="35" animate="true" type="info" style="margin:0;">
+										  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedStorage/statics.totalStorage)*100>70,'progress-bar-danger':(statics.usedStorage/statics.totalStorage)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedStorage/statics.totalStorage)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedStorage,statics.totalStorage)||0 }}%</strong></div>
+										  <span class="info">{{ statics.totalStorage }}G</span>
+										</div>
+									</div>
+									<div class="clearfix"></div>
+								</div>
+							</div>
+						</div>
+						<div class="panel-1">
+							<div class="panel-1-header">应用资源</div>
+							<div class="panel-1-body">
+								<div class="panel-1-block success style-4 color-blue" >
+									<div class="clearfix" style="margin-bottom:10px">
+										<div class="pull-left">
+											<span class="icon icon-vm-color icon-big" style="top:8px;"></span>
+										</div>
+										<div class="pull-left info">
+											<div><span>虚拟主机：{{ statics.totalVm }}台</span></div>
+											<div><span>vcpu：{{ statics.totalVCpu }}个</span><span style="margin-left:20px;">内存：{{ statics.totalVMemory }}G</span></div>
+											<div><span>存储：{{ statics.totalVStorage }}G</span><span style="margin-left:20px;">IP：{{ statics.totalVIp }}个</span></div>
+										</div>
+									</div>
+									<div class="clearfix" style="margin-top:20px;">
+										<div class="pull-left">
+											<span class="icon icon-project-color icon-big" style="top:-8px;"></span>
+										</div>
+										<div class="pull-left info">
+											<div><span>业务系统：{{ statics.totalBusiness }}个</span></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div style="padding:0;position:relative;height:100%;overflow:hidden;padding-left:280px;">
+			      		<div class="monitor-right-info">
+			      			<div class="bbox">
+			      				<div class="col-md-6"><span class="level0"></span>正常</div>
+			      				<div class="col-md-6" style="text-align:right;"><span class="level1"></span>一般</div>
+			      				<div class="col-md-6"><span class="level2"></span>严重</div>
+			      				<div class="col-md-6" style="text-align:right;"><span class="level3"></span>灾难</div>
+			      				<div class="clearfix"></div>
+			      			</div>
+			      			<div style="margin-top:10px;">
+			      				<my-chart ng-if="alarmPie" config="alarmPie" style="width:100%;height:150px;"></my-chart>
+			      			</div>
+			      			<!-- <div class="row" style="margin:10px 0;">
+			      				<div class="col-xs-6">告警比例</div>
+			      				<div class="col-xs-6" style="text-align:right;font-weight:bold;color:#ff4141;">{{ calcued($scope.hosts.alarmTotal,$scope.hosts.total)||0 }}%</div>
+			      			</div>
+			      			<div class="progress bg-pinky1" value="35" animate="true" type="info">
+							  <div class="progress-bar bg-red2" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ calcued($scope.hosts.alarmTotal,$scope.hosts.total) }}%;"></div>
+							</div> -->
+			      		</div>
+			      		<ctopo ng-if="cpotoOptions" id="ctopobox" option="cpotoOptions"></ctopo>
+			      		<div class="alarms-bottom" ng-if="root_warnings">
+						    <div ng-if="root_warnings.length>0">
+						      <marquee direction="left" behavior="scroll" scrolldelay="0" scrollamount="6" loop="-1" width="100%">
+						        <span ng-repeat="root_warning in root_warnings" style="margin-right:10px;">【{{ root_warning.hostIp }}】{{ root_warning.alarmType }}({{ root_warning.alarmCount }}次) {{ root_warning.alarmTime }}</span>
+						      </marquee>   
+						    </div>
+						    <p ng-if="root_warnings.length<1" style="text-align:center;color:#fff">暂无告警数据…</p>
+						</div>
+			      		<div class="danger-alarms-box" ng-class="{'in':showDangerbox}">
+			      			<strong><i class="glyphicon glyphicon-info-sign"></i>灾难告警</strong>
+			      			<div class="danger-alarms-content">
+			      				<div ng-repeat="alarm in dangerAlarms">【{{ alarm.alarmTime }}】{{ alarm.alarmContent }}</div>
+			      			</div>
+			      		</div>
+					</div>
+				</div>
+				<div class="clearfix"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<style type="text/css">
+.danger-alarms-box{width:500px;min-height:120px;padding:12px;right:20px;bottom:-120px;opacity:0;position:absolute;transition:all .5s;-moz-transition: all .5s;-webkit-transition: all .5s;background:#fbecec;border:1px solid #e60012;border-radius:4px;}
+.danger-alarms-box.in{bottom:35px;opacity:1;}
+.danger-alarms-box strong{padding-left:8px;font-size:18px;color:#e60012;}
+.danger-alarms-box strong i{top:4px;font-size:20px;margin-right:10px;}
+.danger-alarms-content {border:1px solid #f9dbdb;background:#fff;margin-top: 10px;padding: 6px 0;line-height:22px;}
+.alarms-bottom{height:34px;line-height:34px;border:1px solid #ff4141;background:rgba(255,65,65,.1);margin:0 20px;color:#ff4141;position:absolute;bottom:0;}
+</style>

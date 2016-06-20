@@ -1,0 +1,158 @@
+<style type="text/css">
+.content-box{background:#fafafa;}
+.monitor-right-info{z-index:999;width:100%;top:0;font-size:14px;}
+.monitor-right-info strong{font-size:26px;color:#364961;text-align:center;width:100%;display:block;margin:30px 0 0;}
+/*.monitor-right-info .bbox{padding:8px 0;background:#fff;border:1px solid #57bbe5;font-size:14px;}*/
+.monitor-right-info .bbox{width:266px;margin:0 auto;font-size:14px;}
+.bbox span{display:inline-block;width:14px;height:14px;position:relative;top:2px;margin-right:6px;}
+.bbox span.level0{background:#6fcaee;}
+.bbox span.level1{background:#16b27e;}
+.bbox span.level2{background:#ed7218;}
+.bbox span.level3{background:#e60012;}
+.monitor-right-info .progress{border-radius:0;background-color: #fbe7e7;padding:1px;border:1px solid #e60012;}
+</style>
+<div class="container content-box">
+	<div class="row">
+		<div class="col-xs-3" style="padding:0;border-right:1px #fafafa solid;border-left:1px #fafafa solid;">
+			<div style="position:relative;background-color:#212D47;">
+				<select class="form-control" style="position:relative;z-index:20;color:#fff;font-size:14px;height:36px;border:none;border-top:1px #fafafa solid;appearance:none;-moz-appearance:none;-webkit-appearance:none;background:none;"
+				ng-change="changeDc()" ng-model="selected_dcId">
+					<option style="color:#000;" ng-selected="$index==0 || selected_dcId == datacenter.id" ng-repeat="datacenter in datacenters" value="{{ datacenter.id }}">{{ datacenter.name }}</option>
+				</select>
+				<span style="position:absolute;z-index:0;right:10px;top:10px;color:#fff;font-size:14px;" class="glyphicon glyphicon-play pull-right"></span>
+			</div>
+			<div class="panel-1 bg-green2">
+				<div class="panel-1-header">计算资源</div>
+				<div class="panel-1-body">
+					<div class="panel-1-block success style-4 bg-green1" >
+						<div class="row text-center">
+							<div class="col-xs-4 withborder">
+								<div style="font-size:16px;">主机</div>
+								<div>{{ statics.totalHost }}台</div>
+							</div>
+							<div class="col-xs-4 withborder">
+								<div style="font-size:16px;">CPU</div>
+								<div>{{ statics.totalCpu }}核</div>
+							</div>
+							<div class="col-xs-4">
+								<div style="font-size:16px;">内存</div>
+								<div>{{ statics.totalMemory }}G</div>
+							</div>
+						</div>
+					</div>
+					<div class="panel-1-block success style-4" >
+						<div class="col-xs-6">
+							<div class="pull-left">
+								<span class="icon icon-resouce"></span>
+							</div>
+							<div class="pull-left info">
+								<div><span>存储池</span></div>
+								<div><span>{{ statics.totalStorage }}G</span></div>
+							</div>
+						</div>
+						<div class="col-xs-6">
+							<div class="pull-left">
+								<span class="icon icon-ip"></span>
+							</div>
+							<div class="pull-left info">
+								<div><span>IP池：</span><span>{{ statics.totalIpPool }}个</span></div>
+								<div><span>IP：</span><span>{{ statics.totalIp }}个</span></div>
+							</div>
+						</div>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-1">
+				<div class="panel-1-header bg-blue1">性能资源</div>
+				<div class="panel-1-body bg-blue1">
+					<div class="panel-1-block success">
+						<p class="title">CPU</p>
+						<div class="progress bg-dblue" value="35" animate="true" type="info">
+						  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedCpu/statics.totalCpu)*100>70,'progress-bar-danger':(statics.usedCpu/statics.totalCpu)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedCpu/statics.totalCpu)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedCpu,statics.totalCpu)||0 }}%</strong></div>
+						  <span class="info">{{ statics.totalCpu }}核</span>
+						</div>
+						<p class="title">内存</p>
+						<div class="progress bg-dblue" value="35" animate="true" type="info">
+						  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedMemory/statics.totalMemory)*100>70,'progress-bar-danger':(statics.usedMemory/statics.totalMemory)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedMemory/statics.totalMemory)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedMemory,statics.totalMemory)||0 }}%</strong></div>
+						  <span class="info">{{ statics.totalMemory }}G</span>
+						</div>
+						<p class="title">存储</p>
+						<div class="progress bg-dblue" value="35" animate="true" type="info">
+						  <div class="progress-bar progress-bar-info" ng-class="{'progress-bar-warning':(statics.usedStorage/statics.totalStorage)*100>70,'progress-bar-danger':(statics.usedStorage/statics.totalStorage)*100>90}" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ (statics.usedStorage/statics.totalStorage)*100 }}%;text-align:left;text-indent:20px;"><strong>{{ calcued(statics.usedStorage,statics.totalStorage)||0 }}%</strong></div>
+						  <span class="info">{{ statics.totalStorage }}G</span>
+						</div>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-1">
+				<div class="panel-1-header bg-yellow1">应用资源</div>
+				<div class="panel-1-body bg-yellow1">
+					<div class="panel-1-block success style-4" >
+						<div class="clearfix" style="margin-bottom:10px">
+							<div class="pull-left">
+								<span class="icon icon-vm" style="top:12px;"></span>
+							</div>
+							<div class="pull-left info">
+								<div><span>虚拟主机：{{ statics.totalVm }}台</span></div>
+								<div><span>vcpu：{{ statics.totalVCpu }}个</span><span style="margin-left:20px;">内存：{{ statics.totalVMemory }}G</span></div>
+								<div><span>存储：{{ statics.totalVStorage }}G</span><span style="margin-left:20px;">IP：{{ statics.totalVIp }}个</span></div>
+							</div>
+						</div>
+						<div class="clearfix" style="margin-top:20px;">
+							<div class="pull-left">
+								<span class="icon icon-project" style="top:-6px;"></span>
+							</div>
+							<div class="pull-left info">
+								<div><span>业务系统：{{ statics.totalBusiness }}个</span></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-9" style="padding:0;position:relative;overflow:hidden;">
+      		<div class="monitor-right-info">
+      			<strong style="background:#fafafa;">{{ selected_dcName }}</strong>
+      			<div class="bbox">
+      				<div class="col-xs-3"><span class="level0"></span>正常</div>
+      				<div class="col-xs-3"><span class="level1"></span>一般</div>
+      				<div class="col-xs-3"><span class="level2"></span>严重</div>
+      				<div class="col-xs-3"><span class="level3"></span>灾难</div>
+      				<div class="clearfix"></div>
+      			</div>
+      			<div style="margin-top:10px;width:200px;position:absolute;right:0;top:20px;z-index:9999;">
+      				<my-chart ng-if="alarmPie" config="alarmPie" style="width:100%;height:150px;"></my-chart>
+      			</div>
+      			<!-- <div class="row" style="margin:10px 0;">
+      				<div class="col-xs-6">告警比例</div>
+      				<div class="col-xs-6" style="text-align:right;font-weight:bold;color:#ff4141;">{{ calcued($scope.hosts.alarmTotal,$scope.hosts.total)||0 }}%</div>
+      			</div>
+      			<div class="progress bg-pinky1" value="35" animate="true" type="info">
+				  <div class="progress-bar bg-red2" role="progressbar" aria-valuemin="0" aria-valuemax="100"  style="width: {{ calcued($scope.hosts.alarmTotal,$scope.hosts.total) }}%;"></div>
+				</div> -->
+      		</div>
+      		<ctopo ng-if="cpotoOptions" id="ctopobox" option="cpotoOptions"></ctopo>
+      		<div class="danger-alarms-box" ng-if="!hideArlams" ng-mouseover="alarmsHover()" ng-mouseleave="alarmsLeave()" ng-class="{'in':showDangerbox}">
+      			<strong><i class="glyphicon glyphicon-info-sign"></i>灾难告警</strong>
+      			<span class="pull-right" style="cursor:pointer;font-size:12px;color:#999;" ng-click="closeArlams()">暂时隐藏</span>
+      			<div class="danger-alarms-content">
+      				<div ng-repeat="alarm in dangerAlarms">{{ alarm.alarmContent }}</div>
+      			</div>
+      		</div>
+      		<div ng-if="hideArlams" class="danger-alarms-box-unshow">
+      			<span class="btn btn-info" ng-click="showAlarms()" style="cursor:pointer;">显示灾难告警</span>
+      		</div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+</div>
+<style type="text/css">
+.danger-alarms-box-unshow{right:10px;bottom:10px;position:absolute;z-index:20;}
+.danger-alarms-box{width:500px;min-height:120px;padding:12px;right:10px;bottom:-120px;opacity:0;position:absolute;z-index:22;transition:all .5s;-moz-transition: all .5s;-webkit-transition: all .5s;background:#fbecec;border:1px solid #e60012;border-radius:4px;}
+.danger-alarms-box.in{bottom:10px;opacity:1;}
+.danger-alarms-box strong{padding-left:8px;font-size:18px;color:#e60012;}
+.danger-alarms-box strong i{top:4px;font-size:20px;margin-right:10px;}
+.danger-alarms-content {border:1px solid #f9dbdb;background:#fff;margin-top: 10px;padding: 6px 0;line-height:22px;}
+</style>

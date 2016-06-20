@@ -1,0 +1,102 @@
+
+<ul class="nav nav-tabs center">
+  <li class="active"><a>机柜列表</a></li>
+  <li><a ui-sref="app.assetsmanage.rooms.floors.devices">设备列表</a></li>
+</ul>
+<div class="tab-content" style="min-height:730px;">
+
+	<a class="form-control btn btn-primary" href="import_tmp/机柜列表导入模版.xls" style="width:100px;float:right;margin:0 220px -40px;">下载模板</a>
+	<div ngf-select ng-model="files"
+			ng-model-options="modelOptionsObj"
+		ngf-model-invalid="invalidFiles"
+        ng-model-options="modelOptionsObj"
+        ngf-pattern="pattern" ngf-accept="acceptSelect"
+        ngf-duration="10000"
+        class="form-control btn btn-primary" style="width:100px;float:right;margin:0 110px -40px;">导入机柜
+    </div>
+    <a class="form-control btn btn-primary" style="width:100px;float:right;margin:0 0 -40px;" ui-sref="app.assetsmanage.rooms.list">返回上一级</a>
+
+	<tabset class="tab-container insideTab tabbable">
+		<tab heading="机柜列表" ng-click="showlist()">
+			<div class="form-inline">
+				<div class="form-group cvm-input">
+				  <input type="text" class="form-control" placeholder="请输入机柜编号" ng-model="inputSearch.Code" ng-keyup="keyup($event, inputSearch)">
+				  <span class="fa fa-search"></span>
+				</div>
+				<div class="form-group cvm-input">
+				  <input type="text" class="form-control" placeholder="请输入机柜名称" ng-model="inputSearch.name" ng-keyup="keyup($event, inputSearch)">
+				  <span class="fa fa-search"></span>
+				</div>
+				<button class="form-control btn btn-primary" ng-click="search(inputSearch.Code,inputSearch.name)">查询</button>
+				<button class="form-control btn btn-primary" ng-click="addRacks()">新增机柜</button>
+			</div>
+			<table class="table table-bordered table-striped table-hover use3d">
+				<thead>
+					<th>机柜编号</th>
+					<th>机柜名称</th>
+					<th>机柜类型</th>
+					<th>厂家</th>
+					<th>型号</th>
+					<th>机柜行</th>
+					<th>机柜列</th>
+					<th>机位数量</th>
+					<th>高度(mm)</th>
+					<th>宽度(mm)</th>
+					<th>操作</th>
+				</thead>
+				<tbody>
+			  		<tr ng-repeat="rack in racks.data">
+			  			<td><span title="{{ rack.rackCode }}">{{ rack.rackCode }}</span></td>
+			  			<td><span title="{{ rack.name }}">{{ rack.name }}</span></td>
+			  			<td>{{ rack.rackTypeName }}</td>
+			  			<td>{{ rack.manufacturer }}</td>
+			  			<td>{{ rack.rackModel }}</td>
+			  			<td>{{ rack.physicalx }}</td>
+			  			<td>{{ rack.physicaly }}</td>
+			  			<td>{{ rack.rackUNum }}</td>
+			  			<td>{{ rack.heightNum }}</td>
+			  			<td>{{ rack.widthNum }}</td>
+			  			<td>
+			  				<a ng-click="edit(rack.id)">修改</a>
+	  						<a ui-sref="app.assetsmanage.rooms.floors.racks.list({roomId:rack.roomId,floorId:rack.roomId,rackId:rack.id})">查看设备</a>
+	  						<a ng-click="del(rack.id)">删除</a>
+			  			</td>
+			  		</tr>
+			  		<tr ng-if="racks.data.length<1 || !racks.data" ng-show="!ISsearching">
+			  			<td colspan="11" style="color:#666;">暂无数据</td>
+			  		</tr>
+			  		<tr ng-if="ISsearching">
+			  			<td colspan="11" style="color:#666;">加载中……</td>
+			  		</tr>
+				</tbody>
+			</table>
+			<div ng-if="racks.size" ui-pagination conf="pageConf" pg-ctrl="pgCtrl"></div>
+		</tab>
+		<tab heading="机柜平面图">
+			<p class="rack-img-exp">
+				<span><img height="16" src="assets/image/assetsmanage/icon-rack-1.png"> 设备柜</span>
+				<!-- <span><img height="16" src="assets/image/assetsmanage/icon-rack-2.png"> 电源柜</span>
+				<span><img height="16" src="assets/image/assetsmanage/icon-rack-3.png"> ODF柜</span> -->
+			</p>
+			<table class="table table-bordered list-2d">
+				<thead>
+					<th ng-repeat="column in columns track by $index">{{column}}</th>
+				</thead>
+				<tbody>
+			  		<tr ng-repeat="rowData in JiguiList">
+			  			<td width="25">{{$index+1}}</td>
+			  			<td ng-repeat="data in rowData track by $index">
+			  				<a ui-sref="app.assetsmanage.rooms.floors.racks.list({roomId:data.roomId,floorId:data.roomId,rackId:data.id})" ng-if="data.rackTypeId" title="{{ columns[$index+1]+data.physicalx+'  '+data.name }}">
+			  					<img height="16" ng-src="assets/image/assetsmanage/icon-rack-{{data.rackTypeId}}.png">
+							</a>
+			  			</td>
+			  			<td width="25">{{$index+1}}</td>
+			  		</tr>
+			  	</tbody>
+			  	<thead>
+					<th ng-repeat="column in columns track by $index">{{column}}</th>
+				</thead>
+			</table>
+		</tab>
+	</tabset>
+</div>
