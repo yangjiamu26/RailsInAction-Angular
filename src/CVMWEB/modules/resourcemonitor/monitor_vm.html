@@ -1,0 +1,346 @@
+<style type="text/css">
+.vm-info-box{}
+.vm-info-box>strong{display:block;font-size:14px;margin-bottom:12px;}
+.vm-info-inbox .table>tbody>tr>td{padding:6px;}
+</style>
+<ul class="nav nav-tabs center">
+  <li role="presentation"><a ui-sref="app.resourcemonitor.business.domains.systems.vms.statics({domainId:$stateParams.domainId,systemId:$stateParams.systemId,vmId:$stateParams.vmId,dcId:$stateParams.dcId})">趋势图</a></li>
+  <li role="presentation" class="active"><a>虚拟机监控信息</a></li>
+</ul>
+<div class="tab-content">
+  <div ng-if="!showVmMonitor">
+    <p style="text-align:center;font-size:24px;padding-top:180px;color:#666;">非MS监控对象</p>
+  </div>
+  <tabset class="tab-container insideTab tabbable" ng-if="showVmMonitor">
+      <tab heading="概览">
+        <div class="vm-info-box">
+          <strong>虚拟机信息</strong>
+          <div class="vm-info-inbox clearfix">
+            <table class="table table-bordered table-striped">
+              <tr>
+                <td>
+                  <span class="col-xs-5">监控对象名称：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.name }}</span>
+                </td>
+                <td>
+                  <span class="col-xs-5">监控情况：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.situation }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="col-xs-5">IP：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.ip }}</span>
+                </td>
+                <td>
+                  <span class="col-xs-5">OS：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.osType }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="col-xs-5">虚拟化：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.hypervisor }}</span>
+                </td>
+                <td>
+                  <span class="col-xs-5">最后轮询时间：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.collectTime }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="col-xs-5">CPU个数：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.totalCpu }}</span>
+                </td>
+                <td>
+                  <span class="col-xs-5">内存：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.totalMemory }}G</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="col-xs-5">存储：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.totalStorage }}G</span>
+                </td>
+                <td>
+                  <span class="col-xs-5">归属物理机：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.belongsPM.hostAlias }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="col-xs-5">承载业务系统：</span>
+                  <span class="col-xs-7">{{ vmBaseInfo.belongsProject.projectName }} </span>
+                </td>
+                <td>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="vm-info-box">
+          <strong>可用性</strong>
+          <div class="vm-info-inbox clearfix">
+            <div class="col-md-6">
+              <my-chart ng-if="vmBaseInfo.usability" config="vm_pie1" style="width:300px;height:200px;"></my-chart>
+            </div>
+            <div class="col-md-6" style="line-height:200px;color:#ff0000;">正常运行时间：{{ getTime(vmBaseInfo.runTime) }}</div>
+          </div>
+        </div>
+        <div class="vm-info-box clearfix">
+          <strong>即时告警汇总</strong>
+          <div class="vm-info-inbox">
+              <table class="table table-bordered table-striped">
+                <tr>
+                  <td>
+                    <span class="col-xs-6">磁盘告警：</span>
+                    <span class="col-xs-6">{{ vmBaseAlarams.disk }}个</span>
+                  </td>
+                  <td>
+                    <span class="col-xs-6">CPU告警：</span>
+                    <span class="col-xs-6">{{ vmBaseAlarams.cpu }}个</span>
+                  </td>
+                  <td>
+                    <span class="col-xs-6">内存告警：</span>
+                    <span class="col-xs-6">{{ vmBaseAlarams.memory }}个</span>
+                  </td>
+                </tr>
+              </table>
+          </div>
+        </div>
+      </tab>
+      <tab heading="CPU">
+        <div class="vm-info-box clearfix">
+          <strong>基础信息</strong>
+          <div class="vm-info-inbox clearfix" style="margin-bottom:20px;">
+              <div class="col-xs-5">
+                <table class="table table-bordered table-striped" style="margin-bottom:0px;">
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">CPU个数：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="cpuBaseInfo.cpu">{{ cpuBaseInfo.cpu }}个</span>
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">CPU使用率：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="cpuBaseInfo.useRate">{{ getFloat(cpuBaseInfo.useRate) }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+                <my-chart ng-if="vm_gauge1" config="vm_gauge1" func="gauge1_func(chart)" style="width:160px;height:160px;"></my-chart> 
+              </div> 
+          </div>
+        </div>
+        <div class="vm-info-box clearfix">
+          <strong>CPU使用情况</strong>
+          <select class="form-control" ng-disabled="searching" style="float:right;width:110px;margin-bottom:10px;" ng-model="cpuTimeType" ng-change="changeCpuTimeType(originalId,cpuTimeType)">
+            <option ng-selected="true" value="hour">最近1小时</option>
+            <option value="day">最近1天</option>
+            <option value="week">最近1周</option>
+            <option value="month">最近1个月</option>
+            <option value="year">最近1年</option>
+          </select>
+          <div class="clearfix"></div>
+          <div class="vm-info-inbox">
+              <my-chart config="vm_area1" style="width:650px;height:240px;margin:0 auto;"></my-chart>
+              <div class="col-xs-2"><span style="white-space:nowrap;">CPU使用率(%):</span></div>
+              <div class="col-xs-10">
+                <div class="col-xs-3"><strong>now：</strong>{{ cpuUsage.useRateAvg.nowVal || 0 }}</div>
+                <div class="col-xs-3"><strong>min：</strong>{{ cpuUsage.useRateAvg.minVal || 0 }}</div>
+                <div class="col-xs-3"><strong>max：</strong>{{ cpuUsage.useRateAvg.maxVal || 0 }}</div>
+                <div class="col-xs-3"><strong>avg：</strong>{{ cpuUsage.useRateAvg.avgVal || 0 }}</div>
+              </div>
+              <div class="clearfix"></div>
+          </div>
+        </div>
+      </tab>
+      <tab heading="内存">
+        <div class="vm-info-box clearfix">
+          <strong>基础信息</strong>
+          <div class="vm-info-inbox clearfix" style="margin-bottom:20px;">
+              <div class="col-xs-5">
+                <table class="table table-bordered table-striped" style="margin-bottom:0px;">
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">内存总量：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="memoryBaseInfo.total">{{ memoryBaseInfo.total }}G</span>
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">空闲物理内存：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="memoryBaseInfo.pmFree">{{ memoryBaseInfo.pmFree }}G</span>
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">物理内存使用率：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="memoryBaseInfo.pmUseRate">{{ getFloat(memoryBaseInfo.pmUseRate) }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+                <my-chart ng-if="vm_gauge2" config="vm_gauge2" func="gauge2_func(chart)" style="width:160px;height:160px;margin:0 auto;"></my-chart> 
+              </div>
+              <div class="col-xs-5" ng-if="memoryBaseInfo.amUseRate">
+                <table class="table table-bordered table-striped" style="margin-bottom:0px;margin-top:60px;">
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">应用内存使用率：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="memoryBaseInfo.amUseRate">{{ getFloat(memoryBaseInfo.amUseRate) }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+                <my-chart ng-if="vm_gauge3" config="vm_gauge3" func="gauge3_func(chart)" style="width:160px;height:160px;margin:0 auto;"></my-chart> 
+              </div> 
+          </div>
+        </div>
+        <div class="vm-info-box clearfix">
+          <select class="form-control" ng-disabled="searching" style="float:right;width:110px;margin-bottom:10px;" ng-model="memoryTimeType" ng-change="changeMemoryTimeType(originalId,memoryTimeType)">
+            <option ng-selected="true" value="hour">最近1小时</option>
+            <option value="day">最近1天</option>
+            <option value="week">最近1周</option>
+            <option value="month">最近1个月</option>
+            <option value="year">最近1年</option>
+          </select>
+          <div class="clearfix"></div>
+          <strong>物理内存使用情况</strong>
+          <div class="vm-info-inbox">
+              <my-chart ng-if="vm_area2" config="vm_area2" style="width:650px;height:240px;margin:0 auto;"></my-chart>
+              <div class="col-xs-2"><span style="white-space:nowrap;">物理内存使用率(%):</span></div>
+              <div class="col-xs-10">
+                <div class="col-xs-3"><strong>now：</strong>{{ pmMemoryUsage.useRateAvg.nowVal || 0 }}</div>
+                <div class="col-xs-3"><strong>min：</strong>{{ pmMemoryUsage.useRateAvg.minVal || 0 }}</div>
+                <div class="col-xs-3"><strong>max：</strong>{{ pmMemoryUsage.useRateAvg.maxVal || 0 }}</div>
+                <div class="col-xs-3"><strong>avg：</strong>{{ pmMemoryUsage.useRateAvg.avgVal || 0 }}</div>
+              </div>
+              <div class="clearfix"></div>
+          </div>
+          <div ng-if="memoryBaseInfo.amUseRate" style="margin-top:30px;">
+            <strong>应用内存使用情况</strong>
+            <div class="vm-info-inbox">
+                <my-chart ng-if="vm_area3" config="vm_area3" style="width:650px;height:240px;margin:0 auto;"></my-chart>
+                <div class="col-xs-2"><span style="white-space:nowrap;">应用内存使用率(%):</span></div>
+                <div class="col-xs-10">
+                  <div class="col-xs-3"><strong>now：</strong>{{ amMemoryUsage.useRateAvg.nowVal || 0 }}</div>
+                  <div class="col-xs-3"><strong>min：</strong>{{ amMemoryUsage.useRateAvg.minVal || 0 }}</div>
+                  <div class="col-xs-3"><strong>max：</strong>{{ amMemoryUsage.useRateAvg.maxVal || 0 }}</div>
+                  <div class="col-xs-3"><strong>avg：</strong>{{ amMemoryUsage.useRateAvg.avgVal || 0 }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </tab>
+      <tab heading="磁盘">
+        <div class="vm-info-box clearfix">
+          <strong>基础信息</strong>
+          <div class="vm-info-inbox clearfix" style="margin-bottom:20px;">
+              <div class="col-xs-5">
+                <table class="table table-bordered table-striped" style="margin-bottom:0px;">
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">磁盘总量：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="diskBaseInfo.total">{{ diskBaseInfo.total }}G</span>
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="col-xs-6">磁盘使用率：</span>
+                      <span class="col-xs-6">
+                        <span ng-if="diskBaseInfo.useRate">{{ getFloat(diskBaseInfo.useRate) }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+                <my-chart ng-if="vm_gauge4" config="vm_gauge4" func="gauge4_func(chart)" style="width:160px;height:160px;margin:0 auto;"></my-chart> 
+              </div>
+          </div>
+        </div>
+        <div class="vm-info-box clearfix">
+          <strong>磁盘使用详细信息</strong>
+          <div class="vm-info-inbox clearfix">
+            <div class="col-xs-12">
+              <table ng-if="diskUselist" class="table table-bordered table-striped" style="margin-bottom:0px;">
+                <thead>
+                  <tr>
+                    <th>磁盘名称</th>
+                    <th>总量(G)</th>
+                    <th>已用(G)</th>
+                    <th>使用率(%)</th>
+                    <th>空闲(G)</th>
+                    <th>可用率(%)</th>
+                  </tr>
+                </thead>
+                <tr ng-repeat="diskUse in diskUselist.data">
+                  <td>{{ diskUse.diskName }}</td>
+                  <td>{{ getGB(diskUse.diskSize) || '' }}</td>
+                  <td>{{ getGB(diskUse.diskUseSize) || '' }}</td>
+                  <td>{{ diskUse.diskUseRate || '' }}</td>
+                  <td>{{ getGB(diskUse.diskFreeSize || '') }}</td>
+                  <td>{{ diskUse.diskFreeRate || '' }}</td>
+                </tr>
+                <tr>
+                  <td>总量</td>
+                  <td>{{ getGB(diskTotal.totals) || '' }}</td>
+                  <td>{{ getGB(diskTotal.useds) || '' }}</td>
+                  <td>{{ diskTotal.usedRage || '' }}</td>
+                  <td>{{ getGB(diskTotal.frees) || '' }}</td>
+                  <td>{{ diskTotal.freeRage || '' }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </tab>
+      <tab heading="网络">
+        <div class="vm-info-box clearfix">
+          <strong>网络监控</strong>
+          <select class="form-control" ng-disabled="searching" style="float:right;width:110px;margin-bottom:10px;" ng-model="networkTimeType" ng-change="changeNetworkTimeType(originalId,networkTimeType)">
+            <option ng-selected="true" value="hour">最近1小时</option>
+            <option value="day">最近1天</option>
+            <option value="week">最近1周</option>
+            <option value="month">最近1个月</option>
+            <option value="year">最近1年</option>
+          </select>
+          <div class="clearfix"></div>
+          <div class="vm-info-inbox clearfix">
+            <my-chart ng-if="vm_area4" config="vm_area4" style="width:650px;height:240px;margin:0 auto;"></my-chart>
+            <div class="col-xs-2"><span style="white-space:nowrap;">网络接收速率(KB/s):</span></div>
+            <div class="col-xs-10">
+              <div class="col-xs-3"><strong>now：</strong>{{ networkUsage.netInRate.nowVal || 0 }}</div>
+              <div class="col-xs-3"><strong>min：</strong>{{ networkUsage.netInRate.minVal || 0 }}</div>
+              <div class="col-xs-3"><strong>max：</strong>{{ networkUsage.netInRate.maxVal || 0 }}</div>
+              <div class="col-xs-3"><strong>avg：</strong>{{ networkUsage.netInRate.avgVal || 0 }}</div>
+            </div>
+            <div class="clear" style="height:10px;"></div>
+            <div class="col-xs-2"><span style="white-space:nowrap;">网络发送速率(KB/s):</span></div>
+            <div class="col-xs-10">
+              <div class="col-xs-3"><strong>now：</strong>{{ networkUsage.netOutRate.nowVal || 0 }}</div>
+              <div class="col-xs-3"><strong>min：</strong>{{ networkUsage.netOutRate.minVal || 0 }}</div>
+              <div class="col-xs-3"><strong>max：</strong>{{ networkUsage.netOutRate.maxVal || 0 }}</div>
+              <div class="col-xs-3"><strong>avg：</strong>{{ networkUsage.netOutRate.avgVal || 0 }}</div>
+            </div>
+            <div class="clear" style="height:10px;"></div>
+            <div class="col-xs-4"><strong>网络接收总量(MB)：</strong>{{ networkUsage.netInThroughput || 0 }}</div>
+            <div class="col-xs-4"><strong>网络发送总量(MB)：</strong>{{ networkUsage.netOutThroughput || 0 }}</div>
+            <div class="clear"></div>
+          </div>
+        </div>
+      </tab>
+  </tabset>
+</div>

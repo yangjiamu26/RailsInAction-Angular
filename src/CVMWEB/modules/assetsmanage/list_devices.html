@@ -1,0 +1,164 @@
+<ul class="nav nav-tabs center">
+  <li role="presentation" ng-if='$state.includes("app.assetsmanage.base")'><a ui-sref="app.assetsmanage.base.list">机房列表</a></li>
+  <li role="presentation" ng-if='$state.includes("app.assetsmanage.rooms.devices")'><a ui-sref="app.assetsmanage.rooms.list">机层列表</a></li>
+  <li role="presentation" ng-if='$state.includes("app.assetsmanage.rooms.floors.devices")'><a ui-sref="app.assetsmanage.rooms.floors.list">机柜列表</a></li>
+  <li role="presentation" class="active"><a>设备列表</a></li>
+</ul>
+<div class="tab-content" style="min-height:730px;">
+
+	<div ng-if="deviceList" ng-controller="devicesListCtrl">
+		<div class="form-inline">
+			<div class="form-group cvm-input">
+			  <input type="text" class="form-control" placeholder="请输入设备编号" ng-model="inputSearch.Code" ng-keyup="keyup($event, inputSearch)">
+			  <span class="fa fa-search"></span>
+			</div>
+			<div class="form-group cvm-input">
+			  <input type="text" class="form-control" placeholder="请输入设备名称" ng-model="inputSearch.name" ng-keyup="keyup($event, inputSearch)">
+			  <span class="fa fa-search"></span>
+			</div>
+			<button class="form-control btn btn-primary" ng-click="search(inputSearch.Code,inputSearch.name)">查询</button>
+			<a class="form-control btn btn-primary" href="import_tmp/设备列表导入模版.xls">下载模板</a>
+			<div ngf-select ng-model="files"
+	 			ng-model-options="modelOptionsObj"
+	    		ngf-model-invalid="invalidFiles"
+	            ng-model-options="modelOptionsObj"
+	            ngf-pattern="pattern" ngf-accept="acceptSelect"
+	            ngf-duration="10000"
+	            class="form-control btn btn-primary">导入
+	        </div>
+			<button class="form-control btn btn-primary" ng-click="add()">新增设备</button>
+			<button class="form-control btn btn-primary" ng-click="showDeviceType()">设备类型维护</button>
+			<a class="form-control btn btn-primary" ng-if="$state.params.rackId" ui-sref="app.assetsmanage.rooms.floors.list">返回上一级</a>
+		</div>
+		<table class="table table-bordered table-striped table-hover use3d">
+			<thead>
+				<th>设备编号</th>
+				<th>设备名称</th>
+				<th>设备类型</th>
+				<th>所属机房</th>
+				<th>所属机层</th>
+				<th>所属机柜</th>
+				<th>所属业务</th>
+				<th>IP地址</th>
+				<th>操作</th>
+			</thead>
+			<tbody>
+		  		<tr ng-repeat="device in devices.data">
+		  			<td><span title="{{ device.deviceCode }}">{{ device.deviceCode }}</span></td>
+		  			<td><span title="{{ device.name }}">{{ device.name }}</span></td>
+		  			<td>{{ device.deviceTypeName }}</td>
+		  			<td>{{ device.roomName }}</td>
+		  			<td>{{ device.floorName }}</td>
+		  			<td>{{ device.rackName }}</td>
+		  			<td>{{ device.projectName }}</td>
+		  			<td>{{ device.ip }}</td>
+		  			<td>
+	  					<a ng-click="edit(device.id)">修改</a>
+		  				<a ng-click="del(device.id)">删除</a>
+		  			</td>
+		  		</tr>
+		  		<tr ng-if="devices.data.length<1 || !devices.data" ng-show="!ISsearching">
+		  			<td colspan="9" style="color:#666;">暂无数据</td>
+		  		</tr>
+		  		<tr ng-if="ISsearching">
+		  			<td colspan="9" style="color:#666;">加载中……</td>
+		  		</tr>
+			</tbody>
+		</table>
+		<div ng-if="devices.size" ui-pagination conf="pageConf" pg-ctrl="pgCtrl"></div>
+	</div>
+	<div ng-if="deviceType" ng-controller="deviceTypeCtrl">
+		<div class="form-inline">
+			<div class="form-group cvm-input">
+			  <input type="text" class="form-control" placeholder="请输入设备类型名称" ng-model="inputSearch.name" ng-keyup="keyup($event, inputSearch)">
+			  <span class="fa fa-search"></span>
+			</div>
+			<button class="form-control btn btn-primary" ng-click="search(inputSearch.Code,inputSearch.name)">查询</button>
+			<button class="form-control btn btn-primary" ng-click="add()">新增类型</button>
+			<button class="form-control btn btn-primary" ng-click="hideDeviceType()">返回</button>
+		</div>
+		<table class="table table-bordered table-striped table-hover use3d">
+			<thead>
+				<th>设备类型名称</th>
+				<th>设备类型描述</th>
+				<th>创建人</th>
+				<th>创建时间</th>
+				<th>设备图片</th>
+				<th>操作</th>
+			</thead>
+			<tbody>
+		  		<tr ng-repeat="type in deviceTypes.data">
+		  			<td>{{ type.name }}</td>
+		  			<td>{{ type.description }}</td>
+		  			<td>{{ type.creator }}</td>
+		  			<td>{{ type.creatime }}</td>
+		  			<td><img ng-src="{{ fileUrl+type.image }}" width="100"></td>
+		  			<td>
+		  				<a ng-click="edit(type.id)">修改</a>
+		  				<a ng-click="del(type.id)">删除</a>
+		  				<a ng-click="showFreeLabel(type.id)">自定义字段</a>
+		  			</td>
+		  		</tr>
+		  		<tr ng-if="deviceTypes.data.length<1 || !deviceTypes.data" ng-show="!ISsearching">
+		  			<td colspan="6" style="color:#666;">暂无数据</td>
+		  		</tr>
+		  		<tr ng-if="ISsearching">
+		  			<td colspan="6" style="color:#666;">加载中……</td>
+		  		</tr>
+			</tbody>
+		</table>
+		<div ng-if="deviceTypes.size" ui-pagination conf="pageConf" pg-ctrl="pgCtrl"></div>
+	</div>
+
+	<div ng-if="freeLabel" ng-controller="freeLabelCtrl">
+		<div class="form-inline">
+			<div class="form-group cvm-input">
+			  <input type="text" class="form-control" placeholder="请输入字段名称" ng-model="inputSearch.name" ng-keyup="keyup($event, inputSearch)">
+			  <span class="fa fa-search"></span>
+			</div>
+			<button class="form-control btn btn-primary" ng-click="search(inputSearch.Code,inputSearch.name)">查询</button>
+			<button class="form-control btn btn-primary" ng-click="addFreeLabel()">新增字段</button>
+			<button class="form-control btn btn-primary" ng-click="hideFreeLabel()">返回</button>
+		</div>
+		<table class="table table-bordered table-striped table-hover use3d">
+			<thead>
+				<th>设备类型</th>
+				<th>字段名称</th>
+				<th>字段类型</th>
+				<th>是否必填</th>
+				<th>描述</th>
+				<th>创建时间</th>
+				<th>操作</th>
+			</thead>
+			<tbody>
+		  		<tr ng-repeat="label in freeLabels.data">
+		  			<td>{{ label.deviceTypeName }}</td>
+		  			<td>{{ label.name }}</td>
+		  			<td>
+						<span ng-show="label.type=='text'">文本</span>
+						<span ng-show="label.type=='select'">选择</span>
+		  			</td>
+		  			<td>
+						<span ng-show="label.isMust=='Y'">是</span>
+						<span ng-show="label.isMust=='N'">否</span>
+		  			</td>
+		  			<td>{{ label.description }}</td>
+		  			<td>{{ label.creatime }}</td>
+		  			<td>
+		  				<a ng-click="edit(label.id)">修改</a>
+		  				<a ng-click="del(label.id)">删除</a>
+		  			</td>
+		  		</tr>
+		  		<tr ng-if="freeLabels.data.length<1 || !freeLabels.data" ng-show="!ISsearching">
+		  			<td colspan="7" style="color:#666;">暂无数据</td>
+		  		</tr>
+		  		<tr ng-if="ISsearching">
+		  			<td colspan="7" style="color:#666;">加载中……</td>
+		  		</tr>
+		  		
+			</tbody>
+		</table>
+		<div ng-if="freeLabels.size" ui-pagination conf="pageConf" pg-ctrl="pgCtrl"></div>
+	</div>
+
+</div>

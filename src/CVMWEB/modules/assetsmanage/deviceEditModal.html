@@ -1,0 +1,242 @@
+
+<div class="modal-content" style="width:1000px;margin-left:-200px;">
+	<div class="modal-header">
+		<button type="button" class="close" ng-click="close()"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" style="text-align:center">修改设备</h4>
+	</div>
+	<div class="modal-body" id="device-modal-body" style="padding-right:30px;">
+		<form class="row form-horizontal">
+			<div class="use-title-inbox">
+				<strong class="title">基本信息</strong>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">设备编号：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control required" ng-class="{'danger': deviceOptions.deviceCode=='' && Required}" ng-model="deviceOptions.deviceCode"><i>*</i>
+					    	<div class="requiredTip" ng-if="deviceOptions.deviceCode=='' && Required">请填写设备编号</div>
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">设备名称：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control required" ng-class="{'danger': deviceOptions.name=='' && Required}" ng-model="deviceOptions.name"><i>*</i>
+					    	<div class="requiredTip" ng-if="deviceOptions.name=='' && Required">请填写设备名称</div>
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">序列号：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control required" ng-class="{'danger': deviceOptions.deviceSn=='' && Required}" ng-model="deviceOptions.deviceSn"><i>*</i>
+					    	<div class="requiredTip" ng-if="deviceOptions.deviceSn=='' && Required">请填写序列号</div>
+					    </div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">设备类型：</label>
+					    <div class="col-xs-8">
+					    	<span class="form-control" disabled value="">{{ deviceOptions.deviceTypeName }}</span>
+						    
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">所属刀箱：</label>
+					    <div class="col-xs-8">
+						    <select class="form-control" ng-if="devices" ng-disabled="!deviceOptions.parentId" ng-model="deviceOptions.parentId">
+							  <option ng-selected="checkType" ng-repeat="device in devices.data | filter: {deviceTypeName: '刀箱'}" value="{{ device.id }}">{{ device.name }}</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">是否已入云：</label>
+					    <div class="col-xs-8">
+						    <select class="form-control required" ng-class="{'danger': deviceOptions.isInCloud=='' && Required}" ng-model="deviceOptions.isInCloud">
+							  <option value="Y">是</option>
+							  <option value="N">否</option>
+							</select><i>*</i>
+						</div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">用途：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control" ng-model="deviceOptions.purpose">
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">负责人：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control" ng-model="deviceOptions.responser">
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">联系电话：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" class="form-control" ng-model="deviceOptions.telephone" onpropertychange="value=value.replace(/[^\d]/g,'')" oninput="value=value.replace(/[^\d]/g,'')">
+					    </div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+				<div ng-if="deviceOptions.roomId || $stateParams.roomId">
+					<div class="col-xs-4">
+						<div class="form-group">
+						    <label class="control-label col-xs-4">关联物理机：</label>
+						    <div class="col-xs-8">
+						    	<input type="text" class="form-control" ng-class="{'hasValue':!!deviceOptions.hostName}" ng-model="deviceOptions.hostName" onfocus="this.blur()" onkeyup="return false;" ng-click="showHostList()" style="cursor:pointer;"><span ng-if="!!deviceOptions.hostName" class="fa fa-close" ng-click="clearHost()"></span>
+						    </div>
+						</div>
+					</div>
+					<div class="col-xs-4">
+						<div class="form-group">
+						    <label class="control-label col-xs-4">所属业务：</label>
+						    <div class="col-xs-8">
+						    	<input type="text" class="form-control" ng-class="{'hasValue':!!deviceOptions.projectName}" ng-model="deviceOptions.projectName" onfocus="this.blur()" onkeyup="return false;" ng-click="showBsnList()" style="cursor:pointer;"><span ng-if="!!deviceOptions.projectName" class="fa fa-close" ng-click="clearProject()"></span>
+						    </div>
+						</div>
+					</div>
+					<div class="clear" style="height:15px;"></div>
+				</div>
+			</div>
+
+			<div class="use-title-inbox" ng-if="freeLabels.length>0">
+				<strong class="title">自定义字段</strong>
+				<div class="col-xs-4" ng-repeat="freeLabel in freeLabels">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">{{ freeLabel.name }}：</label>
+					    <div class="col-xs-8" ng-if="freeLabelKeyValue">
+					    	<input ng-if="freeLabel.type=='text'" type="text" class="form-control" ng-class="{'required':freeLabel.isMust=='Y','danger':freeLabel.isMust=='Y' && freeLabelKeyValue[$index]=='' && Required}" ng-model="freeLabelKeyValue[$index]" placeholder="{{ freeLabel.enums }}">
+					    	<select ng-if="freeLabel.type=='select'" class="form-control" ng-class="{'required':freeLabel.isMust=='Y','danger':freeLabel.isMust=='Y' && freeLabelKeyValue[$index]=='' && Required}" ng-init="p_index=$index" ng-model="freeLabelKeyValue[$index]">
+					    		<option ng-repeat="enum in freeLabel.enums" ng-selected="freeLabelKeyValue[p_index]==enum" value="{{ enum }}">{{ enum }}</option>
+					    	</select>
+					    	<i ng-if="freeLabel.isMust=='Y'">*</i>
+					    	<div class="requiredTip" ng-if="freeLabel.isMust=='Y'" ng-show="freeLabelKeyValue[$index]=='' && Required">请填写该字段</div>
+					    </div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+			</div>
+
+			<div class="use-title-inbox">
+				<strong class="title">特定信息</strong>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">CPU数量(核)：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" ng-disabled="!!deviceOptions.hostName" class="form-control" ng-model="deviceOptions.cpu" onpropertychange="value=value.replace(/[^\d]/g,'')" oninput="value=value.replace(/[^\d]/g,'')">
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">内存大小(GB)：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" ng-disabled="!!deviceOptions.hostName" class="form-control" ng-model="deviceOptions.memory" onpropertychange="value=value.replace(/[^\d]/g,'')" oninput="value=value.replace(/[^\d]/g,'')">
+					    </div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">硬盘大小(GB)：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" ng-disabled="!!deviceOptions.hostName" class="form-control" ng-model="deviceOptions.disk" onpropertychange="value=value.replace(/[^\d]/g,'')" oninput="value=value.replace(/[^\d]/g,'')">
+					    </div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">IP地址：</label>
+					    <div class="col-xs-8">
+					    	<input type="text" ng-disabled="!!deviceOptions.hostName" class="form-control" ng-class="{'danger': IpNotRight&& Required}" ng-model="deviceOptions.ip">
+					    </div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+			</div>
+			
+			<div class="use-title-inbox">
+				<strong class="title">上架信息</strong>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">所属机房：</label>
+					    <div class="col-xs-8">
+						    <select class="form-control required" ng-class="{'danger': deviceOptions.roomId=='' && Required}" ng-model="deviceOptions.roomId" ng-change="changeRoom(deviceOptions.roomId)">
+							  <option ng-repeat="room in rooms.data" ng-selected="room.id==deviceOptions.roomId" value="{{ room.id }}">{{ room.name }}</option>
+							</select><i>*</i>
+							<div class="requiredTip" ng-if="deviceOptions.roomId=='' && Required">请选择机房</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">所属机层：</label>
+					    <div class="col-xs-8">
+						    <select class="form-control required" ng-class="{'danger': deviceOptions.floorId=='' && Required}" ng-model="deviceOptions.floorId" ng-change="changeFloor(deviceOptions.floorId)">
+							  <option ng-repeat="floor in floors.data" ng-selected="floor.id==deviceOptions.floorId" value="{{ floor.id }}">{{ floor.name }}</option>
+							</select><i>*</i>
+							<div class="requiredTip" ng-if="deviceOptions.floorId=='' && Required">请选择机层</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-4">
+					<div class="form-group">
+					    <label class="control-label col-xs-4">所属机柜：</label>
+					    <div class="col-xs-8">
+						    <select class="form-control required" ng-class="{'danger': deviceOptions.rackId=='' && Required}" ng-model="deviceOptions.rackId" ng-change="changeRack(deviceOptions.rackId)">
+							  <option ng-repeat="rack in racks.data" ng-selected="rack.id==deviceOptions.rackId" value="{{ rack.id }}">{{ rack.name }}</option>
+							</select><i>*</i>
+							<div class="requiredTip" ng-if="deviceOptions.rackId=='' && Required">请选择机柜</div>
+						</div>
+					</div>
+				</div>
+				<div class="clear" style="height:15px;"></div>
+				<div ng-if="showU">
+					<div class="col-xs-4">
+						<div class="form-group">
+						    <label class="control-label col-xs-4">开始U数：</label>
+						    <div class="col-xs-7" ng-if="beginUs">
+							    <select class="form-control required"  ng-class="{'danger': deviceOptions.endU=='' && Required}" ng-model="deviceOptions.beginU" ng-change="changeBeginU()">
+								  <option ng-repeat="beginU in beginUs" ng-selected="beginU==deviceOptions.beginU" value="{{ beginU }}">{{ beginU }}</option>
+								</select><i style="right:-38px;">*</i>
+								<div class="requiredTip" ng-if="deviceOptions.beginU=='' && Required">请选择开始U数</div>
+						    </div>
+						    <div class="control-label col-xs-1">U</div>
+						</div>
+					</div>
+					<div class="col-xs-4">
+						<div class="form-group">
+						    <label class="control-label col-xs-4">结束U数：</label>
+						    <div class="col-xs-7" ng-if="availableU">
+							    <select disabled class="form-control required" ng-class="{'danger': deviceOptions.endU=='' && Required}" ng-model="deviceOptions.endU">
+									<option ng-repeat="endU in availableU" ng-selected="endU==deviceOptions.endU" value="{{ endU }}">{{ endU }}</option>
+								</select><i style="right:-38px;">*</i>
+						    </div>
+						    <div class="control-label col-xs-1">U</div>
+						</div>
+					</div>
+					<div class="clear" style="height:15px;"></div>
+				</div>
+
+				<p style="text-align:center;">
+					<button class="btn btn-primary" ng-disabled="submitStart" style="margin-right:10px;" ng-click="update_action()">确定</button>
+					<button class="btn btn-default" ng-click="close()">取消</button>
+				</p>
+			</div>
+		</form>
+	</div>
+</div>
