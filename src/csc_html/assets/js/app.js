@@ -20,6 +20,15 @@ function showModalThir(url,callBack){
 		if(callBack) callBack();
 	});
 };
+
+if ($(".modal-draggable").length > 0) {
+	$(".modal-draggable").on("shown.bs.modal",function(){
+		$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+	})
+	
+}
+
+
 function systemMessage(){
 	this.alert = function(msg,callBack){
 		$("body").append('<div class="modal fade" id="systemMessageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
