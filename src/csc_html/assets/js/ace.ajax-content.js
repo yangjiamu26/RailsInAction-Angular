@@ -50,7 +50,6 @@
         window.location.hash = default_url;//匹配不到文件时跳回首页
       })
       .done(function(result) {
-        
         $contentArea.trigger('ajaxloaddone', {url: url, hash: hash});
         
         var link_element = null, link_text = '';;
