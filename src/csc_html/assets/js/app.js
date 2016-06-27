@@ -30,7 +30,7 @@ if ($(".modal-draggable").length > 0) {
 	$(".modal-draggable").on("shown.bs.modal",function(){
 		$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
 	})
-	
+
 }
 
 
