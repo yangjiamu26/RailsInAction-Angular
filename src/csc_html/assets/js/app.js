@@ -1,3 +1,8 @@
+
+$.ajaxSetup({
+	cache:false
+})
+
 //弹出窗
 function showModal(url,callBack){
 	var modal = $("#ajax_modal_0");
