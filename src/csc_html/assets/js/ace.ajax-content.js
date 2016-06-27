@@ -5,35 +5,30 @@
 (function($ , undefined) {
   var ajax_loaded_scripts = {}
 
-  function AceAjax(contentArea, settings) {
+  function AceAjax(contentArea, options) {
+
     var $contentArea = $(contentArea);
     var self = this;
-    $contentArea.attr('data-ajax-content', 'true');
     
-    //get a list of 'data-*' attributes that override 'defaults' and 'settings'
-    var attrib_values = ace.helper.getAttrSettings(contentArea, $.fn.ace_ajax.defaults);
-    this.settings = $.extend({}, $.fn.ace_ajax.defaults, settings, attrib_values);
-
-
+     var content_url = options.content_url || false
+     var default_url = options.default_url || false;
+    var loading_icon = options.loading_icon || 'fa-spinner fa-2x orange';
+    var loading_text = options.loading_text || '';
+    var update_breadcrumbs = options.update_breadcrumbs || options.update_breadcrumbs === undefined;
+    var update_title = options.update_title || options.update_breadcrumbs === undefined;
+    var update_active = options.update_active || options.update_breadcrumbs === undefined;
+    var close_active = options.close_active || false;
+    var max_load_wait = options.max_load_wait || false;
+    
     var working = false;
-    var $overlay = $();//empty set
+    
 
-    this.force_reload = false;//set jQuery ajax's cache option to 'false' to reload content
-    this.loadUrl = function(hash, cache) {
+    this.loadUrl = function(hash) {
       var url = false;
       hash = hash.replace(/^(\#\!)?\#/, '');
-      
-      this.force_reload = (cache === false)
-      
-      if(typeof this.settings.content_url === 'function') url = this.settings.content_url(hash);
+      if(typeof content_url === 'function') url = content_url(hash);
       if(typeof url === 'string') this.getUrl(url, hash, false);
     }
-    
-    this.loadAddr = function(url, hash, cache) {
-      this.force_reload = (cache === false);
-      this.getUrl(url, hash, false);
-    }
-    
     this.getUrl = function(url, hash, manual_trigger) {
       if(working) {
         return;
@@ -46,37 +41,44 @@
       self.startLoading();
 
       $.ajax({
-        'url': url,
-        'cache': !this.force_reload
+        'url': url
       })
       .error(function() {
         $contentArea.trigger('ajaxloaderror', {url: url, hash: hash});
-        
+
         self.stopLoading(true);
+        window.location.hash = default_url;//匹配不到文件时跳回首页
       })
       .done(function(result) {
+        
         $contentArea.trigger('ajaxloaddone', {url: url, hash: hash});
         
         var link_element = null, link_text = '';;
-        if(typeof self.settings.update_active === 'function') {
-          link_element = self.settings.update_active.call(null, hash, url);
+        if(typeof update_active === 'function') {
+          link_element = update_active.call(null, hash, url);
         }
-        else if(self.settings.update_active === true && hash) {
-          link_element = $('a[data-url="'+hash+'"]');
+        else if(update_active === true) {
+          link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]')],function(res){
+            if(res.length > 0) return res;
+            return [''];
+          });
+
+          link_element = link_element[0];
           if(link_element.length > 0) {
-            var nav = link_element.closest('.nav');
+            var nav = link_element.closest('.navbox');
             if(nav.length > 0) {
-              nav.find('.active').each(function(){
-                var $class = 'active';
-                if( $(this).hasClass('hover') || self.settings.close_active ) $class += ' open';
+              nav.find('.highlight').each(function(){
+                var $class = 'highlight';
+                //$(this).removeClass($class);
+                if( $(this).hasClass('hover') || close_active ) $class += ' open';
                 
                 $(this).removeClass($class);              
-                if(self.settings.close_active) {
+                if(close_active) {
                   $(this).find(' > .submenu').css('display', '');
                 }
               })
               
-              var active_li = link_element.closest('li').addClass('active').parents('.nav li').addClass('active open');
+              var active_li = link_element.closest('li').addClass('highlight').parents('.nav li').addClass('active open');
               nav.closest('.sidebar[data-sidebar-scroll=true]').each(function() {
                 var $this = $(this);
                 $this.ace_sidebar_scroll('reset');
@@ -87,11 +89,11 @@
         }
 
         /////////
-        if(typeof self.settings.update_breadcrumbs === 'function') {
-          link_text = self.settings.update_breadcrumbs.call(null, hash, url, link_element);
+        if(typeof update_breadcrumbs === 'function') {
+          link_text = update_breadcrumbs.call(null, hash, url, link_element);
         }
-        else if(self.settings.update_breadcrumbs === true && link_element != null && link_element.length > 0) {
-          link_text = updateBreadcrumbs(link_element);
+        else if(update_breadcrumbs === true && link_element != null && link_element.length > 0) {
+          link_text = updateBreadcrumbs(link_element,hash);
         }
         /////////
 
@@ -100,12 +102,9 @@
           .replace(/<(title|link)([\s\>])/gi,'<div class="hidden ajax-append-$1"$2')
           .replace(/<\/(title|link)\>/gi,'</div>')
       
-        
-        $overlay.addClass('content-loaded').detach();
         $contentArea.empty().html(result);
-        
-        $(self.settings.loading_overlay || $contentArea).append($overlay);
-  
+        $contentArea.css('opacity', 0.6);
+
         //remove previous stylesheets inserted via ajax
         setTimeout(function() {
           $('head').find('link.ace-ajax-stylesheet').remove();
@@ -131,10 +130,10 @@
 
         //////////////////////
 
-        if(typeof self.settings.update_title === 'function') {
-          self.settings.update_title.call(null, hash, url, link_text);
+        if(typeof update_title === 'function') {
+          update_title.call(null, hash, url, link_text);
         }
-        else if(self.settings.update_title === true) {
+        else if(update_title === true) {
           updateTitle(link_text);
         }
         
@@ -147,32 +146,23 @@
         $contentArea.trigger('ajaxloadcomplete', {url: url, hash: hash});
         //////////////////////
         
-        self.stopLoading();
+        self.stopLoading(true);
       })
     }
     
     
     ///////////////////////
-    var fixPos = false;
     var loadTimer = null;
     this.startLoading = function() {
       if(working) return;
       working = true;
       
-      if(!this.settings.loading_overlay && $contentArea.css('position') == 'static') {
-        $contentArea.css('position', 'relative');//for correct icon positioning
-        fixPos = true;
-      }
-        
-      $overlay.remove();
-      $overlay = $('<div class="ajax-loading-overlay"><i class="ajax-loading-icon '+(this.settings.loading_icon || '')+'"></i> '+this.settings.loading_text+'</div>')
-
-      if(this.settings.loading_overlay == 'body') $('body').append($overlay.addClass('ajax-overlay-body'));
-      else if(this.settings.loading_overlay) $(this.settings.loading_overlay).append($overlay);
-      else $contentArea.append($overlay);
-
+      $contentArea
+      .css('opacity', 0.25)
+      .prevAll('.ajax-loading-overlay').remove();
+      $('<div class="ajax-loading-overlay"><i class="ajax-loading-icon fa fa-spin '+loading_icon+'"></i> '+loading_text+'</div>').insertBefore(contentArea);
       
-      if(this.settings.max_load_wait !== false) 
+      if(max_load_wait !== false) 
        loadTimer = setTimeout(function() {
         loadTimer = null;
         if(!working) return;
@@ -182,18 +172,15 @@
         if (event.isDefaultPrevented()) return;
         
         self.stopLoading(true);
-       }, this.settings.max_load_wait * 1000);
+       }, max_load_wait * 1000);
     }
     
     this.stopLoading = function(stopNow) {
       if(stopNow === true) {
         working = false;
-        
-        $overlay.remove();
-        if(fixPos) {
-          $contentArea.css('position', '');//restore previous 'position' value
-          fixPos = false;
-        }
+        $contentArea
+        .css('opacity', 1)
+        .prevAll('.ajax-loading-overlay').remove();
         
         if(loadTimer != null) {
           clearTimeout(loadTimer);
@@ -201,34 +188,23 @@
         }
       }
       else {
-        $overlay.addClass('almost-loaded');
-        
-        $contentArea.one('ajaxscriptsloaded.inner_call', function() {
+        $contentArea.css('opacity', 0.75)
+        $contentArea.one('ajaxscriptsloaded', function() {
           self.stopLoading(true);
-          /**
-          if(window.Pace && Pace.running == true) {
-            Pace.off('done');
-            Pace.once('done', function() { self.stopLoading(true) })
-          }
-          else self.stopLoading(true);
-          */
         })
       }
-    }
-    
-    this.working = function() {
-      return working;
     }
     ///////////////////////
     
     
     
-    function updateBreadcrumbs(link_element) {
+    function updateBreadcrumbs(link_element,hash) {
       var link_text = '';
      
       //update breadcrumbs
       var breadcrumbs = $('.breadcrumb');
       if(breadcrumbs.length > 0 && breadcrumbs.is(':visible')) {
+        //console.log(link_element.attr("data-url")+"  "+hash)
         breadcrumbs.find('> li:not(:first-child)').remove();
 
         var i = 0;    
@@ -283,7 +259,6 @@
           
           $contentArea.trigger('ajaxscriptsloaded');
 
-
           $("[ui-jq]").each(function(){
             var self = $(this);
             var options = eval('[' + self.attr('ui-options') + ']');
@@ -296,7 +271,6 @@
               self[self.attr('ui-jq')].apply(self, options);
             });
           });
-          
         }
         
         //var deferreds = [];
@@ -358,8 +332,7 @@
 
       }, 10)
     }
-    
-    
+
     
     /////////////////
     $(window)
@@ -372,13 +345,13 @@
     }).trigger('hashchange.ace_ajax', [true]);
     
     var hash = $.trim(window.location.hash);
-    if(!hash && this.settings.default_url) window.location.hash = this.settings.default_url;
+    if(!hash && default_url) window.location.hash = default_url;
 
   }//AceAjax
 
 
 
-  $.fn.aceAjax = $.fn.ace_ajax = function (option, value, value2, value3) {
+  $.fn.aceAjax = $.fn.ace_ajax = function (option, value, value2) {
     var method_call;
 
     var $set = this.each(function () {
@@ -388,28 +361,13 @@
 
       if (!data) $this.data('ace_ajax', (data = new AceAjax(this, options)));
       if (typeof option === 'string' && typeof data[option] === 'function') {
-        if(value3 != undefined) method_call = data[option](value, value2, value3);
-        else if(value2 != undefined) method_call = data[option](value, value2);
+        if(value2 != undefined) method_call = data[option](value, value2);
         else method_call = data[option](value);
       }
     });
 
     return (method_call === undefined) ? $set : method_call;
   }
-  
-  
-  
-  $.fn.aceAjax.defaults = $.fn.ace_ajax.defaults = {
-    content_url: false,
-    default_url: false,
-    loading_icon: 'fa fa-spin fa-spinner fa-2x orange',
-    loading_text: '',
-    loading_overlay: null,
-    update_breadcrumbs: true,
-    update_title: true,
-    update_active: true,
-    close_active: false,
-    max_load_wait: false
-     }
 
 })(window.jQuery);
+
