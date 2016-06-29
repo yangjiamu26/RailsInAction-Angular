@@ -1,23 +1,12 @@
 // Expose Internal DOM library
 var $$ = Dom7;
-
+$.ajaxSetup({
+  cache: false
+})
 // Determine theme depending on device
 
 angular.module('app', []).controller('IndexController', ['$scope', '$compile', '$timeout', '$location',
   function($scope, $compile, $timeout, $location) {
-
-    var href = document.location.href;
-    var isMaterial = (href.indexOf("material") > -1);
-    var is_v1 = false;//(href.indexOf("is_v1") > -1);
-    var is_v2 = false;//(href.indexOf("is_v2") > -1);
-    var is_v3 = false;//(href.indexOf("is_v3") > -1);
-    var is_v4 = true;//(href.indexOf("is_v4") > -1);
-
-    $scope.isMaterial = isMaterial;
-    $scope.is_v1 = is_v1;
-    $scope.is_v2 = is_v2;
-    $scope.is_v3 = is_v3;
-    $scope.is_v4 = is_v4;
 
     $scope.setColorTheme = function(color){
         $scope.color_theme = "theme-" + color;
@@ -44,11 +33,7 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
       cache: false,
       cacheDuration: 1000 * 60 * 1,
       cacheIgnoreGetParameters: true,
-      pushState: false,
-      fastClicks: true,
-      // Enable Material theme for Android device only
-      material: isMaterial,
-      materialPageLoadDelay: 0
+      pushState: false
     });
 
 
@@ -71,8 +56,8 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initTotal_storage_chart();
           break;
         case "business-show":
-          myApp.addView('#view_business_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-business'}).router.load({url: 'tpl/business/summary.html',animatePages: false});
-          myApp.addView('#view_business_vm',      {dynamicNavbar: true,domCache: true,linksView:'#view-business'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+          myApp.addView('#view_business_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-business'}).router.load({url: 'tpl/business/summary.html',animatePages: false});
+          myApp.addView('#view_business_vm',      {dynamicNavbar: false,domCache: true,linksView:'#view-business'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
           break;
         case "pool-index":
           initPool_vtype_chart();
@@ -81,10 +66,10 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initPool_storage_chart();
           break;
         case "pool-show":
-          myApp.addView('#view_pool_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/pool/summary.html',animatePages: false});
-          myApp.addView('#view_pool_host',    {dynamicNavbar: true,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/host/list.html',animatePages: false});
-          myApp.addView('#view_pool_vm',      {dynamicNavbar: true,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
-          myApp.addView('#view_pool_storage', {dynamicNavbar: true,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
+          myApp.addView('#view_pool_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/pool/summary.html',animatePages: false});
+          myApp.addView('#view_pool_host',    {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/host/list.html',animatePages: false});
+          myApp.addView('#view_pool_vm',      {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+          myApp.addView('#view_pool_storage', {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
           break;
         case "pool-summary":
           initSinglePool_cpu_chart();
@@ -95,9 +80,9 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initHost_status_chart();
           break;
         case "host-show":
-          myApp.addView('#view_host_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/host/summary.html',animatePages: false});
-          myApp.addView('#view_host_vm',      {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
-          myApp.addView('#view_host_storage', {dynamicNavbar: true,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
+          myApp.addView('#view_host_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/host/summary.html',animatePages: false});
+          myApp.addView('#view_host_vm',      {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+          myApp.addView('#view_host_storage', {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
           break;
         case "host-summary":
           initSingleHost_cpu_chart();
@@ -109,9 +94,9 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initVm_status_chart();
           break;
         case "vm-show":
-          myApp.addView('#view_vm_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/summary.html',animatePages: false});
-          myApp.addView('#view_vm_performance',      {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html',animatePages: false});
-          myApp.addView('#view_vm_volumn', {dynamicNavbar: true,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
+          myApp.addView('#view_vm_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/summary.html',animatePages: false});
+          myApp.addView('#view_vm_performance',      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html',animatePages: false});
+          myApp.addView('#view_vm_volumn', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
           break;
         case "vm-performance":
           var calendarRange = myApp.calendar({
@@ -131,8 +116,8 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
           initStorage_use_chart();
           break;
         case "storage-show":
-          myApp.addView('#view_storage_summary', {dynamicNavbar: true,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/storage/summary.html',animatePages: false});
-          myApp.addView('#view_storage_volumn', {dynamicNavbar: true,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
+          myApp.addView('#view_storage_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/storage/summary.html',animatePages: false});
+          myApp.addView('#view_storage_volumn', {dynamicNavbar: false,domCache: true,linksView:'#view-storage'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
           break;
         case "storage-summary":
           initsingleStorage_use_chart();
@@ -152,19 +137,19 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     });
 
 
-    myApp.addView('#view-login', {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/LoginVC.html',animatePages: false});
+    myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/LoginVC.html',animatePages: false});
   
-    myApp.addView("#view-home",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-home"}).router.load({url: "tpl/home/index.html",animatePages: false});
-    myApp.addView(".view-panel-right",   {dynamicNavbar: !isMaterial,domCache: true,linksView: ".view-panel-right"});
-    myApp.addView("#view-business",      {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-business"}).router.load({url: "tpl/business/index.html",animatePages: false});
-    myApp.addView("#view-pool",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-pool"}).router.load({url: "tpl/pool/index.html",animatePages: false});
-    myApp.addView("#view-host",          {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-host"}).router.load({url: "tpl/host/index.html",animatePages: false});
-    myApp.addView("#view-vm",            {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-vm"}).router.load({url: "tpl/vm/index.html",animatePages: false});
+    myApp.addView("#view-home",          {dynamicNavbar: false,domCache: true,linksView: "#view-home"}).router.load({url: "tpl/home/index.html",animatePages: false});
+    myApp.addView(".view-panel-right",   {dynamicNavbar: false,domCache: true,linksView: ".view-panel-right"});
+    myApp.addView("#view-business",      {dynamicNavbar: false,domCache: true,linksView: "#view-business"}).router.load({url: "tpl/business/index.html",animatePages: false});
+    myApp.addView("#view-pool",          {dynamicNavbar: false,domCache: true,linksView: "#view-pool"}).router.load({url: "tpl/pool/index.html",animatePages: false});
+    myApp.addView("#view-host",          {dynamicNavbar: false,domCache: true,linksView: "#view-host"}).router.load({url: "tpl/host/index.html",animatePages: false});
+    myApp.addView("#view-vm",            {dynamicNavbar: false,domCache: true,linksView: "#view-vm"}).router.load({url: "tpl/vm/index.html",animatePages: false});
 
-    myApp.addView("#view-storage",       {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-storage"}).router.load({url: "tpl/storage/index.html",animatePages: false});    
-    myApp.addView("#view-settings-left", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/index.html",animatePages: false});
-    myApp.addView("#view-settings-main", {dynamicNavbar: !isMaterial,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/profile.html",animatePages: false});
+    myApp.addView("#view-storage",       {dynamicNavbar: false,domCache: true,linksView: "#view-storage"}).router.load({url: "tpl/storage/index.html",animatePages: false});    
+    myApp.addView("#view-settings-left", {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/index.html",animatePages: false});
+    myApp.addView("#view-settings-main", {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/profile.html",animatePages: false});
 
-    // myApp.addView('#view-passwordformvc',   {dynamicNavbar: !isMaterial,domCache: true}).router.load({url: 'tpl/settings/PasswordFormVC.html',   animatePages: false});
+    // myApp.addView('#view-passwordformvc',   {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/settings/PasswordFormVC.html',   animatePages: false});
   }
 ]);
