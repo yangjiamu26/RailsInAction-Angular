@@ -1,7 +1,35 @@
 myApp.onPageInit("home-index", function(page) {
-  initTotal_cpu_chart();
-  initTotal_memory_chart();
-  initTotal_storage_chart();
+  function ViewModel(){
+    this.stat = ko.observable({
+      "vm": "",
+      "cpu": "",
+      "memory": "",
+      "storage": "",
+      "business_domain": "",
+      "business": "",
+      "pool": "",
+      "host": ""
+    });
+    this.loadData = function(){
+      var self = this;
+      $.ajax("tpl/home/index.json?datacenter_id="+page.query.datacenter_id).done(function(data){
+        myApp.pullToRefreshDone();
+        self.stat(data);
+        initTotal_cpu_chart();
+        initTotal_memory_chart();
+        initTotal_storage_chart();
+      });
+    }
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, $$(page.container)[0]);
+
+  viewModel.loadData();
+
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
+
 });
 // 首页cpu占比图
 function initTotal_cpu_chart() {
