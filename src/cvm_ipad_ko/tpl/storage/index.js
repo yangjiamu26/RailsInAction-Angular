@@ -1,3 +1,7 @@
+myApp.onPageInit("storage-index", function(page) {
+  initStorage_share_chart();
+  initStorage_use_chart();
+});
 
 // 存储池-是否共享占比图
 function initStorage_share_chart() {

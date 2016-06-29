@@ -1,3 +1,8 @@
+myApp.onPageInit("vm-index", function(page) {
+  initVm_os_chart();
+  initVm_status_chart();
+});
+
 
 // 虚拟机-操作系统占比
 function initVm_os_chart() {

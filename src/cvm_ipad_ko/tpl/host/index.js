@@ -1,4 +1,6 @@
-
+myApp.onPageInit("host-index", function(page) {
+  initHost_status_chart();
+});
 
 // 物理机-状态占比
 function initHost_status_chart() {

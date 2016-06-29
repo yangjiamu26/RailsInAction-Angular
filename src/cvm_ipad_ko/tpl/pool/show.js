@@ -1,3 +1,9 @@
+myApp.onPageInit("pool-show", function(page) {
+  myApp.addView('#view_pool_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/pool/summary.html',animatePages: false});
+  myApp.addView('#view_pool_host',    {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/host/list.html',animatePages: false});
+  myApp.addView('#view_pool_vm',      {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+  myApp.addView('#view_pool_storage', {dynamicNavbar: false,domCache: true,linksView:'#view-pool'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
+});
 
 // 单个资源池-cpu占比图
 function initSinglePool_cpu_chart() {

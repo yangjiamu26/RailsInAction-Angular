@@ -1,4 +1,8 @@
-
+myApp.onPageInit("home-index", function(page) {
+  initTotal_cpu_chart();
+  initTotal_memory_chart();
+  initTotal_storage_chart();
+});
 // 首页cpu占比图
 function initTotal_cpu_chart() {
     $('#total_cpu_chart').highcharts({

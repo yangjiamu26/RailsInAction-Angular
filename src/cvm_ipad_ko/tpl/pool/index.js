@@ -1,3 +1,10 @@
+myApp.onPageInit("pool-index", function(page) {
+  initPool_vtype_chart();
+  initPool_cpu_chart();
+  initPool_memory_chart();
+  initPool_storage_chart();
+});
+
 // 资源池-虚拟化类型占比
 function initPool_vtype_chart() {
     $('#pool_vtype_chart').highcharts({
