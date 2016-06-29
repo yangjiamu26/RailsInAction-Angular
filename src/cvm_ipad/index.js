@@ -151,5 +151,19 @@ angular.module('app', []).controller('IndexController', ['$scope', '$compile', '
     myApp.addView("#view-settings-main", {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"}).router.load({url: "tpl/settings/profile.html",animatePages: false});
 
     // myApp.addView('#view-passwordformvc',   {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/settings/PasswordFormVC.html',   animatePages: false});
+    
+    $scope.$on("wishChangeDatacenter",function (event, dcInfo) {
+       $scope.$broadcast("nowChangeDatacenter", dcInfo);
+    });
   }
-]);
+])
+
+.controller('selectDcCtrl',function($scope, cvmPadApp){
+  cvmPadApp.datacenters().then(function(res){
+    $scope.DCs = res;
+  });
+  $scope.changeDc = function(dcInfo){
+    cvmPadApp.changeDc(dcInfo);
+    $scope.$emit("wishChangeDatacenter", dcInfo);
+  }
+})
