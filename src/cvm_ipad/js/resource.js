@@ -24,6 +24,29 @@ angular.module('app')
 	// return $resource(baseUrl+'/user/login', {}, {
 	// 	login: {method: 'POST'}
 	// })
+	this.datacenters = function(){
+		var deferrd = $q.defer();
+		var res = [
+		  {
+		    "dcId" : "domain_1",
+		    "dcName" : "OSS"
+		  },
+		  {
+		    "dcId" : "domain_2",
+		    "dcName" : "BSS"
+		  },
+		  {
+		    "dcId" : "domain_3",
+		    "dcName" : "MSS"
+		  }
+		]
+
+		deferrd.resolve(res);
+		return deferrd.promise;
+	}
+	this.changeDc = function(DcInfo){
+		this.DcInfo = DcInfo;
+	}
 	this.indexRes = function(){
 		var deferrd = $q.defer();
 		var res = {
