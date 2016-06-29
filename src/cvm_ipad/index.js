@@ -8,9 +8,17 @@ var myApp = new Framework7({
   animateNavBackIcon: true,
   modalTitle: '',
   cache: false,
-  cacheDuration: 1000 * 60 * 1,
+  cacheDuration: 0,//1000 * 60 * 1,
   cacheIgnoreGetParameters: true,
+  allowDuplicateUrls: true,
   pushState: false
+});
+
+$$(document).on('ajaxStart', function (e) {
+    myApp.showIndicator();
+});
+$$(document).on('ajaxComplete', function () {
+    myApp.hideIndicator();
 });
 
 $(function(){
