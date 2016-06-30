@@ -26,24 +26,24 @@ var App = React.createClass({
 	    	</div>
 	    	<RouteCover />
 	    	<div id="gf-logo">
-	    		<img src="img/d5logo.svg" alt="第五维度工作室"/>
+	    		<img src="img/d5logo.jpg" alt="云宏信息"/>
 	    	</div>
 	    	<nav id="gf-nav">
 	    		<ul id="gf-nav-main-link">
-	    			<li><Link to="intro">Intro</Link></li>
-	    			<li><Link to="projects">Projects</Link></li>
-	    			<li><Link to="portfolio">Portfolio</Link></li>
-	    			<li><Link to="about">About</Link></li>
-	    			<li><a href="http://eisneim.github.io/" target="_blank">Blog</a></li>
-	    			<li><Link to="contact">Contact</Link></li>
+	    			<li><Link to="intro">我们的介绍</Link></li>
+	    			<li><Link to="projects">我们的产品</Link></li>
+	    			<li><Link to="portfolio">我们的画册</Link></li>
+	    			<li><Link to="about">关于我们</Link></li>
+	    			<li><a href="#" target="_blank">企业微信号</a></li>
+	    			<li><Link to="contact">联系我们</Link></li>
 	    		</ul>
 	    		<div id="gf-nav-bottom">
 	    			<ul id="gf-nav-social-link">
-	    				<li><a href="http://github.com/eisneim" target="_blank">Github</a></li>
-	    				<li><a href="http://weibo.com/eineim" target="_blank">Weibo</a></li>
-	    				<li><a href="http://www.zhihu.com/people/eisneim" target="_blank">知乎</a></li>
+	    				<li><a href="#" target="_blank">CNWare</a></li>
+	    				<li><a href="#" target="_blank">海泰大数据</a></li>
+	    				<li><a href="http://www.zkuyun.com" target="_blank">知库</a></li>
 	    			</ul>
-	    			<p>Designed with <span style={{color:"#F0696C"}}>❤</span> by <a href="http://glexe.com">Eisneim</a>, this site is opensourced on <a href="https://github.com/eisneim/gortfolio" target="_blank">github</a></p>
+	    			<p>由 <span style={{color:"#F0696C"}}>❤</span> <a href="http://glexe.com">研发中心团队</a>设计, 版权所有 <a href="https://github.com/eisneim/gortfolio" target="_blank">Winhong</a></p>
 	    		</div>
 	    		<div id="nav-svg-wrap" dangerouslySetInnerHTML={{__html: navSvg }}></div>
 	    	</nav>
