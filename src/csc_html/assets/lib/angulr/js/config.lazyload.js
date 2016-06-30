@@ -8,47 +8,47 @@ angular.module('app')
    */
   .constant('JQ_CONFIG', {
       easyPieChart:   [   '../../lib/jquery.easy-pie-chart/dist/jquery.easypiechart.fill.js'],
-      sparkline:      [   '../../bower_components/bower-jquery-sparkline/dist/jquery.sparkline.retina.js'],
-      plot:           [   '../../bower_components/flot/jquery.flot.js',
-                          '../../bower_components/flot/jquery.flot.pie.js', 
-                          '../../bower_components/flot/jquery.flot.resize.js',
-                          '../../bower_components/flot.tooltip/js/jquery.flot.tooltip.js',
-                          '../../bower_components/flot.orderbars/js/jquery.flot.orderBars.js',
-                          '../../bower_components/flot-spline/js/jquery.flot.spline.js'],
-      moment:         [   '../../bower_components/moment/moment.js'],
-      screenfull:     [   '../../bower_components/screenfull/dist/screenfull.min.js'],
-      slimScroll:     [   '../../bower_components/slimscroll/jquery.slimscroll.min.js'],
-      sortable:       [   '../../bower_components/html5sortable/jquery.sortable.js'],
-      nestable:       [   '../../bower_components/nestable/jquery.nestable.js',
+      sparkline:      [   '../../lib/bower-jquery-sparkline/dist/jquery.sparkline.retina.js'],
+      plot:           [   '../../lib/flot/jquery.flot.js',
+                          '../../lib/flot/jquery.flot.pie.js', 
+                          '../../lib/flot/jquery.flot.resize.js',
+                          '../../lib/flot.tooltip/js/jquery.flot.tooltip.js',
+                          '../../lib/flot.orderbars/js/jquery.flot.orderBars.js',
+                          '../../lib/flot-spline/js/jquery.flot.spline.js'],
+      moment:         [   '../../lib/moment/moment.js'],
+      screenfull:     [   '../../lib/screenfull/dist/screenfull.min.js'],
+      slimScroll:     [   '../../lib/slimscroll/jquery.slimscroll.min.js'],
+      sortable:       [   '../../lib/html5sortable/jquery.sortable.js'],
+      nestable:       [   '../../lib/nestable/jquery.nestable.js',
                           '../../lib/nestable/jquery.nestable.css'],
-      filestyle:      [   '../../bower_components/bootstrap-filestyle/src/bootstrap-filestyle.js'],
-      slider:         [   '../../bower_components/bootstrap-slider/bootstrap-slider.js',
+      filestyle:      [   '../../lib/bootstrap-filestyle/src/bootstrap-filestyle.js'],
+      slider:         [   '../../lib/bootstrap-slider/bootstrap-slider.js',
                           '../../lib/bootstrap-slider/bootstrap-slider.css'],
-      chosen:         [   '../../bower_components/chosen/chosen.jquery.js',
+      chosen:         [   '../../lib/chosen/chosen.jquery.js',
                           '../../lib/bootstrap-chosen/bootstrap-chosen.css'],
-      TouchSpin:      [   '../../bower_components/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.js',
-                          '../../bower_components/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css'],
-      wysiwyg:        [   '../../bower_components/bootstrap-wysiwyg/bootstrap-wysiwyg.js',
-                          '../../bower_components/bootstrap-wysiwyg/external/jquery.hotkeys.js'],
-      dataTable:      [   '../../bower_components/datatables/media/js/jquery.dataTables.min.js',
-                          '../../bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.js',
-                          '../../bower_components/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css'],
-      vectorMap:      [   '../../bower_components/bower-jvectormap/jquery-jvectormap-1.2.2.min.js', 
-                          '../../bower_components/bower-jvectormap/jquery-jvectormap-world-mill-en.js',
+      TouchSpin:      [   '../../lib/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.js',
+                          '../../lib/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css'],
+      wysiwyg:        [   '../../lib/bootstrap-wysiwyg/bootstrap-wysiwyg.js',
+                          '../../lib/bootstrap-wysiwyg/external/jquery.hotkeys.js'],
+      dataTable:      [   '../../lib/datatables/media/js/jquery.dataTables.min.js',
+                          '../../lib/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.js',
+                          '../../lib/datatables-plugins/integration/bootstrap/3/dataTables.bootstrap.css'],
+      vectorMap:      [   '../../lib/bower-jvectormap/jquery-jvectormap-1.2.2.min.js', 
+                          '../../lib/bower-jvectormap/jquery-jvectormap-world-mill-en.js',
                           '../../lib/bower-jvectormap/jquery-jvectormap-us-aea-en.js',
                           '../../lib/bower-jvectormap/jquery-jvectormap-1.2.2.css'],
-      footable:       [   '../../bower_components/footable/compiled/footable.min.js',
-                          '../../bower_components/footable/compiled/footable.core.bootstrap.css'],
-      fullcalendar:   [   '../../bower_components/moment/moment.js',
-                          '../../bower_components/fullcalendar/dist/fullcalendar.min.js',
-                          '../../bower_components/fullcalendar/dist/lang/zh-cn.js',
-                          '../../bower_components/fullcalendar/dist/fullcalendar.min.css',
+      footable:       [   '../../lib/footable/compiled/footable.min.js',
+                          '../../lib/footable/compiled/footable.core.bootstrap.css'],
+      fullcalendar:   [   '../../lib/moment/moment.js',
+                          '../../lib/fullcalendar/dist/fullcalendar.min.js',
+                          '../../lib/fullcalendar/dist/lang/zh-cn.js',
+                          '../../lib/fullcalendar/dist/fullcalendar.min.css',
                           '../../lib/fullcalendar/dist/fullcalendar.theme.css'],
-      daterangepicker:[   '../../bower_components/moment/moment.js',
-                          '../../bower_components/bootstrap-daterangepicker/daterangepicker.js',
-                          '../../bower_components/bootstrap-daterangepicker/daterangepicker.css'],
-      tagsinput:      [   '../../bower_components/bootstrap-tagsinput/dist/bootstrap-tagsinput.js',
-                          '../../bower_components/bootstrap-tagsinput/dist/bootstrap-tagsinput.css']
+      daterangepicker:[   '../../lib/moment/moment.js',
+                          '../../lib/bootstrap-daterangepicker/daterangepicker.js',
+                          '../../lib/bootstrap-daterangepicker/daterangepicker.css'],
+      tagsinput:      [   '../../lib/bootstrap-tagsinput/dist/bootstrap-tagsinput.js',
+                          '../../lib/bootstrap-tagsinput/dist/bootstrap-tagsinput.css']
                       
     }
   )
@@ -56,153 +56,153 @@ angular.module('app')
       {
           name: 'malhar.dashboard',
           files: [
-              '../../bower_components/lodash/dist/lodash.min.js',
-              '../../bower_components/jquery-ui/jquery-ui.min.js',
-              '../../bower_components/angular-ui-sortable/sortable.min.js',
-              '../../bower_components/d3/d3.js',
-              '../../bower_components/nvd3/nv.d3.js',
-              '../../bower_components/angularjs-nvd3-directives/dist/angularjs-nvd3-directives.js',
-              '../../bower_components/malhar-angular-dashboard/dist/malhar-angular-dashboard.css',
-              '../../bower_components/malhar-angular-dashboard/dist/malhar-angular-dashboard.js',
-              '../../bower_components/malhar-angular-widgets/dist/malhar-angular-widgets.js',
-              '../../bower_components/malhar-angular-table/dist/mlhr-table.js',
-              '../../bower_components/pines-notify/pnotify.core.js',
-              '../../bower_components/angular-pines-notify/src/pnotify.js',
-              '../../bower_components/visibilityjs/lib/visibility.core.js'
+              '../../lib/lodash/dist/lodash.min.js',
+              '../../lib/jquery-ui/jquery-ui.min.js',
+              '../../lib/angular-ui-sortable/sortable.min.js',
+              '../../lib/d3/d3.js',
+              '../../lib/nvd3/nv.d3.js',
+              '../../lib/angularjs-nvd3-directives/dist/angularjs-nvd3-directives.js',
+              '../../lib/malhar-angular-dashboard/dist/malhar-angular-dashboard.css',
+              '../../lib/malhar-angular-dashboard/dist/malhar-angular-dashboard.js',
+              '../../lib/malhar-angular-widgets/dist/malhar-angular-widgets.js',
+              '../../lib/malhar-angular-table/dist/mlhr-table.js',
+              '../../lib/pines-notify/pnotify.core.js',
+              '../../lib/angular-pines-notify/src/pnotify.js',
+              '../../lib/visibilityjs/lib/visibility.core.js'
           ]
       },
       {
           name: 'ui.grid',
           files: [
-              '../../bower_components/angular-ui-grid/ui-grid.min.js',
-              '../../bower_components/angular-ui-grid/ui-grid.min.css'
+              '../../lib/angular-ui-grid/ui-grid.min.js',
+              '../../lib/angular-ui-grid/ui-grid.min.css'
           ]
       },
       {
           name: 'ui.select',
           files: [
-              '../../bower_components/angular-ui-select/dist/select.min.js',
-              '../../bower_components/angular-ui-select/dist/select.min.css'
+              '../../lib/angular-ui-select/dist/select.min.js',
+              '../../lib/angular-ui-select/dist/select.min.css'
           ]
       },
       {
           name:'angularFileUpload',
           files: [
-            '../../bower_components/angular-file-upload/dist/angular-file-upload.min.js'
+            '../../lib/angular-file-upload/dist/angular-file-upload.min.js'
           ]
       },
       {
           name:'plupload',
           files: [
-            '../../bower_components/plupload/js/plupload.full.min.js',
-            '../../bower_components/angular-plupload/dist/angular-plupload.min.js'
+            '../../lib/plupload/js/plupload.full.min.js',
+            '../../lib/angular-plupload/dist/angular-plupload.min.js'
           ]
       },
       {
           name:'ui.calendar',
-          files: ['../../bower_components/angular-ui-calendar/src/calendar.js']
+          files: ['../../lib/angular-ui-calendar/src/calendar.js']
       },
       {
           name: 'ngImgCrop',
           files: [
-              '../../bower_components/ng-img-crop/compile/minified/ng-img-crop.js',
-              '../../bower_components/ng-img-crop/compile/minified/ng-img-crop.css'
+              '../../lib/ng-img-crop/compile/minified/ng-img-crop.js',
+              '../../lib/ng-img-crop/compile/minified/ng-img-crop.css'
           ]
       },
       {
           name: 'angularBootstrapNavTree',
           files: [
-              '../../bower_components/angular-bootstrap-nav-tree/dist/abn_tree_directive.js',
-              '../../bower_components/angular-bootstrap-nav-tree/dist/abn_tree.css'
+              '../../lib/angular-bootstrap-nav-tree/dist/abn_tree_directive.js',
+              '../../lib/angular-bootstrap-nav-tree/dist/abn_tree.css'
           ]
       },
       {
           name: 'toaster',
           files: [
-              '../../bower_components/angularjs-toaster/toaster.js',
-              '../../bower_components/angularjs-toaster/toaster.css'
+              '../../lib/angularjs-toaster/toaster.js',
+              '../../lib/angularjs-toaster/toaster.css'
           ]
       },
       {
           name: 'vr.directives.slider',
           files: [
-              '../../bower_components/angular-slider/build/angular-slider.min.js',
+              '../../lib/angular-slider/build/angular-slider.min.js',
               '../../lib/angular-slider/build/angular-slider.css'
           ]
       },
       {
           name: 'com.2fdevs.videogular',
           files: [
-              '../../bower_components/videogular/videogular.min.js'
+              '../../lib/videogular/videogular.min.js'
           ]
       },
       {
           name: 'com.2fdevs.videogular.themes.default',
           files: [
-              '../../bower_components/videogular-themes-default/videogular.css'
+              '../../lib/videogular-themes-default/videogular.css'
           ]
       },
       {
           name: 'com.2fdevs.videogular.plugins.controls',
           files: [
-              '../../bower_components/videogular-controls/vg-controls.min.js'
+              '../../lib/videogular-controls/vg-controls.min.js'
           ]
       },
       {
           name: 'com.2fdevs.videogular.plugins.buffering',
           files: [
-              '../../bower_components/videogular-buffering/vg-buffering.min.js'
+              '../../lib/videogular-buffering/vg-buffering.min.js'
           ]
       },
       {
           name: 'com.2fdevs.videogular.plugins.overlayplay',
           files: [
-              '../../bower_components/videogular-overlay-play/vg-overlay-play.min.js'
+              '../../lib/videogular-overlay-play/vg-overlay-play.min.js'
           ]
       },
       {
           name: 'com.2fdevs.videogular.plugins.poster',
           files: [
-              '../../bower_components/videogular-poster/vg-poster.min.js'
+              '../../lib/videogular-poster/vg-poster.min.js'
           ]
       },
       {
           name: 'com.2fdevs.videogular.plugins.imaads',
           files: [
-              '../../bower_components/videogular-ima-ads/vg-ima-ads.min.js'
+              '../../lib/videogular-ima-ads/vg-ima-ads.min.js'
           ]
       },
       {
           name: 'xeditable',
           files: [
-              '../../bower_components/angular-xeditable/dist/js/xeditable.min.js',
-              '../../bower_components/angular-xeditable/dist/css/xeditable.css'
+              '../../lib/angular-xeditable/dist/js/xeditable.min.js',
+              '../../lib/angular-xeditable/dist/css/xeditable.css'
           ]
       },
       {
           name: 'smart-table',
           files: [
-              '../../bower_components/angular-smart-table/dist/smart-table.min.js'
+              '../../lib/angular-smart-table/dist/smart-table.min.js'
           ]
       },
       {
           name: 'object-table',
           files: [
-              '../../bower_components/angular-object-table/build/object-table-style.css',
-              '../../bower_components/angular-object-table/build/object-table.js',
+              '../../lib/angular-object-table/build/object-table-style.css',
+              '../../lib/angular-object-table/build/object-table.js',
           ]
       },
       {
           name: 'dynamic-form',
           files: [
-              '../../bower_components/angularjs-dynamic-form/src/angulardynamicform.js'
+              '../../lib/angularjs-dynamic-form/src/angulardynamicform.js'
           ]
       },
       {
           name: 'iframe-resizer',
           files: [
-              '../../bower_components/iframe-resizer/js/iframeResizer.min.js',
-              '../../bower_components/ng-iframe-resizer/dist/iframe-resizer.min.js'
+              '../../lib/iframe-resizer/js/iframeResizer.min.js',
+              '../../lib/ng-iframe-resizer/dist/iframe-resizer.min.js'
           ]
       },      
       {
@@ -214,101 +214,101 @@ angular.module('app')
       {
           name: 'echarts',
           files: [
-              '../../bower_components/echarts/build/dist/echarts-all.js',
-              '../../bower_components/angular-echarts/dist/angular-echarts.js'
+              '../../lib/echarts/build/dist/echarts-all.js',
+              '../../lib/angular-echarts/dist/angular-echarts.js'
           ]
       },
       {
           name: 'ckeditor',
           files: [
-              '../../bower_components/ckeditor/ckeditor.js',
-              '../../bower_components/angular-ckeditor/angular-ckeditor.js'
+              '../../lib/ckeditor/ckeditor.js',
+              '../../lib/angular-ckeditor/angular-ckeditor.js'
           ]
       },
       {
           name: 'ueditor',
           files: [
-              '../../bower_components/angular-bdeditor/dist/ueditor.config.js',
-              '../../bower_components/angular-bdeditor/dist/ueditor.all.min.js',
-              '../../bower_components/angular-bdeditor/dist/angular-ueditor.js'
+              '../../lib/angular-bdeditor/dist/ueditor.config.js',
+              '../../lib/angular-bdeditor/dist/ueditor.all.min.js',
+              '../../lib/angular-bdeditor/dist/angular-ueditor.js'
           ]
       },
       {
         name: 'ztree',
         files: [
-            '../../bower_components/zTree/css/metroStyle/metroStyle.css',
-            '../../bower_components/zTree/js/jquery.ztree.all.min.js',
+            '../../lib/zTree/css/metroStyle/metroStyle.css',
+            '../../lib/zTree/js/jquery.ztree.all.min.js',
             '../../lib/zTree/ng-ztree.js'
         ]
       },
       {
         name: 'handsontable',
         files: [
-            '../../bower_components/handsontable/dist/handsontable.css',
-            '../../bower_components/pikaday/pikaday.js',
-            '../../bower_components/moment/moment.js',
-            '../../bower_components/zeroclipboard/dist/ZeroClipboard.js',
-            '../../bower_components/handsontable/dist/handsontable.full.min.js'
+            '../../lib/handsontable/dist/handsontable.css',
+            '../../lib/pikaday/pikaday.js',
+            '../../lib/moment/moment.js',
+            '../../lib/zeroclipboard/dist/ZeroClipboard.js',
+            '../../lib/handsontable/dist/handsontable.full.min.js'
         ]
       },
       {
         name: 'ng-handsontable',
         files: [
-            '../../bower_components/ngHandsontable/dist/ngHandsontable.js'
+            '../../lib/ngHandsontable/dist/ngHandsontable.js'
         ]
       },
       {
         name: 'wizard',
         files: [
-            '../../bower_components/angular-wizard/dist/angular-wizard.css',
-            '../../bower_components/angular-wizard/dist/angular-wizard.js',
+            '../../lib/angular-wizard/dist/angular-wizard.css',
+            '../../lib/angular-wizard/dist/angular-wizard.js',
         ]
       },
       {
         name: 'multi-step-form',
         files: [
-            '../../bower_components/angular-multi-step-form/dist/browser/angular-multi-step-form.js'
+            '../../lib/angular-multi-step-form/dist/browser/angular-multi-step-form.js'
         ]
       },
       {
         name: 'ag-grid',
         files: [
-            '../../bower_components/ag-grid/dist/styles/ag-grid.css',
-            '../../bower_components/ag-grid/dist/ag-grid.js'
+            '../../lib/ag-grid/dist/styles/ag-grid.css',
+            '../../lib/ag-grid/dist/ag-grid.js'
         ]
       },
       {
         name: 'datatables',
         files: [
-            '../../bower_components/datatables/media/js/jquery.dataTables.min.js',
-            '../../bower_components/angular-datatables/dist/css/angular-datatables.css',
-            '../../bower_components/angular-datatables/dist/angular-datatables.js'
+            '../../lib/datatables/media/js/jquery.dataTables.min.js',
+            '../../lib/angular-datatables/dist/css/angular-datatables.css',
+            '../../lib/angular-datatables/dist/angular-datatables.js'
         ]
       },
       {
         name: 'dragdrop',
         files: [
-            '../../bower_components/angular-drag-and-drop-lists/angular-drag-and-drop-lists.js'
+            '../../lib/angular-drag-and-drop-lists/angular-drag-and-drop-lists.js'
         ]
       },
       {
         name: 'raphael-map',
         files: [
-            '../../bower_components/raphael/raphael.js',
-            '../../bower_components/angular-raphael-chinamap/dist/angular-raphael-chinamap.js'
+            '../../lib/raphael/raphael.js',
+            '../../lib/angular-raphael-chinamap/dist/angular-raphael-chinamap.js'
         ]
       },
       {
         name: 'qr',
         files: [
-            '../../bower_components/angular-qr/lib/qrcode.js',
-            '../../bower_components/angular-qr/src/angular-qr.js'
+            '../../lib/angular-qr/lib/qrcode.js',
+            '../../lib/angular-qr/src/angular-qr.js'
         ]
       },
       {
         name: 'fullscreen',
         files: [
-            '../../bower_components/angular-fullscreen/src/angular-fullscreen.js'
+            '../../lib/angular-fullscreen/src/angular-fullscreen.js'
         ]
       }
     ]
