@@ -19,14 +19,20 @@ $(function(){
         //***NOTE***
         //this is for Ace demo only, you should change it to return a valid URL
         //please refer to documentation for more info
-        //if( !hash.match(/^pages\//) ) return false;
-        var path = document.location.pathname;
+        if( !hash.match(/^pages\//) ) return false;
         //for example in Ace HTML demo version we convert /ajax/index.html#page/gallery to > /ajax/content/gallery.html and load it
-        //if(path.match(/(index\.html)?/))
-        //  return path.replace(/(index\.html)?/, '/pages/'+hash.replace(/^pages\//, '')+'.html') ;
-        path = hash + ".html";
+        //if(path.match(/(\/webapp\/)(index\.html)?/))
+        //  return path.replace(/(\/webapp\/)(index\.html)?/, '/webapp/content/'+hash.replace(/^page\//, '')+'.html') ;
+        var url = "";
+        if(hash.indexOf("?")>-1){
+          var parts = hash.split("?");
+          url = parts[0] + ".html" + "?" + parts[1];
+        }else{
+          url = hash + ".html";
+        }
+        return url;
         //for example in Ace PHP demo version we convert "ajax.php#page/dashboard" to "ajax.php?page=dashboard" and load it
-        return path + "?" + hash.replace(/\//, "=");
+        //return path + "?" + hash.replace(/\//, "=");
         }       
     }
        

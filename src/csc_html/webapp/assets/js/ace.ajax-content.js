@@ -246,14 +246,31 @@
       }
      }
      
-     
      this.loadScripts = function(scripts, callback) {
       $.ajaxPrefilter('script', function(opts) {opts.cache = true});
       setTimeout(function() {
         //let's keep a list of loaded scripts so that we don't load them more than once!
         
         function finishLoading() {
-          if(typeof callback === 'function') callback();
+          if(typeof callback === 'function') {
+            var args=new Object();         
+
+            var hash = window.location.hash;
+            if(hash.indexOf("?")>-1){
+              var query = hash.split("?")[1];
+              var pairs=query.split("&");//在逗号处断开 
+              for(var i=0;i<pairs.length;i++) 
+              { 
+                var pos=pairs[i].indexOf('=');//查找name=value 
+                if(pos==-1) continue;//如果没有找到就跳过 
+                var argname=pairs[i].substring(0,pos);//提取name 
+                var value=pairs[i].substring(pos+1);//提取value 
+                args[argname]=unescape(value);//存为属性 
+              }
+            }
+
+            callback(args);
+          }
           $('.btn-group[data-toggle="buttons"] > .btn').button();
           
           $contentArea.trigger('ajaxscriptsloaded');
