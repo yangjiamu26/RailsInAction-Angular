@@ -1,6 +1,6 @@
 'use strict';
 
-window.UEDITOR_HOME_URL = "../../bower_components/angular-bdeditor/";
+window.UEDITOR_HOME_URL = "../../lib/angular-bdeditor/";
 
 angular.module('app', [
     'ngAria',
