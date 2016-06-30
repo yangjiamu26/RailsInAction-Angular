@@ -12,13 +12,13 @@ var Intro = React.createClass({
 				<div className="gf-centered-wraper">
 					<header className="gf-centered">
 						<br/><br/><br/>
-						<h1 className="ua-line-loadin">袁维隆</h1>
-						<h2>Eisneim Terry</h2>
-						<h3>I Love To Do&nbsp;
-							<Typer words={'Parkour||Freerunning||Web Design||Web Development||Paintting||Motion Graphics'}/>
+						<h1 className="ua-line-loadin">新三板挂牌</h1>
+						<h2>自主研发</h2>
+						<h3>第一品牌&nbsp;
+							<Typer words={'CNWare 虚拟化||MS 监控||CSC 云服务||知库云盘||大数据||一体机'}/>
 						</h3>
-						<p>24yrs old, currently based in Shanghai, China</p>
-						<a className="btn btn-ghost btn-lg" href="#/project"> My Projects →</a>
+						<p>云宏信息科技股份有限公司</p>
+						<a className="btn btn-ghost btn-lg" href="#/project"> 我们的产品 →</a>
 					</header>
 				</div>
 				<div className="cover-mat"></div>

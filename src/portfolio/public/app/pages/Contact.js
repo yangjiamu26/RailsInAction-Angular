@@ -51,12 +51,12 @@ var Contact = React.createClass({
 				<div className="social-link">
 					
 					<div className="links">
-						<a className="link-icon icon-github" target="_blank" href="https://github.com/eisneim"></a>
-						<a className="link-icon icon-sc" target="_blank" href="https://soundcloud.com/eisneim"></a>
-						<a className="link-icon icon-be" target="_blank" href="https://www.behance.net/eisneim1c2ed"></a>
-						<a className="link-icon icon-fb" target="_blank" href="https://www.facebook.com/eisneim"></a>
-						<a className="link-icon icon-weibo" target="_blank" href="http://weibo.com/eisneim"></a>
-						<a className="link-icon icon-zhihu" target="_blank" href="http://www.zhihu.com/people/eisneim"></a>
+						<a className="link-icon icon-github" target="_blank" href=""></a>
+						<a className="link-icon icon-sc" target="_blank" href=""></a>
+						<a className="link-icon icon-be" target="_blank" href=""></a>
+						<a className="link-icon icon-fb" target="_blank" href=""></a>
+						<a className="link-icon icon-weibo" target="_blank" href=""></a>
+						<a className="link-icon icon-zhihu" target="_blank" href=""></a>
 					</div>
 				</div>
 				<div className="flex contact-form" >
@@ -66,7 +66,7 @@ var Contact = React.createClass({
 					</div>
 					
 					<br/><br/><br/><br/>
-					<p>Shot me an Email here  ✉  <em>eisneim1@sina.com </em></p>
+					<p>欢迎邮件给我们  ✉  <em>admin@winhong.com </em></p>
 				</div>
 			</section>
 		)

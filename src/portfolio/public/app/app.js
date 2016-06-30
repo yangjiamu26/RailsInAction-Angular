@@ -43,7 +43,7 @@ var App = React.createClass({
 	    				<li><a href="#" target="_blank">海泰大数据</a></li>
 	    				<li><a href="http://www.zkuyun.com" target="_blank">知库</a></li>
 	    			</ul>
-	    			<p>由 <span style={{color:"#F0696C"}}>❤</span> <a href="http://glexe.com">研发中心团队</a>设计, 版权所有 <a href="https://github.com/eisneim/gortfolio" target="_blank">Winhong</a></p>
+	    			<p>由 <span style={{color:"#F0696C"}}>❤</span> <a href="#">研发中心团队</a>设计, 版权所有 <a href="#" target="_blank">Winhong</a></p>
 	    		</div>
 	    		<div id="nav-svg-wrap" dangerouslySetInnerHTML={{__html: navSvg }}></div>
 	    	</nav>

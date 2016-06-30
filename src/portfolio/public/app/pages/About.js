@@ -16,32 +16,23 @@ var About = React.createClass({
 				<div id="gf-about-portrait"></div>
 
 				<div id="gf-about-text">
-					<h1>ABOUT.ME.</h1>
-					<h4 className="small-title">GREETINGS.</h4>
-					<p>Hi there. I am Eisneim Terry(made in 1991), Shanghai based Digital artist & Developer. I'm currently work at startup project <a href="http://org.xinpingzi.com" target="_blank">xinpingzi.com</a> as lead web developer. 
-					And, here <a href="http://glexe.com">glexe.com</a> is my personal space to memorize my workpieces and memories of the enjoyment of creating beautiful things.
+					<h1>关于我们</h1>
+					<h4 className="small-title">研究开发.</h4>
+					<p>云宏信息科技股份有限公司奉行技术为本的发展路线，公司80%员工为技术开发人员，核心骨干人员曾任职于IBM、微软、Novell、Oracle、华为、腾讯、亚信联创等国际领先的高科技企业
 					</p>
 					<p>
-						My university degree is Bachelor in Electronic Engineering, but I taught myself a lot more than electronics. 
-Great thanks to the Internet, I learned almost all my skills online from: Youtube, Vimeo, 
-<a href="http://www.lynda.com" target="_blank">lynda.com</a>, 
-<a href="http://www.tutsplus.com" target="_blank">tutsplus.com</a>, 
-<a href="http://www.pluralsight.com" target="_blank">pluralsight.com</a>, 
-<a href="http://www.digitaltutors.com" target="_blank">DigitalTutors.com</a>, and many many more.
-I record and share free video tutorials as well, you can find them on <a href="http://zexeo.com" target="_blank">zexeo.com</a>
-
+						我们专注于云计算关键技术、架构、标准等方向，致力于为客户提供高可用、高安全的云计算产品及解决方案。自公司成立以来即持续投入，在云操作系统、云监控、云存储、大数据等深入研究，坚定地走国产自主的产品化道路，取得了多项创新成果，成功研发虚拟化平台CNware、云计算管理平台WinCloud、知库等产品。
 					</p>
-					<h4 className="small-title">WHAT I love to DO.</h4>
-					<p>MotionGraphics, VFX, Web Development, Digital Paint, Parkour, BodyBuilding</p>
+					<h4 className="small-title">xxxxxx.</h4>
+					<p>同时，我们与科研机构、著名高校成立云计算联合实验室，加强研发创新，加速科研成果产业化；与国际领先的高科技企业及机构紧密合作，不断提升技术研发水平；与电信运营商、金融行业大客户建立了良好的关系，深入行业技术研究。
+</p>
 
-					<h4 className="small-title">SKILL SETS.</h4>
+					<h4 className="small-title">xxxxx</h4>
 					<p>
-						<em>Design & Motion & VFX</em>:  After Effects, Cinema 4D, Nuke, Illustrator, Photoshop, MochaPro, Premiere  <br/>
-						<em>Web ServerSide</em>: Node.JS, Golang, MongoDB, PHP <br/>
-						<em>Web ClientSide</em>: Angular.JS, React.JS, SVG, Javascript, CSS3, HTML5 <br/>
+						云宏信息科技股份有限公司累计已获得120多项云计算关键技术相关的知识产权及专利，并获得诸多荣誉。
 					</p>
 
-					<a className="btn btn-ghost" href="#/contact">Stay in touch →</a>
+					<a className="btn btn-ghost" href="#/contact">联系我们 →</a>
 
 				</div>
 			</section>

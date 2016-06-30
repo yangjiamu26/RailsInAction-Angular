@@ -109,7 +109,7 @@ var Portfolio = React.createClass({
 		return (
 			<section className={sectionClasses} id="gf-portfolio">
 				<div id="gf-portfolio-header">
-					<a className="btn btn-ghost pull-right" href="#/project">My projects →</a>
+					<a className="btn btn-ghost pull-right" href="#/project">我们的产品 →</a>
 				</div>
 				<Grid items={items} gridData={this.state.gridData}  selected={selected}/>
 				<div id="gf-portfolio-item" className={itemWraperClass}>
