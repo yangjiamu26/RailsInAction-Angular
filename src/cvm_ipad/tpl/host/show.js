@@ -1,3 +1,18 @@
+myApp.onPageInit("host-show", function(page) {
+  function ViewModel(){
+    this.name = ko.observable(page.query.name);
+
+    this.loadData = function(){
+      myApp.addView('#view_host_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/host/summary.html',animatePages: false});
+      myApp.addView('#view_host_vm',      {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/vm/list.html',animatePages: false});
+      myApp.addView('#view_host_storage', {dynamicNavbar: false,domCache: true,linksView:'#view-host'}).router.load({url: 'tpl/storage/list.html',animatePages: false});
+    };
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, $$(page.container)[0]);
+  
+  viewModel.loadData();
+});
 
 // 单个资源池-cpu占比图
 function initSingleHost_cpu_chart() {
