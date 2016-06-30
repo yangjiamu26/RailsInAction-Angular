@@ -1,5 +1,6 @@
 myApp.onPageInit("pool-index", function(page) {
   function ViewModel(){
+    this.pools_count = ko.observable("");
     this.dataList = ko.observableArray([]);
 
     this.loading = false;
@@ -16,6 +17,7 @@ myApp.onPageInit("pool-index", function(page) {
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
 
+          self.pools_count(data.pools_count);
           initPool_vtype_chart();
           initPool_cpu_chart();
           initPool_memory_chart();
