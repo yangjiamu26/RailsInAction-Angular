@@ -71,7 +71,7 @@
             <td>true/false</td>
             <td></td>
             <td>
-              <a  onclick="showModal('pages/softwares/install.html')">安装</a>
+              <a data-bind="click: install">安装</a>
             </td>
           </tr>
         </tbody>
@@ -100,10 +100,139 @@
   </div>
 </div>
 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isInstall }">
+  <div class='modal-dialog modal-lg' role='document' data-bind="visible: !isInstallVM()">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h3 class='modal-title'>软件安装</h3>
+      </div>
+      <div class='modal-body form-horizontal'>
+        <div>
+          <button class="btn btn-default btn-sm pull-right" data-bind="click: installVM">选择虚拟机</button>
+          脚本名称：DB2 软件版本：1
+        </div>
+        <hr />
+        <p class="text-muted">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>虚拟机名称</th>
+              <th>虚拟机IP</th>
+              <th>静默安装属性</th>
+              <th>虚拟机账户</th>
+              <th>虚拟机密码</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>vm-a</td>
+              <td>192.168.1.1</td>
+              <td>111</td>
+              <td>admin</td>
+              <td>1234567890</td>
+              <td>
+                <a>移除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class='modal-footer'>
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-primary" />
+        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+  <div class='modal-dialog modal-lg' role='document' data-bind="visible: isInstallVM()">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h3 class='modal-title'>软件安装</h3>
+      </div>
+      <div class='modal-body form-horizontal'>
+        <div>
+          脚本名称：DB2 软件版本：1
+        </div>
+        <hr />
+        <div class="form-inline">
+          虚拟机名称：<input type="text" class="form-control" />
+          虚拟机IP：<input type="text" class="form-control" />
+          <button class="btn btn-default">查询</button>
+        </div>
+        <p>&nbsp;</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                <div class="checkbox">
+                  <label class="i-checks">
+                    <input type="checkbox" value="">
+                    <i></i>
+                  </label>
+                </div> 
+              </th>
+              <th>虚拟机名称</th>
+              <th>虚拟机IP</th>
+              <th>软件名称</th>
+              <th>已装版本</th>
+              <th>所属业务系统</th>
+              <th>所属业务域</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="checkbox">
+                  <label class="i-checks">
+                    <input type="checkbox" value="">
+                    <i></i>
+                  </label>
+                </div> 
+              </td>
+              <td>vm-a</td>
+              <td>192.168.1.1</td>
+              <td>软件1</td>
+              <td>1.0</td>
+              <td>中国移动</td>
+              <td>中国移动广州分公司</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+      <div class='modal-footer'>
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-primary" data-bind="click: installVMConfirm" />
+        <button name="button" class="btn btn-default btn btn-default" data-bind="click: installVMCancel">取消</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+
+    function ViewModel(){
+      this.isInstall = ko.observable(false);
+      this.isInstallVM = ko.observable(false);
+
+      this.install = function(){
+        this.isInstall(true);
+      }
+      this.installVM = function(){
+        this.isInstallVM(true);
+      }
+      this.installVMConfirm = function(){
+        this.isInstallVM(false);
+      }
+      this.installVMCancel = function(){
+        this.isInstallVM(false);
+      }
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+
   });
 </script>
