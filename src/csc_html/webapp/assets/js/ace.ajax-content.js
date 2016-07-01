@@ -101,7 +101,7 @@
           .replace(/<(title|link)([\s\>])/gi,'<div class="hidden ajax-append-$1"$2')
           .replace(/<\/(title|link)\>/gi,'</div>')
       
-        $contentArea.empty().html(result);
+        $contentArea.empty().html("<div id='page-content'>"+result+"</div");
         $contentArea.css('opacity', 0.6);
 
         //remove previous stylesheets inserted via ajax
@@ -246,6 +246,7 @@
       }
      }
      
+
      this.loadScripts = function(scripts, callback) {
       $.ajaxPrefilter('script', function(opts) {opts.cache = true});
       setTimeout(function() {
@@ -268,7 +269,6 @@
                 args[argname]=unescape(value);//存为属性 
               }
             }
-
             callback(args);
           }
           $('.btn-group[data-toggle="buttons"] > .btn').button();
