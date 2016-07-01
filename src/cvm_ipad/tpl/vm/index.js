@@ -177,7 +177,7 @@ function initVm_status_chart() {
     });
 }
 
-// 单个虚拟机cpu总量使用率曲线
+// 单个虚拟机内存使用率曲线
 function initMemoryUse_chart() {
     $('#memoryUse_chart').highcharts({
         title: {
