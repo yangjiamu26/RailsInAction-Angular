@@ -2,6 +2,16 @@ myApp.onPageInit("storage-index", function(page) {
 
   function ViewModel(){
     this.dataList = ko.observableArray([]);
+    this.infos = ko.observable({
+      "total":'',
+      "share":'',
+      "local":'',
+      "used":'',
+      "free":'',
+      "svc":'',
+      "nfs":'',
+      "storage":''
+    });
 
     this.loading = false;
     this.page = 1;
@@ -12,13 +22,14 @@ myApp.onPageInit("storage-index", function(page) {
       if(!is_loadMore) self.page = 1;
 
       $.ajax("tpl/storage/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
+        self.infos(data);
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
 
-          initStorage_share_chart();
-          initStorage_use_chart();
+          initStorage_share_chart(data.share,data.local);
+          initStorage_use_chart(data.used,data.total);
         }
         for(var i=0; i<data.dataList.length; i++){       
           self.dataList.push(data.dataList[i]);
@@ -47,7 +58,7 @@ myApp.onPageInit("storage-index", function(page) {
 
 
 // 存储池-是否共享占比图
-function initStorage_share_chart() {
+function initStorage_share_chart(share, local) {
     $('#storage_share_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -81,7 +92,7 @@ function initStorage_share_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -107,12 +118,12 @@ function initStorage_share_chart() {
           name: '存储',
           data: [{
                   name: '共享',
-                  y: 4.73,
+                  y: share,
                   color:"#fadf4f"
               },
               {
                   name: '本地',
-                  y: 3.81,
+                  y: local,
                   color:"#f87b38"
               }
           ]
@@ -122,7 +133,7 @@ function initStorage_share_chart() {
 
 
 // 存储池-使用率占比图
-function initStorage_use_chart() {
+function initStorage_use_chart(used, total) {
     $('#storage_use_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -156,7 +167,7 @@ function initStorage_use_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -182,12 +193,12 @@ function initStorage_use_chart() {
           name: '存储',
           data: [{
                   name: '未用',
-                  y: 2.73,
+                  y: total-used,
                   color:"#fadf4f"
               },
               {
                   name: '已用',
-                  y: 5.81,
+                  y: used,
                   color:"#f87b38"
               }
           ]

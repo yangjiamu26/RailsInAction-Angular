@@ -1,3 +1,5 @@
+var Storage = window.localStorage;
+
 $.ajaxSetup({
   cache: false
 })
