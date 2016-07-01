@@ -10,7 +10,7 @@
   <div class='panel panel-default'>
     <div class="row wrapper">
       <div class="col-md-9 m-b-xs">
-        <button class="btn btn-sm btn-primary" onclick="showModal('pages/softwares/script_new.html')">添加脚本</button>
+        <button class="btn btn-sm btn-primary" data-bind="click: add">添加脚本</button>
         <button class="btn btn-sm btn-danger">删除脚本</button>
         脚本类型：
         <select class="input-sm form-control w-sm inline v-middle">
@@ -90,10 +90,142 @@
   </div>
 </div>
 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
+  <div class='modal-dialog modal-lg' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h3 class='modal-title'>添加脚本</h3>
+      </div>
+      <div class='modal-body' data-bind="with: script_vo">
+        <div class="form-group string required">
+          <div class="col-md-12 form-inline">
+            脚本名称：<input type="text" class="form-control" data-bind="value: name" />&nbsp;&nbsp;&nbsp;&nbsp;
+            脚本类型：
+            <select class="form-control">
+              <option>类型1</option>
+              <option>类型2</option>
+            </select>
+          </div>
+        </div>
+        <hr />
+        <div class="form-group string required">
+          <div class="col-md-12 form-inline">
+            脚本文件：<input type="text" class="form-control" />
+            <button class="btn btn-default">浏览</button>
+            <button class="btn btn-default">上传</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>脚本名称</th>
+              <th>大小</th>
+              <th>上传进度</th>
+              <th>路径</th>
+              <th>脚本属性</th>
+              <th>上传日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>脚本1</td>
+              <td>10 kb</td>
+              <td>50%</td>
+              <td></td>
+              <td></td>
+              <td>2016-06-27 11:00</td>
+              <td>
+                <a>下载</a> | 
+                <a>修改</a> |
+                <a>移除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <hr />
+        <h4>
+        <button class="btn btn-default btn-sm pull-right">添加参数</button>
+        静默安装属性
+        </h4>
+        <p>&nbsp;</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>参数名称</th>
+              <th>参数代码</th>
+              <th>默认值</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>para</td>
+              <td>119</td>
+              <td>default</td>
+              <td>
+                <a>修改</a> |
+                <a>移除</a> 
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <hr />
+        <h4>
+        <button class="btn btn-default btn-sm pull-right">添加软件</button>
+        关联软件
+        </h4>
+        <p>&nbsp;</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>软件名称</th>
+              <th>软件类型</th>
+              <th>软件版本</th>
+              <th>适用操作系统</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>software</td>
+              <td>office</td>
+              <td>1.0</td>
+              <td>windows</td>
+              <td>
+                <a>移除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class='modal-footer'>
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-primary" data-bind="click: save" />
+        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function() {
-    //inline scripts related to this page
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    function ViewModel(){
+      this.script_vo = ko.observable({
+        name: "测试脚本名称"
+      })
+      this.isAdd = ko.observable(false);
+
+      this.add = function(){
+        this.isAdd(true);
+      }
+      this.save = function(){
+        alert(this.script_vo().name)
+        this.isAdd(false);
+      }
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);    
   });
 </script>
