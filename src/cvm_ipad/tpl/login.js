@@ -1,12 +1,19 @@
 var BASE_URL = '';
 myApp.onPageInit("login", function(page) {
   function ViewModel(){
+    var lastTime = parseInt(Storage.getItem('cacheTime'));
+    var timeTakes = (new Date().getTime() - lastTime)/86400000;
+    if(timeTakes>7){
+      Storage.removeItem("userInfo");
+      Storage.removeItem("cacheTime");
+    }
+    
     var baseNet = Storage.getItem("baseNet");
-    var userInfo = Storage.getItem("userInfo");
+    var userInfo = JSON.parse(Storage.getItem("userInfo"));
     var Required = false;
     this.network = baseNet ? ko.observable(baseNet) : ko.observable("");
-    this.username = userInfo ? ko.observable(userInfo.network) : ko.observable("");
-    this.password = userInfo ? ko.observable(userInfo.network) : ko.observable("");
+    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("");
+    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("");
     this.dashboard = null;
     this.login = function(){
       if(this.network()==""){
@@ -28,11 +35,14 @@ myApp.onPageInit("login", function(page) {
       Storage.setItem("baseNet",this.network());
       BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
 
+      var self = this;
       RestServiceJs(BASE_URL+"/user/login").post({
         "account": this.username(),
         "password": this.password()
       },function(data){
-        Storage.setItem("userInfo",data);
+        data.password = self.password();
+        Storage.setItem("userInfo",JSON.stringify(data));
+        Storage.setItem("cacheTime",new Date().getTime());
 
         myApp.closeModal('.login-screen.modal-in');
         if(!this.dashboard){

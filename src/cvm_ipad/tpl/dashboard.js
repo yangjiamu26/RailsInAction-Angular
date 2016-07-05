@@ -7,11 +7,14 @@ myApp.onPageInit("dashboard", function(page) {
     };
     this.loadData = function(){
       //在这里实现总览数据的加载
+      RestServiceJs(BASE_URL+"/overallDetails").query(function(data){
+        //console.log(data)
+      });
     };
     this.loadDatacenters = function(){
       var self = this;
-      $.ajax("tpl/dashboard.json").done(function(data){
-        self.datacenters(data);
+      RestServiceJs(BASE_URL+"/datacenters").query(function(data){
+        self.datacenters(data.data);
       });
     }
   }
@@ -27,6 +30,9 @@ var is_reload = false;
 
 function popoverClose(event){
   var datacenter_id = $(event.target).attr("datacenter_id");
+  var datacenter_name = $(event.target).attr("datacenter_name");
+  CVM_PAD.dcId = datacenter_id;
+  CVM_PAD.dcName = datacenter_name;
 
   view_panel_right       = view_panel_right || myApp.addView(".view-panel-right",   {dynamicNavbar: false,domCache: true,linksView: ".view-panel-right"});
   
@@ -39,14 +45,14 @@ function popoverClose(event){
   view_settings_left   = view_settings_left || myApp.addView("#view-settings-left", {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
   view_settings_right = view_settings_right || myApp.addView("#view-settings-main", {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
 
-  view_home.router.load({           url: "tpl/home/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});  
-  view_business.router.load({       url: "tpl/business/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});
-  view_pool.router.load({           url: "tpl/pool/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});
-  view_host.router.load({           url: "tpl/host/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});
-  view_vm.router.load({             url: "tpl/vm/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});
-  view_storage.router.load({        url: "tpl/storage/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});    
-  view_settings_left.router.load({  url: "tpl/settings/index.html?id="+datacenter_id,animatePages: false, reload:is_reload});
-  view_settings_right.router.load({ url: "tpl/settings/profile.html?id="+datacenter_id,animatePages: false, reload:is_reload});
+  view_home.router.load({           url: "tpl/home/index.html",animatePages: false, reload:is_reload});  
+  view_business.router.load({       url: "tpl/business/index.html",animatePages: false, reload:is_reload});
+  view_pool.router.load({           url: "tpl/pool/index.html",animatePages: false, reload:is_reload});
+  view_host.router.load({           url: "tpl/host/index.html",animatePages: false, reload:is_reload});
+  view_vm.router.load({             url: "tpl/vm/index.html",animatePages: false, reload:is_reload});
+  view_storage.router.load({        url: "tpl/storage/index.html",animatePages: false, reload:is_reload});    
+  view_settings_left.router.load({  url: "tpl/settings/index.html",animatePages: false, reload:is_reload});
+  view_settings_right.router.load({ url: "tpl/settings/profile.html",animatePages: false, reload:is_reload});
 
   myApp.showTab("#view-home");
 
