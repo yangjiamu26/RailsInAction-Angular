@@ -1,23 +1,33 @@
 myApp.onPageInit("home-index", function(page) {
   function ViewModel(){
+    this.dcInfo = ko.observable({
+        "id": "",
+        "name": ""
+      });
+    this.setDcInfo = function(){
+      this.dcInfo({
+        "id": CVM_PAD.dcId,
+        "name": CVM_PAD.dcName
+      });
+    }
     this.stat = ko.observable({
-      "vm": "",
-      "cpu": "",
-      "memory": "",
-      "storage": "",
-      "business_domain": "",
-      "business": "",
-      "pool": "",
-      "host": ""
+      "vmNum": "",
+      "cpuTotal": "",
+      "memoryTotal": "",
+      "storageTotal": "",
+      "busdomainNum": "",
+      "projectNum": "",
+      "resPoolNum": "",
+      "hostNum": ""
     });
     this.loadData = function(){
       var self = this;
-      $.ajax("tpl/home/index.json?datacenter_id="+page.query.datacenter_id).done(function(data){
+      RestServiceJs(BASE_URL+"/overallDetails").get(CVM_PAD.dcId,function(data){
         myApp.pullToRefreshDone();
         self.stat(data);
-        initTotal_cpu_chart();
-        initTotal_memory_chart();
-        initTotal_storage_chart();
+        initTotal_cpu_chart(data);
+        initTotal_memory_chart(data);
+        initTotal_storage_chart(data);
       });
     }
   }
@@ -25,6 +35,7 @@ myApp.onPageInit("home-index", function(page) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
 
   viewModel.loadData();
+  viewModel.setDcInfo();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();
@@ -32,7 +43,7 @@ myApp.onPageInit("home-index", function(page) {
 
 });
 // 首页cpu占比图
-function initTotal_cpu_chart() {
+function initTotal_cpu_chart(data) {
     $('#total_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -66,7 +77,7 @@ function initTotal_cpu_chart() {
         // labelFormatter: function() {  
         //             return this.name + '：' + '<span style="{color}">'+ this.y + 'GHz' + '</span>';  
         // }, 
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>个',
       },
       plotOptions: {
           pie: {
@@ -92,12 +103,12 @@ function initTotal_cpu_chart() {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: 1.93,
+                  y: data.cpuUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 35.19,
+                  y: data.cpuTotal-data.cpuUsed,
                   color:"#ffd800"
               }
           ]
@@ -105,7 +116,7 @@ function initTotal_cpu_chart() {
     });   
 }
 // 首页内存占比图
-function initTotal_memory_chart() {
+function initTotal_memory_chart(data) {
     $('#total_memory_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -136,7 +147,7 @@ function initTotal_memory_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>G',
       },
       plotOptions: {
           pie: {
@@ -162,12 +173,12 @@ function initTotal_memory_chart() {
           name: '内存',
           data: [{
                   name: '已用',
-                  y: 112.64,
+                  y: data.memoryUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 76.11,
+                  y: data.memoryTotal - data.memoryUsed,
                   color:"#ffd800"
               }
           ]
@@ -175,7 +186,7 @@ function initTotal_memory_chart() {
     });   
 }
 // 首页存储占比图
-function initTotal_storage_chart() {
+function initTotal_storage_chart(data) {
     $('#total_storage_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -206,7 +217,7 @@ function initTotal_storage_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>G',
       },
       plotOptions: {
           pie: {
@@ -232,12 +243,12 @@ function initTotal_storage_chart() {
           name: '存储',
           data: [{
                   name: '已用',
-                  y: 4.73,
+                  y: data.storageUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 3.81,
+                  y: data.storageTotal - data.storageUsed,
                   color:"#ffd800"
               }
           ]

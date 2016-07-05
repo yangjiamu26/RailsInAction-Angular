@@ -1,3 +1,4 @@
+
 function RestServiceJs(newurl) {
   var self = {};
   self.myurl = newurl;  
@@ -6,8 +7,7 @@ function RestServiceJs(newurl) {
       $.ajax({  
           type: 'POST',  
           url: self.myurl,  
-          data: JSON.stringify(model),  
-          dataType: 'text',  
+          data: JSON.stringify(model),
           processData: false,  
           contentType: 'application/json',  
           success: callback,  
@@ -27,7 +27,6 @@ function RestServiceJs(newurl) {
           type: 'PUT',  
           url: self.myurl,  
           data: JSON.stringify(model), 
-          dataType: 'text',  
           processData: false,  
           contentType: 'application/json',  
           success: callback,  
@@ -57,13 +56,13 @@ function RestServiceJs(newurl) {
           }, 
           timeout:60000  
       });  
-  };  
+  };
    
-  self.query = function(callback) {
-      
+  self.query = function(model, callback) {
       $.ajax({  
           type: 'GET',  
-          url: self.myurl,  
+          url: self.myurl,
+          data: model, 
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
