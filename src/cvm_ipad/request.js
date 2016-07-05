@@ -1,6 +1,4 @@
-var CVM_PAD = {
 
-}
 function RestServiceJs(newurl) {
   var self = {};
   self.myurl = newurl;  
@@ -58,13 +56,13 @@ function RestServiceJs(newurl) {
           }, 
           timeout:60000  
       });  
-  };  
+  };
    
-  self.query = function(callback) {
-      
+  self.query = function(model, callback) {
       $.ajax({  
           type: 'GET',  
-          url: self.myurl,  
+          url: self.myurl,
+          data: model, 
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {

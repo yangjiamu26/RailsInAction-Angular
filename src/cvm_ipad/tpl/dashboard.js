@@ -13,7 +13,7 @@ myApp.onPageInit("dashboard", function(page) {
     };
     this.loadDatacenters = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/datacenters").query(function(data){
+      RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
         self.datacenters(data.data);
       });
     }

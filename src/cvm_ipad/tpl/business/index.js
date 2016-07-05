@@ -1,7 +1,7 @@
 myApp.onPageInit("business-index", function(page) {
   function ViewModel(){
-    this.pools_count = ko.observable("");
-    this.businesses_count = ko.observable("");
+    this.busdomainNum = ko.observable("");
+    this.projectNum = ko.observable("");
     this.dataList = ko.observableArray([]);
 
     this.loading = false;
@@ -12,23 +12,26 @@ myApp.onPageInit("business-index", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $.ajax("tpl/business/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
+      RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
+        self.busdomainNum(data.busdomainNum);
+        self.projectNum(data.projectNum);
+      });
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"busdomainId":CVM_PAD.dcId},function(data){
         self.loading = false;
-        self.pools_count(data.pools_count);
-        self.businesses_count(data.businesses_count);
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
         }
-        for(var i=0; i<data.dataList.length; i++){       
-          self.dataList.push(data.dataList[i]);
+        for(var i=0; i<data.data.length; i++){       
+          self.dataList.push(data.data[i]);
         }
         self.page++;
-        if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }
-      })
+      });
+
     }
   }
   var viewModel = new ViewModel();
