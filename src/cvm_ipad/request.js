@@ -9,7 +9,7 @@ function RestServiceJs(newurl) {
           url: self.myurl,  
           data: JSON.stringify(model),
           processData: false,  
-          contentType: 'application/json',  
+          contentType: 'application/json',
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
