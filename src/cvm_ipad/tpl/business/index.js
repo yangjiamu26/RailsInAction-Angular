@@ -19,7 +19,8 @@ myApp.onPageInit("business-index", function(page) {
         initPool_memory_chart();
         initPool_storage_chart();
       });
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":''},function(data){
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({},function(data){
+        console.log(data)
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();

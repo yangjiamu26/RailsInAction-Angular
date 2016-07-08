@@ -1,17 +1,33 @@
 myApp.onPageInit("dashboard", function(page) {
   function ViewModel(){
     this.datacenters = ko.observableArray([]);
+    this.infos = ko.observable({
+      "storageTotal":0,
+      "cpuTotal":0,
+      "memoryTotal":0,
+      "dcNum":0,
+      "resPoolNum":0,
+      "busdomainNum":0,
+      "hostNum":0,
+      "projectNum":0,
+      "vmNum":0 
+    });
 
     this.popover = function(data, event){
       myApp.popover($("#popover-datacenter").html(), event.target)
     };
+    this.loading = false;
     this.loadData = function(){
       //在这里实现总览数据的加载
-      RestServiceJs(BASE_URL+"/overallDetails").query(function(data){
-        //console.log(data)
-        initTotal_cpu_chart();
-        initTotal_memory_chart();
-        initTotal_storage_chart();        
+      if(this.loading) return;
+      this.loading = true;
+      var self = this;
+      RestServiceJs(BASE_URL+"/overallDetails").query({},function(data){
+        this.loading = false;
+        self.infos(data);
+        initTotal_cpu_chart(data);
+        initTotal_memory_chart(data);
+        initTotal_storage_chart(data);        
       });
     };
     this.loadDatacenters = function(){
@@ -64,7 +80,7 @@ function popoverClose(event){
 }
 
 // 首页cpu占比图
-function initTotal_cpu_chart() {
+function initTotal_cpu_chart(data) {
     $('#total_cpu_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -124,12 +140,12 @@ function initTotal_cpu_chart() {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: 1.93,
+                  y: data.cpuUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 35.19,
+                  y: data.cpuTotal - data.cpuUsed,
                   color:"#ffd800"
               }
           ]
@@ -137,7 +153,7 @@ function initTotal_cpu_chart() {
     });   
 }
 // 首页内存占比图
-function initTotal_memory_chart() {
+function initTotal_memory_chart(data) {
     $('#total_memory_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -194,12 +210,12 @@ function initTotal_memory_chart() {
           name: '内存',
           data: [{
                   name: '已用',
-                  y: 112.64,
+                  y: data.memoryUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 76.11,
+                  y: data.memoryTotal - data.memoryUsed,
                   color:"#ffd800"
               }
           ]
@@ -207,7 +223,7 @@ function initTotal_memory_chart() {
     });   
 }
 // 首页存储占比图
-function initTotal_storage_chart() {
+function initTotal_storage_chart(data) {
     $('#total_storage_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -264,12 +280,12 @@ function initTotal_storage_chart() {
           name: '存储',
           data: [{
                   name: '已用',
-                  y: 4.73,
+                  y: data.storageUsed,
                   color:"#4791d2"
               },
               {
                   name: '未用',
-                  y: 3.81,
+                  y: data.storageTotal - data.storageUsed,
                   color:"#ffd800"
               }
           ]
