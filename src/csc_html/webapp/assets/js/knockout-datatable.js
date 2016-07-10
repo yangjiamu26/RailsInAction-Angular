@@ -39,10 +39,38 @@
         filterFn: options.filterFn || void 0,
         unsortedClass: options.unsortedClass || '',
         descSortClass: options.descSortClass || '',
-        ascSortClass: options.ascSortClass || ''
+        ascSortClass: options.ascSortClass || '',
+        serverSidePagination: {
+          enabled: true,
+          path: options.path,
+          loader: function(row){
+            return row;
+          }
+        }
       };
+      var self = this;
+      this.chosenItems = ko.observableArray();
+      this._selectedAll = ko.observable(false);
+      this.isSelectedAll = ko.pureComputed({
+        read: function () {
+            return this._selectedAll();
+        },
+        write: function (value) {
+          this._selectedAll(value);
+          if(value){
+            this.chosenItems([]);
+            var rows = this.pagedRows();
+            for(var i=0; i<rows.length; i++){
+              this.chosenItems.push(rows[i]);
+            }
+          }else{
+            this.chosenItems([]);
+          }
+        },
+        owner: this
+      });      
       this.initObservables();
-      if ((serverSideOpts = options.serverSidePagination) && serverSideOpts.enabled) {
+      if ((serverSideOpts = this.options.serverSidePagination) && serverSideOpts.enabled) {
         if (!(serverSideOpts.path && serverSideOpts.loader)) {
           throw new Error("`path` or `loader` missing from `serverSidePagination` object");
         }
@@ -538,6 +566,7 @@
 
     DataTable.prototype.gotoPage = function(page) {
       return (function(_this) {
+        _this.isSelectedAll(false);
         return function() {
           return _this.currentPage(page);
         };
