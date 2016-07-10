@@ -16,7 +16,7 @@
       </div>
 
     </div>     
-    <div class="table-responsive">
+    <div class="table-responsive" data-bind="with: table">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -41,6 +41,12 @@
           </tr>
         </thead>
         <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan=11 class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>
               <div class="checkbox">
@@ -50,45 +56,33 @@
                 </label>
               </div> 
             </td>
-            <td>Base20160101000000</td>
-            <td>单核CPU计费规则</td>
+            <td data-bind="text: $row.field1"></td>
+            <td data-bind="text: $row.field2"></td>
             <td><span class="label label-success">启用</span><span class="label label-default">未启用</span><span class="label label-danger">停用</span></td>
-            <td>CPU</td>
-            <td>1</td>
-            <td>Core:1q</td>
-            <td>RMB</td>
-            <td>0.5</td>
-            <td>1Hour</td>
+            <td data-bind="text: $row.field4"></td>
+            <td data-bind="text: $row.field5"></td>
+            <td data-bind="text: $row.field6"></td>
+            <td data-bind="text: $row.field7"></td>
+            <td data-bind="text: $row.field8"></td>
+            <td data-bind="text: $row.field9"></td>
             <td><a href="#">修改</a></td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer">
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
         </li>
-        <li class="page">
-          <a>2</a>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
         </li>
-        <li class="page">
-          <a>3</a>
-        </li>
-        <li class="page">
-          <a>4</a>
-        </li>
-        <li class="page">
-          <a >5</a>
-        </li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">…</a>
-        </li>
-        <li class="next">
-          <a>下页 ›</a>
-        </li>
-        <li class="last">
-          <a>末页 »</a>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
         </li>
       </ul>
     </footer>
@@ -100,7 +94,7 @@
     <div class='modal-content'>
       <div class='modal-header'>
         
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增计费规则</h3></div>
+      <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增计费规则</h3></div>
       <div class='modal-body form-horizontal'>
         <div class="tab-content">
           <div role="tabpanel" class="tab-pane active" id="tab1">
@@ -187,9 +181,21 @@
       this.add = function(){
         this.isAdd(true);
       }
+
+      this.table = new DataTable([], {
+        perPage: 10,
+        serverSidePagination: {
+          enabled: true,
+          path: 'pages/charges/factors.json',
+          loader: function(row){
+            return row;
+          }
+        }
+      });
     }
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+    var viewModel = new ViewModel();
+    ko.applyBindings(viewModel, $('#page-content')[0]);  
 
     var scope = $("#chargeFactors");
     function showStep(index){
