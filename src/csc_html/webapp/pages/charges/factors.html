@@ -58,7 +58,11 @@
             </td>
             <td data-bind="text: $row.field1"></td>
             <td data-bind="text: $row.field2"></td>
-            <td><span class="label label-success">启用</span><span class="label label-default">未启用</span><span class="label label-danger">停用</span></td>
+            <td>
+              <span class="label label-success">启用</span>
+              <span class="label label-default">未启用</span>
+              <span class="label label-danger">停用</span>
+            </td>
             <td data-bind="text: $row.field4"></td>
             <td data-bind="text: $row.field5"></td>
             <td data-bind="text: $row.field6"></td>
@@ -96,12 +100,12 @@
         
       <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增计费规则</h3></div>
       <div class='modal-body form-horizontal'>
-        <div class="tab-content">
+        <div class="tab-content" data-bind="with: newObject">
           <div role="tabpanel" class="tab-pane active" id="tab1">
             <div class="form-group">
               <label class="col-sm-3 control-label">规则名称</label>
               <div class="col-sm-8">
-                <input class="form-control" type="text"  />
+                <input class="form-control" type="text"  data-bind="value: name" />
               </div>
             </div>
             <div class="form-group">
@@ -161,9 +165,9 @@
       </div>
       <div class='modal-footer'>
 
-        <button class="btn btn-default btn-primary step-btn" step = "1" step-target = "2">下一步</button>
+        <button class="btn btn-default btn-primary step-btn" step = "1" step-target = "2"  data-bind="click: save">下一步</button>
         <button class="btn btn-default btn-primary step-btn" step = "2" step-target = "1" style="display:none">上一步</button>
-        <button class="btn btn-default btn-info" data-dismiss="modal" step = "2"  style="display:none">确定</button>
+        <button class="btn btn-default btn-info" step = "2"  style="display:none">确定</button>
         <button class="btn btn-default" data-dismiss="modal" step = "2" style="display:none">取消</button>
 
       </div>
@@ -178,8 +182,16 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
+      this.newObject = ko.observable({
+        name: ""
+      })
       this.add = function(){
         this.isAdd(true);
+      }
+      this.save = function(){
+        alert(this.newObject().name)
+        this.isAdd(false);
+        this.table.currentPage(1);
       }
 
       this.remove = function(){
@@ -190,19 +202,18 @@
       this.table = new DataTable([], {path: 'pages/charges/factors.json'});
     }
 
-    var viewModel = new ViewModel();
-    ko.applyBindings(viewModel, $('#page-content')[0]);  
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
-    var scope = $("#chargeFactors");
-    function showStep(index){
-      $("[step]",scope).hide();
-      $("[step=" + index + "]",scope).show();
-    };
+    // var scope = $("#chargeFactors");
+    // function showStep(index){
+    //   $("[step]",scope).hide();
+    //   $("[step=" + index + "]",scope).show();
+    // };
 
-    $(".step-btn",scope).bind("click",function(){
-      var step = $(this).attr("step-target");
-      $("#tab" + step ,scope).show().siblings().hide();
-      showStep(step);
-    });
+    // $(".step-btn",scope).bind("click",function(){
+    //   var step = $(this).attr("step-target");
+    //   $("#tab" + step ,scope).show().siblings().hide();
+    //   showStep(step);
+    // });
   });
 </script>
