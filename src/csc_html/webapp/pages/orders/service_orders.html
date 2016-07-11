@@ -6,39 +6,36 @@
   </ol>
 </div>
 
-
 <div class='wrapper-md'>
-  <div class="panel panel-default">
-	
+
+		<div class="panel panel-default">
+
 		<div class="wrapper bg-white-only">
 			<div class="row">
 		        <div class="col-md-3">
 		          <div class="input-group">
 		            <span class="input-group-addon">流程类型</span>
-		            <select class="form-control input-sm">
-		              <option value="">全部</option>
-		              <option value="">资源申请</option>
-		            </select>
+		            <select class="form-control input-sm" data-bind="value: searchParam().catelog, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
 		          </div>      
 		        </div>
 		        <div class="col-md-2">
 		          <div class="input-group">
 		            <span class="input-group-addon">流程状态</span>
-		            <select class="form-control input-sm">
-		              <option value="">全部</option>
-		              <option value="">审批中</option>
+		            <select class="form-control input-sm" data-bind="value: searchParam().status">
+		              <option value="1">全部</option>
+		              <option value="2">审批中</option>
 		            </select>
 		          </div>      
 		        </div>
 		        <div class="col-md-3">
 		            <div class="input-group">
 		               <span class="input-group-addon">实例名称</span>
-		               <input type="text" value="" class="form-control input-sm">
+		               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().instanceName">
 		            </div>        
 		        </div>
 		        <div class="col-md-2">
-		            <button class="btn btn-sm" type="button">重置</button>
-		            <button class="btn btn-default btn-sm" type="submit">搜索</button>
+		            <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+		            <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
 		        </div>				
 				<div class="col-md-2">
 					<a class="inline senior-search-btn" onclick="$('#senior').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
@@ -49,98 +46,140 @@
 			        <div class="col-md-3">
 			          <div class="input-group">
 			            <span class="input-group-addon">所属VDC</span>
-			            <select class="form-control input-sm">
-			              <option value="">全部</option>
-			              <option value="">VDC01</option>
-			            </select>
+			            <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
 			          </div>      
 			        </div>	
 			        <div class="col-md-3">
 			            <div class="input-group">
 			               <span class="input-group-addon">流程实例单号</span>
-			               <input type="text" value="" class="form-control input-sm">
+			               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().orderNo">
 			            </div>        
 			        </div>		        		
 			        <div class="col-md-3">
 			            <div class="input-group">
 			               <span class="input-group-addon">申请人</span>
-			               <input type="text" value="" class="form-control input-sm">
+			               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().userName">
 			            </div>        
 			        </div>		        		
 				</div>
 			</div>
+		</div>	
+		  <div class="table-responsive" data-bind="with: table">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>流程实例单号</th>
+							<th>流程类型</th>
+							<th>流程状态</th>
+							<th>当前节点</th>
+							<th>申请人</th>
+							<th>申请数量</th>
+							<th>申请日期</th>
+							<th>所属VDC</th>
+							<th>产品类型</th>
+							<th>实例名称</th>
+							<th>流程跟踪</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr data-bind="visible: showNoData">
+	            <td colspan="11" class="aligncenter">
+	              This table has no data.
+	            </td>
+	          </tr>
+	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+						<tr>
+							<td>
+								<a href="#pages/orders/show?items=vm-harddisk-software">harddisk</a> | 
+								<a href="#pages/orders/show?items=sshkey">sshkey</a> | 
+								<a href="#pages/orders/show?items=firewall">firewall</a>
+							</td>
+							<td>资源申请</td>
+							<td>
+								<span class="label label-info">审批中</span>
+								<span class="label label-success">已审批</span>
+								<span class="label label-danger">不通过</span>
+							</td>
+							<td>资源审批</td>
+							<td>hgk</td>
+							<td>2</td>
+							<td>2016-04-21 13:47:00</td>
+							<td>研发部</td>
+							<td></td>
+							<td>VM01,VM02</td>
+							<td><a href="#">查看</a></td>
+						</tr>
+						<!-- /ko -->
+					</tbody>
+				</table>
+			</div>
+	    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+	      <ul class="pagination">
+	        <li data-bind="css: leftPagerClass, click: prevPage">
+	          <a href="#">&laquo;</a>
+	        </li>
+	        <!-- ko foreach: {data: (new Array(pages()))} -->
+	        <li data-bind="css: $parent.pageClass($index() + 1)">
+	          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+	        </li>
+	        <!-- /ko -->
+	        <li data-bind="css: rightPagerClass, click: nextPage">
+	          <a href="#">&raquo;</a>
+	        </li>
+	      </ul>
+	    </footer>
 		</div>
-		<div class="table-responsive">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>流程实例单号</th>
-						<th>流程类型</th>
-						<th>流程状态</th>
-						<th>当前节点</th>
-						<th>申请人</th>
-						<th>申请数量</th>
-						<th>申请日期</th>
-						<th>所属VDC</th>
-						<th>产品类型</th>
-						<th>实例名称</th>
-						<th>流程跟踪</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td><a href="#pages/orders/show">15137</a></td>
-						<td>资源申请</td>
-						<td><span class="label label-info">审批中</span><span class="label label-success">已审批</span><span class="label label-danger">不通过</span></td>
-						<td>资源审批</td>
-						<td>hgk</td>
-						<td>2</td>
-						<td>2016-04-21 13:47:00</td>
-						<td>研发部</td>
-						<td></td>
-						<td>VM01,VM02</td>
-						<td><a href="#">查看</a></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-		<footer class="panel-footer">
-			<ul class="pagination">
-				<li class="page active">
-					<a href="#pages/javascript:void(0)">1</a>
-				</li>
-				<li class="page">
-					<a>2</a>
-				</li>
-				<li class="page">
-					<a>3</a>
-				</li>
-				<li class="page">
-					<a>4</a>
-				</li>
-				<li class="page">
-					<a >5</a>
-				</li>
-				<li class="page gap disabled">
-					<a href="#pages/javascript:void(0)">…</a>
-				</li>
-				<li class="next">
-					<a>下页 ›</a>
-				</li>
-				<li class="last">
-					<a>末页 »</a>
-				</li>
-			</ul>
-		</footer>
-		
 
-	</div>
 </div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+    function ViewModel(){
+      var self = this;
+      this.searchParam = ko.observable({
+      	catelog: "",
+        status: "",
+        instanceName: "",
+        vdc: "",
+        orderNo: "",
+        userName: ""
+      })
+      this.reset = function(){
+      	this.searchParam({
+	      	catelog: "",
+	        status: "",
+	        instanceName: "",
+	        vdc: "",
+	        orderNo: "",
+	        userName: ""
+	      })	
+      }
+      this.search = function(){
+        console.log(this.searchParam())
+      }
+
+      this.table = new DataTable([], {path: 'pages/orders/service_orders.json'});
+
+      this.catelogs = ko.observableArray([]);
+      this.vdcs = ko.observableArray([]);
+
+      //软件类型下拉选择
+      this.loadVdcs = function(){
+        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
+          self.vdcs(data.results);
+        });
+      }
+      this.loadCatelogs = function(){
+        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
+          self.catelogs(data.results);
+        });
+      }
+      this.loadVdcs();
+      this.loadCatelogs();
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
   });
 </script>
