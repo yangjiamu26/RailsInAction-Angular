@@ -26,19 +26,16 @@
           <div class="wrapper">
             <div class="row">
               <div class="col-md-4">
-                <button class="btn btn-sm btn-default">开机</button>
-                <button class="btn btn-sm btn-default">重启</button>
-                <button class="btn btn-sm btn-default">强制重启</button>
-                <button class="btn btn-sm btn-default">挂起</button>
-                <button class="btn btn-sm btn-default">删除</button> 
+                <button class="btn btn-sm btn-default" data-bind="click: start">开机</button>
+                <button class="btn btn-sm btn-default" data-bind="click: restart">重启</button>
+                <button class="btn btn-sm btn-default" data-bind="click: restartForce">强制重启</button>
+                <button class="btn btn-sm btn-default" data-bind="click: pause">挂起</button>
+                <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button> 
               </div>            
               <div class="col-md-4">
                 <div class="input-group">
                   <span class="input-group-addon">所属可用分区</span>
-                  <select class="form-control input-sm">
-                    <option value="">全部</option>
-                    <option value="">可用分区1</option>
-                  </select>
+                  <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
                 </div>      
               </div>            
               <div class="col-md-2">
@@ -54,7 +51,7 @@
                 <div class="col-md-2">
                   <div class="input-group">
                     <span class="input-group-addon">状态</span>
-                    <select class="form-control input-sm">
+                    <select class="form-control input-sm" data-bind="value: searchParam().status">
                       <option value="">全部</option>
                       <option value="">运行中</option>
                     </select>
@@ -63,16 +60,13 @@
                 <div class="col-md-2">
                   <div class="input-group">
                     <span class="input-group-addon">所属VDC</span>
-                    <select class="form-control input-sm">
-                      <option value="">全部</option>
-                      <option value="">VDC1</option>
-                    </select>
+                    <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
                   </div>      
                 </div>            
                 <div class="col-md-4">
                   <div class="input-group">
                     <span class="input-group-addon">名称</span>
-                    <input type="text" class="input-sm form-control" placeholder="请输入名称">
+                    <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
                   </div>
                 </div>
               </div>
@@ -80,14 +74,14 @@
           </div>        
 
           <div id='instance_vms'>
-            <div class='table-responsive'>
+            <div class='table-responsive' data-bind="with: table">
               <table class='table table-striped'>
                 <thead>
                   <tr>
                     <th>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checked: isSelectedAll">
                           <i></i>
                         </label>
                       </div>
@@ -106,11 +100,17 @@
                     <th>操作</th>
                 </thead>
                 <tbody>
+                  <tr data-bind="visible: showNoData">
+                    <td colspan=14 class="aligncenter">
+                      This table has no data.
+                    </td>
+                  </tr>
+                  <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr> 
                     <td>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                           <i></i>
                         </label>
                       </div>
@@ -127,94 +127,113 @@
                     <td>192.168.1.101</td>
                     <td>Win2007</td>
                     <td>范冰冰</td>
-                    <td><a href="#">控制台</a> | <a href="#" data-bind="click: vmAdjustment">调整资源</a> |
+                    <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.vmAdjustment">调整资源</a> |
                       <div class="btn-group">
                         <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                           更多<span class="fa fa-caret-down"></span>
                         </a>
                         <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
                           <li>
-                            <a href="#">开机</a>
-                            <a href="#">重启</a>
-                            <a href="#">强制重启</a>
-                            <a href="#">挂起</a>
-                            <a href="#">删除</a>
+                            <a data-bind="click: $root.startOne">开机</a>
+                            <a data-bind="click: $root.restartOne">重启</a>
+                            <a data-bind="click: $root.restartForceOne">强制重启</a>
+                            <a data-bind="click: $root.pauseOne">挂起</a>
+                            <a data-bind="click: $root.removeOne">删除</a>
                           </li>
                         </ul>
                       </div>                     
                     </td>
                   </tr>
+                  <!-- /ko -->
                 </tbody>
               </table>
             </div>
-            <footer class='panel-footer'>
+
+            <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
               <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=7">末页 &raquo;</a></li>
+                <li data-bind="css: leftPagerClass, click: prevPage">
+                  <a href="#">&laquo;</a>
+                </li>
+                <!-- ko foreach: {data: (new Array(pages()))} -->
+                <li data-bind="css: $parent.pageClass($index() + 1)">
+                  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+                </li>
+                <!-- /ko -->
+                <li data-bind="css: rightPagerClass, click: nextPage">
+                  <a href="#">&raquo;</a>
+                </li>
               </ul>
             </footer>
-          </div>
 
+            <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isVmAdjustment }">
+              <div class='modal-dialog modal-md'>
+                <div class='modal-content'>
+                  <div class='modal-header'>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>调整资源</h3>
+                  </div>
+                  <div class='modal-body form-horizontal row'>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">VCPU数：</label>
+                      <div class="col-sm-8">
+                        <input type="email" class="form-control" placeholder="6">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">内存(GB)：</label>
+                      <div class="col-sm-8">
+                        <input type="email" class="form-control" placeholder="4">
+                      </div>
+                    </div>
+                  </div>
+                  <div class='modal-footer' style="text-align:center;">
+                    <a class="btn btn-default btn-info">确定</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
       <div class='tab-pane' id='partition_storages' role='tabpanel'>
         <div class='panel panel-default'>
           <div class="row wrapper">
             <div class="col-md-1">
-              <button class="btn btn-sm btn-default">删除</button>
+              <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button>
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">可用分区1</option>
-                </select>
+                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">所属VDC</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">VDC1</option>
-                </select>
+                <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div>                                    
             <div class="col-md-3">
               <div class="input-group">
-                      <span class="input-group-addon">名称</span>
-                      <input type="text" class="input-sm form-control" placeholder="请输入名称">
-                    </div>
+                <span class="input-group-addon">名称</span>
+                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+              </div>
             </div>
             <div class="col-md-2">
-              <button class="btn btn-sm" type="button">重置</button>
-              <button class="btn btn-sm btn-default" type="button">搜索</button>
+              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
             </div>
           </div>                      
           <div id='instance_storages'>
-            <div class='table-responsive'>
+            <div class='table-responsive' data-bind="with: table">
               <table class='table table-striped'>
                 <thead>
                   <tr>
                     <th>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checked: isSelectedAll">
                           <i></i>
                         </label>
                       </div>
@@ -232,11 +251,17 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr data-bind="visible: showNoData">
+                    <td colspan=11 class="aligncenter">
+                      This table has no data.
+                    </td>
+                  </tr>
+                  <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
                     <td>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                           <i></i>
                         </label>
                       </div>
@@ -250,31 +275,64 @@
                     <td>nfs</td>
                     <td>YES</td>
                     <td></td>
-                    <td><a href="#" data-bind="click: storageExpand">扩展</a> | <a href="#">删除</a></td>
+                    <td><a href="#" data-bind="click: $root.storageExpand">扩展</a> | <a data-bind="click: $root.removeOne">删除</a></td>
                   </tr>
+                  <!-- /ko -->
                 </tbody>
               </table>
             </div>
-            <footer class='panel-footer'>
+            <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
               <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=63">末页 &raquo;</a></li>
+                <li data-bind="css: leftPagerClass, click: prevPage">
+                  <a href="#">&laquo;</a>
+                </li>
+                <!-- ko foreach: {data: (new Array(pages()))} -->
+                <li data-bind="css: $parent.pageClass($index() + 1)">
+                  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+                </li>
+                <!-- /ko -->
+                <li data-bind="css: rightPagerClass, click: nextPage">
+                  <a href="#">&raquo;</a>
+                </li>
               </ul>
-              </footer>
+            </footer>
+
+            <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isStorageExpand }">
+              <div class='modal-dialog modal-lg' style="width:600px;">
+                <div class='modal-content'>
+                  <div class='modal-header'>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>拓展云硬盘</h3>
+                  </div>
+                  <div class='modal-body form-horizontal row'>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">云硬盘名称：</label>
+                      <div class="col-sm-8">
+                        <input type="email" class="form-control" placeholder="盘1">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">云硬盘大小(GB)：</label>
+                      <div class="col-sm-8">
+                        <input type="email" class="form-control" placeholder="4">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
+                      <div class="col-sm-8">
+                        <input type="email" class="form-control" placeholder="">
+                        可调整范围为：16至39.38
+                      </div>
+                    </div>
+                    
+                  </div>
+                  <div class='modal-footer' style="text-align:center;">
+                    <a class="btn btn-default btn-info">确定</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -282,46 +340,40 @@
         <div class='panel panel-default'>
           <div class="row wrapper">
             <div class="col-md-1">
-              <button class="btn btn-sm btn-default">删除</button>
+              <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button>
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">可用分区1</option>
-                </select>
+                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div> 
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">所属VDC</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">VDC1</option>
-                </select>
+                <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div>                                   
             <div class="col-md-3">
               <div class="input-group">
                       <span class="input-group-addon">名称</span>
-                      <input type="text" class="input-sm form-control" placeholder="请输入名称">
+                      <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
                     </div>
             </div>
             <div class="col-md-2">
-              <button class="btn btn-sm" type="button">重置</button>
-              <button class="btn btn-sm btn-default" type="button">搜索</button>
+              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
             </div>
           </div>       
           <div id='instance_object_storages'>
-            <div class='table-responsive'>
+            <div class='table-responsive' data-bind="with: table">
               <table class="table table-striped">
                 <thead>
                   <tr>
                     <th>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checked: isSelectedAll">
                           <i></i>
                         </label>
                       </div>
@@ -338,11 +390,17 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr data-bind="visible: showNoData">
+                    <td colspan=10 class="aligncenter">
+                      This table has no data.
+                    </td>
+                  </tr>
+                  <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
                     <td>
                       <div class="checkbox">
                         <label class="i-checks">
-                          <input type="checkbox" value="">
+                          <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                           <i></i>
                         </label>
                       </div>
@@ -355,29 +413,25 @@
                     <td>LC-AIX-1</td>
                     <td>2016-06-29 13:56</td>
                     <td>admin</td>
-                    <td><a href="#">上传文件</a> | <a href="#">删除</a></td>
+                    <td><a data-bind="click: $root.upload">上传文件</a> | <a data-bind="click: $root.removeOne">删除</a></td>
                   </tr>
+                  <!-- /ko -->
                 </tbody>
               </table>           
             </div>
-            <footer class='panel-footer'>
+            <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
               <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=63">末页 &raquo;</a></li>
+                <li data-bind="css: leftPagerClass, click: prevPage">
+                  <a href="#">&laquo;</a>
+                </li>
+                <!-- ko foreach: {data: (new Array(pages()))} -->
+                <li data-bind="css: $parent.pageClass($index() + 1)">
+                  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+                </li>
+                <!-- /ko -->
+                <li data-bind="css: rightPagerClass, click: nextPage">
+                  <a href="#">&raquo;</a>
+                </li>
               </ul>
             </footer>
           </div>
@@ -404,73 +458,68 @@
             </div>
             <div class="wrapper">
               <div class='panel panel-default'>       
-                  <div class='table-responsive'>
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>
-                            <div class="checkbox">
-                              <label class="i-checks">
-                                <input type="checkbox" value="">
-                                <i></i>
-                              </label>
-                            </div>
-                          </th>
-                          <th>名称</th>
-                          <th>大小</th>
-                          <th>创建时间</th>
-                          <th>修改时间</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div class="checkbox">
-                              <label class="i-checks">
-                                <input type="checkbox" value="">
-                                <i></i>
-                              </label>
-                            </div>
-                          </td>
-                          <td>centos7.iso</td>
-                          <td>1G</td>
-                          <td>2016-06-29 13:56</td>
-                          <td>2016-06-29 13:56</td>
-                        </tr>
-                      </tbody>
-                    </table>           
-                  </div>
-                  <footer class='panel-footer'>
-                    <ul class="pagination">
-                      <li class="page active">
-                        <a href="#pages/javascript:void(0)">1</a>
-                      </li>
-                      <li class="page">
-                        <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">2</a>
-                      </li>
-                      <li class="page">
-                        <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=3">3</a>
-                      </li>
-                      <li class="page">
-                        <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=4">4</a>
-                      </li>
-                      <li class="page">
-                        <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=5">5</a>
-                      </li>
-                      <li class="page gap disabled">
-                        <a href="#pages/javascript:void(0)">&hellip;</a>
-                      </li>
-                      <li class="next">
-                        <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=2">下页 &rsaquo;</a>
-                      </li>
-                      <li class="last">
-                        <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_storages=63">末页 &raquo;</a></li>
-                      </ul>
-                    </footer>
+                <div class='table-responsive' data-bind="with: table">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>
+                          <div class="checkbox">
+                            <label class="i-checks">
+                              <input type="checkbox" data-bind="checked: isSelectedAll">
+                              <i></i>
+                            </label>
+                          </div>
+                        </th>
+                        <th>名称</th>
+                        <th>大小</th>
+                        <th>创建时间</th>
+                        <th>修改时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr data-bind="visible: showNoData">
+                        <td colspan=10 class="aligncenter">
+                          This table has no data.
+                        </td>
+                      </tr>
+                      <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+                      <tr>
+                        <td>
+                          <div class="checkbox">
+                            <label class="i-checks">
+                              <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
+                              <i></i>
+                            </label>
+                          </div>
+                        </td>
+                        <td>centos7.iso</td>
+                        <td>1G</td>
+                        <td>2016-06-29 13:56</td>
+                        <td>2016-06-29 13:56</td>
+                      </tr>
+                      <!-- /ko -->
+                    </tbody>
+                  </table>           
                 </div>
+                <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+                  <ul class="pagination">
+                    <li data-bind="css: leftPagerClass, click: prevPage">
+                      <a href="#">&laquo;</a>
+                    </li>
+                    <!-- ko foreach: {data: (new Array(pages()))} -->
+                    <li data-bind="css: $parent.pageClass($index() + 1)">
+                      <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+                    </li>
+                    <!-- /ko -->
+                    <li data-bind="css: rightPagerClass, click: nextPage">
+                      <a href="#">&raquo;</a>
+                    </li>
+                  </ul>
+                </footer>
+              </div>
+
             </div>                          
           </div>
-
         </div>
       </div>
       <div class='tab-pane' id='partition_publicips' role='tabpanel'>
@@ -479,21 +528,18 @@
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">可用分区1</option>
-                </select>
+                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div>            
             <div class="col-md-3">
               <div class="input-group">
-                      <span class="input-group-addon">名称</span>
-                      <input type="text" class="input-sm form-control" placeholder="请输入名称">
-                    </div>
+                <span class="input-group-addon">名称</span>
+                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+              </div>
             </div>
             <div class="col-md-2">
-              <button class="btn btn-sm" type="button">重置</button>
-              <button class="btn btn-sm btn-default" type="button">搜索</button>
+              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
             </div>
           </div>                        
           <div id='instance_publicips'>
@@ -564,7 +610,39 @@
                 <li class="last">
                   <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a></li>
               </ul>
+          </footer>
+
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForIP }">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">公网IP：</label>
+                    <div class="col-sm-8">
+                      <span>150.152.11.25</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">云主机：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>                                        
       <div class='tab-pane' id='partition_sshkeys' role='tabpanel'>
@@ -660,183 +738,88 @@
                 <li class="last">
                   <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=63">末页 &raquo;</a></li>
               </ul>
+          </footer>
+
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥名称：</label>
+                    <div class="col-sm-8">
+                      <span>密钥111</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">云主机：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建密钥</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥名称：</label>
+                    <div class="col-sm-8">
+                      <input type="text" class="form-control">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥算法：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥长度：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
         </div>
       </div>
     </div>
   </div>
 </div>
 
-  </div>
-  <!-- /hbox layout -->
-</div>
-
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForIP }">
-  <div class='modal-dialog modal-lg' style="width:600px;">
-    <div class='modal-content'>
-      <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-      </div>
-      <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">公网IP：</label>
-          <div class="col-sm-8">
-            <span>150.152.11.25</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">云主机：</label>
-          <div class="col-sm-8">
-            <select class="form-control">
-              <option value="1">1</option>
-            </select>
-          </div>
-        </div>
-        
-      </div>
-      <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
-  <div class='modal-dialog modal-lg' style="width:600px;">
-    <div class='modal-content'>
-      <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-      </div>
-      <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">密钥名称：</label>
-          <div class="col-sm-8">
-            <span>密钥111</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">云主机：</label>
-          <div class="col-sm-8">
-            <select class="form-control">
-              <option value="1">1</option>
-            </select>
-          </div>
-        </div>
-        
-      </div>
-      <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
-  <div class='modal-dialog modal-lg' style="width:600px;">
-    <div class='modal-content'>
-      <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建密钥</h3>
-      </div>
-      <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">密钥名称：</label>
-          <div class="col-sm-8">
-            <input type="text" class="form-control">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">密钥算法：</label>
-          <div class="col-sm-8">
-            <select class="form-control">
-              <option value="1">1</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">密钥长度：</label>
-          <div class="col-sm-8">
-            <select class="form-control">
-              <option value="1">1</option>
-            </select>
-          </div>
-        </div>
-        
-      </div>
-      <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isStorageExpand }">
-  <div class='modal-dialog modal-lg' style="width:600px;">
-    <div class='modal-content'>
-      <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>拓展云硬盘</h3>
-      </div>
-      <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">云硬盘名称：</label>
-          <div class="col-sm-8">
-            <input type="email" class="form-control" placeholder="盘1">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">云硬盘大小(GB)：</label>
-          <div class="col-sm-8">
-            <input type="email" class="form-control" placeholder="4">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
-          <div class="col-sm-8">
-            <input type="email" class="form-control" placeholder="">
-            可调整范围为：16至39.38
-          </div>
-        </div>
-        
-      </div>
-      <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isVmAdjustment }">
-  <div class='modal-dialog modal-md'>
-    <div class='modal-content'>
-      <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>调整资源</h3>
-      </div>
-      <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">VCPU数：</label>
-          <div class="col-sm-8">
-            <input type="email" class="form-control" placeholder="6">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">内存(GB)：</label>
-          <div class="col-sm-8">
-            <input type="email" class="form-control" placeholder="4">
-          </div>
-        </div>
-        
-      </div>
-      <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
@@ -846,30 +829,241 @@
     if(args.type){
       $("#instancesListBox").hide().find("li").find("a").eq(args.type).tab('show');
     };
-    function ViewModel(){
-      this.isBindvmForIP = ko.observable(false);
-      this.isBindvmForSecretkey = ko.observable(false);
-      this.isAddSecretkey = ko.observable(false);
-      this.isStorageExpand = ko.observable(false);
+    function ViewModel_VM(){
+      var self = this;
+
       this.isVmAdjustment = ko.observable(false);
 
-      this.bindvmForIP = function(){
-        this.isBindvmForIP(true);
+      this.vmAdjustment = function(){
+        self.isVmAdjustment(true);
       };
+
+      this.console = function(object, event){
+
+      }
+      this.start = function(){
+
+      }
+      this.startOne = function(object, event){
+
+      }
+      this.stop = function(){
+
+      }
+      this.stopOne = function(object, event){
+
+      }
+      this.restart = function(){
+
+      }
+      this.restartOne = function(object, event){
+
+      }
+      this.restartForce = function(){
+
+      }
+      this.restartForceOne = function(object, event){
+
+      }
+      this.pause = function(){
+
+      }
+      this.pauseOne = function(object, event){
+
+      }
+      this.remove = function(){
+
+      }
+      this.removeOne = function(object, event){
+
+      }
+
+      this.searchParam = ko.observable({
+        partition: '',
+        status: '',
+        vdc: '',
+        name: ''
+      })
+      this.reset = function(){
+        this.searchParam({
+          partition: '',
+          status: '',
+          vdc: '',
+          name: ''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+      this.table = new DataTable([], {path: 'pages/resources/instances/vms.json'})
+
+      //下拉选择
+      this.vdcs = ko.observableArray([]);
+      this.loadVdcs = function(){
+        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
+          self.vdcs(data.results);
+        });
+      }
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(){
+        $.ajax("pages/resources/partitions/index.json").done(function(data){
+          self.partitions(data.results);
+        });
+      }
+      this.loadVdcs();
+      this.loadPartitions();
+    }
+    function ViewModel_Storage(){
+      var self = this;
+
+      this.isStorageExpand = ko.observable(false);
+
+      this.storageExpand = function(){
+        self.isStorageExpand(true);
+      };
+
+      this.remove = function(){
+
+      }
+
+      this.removeOne = function(object, event){
+
+      }
+
+      this.searchParam = ko.observable({
+        partition: '',
+        vdc: '',
+        name: ''
+      })
+      this.reset = function(){
+        this.searchParam({
+          partition: '',
+          vdc: '',
+          name: ''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+      this.table = new DataTable([], {path: 'pages/resources/instances/storages.json'})
+
+      //下拉选择
+      this.vdcs = ko.observableArray([]);
+      this.loadVdcs = function(){
+        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
+          self.vdcs(data.results);
+        });
+      }
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(){
+        $.ajax("pages/resources/partitions/index.json").done(function(data){
+          self.partitions(data.results);
+        });
+      }
+      this.loadVdcs();
+      this.loadPartitions();
+    }
+    function ViewModel_ObjectStorage(){
+      var self = this;
+
+      this.upload = function(object, event){
+
+      }
+
+      this.remove = function(){
+
+      }
+
+      this.removeOne = function(object, event){
+
+      }
+
+      this.searchParam = ko.observable({
+        partition: '',
+        vdc: '',
+        name: ''
+      })
+      this.reset = function(){
+        this.searchParam({
+          partition: '',
+          vdc: '',
+          name: ''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+      this.table = new DataTable([], {path: 'pages/resources/instances/object_storages.json'})
+
+      //下拉选择
+      this.vdcs = ko.observableArray([]);
+      this.loadVdcs = function(){
+        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
+          self.vdcs(data.results);
+        });
+      }
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(){
+        $.ajax("pages/resources/partitions/index.json").done(function(data){
+          self.partitions(data.results);
+        });
+      }
+      this.loadVdcs();
+      this.loadPartitions();
+    }
+    function ViewModel_PublicIP(){
+      var self = this;
+      this.isBindvmForIP = ko.observable(false);
+
+      this.bindvmForIP = function(){
+        self.isBindvmForIP(true);
+      };
+
+      this.unbind = function(object, event){
+
+      }
+
+      this.searchParam = ko.observable({
+        partition: '',
+        name: ''
+      })
+      this.reset = function(){
+        this.searchParam({
+          partition: '',
+          name: ''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+      this.table = new DataTable([], {path: 'pages/resources/instances/publicips.json'})
+
+      //下拉选择
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(){
+        $.ajax("pages/resources/partitions/index.json").done(function(data){
+          self.partitions(data.results);
+        });
+      }
+      this.loadPartitions();
+    }
+    function ViewModel_SSHKey(){
+      var self = this;
+      this.isBindvmForSecretkey = ko.observable(false);
+      this.isAddSecretkey = ko.observable(false);
+
       this.bindvmForSecretkey = function(){
-        this.isBindvmForSecretkey(true);
+        self.isBindvmForSecretkey(true);
       };
       this.addSecretkey = function(){
-        this.isAddSecretkey(true);
+        self.isAddSecretkey(true);
       };
-      this.storageExpand = function(){
-        this.isStorageExpand(true);
-      };
-      this.vmAdjustment = function(){
-        this.isVmAdjustment(true);
-      };
-    }
+    }                
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);      
+    ko.applyBindings(new ViewModel_VM(), $('#page-content .tab-pane')[0]);      
+    ko.applyBindings(new ViewModel_Storage(), $('#page-content .tab-pane')[1]);      
+    ko.applyBindings(new ViewModel_ObjectStorage(), $('#page-content .tab-pane')[2]);      
+    ko.applyBindings(new ViewModel_PublicIP(), $('#page-content .tab-pane')[3]);      
+    ko.applyBindings(new ViewModel_SSHKey(), $('#page-content .tab-pane')[4]);      
   });
 </script>
