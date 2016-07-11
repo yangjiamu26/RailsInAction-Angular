@@ -27,12 +27,12 @@
 
           <div class="row wrapper">
             <div class="col-md-1">
-                <button class="btn btn-sm btn-info">设为已阅</button>
+                <button class="btn btn-sm btn-info" data-bind="click: read">设为已阅</button>
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">通知类型</span>
-                <select class="form-control input-sm">
+                <select class="form-control input-sm" data-bind="value: searchParam().catelog">
                   <option value="">全部</option>
                   <option value="">资源</option>
                 </select>
@@ -41,29 +41,29 @@
             <div class="col-md-3">
                 <div class="input-group">
                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                   <input type="text" value="" class="form-control input-sm" id="system_daterange">
+                   <input type="text" class="form-control input-sm" id="system_daterange" data-bind="value: searchParam().daterange">
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="input-group">
                    <span class="input-group-addon">通知详情</span>
-                   <input type="text" value="" class="form-control input-sm">
+                   <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().content">
                 </div>        
             </div>
             <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
             </div>
 
           </div>          
-          <div class="table-responsive">
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
                   <th>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="">
+                        <input type="checkbox" data-bind="checked: isSelectedAll">
                         <i></i>
                       </label>
                     </div>                    
@@ -77,11 +77,17 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=7 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="">
+                        <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                         <i></i>
                       </label>
                     </div>
@@ -93,34 +99,22 @@
                   <td><span class="label label-success">已阅</span><span class="label label-warning">未阅</span></td>
                   <td><a>设为已阅</a></td>
                 </tr>
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
@@ -136,34 +130,34 @@
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">通知类型</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">资源到期提醒</option>
+                <select class="form-control input-sm" data-bind="value: searchParam().catelog">
+                  <option value="1">全部</option>
+                  <option value="2">资源到期提醒</option>
                 </select>
               </div>      
             </div>          
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">发送结果</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">发送成功</option>
+                <select class="form-control input-sm" data-bind="value: searchParam().status">
+                  <option value="1">全部</option>
+                  <option value="2">发送成功</option>
                 </select>
               </div>      
             </div>          
             <div class="col-md-3">
                 <div class="input-group">
                    <span class="input-group-addon">账号</span>
-                   <input type="text" value="" class="form-control input-sm">
+                   <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().account">
                 </div>        
             </div>
             <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
             </div>
 
           </div>
-          <div class="table-responsive">
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
@@ -176,6 +170,12 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=6 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>资源到期提醒</td>
                   <td>资源zhansan申请截至2016年6月23日还有5天过期</td>
@@ -184,35 +184,22 @@
                   <td>13631488888</td>
                   <td>发送成功</td>
                 </tr>
-
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
@@ -226,34 +213,34 @@
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">通知类型</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">资源到期提醒</option>
+                <select class="form-control input-sm" data-bind="value: searchParam().catelog">
+                  <option value="1">全部</option>
+                  <option value="2">资源到期提醒</option>
                 </select>
               </div>      
             </div>          
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-addon">发送结果</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">发送成功</option>
+                <select class="form-control input-sm" data-bind="value: searchParam().status">
+                  <option value="1">全部</option>
+                  <option value="2">发送成功</option>
                 </select>
               </div>      
             </div>          
             <div class="col-md-3">
                 <div class="input-group">
                    <span class="input-group-addon">账号</span>
-                   <input type="text" value="" class="form-control input-sm">
+                   <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().account">
                 </div>        
             </div>
             <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
             </div>
 
           </div>
-          <div class="table-responsive">
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
@@ -266,6 +253,12 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=6 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>资源到期提醒</td>
                   <td>资源zhansan申请截至2016年6月23日还有5天过期</td>
@@ -274,35 +267,22 @@
                   <td>zhangsan@winhong.com</td>
                   <td>发送成功</td>
                 </tr>
-
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
@@ -345,9 +325,38 @@
          '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
         }
       }
-
     ); 
 
+    function ViewModel(){
+      this.read = function(){
+
+      }
+      this.searchParam = ko.observable({
+        catelog: '',
+        daterange: '',
+        content: '',
+        status: '',
+        account: ''
+      })
+
+      this.reset = function(){
+        this.searchParam({
+          catelog: '',
+          daterange: '',
+          content: '',
+          status: '',
+          account: ''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam())
+      }
+      this.table = new DataTable([], {path: 'pages/systems/notices/index.json'})  
+    }
+
+    $("#page-content .tab-pane").each(function(index, item){
+      ko.applyBindings(new ViewModel(), item);    
+    })
 
 
   });
