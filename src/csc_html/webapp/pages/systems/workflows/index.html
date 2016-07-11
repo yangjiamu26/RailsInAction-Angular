@@ -18,24 +18,22 @@
 						<button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
 					</div>
 					<div class="col-md-3">
-		              <div class="input-group">
-		                <span class="input-group-addon">流程类型</span>
-		                <select class="form-control input-sm">
-		                  <option value="">资源申请</option>
-		                </select>
-		              </div>					
+            <div class="input-group">
+              <span class="input-group-addon">流程类型</span>
+              <select class="form-control input-sm" data-bind="value: searchParam().catelog, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
+            </div>					
 					</div>
 					<div class="col-md-3">
 						<div class="input-group">
-				          <span class="input-group-addon">模型名称</span>
-				          <input type="text" value="" class="form-control input-sm">
-				        </div>   
+		          <span class="input-group-addon">模型名称</span>
+		          <input type="text" value="" class="form-control input-sm" data-bind="searchParam().name">
+		        </div>   
 					</div>
 					<div class="col-md-1">
-						<button class="btn btn-sm btn-default" type="button">搜索</button>
+						<button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
 					</div>
 				</div>
-				<div class="table-responsive">
+				<div class="table-responsive" data-bind="with: table">
 					<table class="table table-striped">
 						<thead>
 							<tr>
@@ -52,6 +50,12 @@
 							</tr>
 						</thead>
 						<tbody>
+							<tr data-bind="visible: showNoData">
+		            <td colspan="10" class="aligncenter">
+		              This table has no data.
+		            </td>
+		          </tr>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td>资源申请</td>
 								<td>资源申请</td>
@@ -63,43 +67,31 @@
 								<td>未变更</td>
 								<td>未变更的</td>
 								<td>
-									<a data-bind="click: add">修改</a> |
+									<a data-bind="click: $root.edit">修改</a> |
 									<a >设计</a> |
-									<a onclick="systemMsg.alert('发布成功！')">发布</a> |
-									<a onclick="systemMsg.alert('删除流程后，云主机、云硬盘将不能提交申请！',function(){alert('已点击了确定！')})">删除</a>
+									<a data-bind="click: $root.publish">发布</a> |
+									<a data-bind="click: $root.remove">删除</a>
 								</td>
 							</tr>
+							<!-- /ko -->
 						</tbody>
 					</table>
 				</div>
-				<footer class="panel-footer">
-					<ul class="pagination">
-						<li class="page active">
-							<a href="#pages/javascript:void(0)">1</a>
-						</li>
-						<li class="page">
-							<a>2</a>
-						</li>
-						<li class="page">
-							<a>3</a>
-						</li>
-						<li class="page">
-							<a>4</a>
-						</li>
-						<li class="page">
-							<a >5</a>
-						</li>
-						<li class="page gap disabled">
-							<a href="#pages/javascript:void(0)">…</a>
-						</li>
-						<li class="next">
-							<a>下页 ›</a>
-						</li>
-						<li class="last">
-							<a>末页 »</a>
-						</li>
-					</ul>
-				</footer>
+				<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+	      <ul class="pagination">
+	        <li data-bind="css: leftPagerClass, click: prevPage">
+	          <a href="#">&laquo;</a>
+	        </li>
+	        <!-- ko foreach: {data: (new Array(pages()))} -->
+	        <li data-bind="css: $parent.pageClass($index() + 1)">
+	          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+	        </li>
+	        <!-- /ko -->
+	        <li data-bind="css: rightPagerClass, click: nextPage">
+	          <a href="#">&raquo;</a>
+	        </li>
+	      </ul>
+	    </footer>
 			</div>
 		</div>
 		<div role="tabpanel" class="tab-pane" id="tab2">
@@ -107,24 +99,22 @@
 				<div class="row wrapper" >
 
 					<div class="col-md-3">
-		              <div class="input-group">
-		                <span class="input-group-addon">流程类型</span>
-		                <select class="form-control input-sm">
-		                  <option value="">资源申请</option>
-		                </select>
-		              </div>					
+            <div class="input-group">
+              <span class="input-group-addon">流程类型</span>
+              <select class="form-control input-sm" data-bind="value: searchWorkflowParam().catelog, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
+            </div>					
 					</div>
 					<div class="col-md-3">
 						<div class="input-group">
-				          <span class="input-group-addon">流程名称</span>
-				          <input type="text" value="" class="form-control input-sm">
-				        </div>   
+		          <span class="input-group-addon">流程名称</span>
+		          <input type="text" value="" class="form-control input-sm" data-bind="value: searchWorkflowParam().name">
+		        </div>   
 					</div>
 					<div class="col-md-1">
-						<button class="btn btn-sm btn-default" type="button">搜索</button>
+						<button class="btn btn-sm btn-default" type="button" data-bind="click: searchWorkflow">搜索</button>
 					</div>
 				</div>
-				<div class="table-responsive">
+				<div class="table-responsive" data-bind="with: table_workflow">
 					<table class="table table-striped">
 						<thead>
 							<tr>
@@ -137,6 +127,12 @@
 							</tr>
 						</thead>
 						<tbody>
+							<tr data-bind="visible: showNoData">
+		            <td colspan="6" class="aligncenter">
+		              This table has no data.
+		            </td>
+		          </tr>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td>资源申请</td>
 								<td>资源申请</td>
@@ -144,42 +140,30 @@
 								<td>2016-05-05 15:15:15</td>
 								<td><span class="label label-success">已激活</span><span class="label label-danger">未激活</span></td>
 								<td>
-									<a onclick="systemMsg.alert('流程挂起成功！')">挂起</a> |
-									<a onclick="systemMsg.alert('流程激活成功！')">激活</a> |
-									<a onclick="systemMsg.alert('查看流程！')">查看</a>
+									<a data-bind="click: $root.pause">挂起</a> |
+									<a data-bind="click: $root.activate">激活</a> |
+									<a data-bind="click: $root.review">查看</a>
 								</td>
 							</tr>
+							<!-- /ko -->
 						</tbody>
 					</table>
 				</div>
-				<footer class="panel-footer">
-					<ul class="pagination">
-						<li class="page active">
-							<a href="#pages/javascript:void(0)">1</a>
-						</li>
-						<li class="page">
-							<a>2</a>
-						</li>
-						<li class="page">
-							<a>3</a>
-						</li>
-						<li class="page">
-							<a>4</a>
-						</li>
-						<li class="page">
-							<a >5</a>
-						</li>
-						<li class="page gap disabled">
-							<a href="#pages/javascript:void(0)">…</a>
-						</li>
-						<li class="next">
-							<a>下页 ›</a>
-						</li>
-						<li class="last">
-							<a>末页 »</a>
-						</li>
-					</ul>
-				</footer>
+				<footer class="panel-footer" data-bind="with: table_workflow, visible: table_workflow.pages() > 1">
+	      <ul class="pagination">
+	        <li data-bind="css: leftPagerClass, click: prevPage">
+	          <a href="#">&laquo;</a>
+	        </li>
+	        <!-- ko foreach: {data: (new Array(pages()))} -->
+	        <li data-bind="css: $parent.pageClass($index() + 1)">
+	          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+	        </li>
+	        <!-- /ko -->
+	        <li data-bind="css: rightPagerClass, click: nextPage">
+	          <a href="#">&raquo;</a>
+	        </li>
+	      </ul>
+	    </footer>
 			</div>
 		</div>
 	</div>
@@ -279,12 +263,83 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
+      this.currentVO = ko.observable({});
+
+      var self = this;
       this.add = function(){
-        this.isAdd(true);
+        this.currentVO({
+          id: null
+        });
+
+        self.isAdd(true);
       }
+      
+      this.edit = function(object, event){
+        console.log(object)
+        self.currentVO(object);
+        
+        self.isAdd(true);        
+      }
+      this.save = function(){
+        console.log(this.currentVO())
+        this.isAdd(false);
+        this.table.refreshData();
+      }
+
+      this.design = function(object, event){
+
+      }
+      this.publish = function(object, event){
+      	systemMsg.alert('发布成功！');
+      }
+
+      this.remove = function(object, event){
+        systemMsg.alert('删除流程后，云主机、云硬盘将不能提交申请！', function(){
+       		systemMsg.alert('删除成功！'); 	
+        });
+      }
+
+      this.pause = function(object, event){
+
+      }
+
+      this.activate = function(object, event){
+
+      }
+
+      this.review = function(object, event){
+
+      }
+
+      this.searchParam = ko.observable({
+      	catelog: "",
+        name: ""
+      })
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+
+      this.searchWorkflowParam = ko.observable({
+      	catelog: "",
+        name: ""
+      })
+      this.searchWorkflow = function(){
+        console.log(this.searchWorkflowParam());
+      }
+
+      this.table = new DataTable([], {path: 'pages/systems/workflows/models.json'});
+      this.table_workflow = new DataTable([], {path: 'pages/systems/workflows/workflows.json'});
+
+      this.catelogs = ko.observableArray();
+      this.loadCatelogs = function(){
+        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
+          self.catelogs(data.results);
+        });
+      }
+      this.loadCatelogs();
     }
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]); 
 
 		$("#taskList a").bind("click",function(){
 			var index = $(this).parents('tr').index();
