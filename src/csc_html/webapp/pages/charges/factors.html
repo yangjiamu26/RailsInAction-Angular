@@ -10,20 +10,20 @@
     <div class="row wrapper">
       <div class="col-md-12">
           <button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>       
-          <button class="btn btn-sm btn-default">删除</button>       
-          <button class="btn btn-sm btn-default">启用</button>       
-          <button class="btn btn-sm btn-default">停用</button>       
+          <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button>       
+          <button class="btn btn-sm btn-default" data-bind="click: start">启用</button>       
+          <button class="btn btn-sm btn-default" data-bind="click: stop">停用</button>       
       </div>
 
     </div>     
-    <div class="table-responsive">
+    <div class="table-responsive" data-bind="with: table">
       <table class="table table-striped">
         <thead>
           <tr>
             <th>
               <div class="checkbox">
                 <label class="i-checks">
-                  <input type="checkbox" value="">
+                  <input type="checkbox" data-bind="checked: isSelectedAll">
                   <i></i>
                 </label>
               </div>                    
@@ -41,54 +41,52 @@
           </tr>
         </thead>
         <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan=11 class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>
               <div class="checkbox">
                 <label class="i-checks">
-                  <input type="checkbox" value="">
+                  <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                   <i></i>
                 </label>
               </div> 
             </td>
-            <td>Base20160101000000</td>
-            <td>单核CPU计费规则</td>
-            <td><span class="label label-success">启用</span><span class="label label-default">未启用</span><span class="label label-danger">停用</span></td>
-            <td>CPU</td>
-            <td>1</td>
-            <td>Core:1q</td>
-            <td>RMB</td>
-            <td>0.5</td>
-            <td>1Hour</td>
-            <td><a href="#">修改</a></td>
+            <td data-bind="text: $row.field1"></td>
+            <td data-bind="text: $row.field2"></td>
+            <td>
+              <span class="label label-success">启用</span>
+              <span class="label label-default">未启用</span>
+              <span class="label label-danger">停用</span>
+            </td>
+            <td data-bind="text: $row.field4"></td>
+            <td data-bind="text: $row.field5"></td>
+            <td data-bind="text: $row.field6"></td>
+            <td data-bind="text: $row.field7"></td>
+            <td data-bind="text: $row.field8"></td>
+            <td data-bind="text: $row.field9"></td>
+            <td><a data-bind="click: $root.edit">修改</a></td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer">
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
         </li>
-        <li class="page">
-          <a>2</a>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
         </li>
-        <li class="page">
-          <a>3</a>
-        </li>
-        <li class="page">
-          <a>4</a>
-        </li>
-        <li class="page">
-          <a >5</a>
-        </li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">…</a>
-        </li>
-        <li class="next">
-          <a>下页 ›</a>
-        </li>
-        <li class="last">
-          <a>末页 »</a>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
         </li>
       </ul>
     </footer>
@@ -96,13 +94,16 @@
 </div>
 
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
-  <div class='modal-dialog modal-md' role='document'>
+  <div class='modal-dialog modal-md' role='document' id="chargeFactors">
     <div class='modal-content'>
       <div class='modal-header'>
         
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增计费规则</h3></div>
+      <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().id">新增计费规则</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().id">修改计费规则</h3>
+      </div>
       <div class='modal-body form-horizontal'>
-        <div class="tab-content">
+        <div class="tab-content" data-bind="with: currentVO">
           <div role="tabpanel" class="tab-pane active" id="tab1">
             <div class="form-group">
               <label class="col-sm-3 control-label">规则名称</label>
@@ -124,7 +125,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">属性数量</label>
               <div class="col-sm-8">
-                <input class="form-control" type="text"  /></div>
+                <input class="form-control" type="text" /></div>
             </div>
           </div>
           <div role="tabpanel" class="tab-pane" id="tab2">
@@ -159,7 +160,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">计费金额</label>
               <div class="col-sm-8">
-                <input type="text" class="form-control" placeholder="支持小数点后两位" />
+                <input type="text" class="form-control" placeholder="支持小数点后两位"/>
               </div>
             </div>
           </div>
@@ -169,7 +170,7 @@
 
         <button class="btn btn-default btn-primary step-btn" step = "1" step-target = "2">下一步</button>
         <button class="btn btn-default btn-primary step-btn" step = "2" step-target = "1" style="display:none">上一步</button>
-        <button class="btn btn-default btn-info" data-dismiss="modal" step = "2"  style="display:none">确定</button>
+        <button class="btn btn-default btn-info" step = "2"  style="display:none"  data-bind="click: save">确定</button>
         <button class="btn btn-default" data-dismiss="modal" step = "2" style="display:none">取消</button>
 
       </div>
@@ -184,23 +185,67 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
+      this.currentVO = ko.observable({});
+
+      var self = this;
       this.add = function(){
-        this.isAdd(true);
+        this.currentVO({
+          id: null,
+          name: "",
+          count: "",
+          price: ""
+        });
+
+        self.isAdd(true);
+
+        var scope = $("#chargeFactors");
+        $(".step-btn", scope).bind("click",function(){
+          var step = $(this).attr("step-target");
+          $("#tab" + step, scope).show().siblings().hide();
+          $("[step]", scope).hide();
+          $("[step=" + step + "]", scope).show();
+        });
       }
+      
+      this.edit = function(object, event){
+        console.log(object)
+        self.currentVO(object);
+        
+        self.isAdd(true);
+
+        var scope = $("#chargeFactors");
+        $(".step-btn", scope).bind("click",function(){
+          var step = $(this).attr("step-target");
+          $("#tab" + step, scope).show().siblings().hide();
+          $("[step]", scope).hide();
+          $("[step=" + step + "]", scope).show();
+        });        
+      }
+      this.save = function(){
+        console.log(this.currentVO())
+        this.isAdd(false);
+        this.table.refreshData();
+      }
+
+      this.remove = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
+      }
+
+      this.start = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
+      }
+
+      this.stop = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
+      }
+
+      this.table = new DataTable([], {path: 'pages/charges/factors.json'});
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
-    var scope = $("#chargeFactors");
-    function showStep(index){
-      $("[step]",scope).hide();
-      $("[step=" + index + "]",scope).show();
-    };
-
-    $(".step-btn",scope).bind("click",function(){
-      var step = $(this).attr("step-target");
-      $("#tab" + step ,scope).show().siblings().hide();
-      showStep(step);
-    });
   });
 </script>
