@@ -21,18 +21,16 @@
 
     <div class="tab-content">
       <div class="tab-pane active" id="csc" role="tabpanel">
-
-
         <div class="panel panel-default">
           <div class="wrapper">
             <div class="row">
               <div class="col-md-1">
-                  <button class="btn btn-sm btn-info">设为已阅</button>
+                  <button class="btn btn-sm btn-info" data-bind="click: read">设为已阅</button>
               </div>
               <div class="col-md-2">
                 <div class="input-group">
                   <span class="input-group-addon">状态</span>
-                  <select class="form-control input-sm">
+                  <select class="form-control input-sm" data-bind="value: searchParam().status">
                     <option value="">全部</option>
                     <option value="">已阅</option>
                     <option value="" selected="selected">未阅</option>
@@ -42,12 +40,12 @@
               <div class="col-md-3">
                   <div class="input-group">
                      <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                     <input type="text" value="" class="form-control input-sm" id="system_daterange">
+                     <input type="text" class="form-control input-sm" id="system_daterange" data-bind="value: searchParam().daterange">
                   </div>        
               </div>              
               <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
               </div>        
               <div class="col-md-2">
                 <a class="inline senior-search-btn" onclick="$('#senior_system').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
@@ -58,26 +56,26 @@
                 <div class="col-md-3">
                     <div class="input-group">
                        <span class="input-group-addon">告警对象</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().object">
                     </div>        
                 </div>              
                 <div class="col-md-4">
                     <div class="input-group">
                        <span class="input-group-addon">事件名称</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
                     </div>        
                 </div>              
               </div>
             </div>
           </div>
-          <div class="table-responsive">
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
                   <th>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="">
+                        <input type="checkbox" data-bind="checked: isSelectedAll">
                         <i></i>
                       </label>
                     </div>                    
@@ -91,6 +89,12 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=7 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>
                     <div class="checkbox">
@@ -105,57 +109,40 @@
                   <td>FTP服务器配置信息在2016-06-22 17:58:48进行修改</td>
                   <td>2016-06-22 17:59:04</td>
                   <td><span class="label label-success">已阅</span><span class="label label-warning">未阅</span></td>
-                  <td><a href="#">设为已阅</a></td>
+                  <td><a data-bind="click: $root.readOne">设为已阅</a></td>
                 </tr>
-
-
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
         </div>
-
       </div>
       <div class="tab-pane" id="vm" role="tabpanel">
-
-
         <div class="panel panel-default">
           <div class="wrapper">
             <div class="row">
               <div class="col-md-1">
-                  <button class="btn btn-sm btn-info">设为已阅</button>
+                  <button class="btn btn-sm btn-info" data-bind="click: read">设为已阅</button>
               </div>
               <div class="col-md-2">
                 <div class="input-group">
                   <span class="input-group-addon">状态</span>
-                  <select class="form-control input-sm">
+                  <select class="form-control input-sm" data-bind="value: searchParam().status">
                     <option value="">全部</option>
                     <option value="">已阅</option>
                     <option value="" selected="selected">未阅</option>
@@ -165,42 +152,42 @@
               <div class="col-md-3">
                   <div class="input-group">
                      <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                     <input type="text" value="" class="form-control input-sm" id="vm_daterange">
+                     <input type="text" class="form-control input-sm" id="system_daterange" data-bind="value: searchParam().daterange">
                   </div>        
               </div>              
               <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
               </div>        
               <div class="col-md-2">
-                <a class="inline senior-search-btn" onclick="$('#senior_vm').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
+                <a class="inline senior-search-btn" onclick="$('#senior_system').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
               </div>              
             </div>          
-            <div class="senior-search m-t" id="senior_vm" style="display:none">
+            <div class="senior-search m-t" id="senior_system" style="display:none">
               <div class="row">
                 <div class="col-md-3">
                     <div class="input-group">
                        <span class="input-group-addon">告警对象</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().object">
                     </div>        
                 </div>              
                 <div class="col-md-4">
                     <div class="input-group">
                        <span class="input-group-addon">事件名称</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
                     </div>        
                 </div>              
               </div>
             </div>
-          </div>          
-          <div class="table-responsive">
+          </div>
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
                   <th>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="">
+                        <input type="checkbox" data-bind="checked: isSelectedAll">
                         <i></i>
                       </label>
                     </div>                    
@@ -214,6 +201,12 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=7 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>
                     <div class="checkbox">
@@ -228,56 +221,40 @@
                   <td>资源iscsiVMware在2016-06-23 09:45:51时内存超过80%</td>
                   <td>2016-06-23 09:49:34</td>
                   <td><span class="label label-warning">未阅</span></td>
-                  <td><a href="#">设为已阅</a></td>
+                  <td><a data-bind="click: $root.readOne">设为已阅</a></td>
                 </tr>
-
-
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
         </div>
       </div>
       <div class="tab-pane" id="vdc" role="tabpanel">           
-
-
         <div class="panel panel-default">
           <div class="wrapper">
             <div class="row">
               <div class="col-md-1">
-                  <button class="btn btn-sm btn-info">设为已阅</button>
+                  <button class="btn btn-sm btn-info" data-bind="click: read">设为已阅</button>
               </div>
               <div class="col-md-2">
                 <div class="input-group">
                   <span class="input-group-addon">状态</span>
-                  <select class="form-control input-sm">
+                  <select class="form-control input-sm" data-bind="value: searchParam().status">
                     <option value="">全部</option>
                     <option value="">已阅</option>
                     <option value="" selected="selected">未阅</option>
@@ -287,42 +264,42 @@
               <div class="col-md-3">
                   <div class="input-group">
                      <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                     <input type="text" value="" class="form-control input-sm" id="vdc_daterange">
+                     <input type="text" class="form-control input-sm" id="system_daterange" data-bind="value: searchParam().daterange">
                   </div>        
               </div>              
               <div class="col-md-2">
-                <button class="btn btn-sm" type="button">重置</button>
-                <button class="btn btn-default btn-sm" type="submit">搜索</button>
+                <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+                <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
               </div>        
               <div class="col-md-2">
-                <a class="inline senior-search-btn" onclick="$('#senior_vdc').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
+                <a class="inline senior-search-btn" onclick="$('#senior_system').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
               </div>              
             </div>          
-            <div class="senior-search m-t" id="senior_vdc" style="display:none">
+            <div class="senior-search m-t" id="senior_system" style="display:none">
               <div class="row">
                 <div class="col-md-3">
                     <div class="input-group">
                        <span class="input-group-addon">告警对象</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().object">
                     </div>        
                 </div>              
                 <div class="col-md-4">
                     <div class="input-group">
                        <span class="input-group-addon">事件名称</span>
-                       <input type="text" value="" class="form-control input-sm">
+                       <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
                     </div>        
                 </div>              
               </div>
             </div>
-          </div>         
-          <div class="table-responsive">
+          </div>
+          <div class="table-responsive" data-bind="with: table">
             <table class="table table-striped">
               <thead>
                 <tr>
                   <th>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="">
+                        <input type="checkbox" data-bind="checked: isSelectedAll">
                         <i></i>
                       </label>
                     </div>                    
@@ -336,6 +313,12 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+                  <td colspan=7 class="aligncenter">
+                    This table has no data.
+                  </td>
+                </tr>
+                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
                   <td>
                     <div class="checkbox">
@@ -350,37 +333,24 @@
                   <td>资源VDC1在2016-06-23 09:53:35，CPU超过80%</td>
                   <td>2016-06-23 09:53:54</td>
                   <td><span class="label label-warning">未阅</span></td>
-                  <td><a href="#">设为已阅</a></td>
+                  <td><a data-bind="click: $root.readOne">设为已阅</a></td>
                 </tr>
-
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
+          <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
             <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
+              <li data-bind="css: leftPagerClass, click: prevPage">
+                <a href="#">&laquo;</a>
               </li>
-              <li class="page">
-                <a>2</a>
+              <!-- ko foreach: {data: (new Array(pages()))} -->
+              <li data-bind="css: $parent.pageClass($index() + 1)">
+                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
               </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
+              <!-- /ko -->
+              <li data-bind="css: rightPagerClass, click: nextPage">
+                <a href="#">&raquo;</a>
               </li>
             </ul>
           </footer>
@@ -423,7 +393,6 @@
          '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
         }
       }
-
     ); 
 
     // daterange             
@@ -452,7 +421,6 @@
          '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
         }
       }
-
     ); 
 
 
@@ -482,9 +450,43 @@
          '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
         }
       }
-
     ); 
 
+    function ViewModel(){
+      this.read = function(){
+        console.log(this.table.chosenItems())
+      }
+      var self = this;
+      this.readOne = function(object, event){
+        console.log(object);
+      }
+
+      this.searchParam = ko.observable({
+        status: '',
+        daterange: '',
+        object: '',
+        name: ''
+      })
+
+      this.reset = function(){
+        this.searchParam({
+          status: '',
+          daterange: '',
+          object: '',
+          name: ''
+        })
+      }
+
+      this.search = function(){
+        console.log(this.searchParam())
+      }
+
+      this.table = new DataTable([], {path: 'pages/systems/warnings/index.json'})
+    }
+
+    $("#page-content .tab-pane").each(function(index, item){
+      ko.applyBindings(new ViewModel(), item);    
+    })
 
 
   });
