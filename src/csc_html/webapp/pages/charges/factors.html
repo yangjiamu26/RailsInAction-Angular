@@ -11,8 +11,8 @@
       <div class="col-md-12">
           <button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>       
           <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button>       
-          <button class="btn btn-sm btn-default">启用</button>       
-          <button class="btn btn-sm btn-default">停用</button>       
+          <button class="btn btn-sm btn-default" data-bind="click: start">启用</button>       
+          <button class="btn btn-sm btn-default" data-bind="click: stop">停用</button>       
       </div>
 
     </div>     
@@ -69,7 +69,7 @@
             <td data-bind="text: $row.field7"></td>
             <td data-bind="text: $row.field8"></td>
             <td data-bind="text: $row.field9"></td>
-            <td><a href="#">修改</a></td>
+            <td><a data-bind="click: $root.edit">修改</a></td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -98,14 +98,17 @@
     <div class='modal-content'>
       <div class='modal-header'>
         
-      <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增计费规则</h3></div>
+      <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().id">新增计费规则</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().id">修改计费规则</h3>
+      </div>
       <div class='modal-body form-horizontal'>
-        <div class="tab-content" data-bind="with: newObject">
+        <div class="tab-content" data-bind="with: currentVO">
           <div role="tabpanel" class="tab-pane active" id="tab1">
             <div class="form-group">
               <label class="col-sm-3 control-label">规则名称</label>
               <div class="col-sm-8">
-                <input class="form-control" type="text"  data-bind="value: name" />
+                <input class="form-control" type="text"  />
               </div>
             </div>
             <div class="form-group">
@@ -122,7 +125,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">属性数量</label>
               <div class="col-sm-8">
-                <input class="form-control" type="text"  /></div>
+                <input class="form-control" type="text" /></div>
             </div>
           </div>
           <div role="tabpanel" class="tab-pane" id="tab2">
@@ -157,7 +160,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">计费金额</label>
               <div class="col-sm-8">
-                <input type="text" class="form-control" placeholder="支持小数点后两位" />
+                <input type="text" class="form-control" placeholder="支持小数点后两位"/>
               </div>
             </div>
           </div>
@@ -182,11 +185,19 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
-      this.newObject = ko.observable({
-        name: ""
-      })
+      this.currentVO = ko.observable({});
+
+      var self = this;
       this.add = function(){
-        this.isAdd(true);
+        this.currentVO({
+          id: null,
+          name: "",
+          count: "",
+          price: ""
+        });
+
+        self.isAdd(true);
+
         var scope = $("#chargeFactors");
         $(".step-btn", scope).bind("click",function(){
           var step = $(this).attr("step-target");
@@ -195,15 +206,40 @@
           $("[step=" + step + "]", scope).show();
         });
       }
+      
+      this.edit = function(object, event){
+        console.log(object)
+        self.currentVO(object);
+        
+        self.isAdd(true);
+
+        var scope = $("#chargeFactors");
+        $(".step-btn", scope).bind("click",function(){
+          var step = $(this).attr("step-target");
+          $("#tab" + step, scope).show().siblings().hide();
+          $("[step]", scope).hide();
+          $("[step=" + step + "]", scope).show();
+        });        
+      }
       this.save = function(){
-        alert(this.newObject().name)
+        console.log(this.currentVO())
         this.isAdd(false);
-        this.table.currentPage(1);
+        this.table.refreshData();
       }
 
       this.remove = function(){
         console.log(this.table.chosenItems())
-        this.table.currentPage(1);
+        this.table.refreshData();
+      }
+
+      this.start = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
+      }
+
+      this.stop = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
       }
 
       this.table = new DataTable([], {path: 'pages/charges/factors.json'});

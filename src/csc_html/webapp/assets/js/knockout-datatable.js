@@ -356,6 +356,7 @@
       var _gatherData, _getDataFromServer;
       _getDataFromServer = (function(_this) {
         return function(data, cb) {
+          _this.isSelectedAll(false);
           var key, req, url, val;
           url = _this.options.paginationPath + "?" + (((function() {
             var results1;
@@ -516,6 +517,7 @@
       return this.refreshData = (function(_this) {
         return function() {
           var data;
+          _this.isSelectedAll(false);
           _this.loading(true);
           _this.filtering(true);
           data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField());
@@ -566,7 +568,6 @@
 
     DataTable.prototype.gotoPage = function(page) {
       return (function(_this) {
-        _this.isSelectedAll(false);
         return function() {
           return _this.currentPage(page);
         };
