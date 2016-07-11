@@ -11,36 +11,32 @@
     <div class="row wrapper">
       <div class="col-md-2">
         <button class="btn btn-sm btn-primary" data-bind="click: add">添加</button>
-        <button class="btn btn-sm btn-default">删除</button>
+        <button class="btn btn-sm btn-default" data-bind="click: remove">删除</button>
       </div>
       <div class="col-md-3">
         <div class="input-group">
           <span class="input-group-addon">脚本类型</span>
-          <select class="form-control input-sm">
-            <option value="">全部</option>
-            <option value="">可用</option>
-            <option value="">废弃</option>
-          </select>
+          <select class="form-control input-sm" data-bind="value: searchParam().type, options: $root.types, optionsText: 'name', optionsValue: 'id'"></select>
         </div>          
       </div>       
       <div class="col-md-3">
         <div class="input-group">
-                <span class="input-group-addon">名称</span>
-                <input type="text" class="input-sm form-control" placeholder="请输入名称">
-              </div>
+          <span class="input-group-addon">名称</span>
+          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+        </div>
       </div>
       <div class="col-md-1">
-        <button class="btn btn-sm btn-default" type="button">搜索</button>
+        <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
       </div>
     </div>       
-    <div class='table-responsive'>
+    <div class='table-responsive' data-bind="with: table">
       <table class='table table-striped table-hover'>
         <thead>
           <tr>
             <th>
               <div class="checkbox">
                 <label class="i-checks">
-                  <input type="checkbox" value="">
+                  <input type="checkbox" data-bind="checked: isSelectedAll">
                   <i></i>
                 </label>
               </div> 
@@ -54,11 +50,17 @@
           </tr>
         </thead>
         <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan=11 class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>
               <div class="checkbox">
                 <label class="i-checks">
-                  <input type="checkbox" value="">
+                  <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                   <i></i>
                 </label>
               </div> 
@@ -68,29 +70,25 @@
             <td>中间件</td>
             <td>true</td>
             <td>20160605 00:00:00</td>
-            <td><a href="#">删除</a></td>
+            <td><a data-bind="click: $root.removeOne">删除</a></td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-        <footer class='panel-footer'>
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a></li>
-        <li class="page">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">2</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=3">3</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=4">4</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=5">5</a></li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">&hellip;</a></li>
-        <li class="next">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">下页 &rsaquo;</a></li>
-        <li class="last">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=7">末页 &raquo;</a></li>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
+        </li>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+        </li>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
+        </li>
       </ul>
     </footer>
   </div>
@@ -223,13 +221,44 @@
       })
       this.isAdd = ko.observable(false);
 
+      var self = this;
+      this.currentVO = ko.observable({});
       this.add = function(){
+        this.currentVO({
+          id: null,
+          name: "",
+        })
         this.isAdd(true);
       }
       this.save = function(){
         alert(this.script_vo().name)
         this.isAdd(false);
       }
+      this.remove = function(){
+        console.log("removeSelected");
+      }
+      this.removeOne = function(object, event){
+        console.log(object);
+      }
+
+      this.searchParam = ko.observable({
+        type: "",
+        name: ""
+      })
+      this.search = function(){
+        console.log(this.searchParam())
+      }
+
+      this.types = ko.observableArray([]);
+      this.table = new DataTable([], {path: 'pages/softwares/scripts.json'});
+
+      //软件类型下拉选择
+      this.loadTypes = function(){
+        $.ajax("pages/softwares/softwares_types.json").done(function(data){
+          self.types(data.results);
+        });
+      }
+      this.loadTypes();
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);    
