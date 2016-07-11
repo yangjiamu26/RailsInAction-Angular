@@ -14,35 +14,35 @@
         <div class="col-md-3">
             <div class="input-group">
                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-               <input type="text" value="" class="form-control input-sm" id="sign_daterange">
+               <input type="text" value="" class="form-control input-sm" id="sign_daterange" data-bind="value: searchParam().timeRange">
             </div>        
         </div>
         <div class="col-md-2">
             <div class="input-group">
                <span class="input-group-addon">账号</span>
-               <input type="text" value="" class="form-control input-sm">
+               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().account">
             </div>       
         </div>          
         <div class="col-md-2">
             <div class="input-group">
                <span class="input-group-addon">用户名</span>
-               <input type="text" value="" class="form-control input-sm">
+               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
             </div>        
         </div>
         <div class="col-md-3">
             <div class="input-group">
                <span class="input-group-addon">登录IP</span>
-               <input type="text" value="" class="form-control input-sm">
+               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().ip">
             </div>        
         </div>
         <div class="col-md-2">
-            <button class="btn btn-sm" type="button">重置</button>
-            <button class="btn btn-default btn-sm" type="submit">搜索</button>
+            <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+            <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
         </div>
 
       </div>  
 
-      <div class="table-responsive">
+      <div class="table-responsive" data-bind="with: table">
         <table class="table table-striped">
           <thead>
             <tr>
@@ -53,41 +53,34 @@
             </tr>
           </thead>
           <tbody>
+            <tr data-bind="visible: showNoData">
+              <td colspan=4 class="aligncenter">
+                暂无数据
+              </td>
+            </tr>
+            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
               <td>admin</td>
               <td>系统管理员</td>
               <td>2016-6-27 10:36:10</td>
               <td>10.10.122.101</td>
             </tr>
-
+            <!-- /ko -->
           </tbody>
         </table>
       </div>
-      <footer class="panel-footer">
+      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
         <ul class="pagination">
-          <li class="page active">
-            <a href="#pages/javascript:void(0)">1</a>
+          <li data-bind="css: leftPagerClass, click: prevPage">
+            <a href="#">&laquo;</a>
           </li>
-          <li class="page">
-            <a>2</a>
+          <!-- ko foreach: {data: (new Array(pages()))} -->
+          <li data-bind="css: $parent.pageClass($index() + 1)">
+            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
           </li>
-          <li class="page">
-            <a>3</a>
-          </li>
-          <li class="page">
-            <a>4</a>
-          </li>
-          <li class="page">
-            <a >5</a>
-          </li>
-          <li class="page gap disabled">
-            <a href="#pages/javascript:void(0)">…</a>
-          </li>
-          <li class="next">
-            <a>下页 ›</a>
-          </li>
-          <li class="last">
-            <a>末页 »</a>
+          <!-- /ko -->
+          <li data-bind="css: rightPagerClass, click: nextPage">
+            <a href="#">&raquo;</a>
           </li>
         </ul>
       </footer>
@@ -130,7 +123,35 @@
 
     ); 
 
+    function ViewModel(){
+      this.searchParam = ko.observable({
+        timeRange: "",
+        account:"",
+        name: "",
+        ip:''
+      })
 
+      this.reset = function(){
+        this.searchParam({
+          timeRange: "",
+          account:"",
+          name: "",
+          ip:''
+        })
+      }
+      this.search = function(){
+        console.log(this.searchParam())
+
+      }
+
+      var self = this;
+      this.table = new DataTable([], {
+        path: 'pages/systems/sign_ins/index.json',
+        perPage:5
+      })
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
 
   });
 </script>
