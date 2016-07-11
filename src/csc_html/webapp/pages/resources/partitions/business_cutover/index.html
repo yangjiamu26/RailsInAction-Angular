@@ -13,7 +13,7 @@
       <a class="btn btn-success btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">确定割接</a>
     </div>
     <div>
-      <div class="table-responsive no-height">
+      <div class="table-responsive no-height" data-bind="with:table">
         <table class="table table-striped">
           <thead>
             <th>
@@ -36,6 +36,12 @@
             <th>操作</th>
           </thead>
           <tbody>
+            <tr data-bind="visible: showNoData">
+              <td colspan=5 class="aligncenter">
+                This table has no data.
+              </td>
+            </tr>
+            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
               <td>
                 <div class="checkbox">
@@ -45,20 +51,78 @@
                   </label>
                 </div>                    
               </td>
-              <td>vm-2008</td>
-              <td>176.1.0.5</td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
-              <td><div class="radio"><label class="form-inline"><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""> 永久</label></div><div class="radio disabled"><label class="form-inline"><input type="radio" class="form-control" style="top:-4px;" name="optionsRadios0" id="optionsRadios03" value="option3">有效期至 <input type="text" style="width:110px" class="form-control" id="resource_business_cutover_date"></label></div></td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
-              <td><select class="form-control input-sm w-xs"><option value="">请选择</option></select></td>
+              <td data-bind="text:vm">vm-2008</td>
+              <td data-bind="text:ip">176.1.0.5</td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:resource">
+                  <option value="1">资源</option>
+                </select>
+              </td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:VDC">
+                  <option value="1">VDC</option>
+                </select></td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:VPC">
+                  <option value="1">VPC</option>
+                </select>
+              </td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:type">
+                  <option value="1">类型</option>
+                </select>
+              </td>
+              </td>
+              <td>
+                <div class="radio">
+                  <label class="form-inline"><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""> 永久</label>
+                  </div>
+                  <div class="radio disabled">
+                  <label class="form-inline"><input type="radio" class="form-control" style="top:-4px;" name="optionsRadios0" id="optionsRadios03" value="option3">有效期至 <input type="text" style="width:110px" class="form-control" id="resource_business_cutover_date"></label>
+                  </div>
+              </td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:product">
+                  <option value="1">请选择</option>
+                </select>
+              </td>
+              <td>
+                <select class="form-control input-sm w-xs" data-bind="value:manger">
+                  <option value="1">请选择</option>
+                </select>
+              </td>
               <td><a onclick="confirm('确定移除吗？')">移除</a></td>
             </tr>
+            <!-- /ko -->
           </tbody>
         </table>
       </div>
+      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+        <ul class="pagination">
+          <li data-bind="css: leftPagerClass, click: prevPage">
+            <a href="#">&laquo;</a>
+          </li>
+          <!-- ko foreach: {data: (new Array(pages()))} -->
+          <li data-bind="css: $parent.pageClass($index() + 1)">
+            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+          </li>
+          <!-- /ko -->
+          <li data-bind="css: rightPagerClass, click: nextPage">
+            <a href="#">&raquo;</a>
+          </li>
+        </ul>
+      </footer>
     </div>
   </div>
 </div>
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    function ViewModel(){
+
+      this.table = new DataTable([], {path: 'pages/resources/partitions/business_cutover/index.json'});
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+  });
+</script>
