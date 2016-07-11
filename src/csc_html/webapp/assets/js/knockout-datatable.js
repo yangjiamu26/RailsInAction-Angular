@@ -89,6 +89,7 @@
       this.currentPage = ko.observable(1);
       this.filter = ko.observable('');
       this.loading = ko.observable(false);
+      this.params = ko.observableArray([]);
       return this.rows = ko.observableArray([]);
     };
 
@@ -383,7 +384,7 @@
           return req.send();
         };
       })(this);
-      _gatherData = function(perPage, currentPage, filter, sortDir, sortField) {
+      _gatherData = function(perPage, currentPage, filter, sortDir, sortField, params) {
         var data;
         data = {
           perPage: perPage,
@@ -395,6 +396,13 @@
         if ((sortDir != null) && sortDir !== '' && (sortField != null) && sortField !== '') {
           data.sortDir = sortDir;
           data.sortBy = sortField;
+        }
+        if ((params != null) && params !== ''){
+          for (key in params) {
+            if(params[key]){
+              data[key] = params[key];
+            }
+          }
         }
         return data;
       };
@@ -411,12 +419,17 @@
           return _this.currentPage(1);
         };
       })(this));
+      this.params.subscribe((function(_this) {
+        return function() {
+          return _this.currentPage(1);
+        };
+      })(this));
       ko.computed((function(_this) {
         return function() {
           var data;
           _this.loading(true);
           _this.filtering(true);
-          data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField());
+          data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField(), _this.params());
           return _getDataFromServer(data, function(err, response) {
             var results, total;
             _this.loading(false);
@@ -520,7 +533,7 @@
           _this.isSelectedAll(false);
           _this.loading(true);
           _this.filtering(true);
-          data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField());
+          data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField(), _this.params());
           return _getDataFromServer(data, function(err, response) {
             var results, total;
             _this.loading(false);
