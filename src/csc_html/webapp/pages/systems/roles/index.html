@@ -9,19 +9,19 @@
   <div class="panel panel-default">
     <div class="row wrapper">
       <div class="col-md-8">
-        <button class="btn btn-sm btn-primary" onclick="showModal('pages/systems/roles/new.html')">创建</button>
+        <button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
       </div>
       <div class="col-md-3">
         <div class="input-group">
           <span class="input-group-addon">角色名称</span>
-          <input type="text" value="" class="form-control input-sm">
+          <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
         </div>       
       </div>  
       <div class="col-md-1">
-        <button class="btn btn-default btn-sm" type="submit">搜索</button>
+        <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>        
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive" data-bind="with: table">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -33,111 +33,123 @@
             <th>操作</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>系统管理员</td>
-            <td>系统管理员</td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#pages/systems/roles/users">用户</a> | <a href="#pages/systems/roles/authorization" >权限</a></td>
+          <tr data-bind="visible: showNoData">
+            <td colspan="6" class="aligncenter">
+              This table has no data.
+            </td>
           </tr>
-          <tr>
-            <td>1</td>
-            <td>安全管理员</td>
-            <td>安全管理员</td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>安全审计员</td>
-            <td>安全审计员</td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>VDC管理员</td>
-            <td></td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>运营人员</td>
-            <td></td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>运维人员</td>
-            <td></td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>普通用户</td>
-            <td></td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a></td>
-          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>1</td>
             <td>测试</td>
             <td>自定义角色</td>
             <td>范冰冰</td>
             <td>2016-06-21 19:05:58</td>
-            <td><a href="#">用户</a> | <a href="#">权限</a> | <a onclick="showModal('pages/systems/roles/new.html')">修改</a> | <a onclick="confirm('确定删除吗？')">删除</a></td>
+            <td><a href="#pages/systems/roles/users">用户</a> | <a href="#pages/systems/roles/authorization" >权限</a> | <a data-bind="click: $root.edit">修改</a> | <a data-bind="click: $root.remove">删除</a></td>
           </tr>
-
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer">
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
         </li>
-        <li class="page">
-          <a>2</a>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
         </li>
-        <li class="page">
-          <a>3</a>
-        </li>
-        <li class="page">
-          <a>4</a>
-        </li>
-        <li class="page">
-          <a >5</a>
-        </li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">…</a>
-        </li>
-        <li class="next">
-          <a>下页 ›</a>
-        </li>
-        <li class="last">
-          <a>末页 »</a>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
         </li>
       </ul>
     </footer>
-  </div>    
-    
+  </div>      
 </div>
 
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
+  <div class='modal-dialog'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().id">新增角色</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().id">修改角色</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">角色名称</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control">
+          </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>          
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">角色说明</label>
+          <div class="col-sm-8">
+            <textarea name="" id="" cols="30" rows="4" class="form-control"></textarea>
+          </div>
+        </div>
+        
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+    function ViewModel(){
+      this.isAdd = ko.observable(false);
+
+      this.currentVO = ko.observable({});
+
+      var self = this;
+      this.add = function(){
+        this.currentVO({
+          id: null
+        });
+
+        self.isAdd(true);
+      }
+      
+      this.edit = function(object, event){
+        console.log(object)
+        self.currentVO(object);
+        
+        self.isAdd(true);        
+      }
+      this.save = function(){
+        console.log(this.currentVO())
+        this.isAdd(false);
+        this.table.refreshData();
+      }
+
+      this.remove = function(){
+        console.log(this.table.chosenItems())
+        this.table.refreshData();
+      }
+
+      this.searchParam = ko.observable({
+        name: ""
+      })
+      this.search = function(){
+        console.log(this.searchParam());
+      }
+
+      this.table = new DataTable([], {path: 'pages/systems/roles/index.json'});
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+
   });
 </script>
