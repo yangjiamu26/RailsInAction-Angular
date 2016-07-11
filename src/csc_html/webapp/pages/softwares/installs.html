@@ -12,33 +12,26 @@
       <div class="col-md-3">
         <div class="input-group">
           <span class="input-group-addon">软件分类</span>
-          <select class="form-control input-sm">
-            <option value="">全部</option>
-            <option value="">ISO</option>
-          </select>
+          <select class="form-control input-sm" data-bind="value: searchParam().catelog, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
         </div>          
       </div>      
       <div class="col-md-3">
         <div class="input-group">
           <span class="input-group-addon">软件类型</span>
-          <select class="form-control input-sm">
-            <option value="">全部</option>
-            <option value="">数据库</option>
-            <option value="">中间件</option>
-          </select>
+          <select class="form-control input-sm" data-bind="value: searchParam().type, options: $root.types, optionsText: 'name', optionsValue: 'id'"></select>
         </div>          
       </div>      
       <div class="col-md-3">
         <div class="input-group">
-                <span class="input-group-addon">名称</span>
-                <input type="text" class="input-sm form-control" placeholder="请输入名称">
-              </div>
+          <span class="input-group-addon">名称</span>
+          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+        </div>
       </div>
       <div class="col-md-1">
-        <button class="btn btn-sm btn-default" type="button">搜索</button>
+        <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
       </div>
     </div>     
-    <div class='table-responsive'>
+    <div class='table-responsive' data-bind="with: table">
       <table class='table table-striped table-hover'>
         <thead>
           <tr>
@@ -51,6 +44,12 @@
             <th>操作</th></tr>
         </thead>
         <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan="7" class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>Oracle</td>
             <td><span class="label label-success">可用</span><span class="label label-danger">废弃</span></td>
@@ -59,30 +58,26 @@
             <td>true/false</td>
             <td></td>
             <td>
-              <a data-bind="click: install">安装</a>
+              <a data-bind="click: $root.install">安装</a>
             </td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class='panel-footer'>
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a></li>
-        <li class="page">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">2</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=3">3</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=4">4</a></li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=5">5</a></li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">&hellip;</a></li>
-        <li class="next">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=2">下页 &rsaquo;</a></li>
-        <li class="last">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_vms=7">末页 &raquo;</a></li>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
+        </li>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+        </li>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
+        </li>
       </ul>
     </footer>
   </div>
@@ -238,18 +233,47 @@
       this.isInstall = ko.observable(false);
       this.isInstallVM = ko.observable(false);
 
+      var self = this;
       this.install = function(){
-        this.isInstall(true);
+        self.isInstall(true);
       }
       this.installVM = function(){
-        this.isInstallVM(true);
+        self.isInstallVM(true);
       }
       this.installVMConfirm = function(){
-        this.isInstallVM(false);
+        self.isInstallVM(false);
       }
       this.installVMCancel = function(){
-        this.isInstallVM(false);
+        self.isInstallVM(false);
       }
+
+
+      this.searchParam = ko.observable({
+        catelog: "",
+        type: "",
+        name: ""
+      })
+      this.search = function(){
+        console.log(this.searchParam())
+      }
+
+      this.catelogs = ko.observableArray([]);
+      this.types = ko.observableArray([]);
+      this.table = new DataTable([], {path: 'pages/softwares/installs.json'});
+
+      //软件类型下拉选择
+      this.loadTypes = function(){
+        $.ajax("pages/softwares/softwares_types.json").done(function(data){
+          self.types(data.results);
+        });
+      }
+      this.loadCatelogs = function(){
+        $.ajax("pages/softwares/softwares_catelogs.json").done(function(data){
+          self.catelogs(data.results);
+        });
+      }
+      this.loadTypes();
+      this.loadCatelogs();
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
