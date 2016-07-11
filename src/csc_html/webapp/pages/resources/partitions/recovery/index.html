@@ -30,7 +30,7 @@
         <button class="btn btn-sm btn-default" type="button">搜索</button>
       </div>
     </div>   
-    <div class='table-responsive'>
+    <div class='table-responsive' data-bind="with:table">
       <table class='table table-striped table-hover'>
         <thead>
           <tr>
@@ -53,6 +53,12 @@
           </tr>
         </thead>
         <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan=9 class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td>
               <div class="checkbox">
@@ -62,63 +68,42 @@
                 </label>
               </div>                   
             </td>
-            <td>分区1</td>
-            <td>资源1</td>
-            <td>类型A</td>
-            <td>aabbcc</td>
-            <td>admin</td>
-            <td>2020-02-20</td>
-            <td>10</td>
+            <td data-bind="text:partitions"></td>
+            <td data-bind="text:resource"></td>
+            <td data-bind="text:type"></td>
+            <td data-bind="text:busSystem"></td>
+            <td data-bind="text:user"></td>
+            <td data-bind="text:date"></td>
+            <td data-bind="text:passedDay"></td>
             <td><a href="#">回收</a> </td>
           </tr>
-          <tr>
-            <td>
-              <div class="checkbox">
-                <label class="i-checks">
-                  <input type="checkbox" value="">
-                  <i></i>
-                </label>
-              </div>                   
-            </td>
-            <td>分区1</td>
-            <td>资源1</td>
-            <td>类型A</td>
-            <td>aabbcc</td>
-            <td>admin</td>
-            <td>2020-02-20</td>
-            <td>10</td>
-            <td><a href="#">回收</a> </td>
-          </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer">
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
         </li>
-        <li class="page">
-          <a>2</a>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
         </li>
-        <li class="page">
-          <a>3</a>
-        </li>
-        <li class="page">
-          <a>4</a>
-        </li>
-        <li class="page">
-          <a >5</a>
-        </li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">…</a>
-        </li>
-        <li class="next">
-          <a>下页 ›</a>
-        </li>
-        <li class="last">
-          <a>末页 »</a>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
         </li>
       </ul>
     </footer>
   </div>
 </div>
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    function ViewModel(){
+      this.table = new DataTable([], {path: 'pages/resources/partitions/recovery/index.json'});
+    }
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+  });
+</script>
