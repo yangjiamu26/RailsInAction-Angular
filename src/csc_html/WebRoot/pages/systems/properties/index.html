@@ -1,0 +1,170 @@
+<div class="bg-light lter b-b wrapper-sm">
+	<ol class="breadcrumb">
+		<li>当前位置：</li>
+		<li>系统</li>
+		<li class="active">资源属性</li>
+	</ol>
+</div>
+<div class='wrapper-md'>
+
+	<div class="panel panel-default">
+
+		<div class="row wrapper">
+			<div class="col-md-8">
+				<button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
+			</div>
+			<div class="col-md-3">
+				<div class="input-group">
+					<span class="input-group-addon">资源属性名称</span>
+					<input type="text" class="input-sm form-control" placeholder="请输入资源属性名称" data-bind="value:searchParam().name">
+				</div>
+			</div>
+			<div class="col-md-1">
+				<button class="btn btn-sm btn-default" type="button" data-bind="click:search">搜索</button>
+			</div>
+		</div>		
+		<div class="table-responsive" data-bind="with: table">
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>资源属性名称</th>
+						<th>字段类型</th>
+						<th>长度</th>
+						<th>创建时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-bind="visible: showNoData">
+						<td colspan=5 class="aligncenter">
+							This table has no data.
+						</td>
+					</tr>
+					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+					<tr>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:type"></td>
+						<td data-bind="text:length"></td>
+						<td data-bind="text:createTime"></td>
+						<td><a data-bind="click: $root.edit">修改</a> | <a href="#"  onclick="confirm('确定删除该资源属性吗？')">删除</a></td>
+					</tr>
+					<!-- /ko -->
+				</tbody>
+			</table>
+		</div>
+		<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+			<ul class="pagination">
+				<li data-bind="css: leftPagerClass, click: prevPage">
+					<a href="#">&laquo;</a>
+				</li>
+				<!-- ko foreach: {data: (new Array(pages()))} -->
+				<li data-bind="css: $parent.pageClass($index() + 1)">
+					<a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				</li>
+				<!-- /ko -->
+				<li data-bind="css: rightPagerClass, click: nextPage">
+					<a href="#">&raquo;</a>
+				</li>
+			</ul>
+		</footer>
+	</div>		
+
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEdit }">
+	<div class='modal-dialog' role='document'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+				<h3 class='modal-title' data-bind="ifnot: currentVO().id">创建资源属性</h3>
+				<h3 class='modal-title' data-bind="if: currentVO().id">修改资源属性</h3>
+			</div>
+			<div class='modal-body form-horizontal' data-bind="with:currentVO">
+				<div class="form-group">
+					<label class="col-md-3 control-label" for="">资源属性名称</label>
+					<div class="col-md-8">
+						<input type="text" class="form-control" placeholder="" data-bind="value:name">
+					</div>
+					<div class="col-md-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>                    
+				</div>
+				<div class="form-group">
+					<label class="col-md-3 control-label" for="">字段类型</label>
+					<div class="col-md-8">
+						<select class="form-control" data-bind="value:type">
+							<option value="char">char</option>
+							<option value="other">other</option>
+						</select> 
+					</div>
+					<div class="col-md-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>                    
+				</div>
+				<div class="form-group">
+					<label class="col-md-3 control-label" for="">字段长度</label>
+					<div class="col-md-8">
+						<input type="mail" class="form-control" placeholder="" data-bind="value:length">
+					</div>
+					<div class="col-md-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>                    
+				</div>
+			</div>
+			<div class='modal-footer'>
+				<button name="button" type="button" class="btn btn-default btn btn-info" data-dismiss="modal" data-bind='click:ok'>确定</button>
+				<button name="button" type="button" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			</div>
+		</div>
+	</div>
+</form>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+	var scripts = [null, null]
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		function ViewModel(){
+			this.isEdit = ko.observable(false);
+			this.currentVO = ko.observable({});
+			var self = this;
+
+			this.add = function(){
+				this.currentVO({
+					id: null,
+					name:'',
+					type:'',
+					length:''
+				});
+				self.isEdit(true);
+
+			};
+
+			this.edit = function(object, event){
+				console.log(object)
+				self.currentVO(object);
+				self.isEdit(true);        
+			};
+
+			this.ok = function(){
+				if(this.currentVO().id == null){
+					systemMsg.alert("你创建了一个资源属性");
+				}else{
+					systemMsg.alert("你修改了一个资源属性");
+				};
+			};
+
+			this.searchParam = ko.observable({
+				name: ""
+			});
+
+			this.search = function(){
+				this.table.params(this.searchParam());
+			};
+
+			this.table = new DataTable([], {path: 'pages/systems/properties/index.json'});
+		}
+
+		ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+	});
+</script>

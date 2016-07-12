@@ -1,0 +1,126 @@
+<div class="bg-light lter b-b wrapper-sm">
+  <ol class="breadcrumb">
+    <li>当前位置：</li>
+    <li>计费</li>
+    <li class="active">计费清单统计</li>
+  </ol>
+</div>
+<div class='wrapper-md'>
+
+  <div class="panel panel-default">
+    <div class="row wrapper">
+      <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-addon">服务名称</span>
+            <input class="input-sm form-control" placeholder="请输入服务名称" data-bind="value: searchParam().serviceName">
+          </div>       
+      </div>
+      <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-addon">所属VDC</span>
+            <input class="input-sm form-control" placeholder="请输入所属VDC" data-bind="value: searchParam().vdcName">
+          </div>       
+      </div>
+      <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-addon">使用人</span>
+            <input class="input-sm form-control" placeholder="请输入使用人" data-bind="value: searchParam().userName">
+          </div>       
+      </div>
+      <div class="col-md-2">
+          <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+          <button class="btn btn-default btn-sm" data-bind="click: search">搜索</button>     
+      </div>
+      <div class="col-md-1">
+          <button class="btn btn-primary btn-sm" data-bind="click: exporting">导出</button>     
+      </div>
+    </div>    
+    <div class="table-responsive" data-bind="with: table">
+      <table class="table table-striped">
+        <thead>
+          <tr>              
+            <th>计费清单ID</th>
+            <th>服务名称</th>
+            <th>所属VDC</th>
+            <th>服务申请人</th>
+            <th>服务使用人</th>
+            <th>服务开始时间</th>
+            <th>服务统计时长</th>
+            <th>计费结算日期</th>
+            <th>计费周期</th>
+            <th>计费单位</th>
+            <th>总金额</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-bind="visible: showNoData">
+            <td colspan=11 class="aligncenter">
+              This table has no data.
+            </td>
+          </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+          <tr>
+            <td><a href="#">Bill20160101000000</a></td>
+            <td><a href="#">XXX服务</a></td>
+            <td><a href="#">vdc1</a></td>
+            <td>范冰冰</td>
+            <td>个人</td>
+            <td>2016-06-27 15:10:01</td>
+            <td>30天5小时7分26秒</td>
+            <td>2016-07-27 15:10:01</td>
+            <td>1Hour</td>
+            <td>RMB</td>
+            <td>1253.68</td>
+          </tr>
+          <!-- /ko -->
+        </tbody>
+      </table>
+    </div>
+    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+      <ul class="pagination">
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
+        </li>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+        </li>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
+        </li>
+      </ul>
+    </footer>    
+  </div>
+</div>
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    function ViewModel(){
+      this.searchParam = ko.observable({
+        serviceName: "",
+        vdcName: "",
+        userName: ""
+      })
+      this.reset = function(){
+        this.searchParam({
+          serviceName: "",
+          vdcName: "",
+          userName: ""
+        })
+        this.table.params({});
+      }
+      this.search = function(){
+        this.table.params(this.searchParam());
+      }
+      this.exporting = function(){
+        console.log("export")
+      }
+      this.table = new DataTable([], {path: 'pages/charges/reports.json'});
+    }
+
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+  });
+</script>
