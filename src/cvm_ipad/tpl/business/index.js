@@ -19,21 +19,22 @@ myApp.onPageInit("business-index", function(page) {
         initPool_memory_chart();
         initPool_storage_chart();
       });
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({},function(data){
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
         console.log(data)
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
         }
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          $$(page.container).find('.infinite-scroll-preloader').remove();
+          return;
+        }
         for(var i=0; i<data.data.length; i++){       
           self.dataList.push(data.data[i]);
         }
         self.page++;
-        if(is_loadMore && (data.data.length < PAGE_SIZE)){
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          $$(page.container).find('.infinite-scroll-preloader').remove();
-        }
       });
 
     }
