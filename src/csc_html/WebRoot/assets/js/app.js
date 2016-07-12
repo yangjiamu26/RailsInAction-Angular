@@ -30,8 +30,12 @@ if ($(".modal-draggable").length > 0) {
 	$(".modal-draggable").on("shown.bs.modal",function(){
 		$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
 	})
-
-}
+};
+if ($(".modal").length > 0) {
+	$(".modal").on("hidden.bs.modal",function(){
+		$(this).html("");
+	})
+};
 
 
 function systemMessage(){
