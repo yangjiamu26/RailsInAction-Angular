@@ -1505,6 +1505,18 @@ ko.validatedObservable = function (initialValue, options) {
     obsv.errors._updateState(newValue);
     obsv.isValid(obsv.errors().length === 0);
   });
+  obsv.toJSON = function(){
+    return ko.toJS(obsv);
+  }
+  obsv.fromJSON = function(json){
+    for(var key in json){
+      if(obsv()[key] && ko.isObservable(obsv()[key])){
+        obsv()[key](json[key]);
+      }else{
+        obsv()[key] = json[key];
+      }
+    }
+  }
 
   return obsv;
 };
