@@ -33,12 +33,18 @@ myApp.onPageInit("dashboard", function(page) {
         self.datacenters(data.data);
       });
     }
+    this.whichDc = ko.observable('');
+    this.changeDc = function(id){
+      this.whichDc(id);
+    }
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
 
   viewModel.loadData();
   viewModel.loadDatacenters();
+
+  window.business_viewModel = viewModel;
 
   // function ViewModel2(){
   //   this.datacenters = ko.observableArray([]);
