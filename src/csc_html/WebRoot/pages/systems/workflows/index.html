@@ -293,7 +293,7 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
-      this.currentVO = ko.observable({
+      this.currentVO = ko.validatedObservable({
         name: ko.observable("fdsafdas").extend({required: true})
       });
 
@@ -301,6 +301,9 @@
 
       var self = this;
       this.add = function(){
+        this.currentVO.fromJSON({
+          name: "fengzj"
+        })
 
 
         self.isAdd(true);
@@ -317,10 +320,13 @@
         self.isAdd(true);        
       }
       this.save = function(){
-        console.log(this.currentVO())
-        this.currentVO().name("5555");
-        //this.isAdd(false);
-        this.table.refreshData();
+        console.log(this.currentVO.toJSON())
+
+        if(this.currentVO.isValid()){
+
+          this.isAdd(false);
+          this.table.refreshData();
+        }
       }
 
       this.design = function(object, event){
