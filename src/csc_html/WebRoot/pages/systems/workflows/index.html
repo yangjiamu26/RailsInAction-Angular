@@ -14,8 +14,9 @@
 		<div role="tabpanel" class="tab-pane active" id="tab1">
 			<div class="panel panel-default">
 				<div class="row wrapper" >
-					<div class="col-xs-1">
+					<div class="col-xs-2">
 						<button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
+						<button class="btn btn-sm btn-primary" data-bind="click: _import">导入</button>
 					</div>
 					<div class="col-xs-3">
             <div class="input-group">
@@ -102,7 +103,7 @@
               <div class="form-group">
                 <label for="inputEmail3" class="col-xs-3 control-label">模型名称</label>
                 <div class="col-xs-8">
-                  <input type="text" class="form-control"  placeholder="">
+                  <input type="text" class="form-control"  placeholder="" data-bind="value: currentVO().name">
                 </div>
               </div>
               <div class="form-group">
@@ -173,11 +174,38 @@
               </div>
             </div>
             <div class='modal-footer'>
-              <input type="submit" name="commit" value="确定" class="btn btn-default btn-primary" />
+              <input type="submit" name="commit" value="确定" class="btn btn-default btn-primary" data-bind="click: save"/>
               <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
           </div>
         </div>
-      </div>      
+      </div>     
+
+
+		<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isImport }">
+		  <div class='modal-dialog' role='document'>
+		    <div class='modal-content'>
+		      <div class='modal-header'>
+		        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改信息</h3>
+		      </div>
+		      <div class='modal-body form-horizontal'>
+		        <div class="form-group">
+		          <label for="inputEmail3" class="col-xs-3 control-label">导入：</label>
+		          <div class="col-xs-7">
+		            <input type="text" class="form-control" />
+		          </div>
+              <div class="col-xs-1">
+                <button class="btn btn-info">浏览</button>
+              </div>
+		        </div>
+		      </div>
+		      <div class='modal-footer'>
+		        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
+		        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
 			</div>
 		</div>
 		<div role="tabpanel" class="tab-pane" id="tab2">
@@ -255,6 +283,8 @@
 	</div>
 </div>
 
+
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [null, null]
@@ -263,15 +293,21 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
-      this.currentVO = ko.observable({});
+      this.currentVO = ko.observable({
+        name: ko.observable("fdsafdas").extend({required: true})
+      });
+
+      this.isImport = ko.observable(false);
 
       var self = this;
       this.add = function(){
-        this.currentVO({
-          id: null
-        });
+
 
         self.isAdd(true);
+      }
+
+      this._import = function(){
+      	this.isImport(true);
       }
       
       this.edit = function(object, event){
@@ -282,7 +318,8 @@
       }
       this.save = function(){
         console.log(this.currentVO())
-        this.isAdd(false);
+        this.currentVO().name("5555");
+        //this.isAdd(false);
         this.table.refreshData();
       }
 
@@ -319,6 +356,9 @@
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content .tab-pane')[0]); 
+
+
+
 
     function ViewModel_Workflow(){
       var self = this;
