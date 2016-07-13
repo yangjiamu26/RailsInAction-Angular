@@ -28,7 +28,18 @@ $(function(){
 
   myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
 
-  //assistive touch 
+  /*filter*/
+  function ViewModel(){
+    this.page = ko.observable("");
+    this.changePage = function(str){
+      this.page(str);
+    }
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, document.getElementById("indexFilter"));
+  window.indexFilter_viewModel = viewModel;
+
+  /*assistive touch*/
   var win_w = parseInt($$("body").width());
   $$('.assistive').css("left",win_w-60+'px');
   var def_y,def_x,new_y,new_x,_touch,def_left,def_top;
@@ -42,7 +53,6 @@ $(function(){
     def_left = parseInt(_touch.css('left'));
     def_top = parseInt(_touch.css('top'));
     _touch.css({'-webkit-transition':'',"opacity":1});
-    console.log(def_left+"  "+def_top);
   });
   $$('.assistive').on('touchmove', function(event) {
     ismove = true;

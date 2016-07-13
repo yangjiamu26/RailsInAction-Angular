@@ -1,6 +1,6 @@
 myApp.onPageInit("dashboard", function(page) {
   function ViewModel(){
-    //this.datacenters = ko.observableArray([]);
+    this.datacenters = ko.observableArray([]);
     this.infos = ko.observable({
       "storageTotal":0,
       "cpuTotal":0,
@@ -27,36 +27,33 @@ myApp.onPageInit("dashboard", function(page) {
         initTotal_storage_chart(data);        
       });
     };
-    // this.loadDatacenters = function(){
-    //   var self = this;
-    //   RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
-    //     self.datacenters(data.data);
-    //   });
-    // }
-  }
-  var viewModel = new ViewModel();
-  ko.applyBindings(viewModel, $$(page.container)[0]);
-
-  viewModel.loadData();
-  //viewModel.loadDatacenters();
-
-  function ViewModel2(){
-    this.datacenters = ko.observableArray([]);
     this.loadDatacenters = function(){
       var self = this;
       RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
         self.datacenters(data.data);
       });
     }
-    this.clickItems = function(event){
-      console.log(1)
-      popoverClose(event)
-      myApp.popup('.popup-dashboard');
-    }
   }
-  var viewModel2 = new ViewModel2();
-  ko.applyBindings(viewModel2, document.getElementById("assistive"));
-  viewModel2.loadDatacenters();
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, $$(page.container)[0]);
+
+  viewModel.loadData();
+  viewModel.loadDatacenters();
+
+  // function ViewModel2(){
+  //   this.datacenters = ko.observableArray([]);
+  //   this.loadDatacenters = function(){
+  //     var self = this;
+  //     RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
+  //       self.datacenters(data.data);
+  //     });
+  //   }
+
+  // }
+  // var viewModel2 = new ViewModel2();
+  // ko.applyBindings(viewModel2, document.getElementById("assistive"));
+  // viewModel2.loadDatacenters();
+  // windows.assistive_viewModel = viewModel2;
 });
 
 

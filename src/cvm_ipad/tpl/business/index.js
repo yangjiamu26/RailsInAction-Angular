@@ -50,6 +50,7 @@ myApp.onPageInit("business-index", function(page) {
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true);
   });
+
 });
 
 
