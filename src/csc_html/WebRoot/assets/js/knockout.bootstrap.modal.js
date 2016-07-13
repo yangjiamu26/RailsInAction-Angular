@@ -23,6 +23,10 @@
 				options.show(false);
 			});
 
+			$element.on("shown.bs.modal",function(){
+				$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+			});
+
 			$(document).on("keyup", function(e) {
 				if (e.which === 27) {
 					$element.modal("hide");
