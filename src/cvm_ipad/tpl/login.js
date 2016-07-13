@@ -11,25 +11,21 @@ myApp.onPageInit("login", function(page) {
     var baseNet = Storage.getItem("baseNet");
     var userInfo = JSON.parse(Storage.getItem("userInfo"));
     var Required = false;
-    this.network = baseNet ? ko.observable(baseNet) : ko.observable("");
-    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("");
-    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("");
+    this.network = baseNet ? ko.observable(baseNet) : ko.observable("http://10.10.111.204:8095");
+    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("admin");
+    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("passw0rd");
     this.dashboard = null;
     this.login = function(){
       if(this.network()==""){
-        alert('请填写网络！');
-        Required = true;
+        myApp.alert('请填写网络！');
+        return;
       }
       if(this.username()==""){
-        alert('用户名不能为空！');
-        Required = true;
+        myApp.alert('用户名不能为空！');
+        return;
       }
       if(this.password()==""){
-        alert('用户名不能为空！');
-        Required = true;
-      }
-      if(Required){
-        Required = false;
+        myApp.alert('密码不能为空！');
         return;
       }
       Storage.setItem("baseNet",this.network());
@@ -54,7 +50,7 @@ myApp.onPageInit("login", function(page) {
         setTimeout(function(){
           $$("#assistive").show();
         },2000);
-        
+
       });
     }
   }

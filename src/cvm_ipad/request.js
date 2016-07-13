@@ -13,9 +13,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              myApp.alert('错误！');
             }
           },  
           timeout:60000  
@@ -32,9 +32,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('错误！');
+              myApp.alert('错误！');
             }
           },  
           timeout:60000  
@@ -49,9 +49,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('错误！');
+              myApp.alert('错误！');
             }
           }, 
           timeout:60000  
@@ -67,9 +67,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('错误！');
+              myApp.alert('错误！');
             }
           }, 
           timeout:60000  
@@ -84,9 +84,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('错误！');
+              myApp.alert('错误！');
             }
           }, 
           timeout:60000  
@@ -99,9 +99,9 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: function(req, status, ex) {
             if(req.responseText){
-              alert(JSON.parse(req.responseText).exception);
+              myApp.alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('错误！');
+              myApp.alert('错误！');
             }
           }, 
           timeout:60000  
