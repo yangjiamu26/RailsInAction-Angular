@@ -34,7 +34,7 @@ function RestServiceJs(newurl) {
             if(req.responseText){
               alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              alert('错误！');
             }
           },  
           timeout:60000  
@@ -51,7 +51,7 @@ function RestServiceJs(newurl) {
             if(req.responseText){
               alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              alert('错误！');
             }
           }, 
           timeout:60000  
@@ -69,7 +69,7 @@ function RestServiceJs(newurl) {
             if(req.responseText){
               alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              alert('错误！');
             }
           }, 
           timeout:60000  
@@ -86,7 +86,7 @@ function RestServiceJs(newurl) {
             if(req.responseText){
               alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              alert('错误！');
             }
           }, 
           timeout:60000  
@@ -101,7 +101,7 @@ function RestServiceJs(newurl) {
             if(req.responseText){
               alert(JSON.parse(req.responseText).exception);
             }else{
-              alert('錯誤！');
+              alert('错误！');
             }
           }, 
           timeout:60000  

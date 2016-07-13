@@ -49,7 +49,11 @@ myApp.onPageInit("login", function(page) {
           this.dashboard = myApp.addView('#view-dashboard', {dynamicNavbar: false,domCache: true});
         }
         this.dashboard.router.load({url: "tpl/dashboard.html",animatePages: false});
-        myApp.popup('.popup-dashboard'); 
+        myApp.popup('.popup-dashboard');
+
+        setTimeout(function(){
+          $$("#assistive").show();
+        },2000);
         
       });
     }

@@ -25,9 +25,9 @@ myApp.onPageInit("home-index", function(page) {
       RestServiceJs(BASE_URL+"/overallDetails").get(CVM_PAD.dcId,function(data){
         myApp.pullToRefreshDone();
         self.stat(data);
-        initTotal_cpu_chart(data);
-        initTotal_memory_chart(data);
-        initTotal_storage_chart(data);
+        initTotal_cpu_chart_home(data);
+        initTotal_memory_chart_home(data);
+        initTotal_storage_chart_home(data);
       });
     }
   }
@@ -43,8 +43,8 @@ myApp.onPageInit("home-index", function(page) {
 
 });
 // 首页cpu占比图
-function initTotal_cpu_chart(data) {
-    $('#total_cpu_chart').highcharts({
+function initTotal_cpu_chart_home(data) {
+    $('#total_cpu_chart_home').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -116,8 +116,8 @@ function initTotal_cpu_chart(data) {
     });   
 }
 // 首页内存占比图
-function initTotal_memory_chart(data) {
-    $('#total_memory_chart').highcharts({
+function initTotal_memory_chart_home(data) {
+    $('#total_memory_chart_home').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -186,8 +186,8 @@ function initTotal_memory_chart(data) {
     });   
 }
 // 首页存储占比图
-function initTotal_storage_chart(data) {
-    $('#total_storage_chart').highcharts({
+function initTotal_storage_chart_home(data) {
+    $('#total_storage_chart_home').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
