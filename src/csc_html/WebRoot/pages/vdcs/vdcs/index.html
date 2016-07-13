@@ -15,8 +15,8 @@
           <div class="left-title text-md">VDC列表</div>
           <p></p>
           <div class="left-title text-md">
-            <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vdcs/new.html')">增加</button>
-            <button class="btn btn-default btn-sm">删除</button>
+            <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vdcs/new.html')">创建</button>
+            <button class="btn btn-default btn-sm" >删除</button>
             <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vdcs/total.html')">总配额</button>
           </div>
         </div>
@@ -78,6 +78,7 @@
                       <div class="panel-body">
                         <p><strong>名称：</strong>VDC01</p>
                         <p><strong>描述：</strong>xxxxxxxx</p>
+                        <button class="btn btn-info btn-sm" onclick="showModal('pages/vdcs/vdcs/edit_info.html')">修改</button>
                       </div>
                     </div>
                   </div>
@@ -95,18 +96,18 @@
                         <div class="wrapper-md form-inline">
                           <div class="radio">
                             <label>
-                              <input name="limit" type="radio" checked> 不限配额
+                              <input name="limit" type="radio" value="0" data-bind="checked: isLimit" > 不限配额
                             </label>
                           </div>&nbsp;&nbsp;&nbsp;
                           <div class="radio">
                             <label>
-                              <input name="limit" type="radio"> 限制配额
+                              <input name="limit" type="radio" value="1" data-bind="checked: isLimit" > 限制配额
                             </label>
                           </div>
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vdcs/new_quota.html')">分配配额</button>
+                          <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vdcs/new_quota.html')" data-bind="visible:isLimit()=='1'">分配配额</button>
                         </div>
-                        <div class="">
+                        <div class="" data-bind="visible:isLimit()=='1'">
                           <table class="table table-striped">
                             <thead>
                               <tr>
@@ -286,6 +287,7 @@
                             <div class="input-group">
                               <span class="input-group-addon">虚拟化平台</span>
                               <select class="input-sm form-control w-sm inline v-middle">
+                                <option value="-1">全部</option>
                                 <option value="0">虚拟化平台1</option>
                                 <option value="1">虚拟化平台2</option>
                                 <option value="2">虚拟化平台3</option>
@@ -297,6 +299,7 @@
                             <div class="input-group">
                               <span class="input-group-addon">虚拟化类型</span>
                               <select class="input-sm form-control w-sm inline v-middle">
+                                <option value="-1">全部</option>
                                 <option value="0">虚拟化类型1</option>
                                 <option value="1">虚拟化类型2</option>
                                 <option value="2">虚拟化类型3</option>
@@ -386,6 +389,7 @@
                             <div class="input-group">
                               <span class="input-group-addon">网络类型</span>
                               <select class="input-sm form-control w-sm inline v-middle">
+                                <option value="-1">全部</option>
                                 <option value="0">网络类型1</option>
                                 <option value="1">网络类型2</option>
                                 <option value="2">网络类型3</option>
@@ -475,6 +479,7 @@
                             <div class="input-group">
                               <span class="input-group-addon">角色</span>
                               <select class="input-sm form-control w-sm inline v-middle">
+                                <option value="-1">全部</option>
                                 <option value="0">角色1</option>
                                 <option value="1">角色2</option>
                                 <option value="2">角色3</option>
@@ -484,8 +489,8 @@
                           </div>            
                           <div class="col-xs-3">          
                             <div class="input-group">
-                              <span class="input-group-addon">名称</span>
-                              <input type="text" class="input-sm form-control" placeholder="请输入名称">
+                              <span class="input-group-addon">账号</span>
+                              <input type="text" class="input-sm form-control" placeholder="请输入账号">
                             </div>
                           </div>
                           <div class="col-xs-1">
@@ -496,14 +501,6 @@
                           <table class="table table-striped">
                             <thead>
                               <tr>
-                                <th>
-                                  <div class="checkbox">
-                                    <label class="i-checks">
-                                      <input type="checkbox" value="">
-                                      <i></i>
-                                    </label>
-                                  </div> 
-                                </th>
                                 <th>账号</th>
                                 <th>角色</th>
                                 <th>操作</th>
@@ -511,14 +508,6 @@
                             </thead>
                             <tbody>
                               <tr>
-                                <td>
-                                  <div class="checkbox">
-                                    <label class="i-checks">
-                                      <input type="checkbox" value="">
-                                      <i></i>
-                                    </label>
-                                  </div> 
-                                </td>
                                 <td>peter</td>
                                 <td>VDC管理员，普通用户</td>
                                 <td>
@@ -586,6 +575,22 @@
       $("#accordion .collapse").on('hide.bs.collapse', function () {
         $(this).prev().find(".fa-caret-down").toggleClass('fa-caret-right');
       });
+
+
+      var ViewModal_quota = function(){
+        this.isLimit = ko.observable("0");
+        var self = this;
+        this.changeLimit = function(){
+          if (self.isLimit() == '0') {
+            alert('不限制配额')
+          }else{
+            alert('限制配额')
+          };
+        }
+      };
+
+      ko.applyBindings(new ViewModal_quota(), $('#collapseTwo')[0]); 
+
     });
 
   </script>
