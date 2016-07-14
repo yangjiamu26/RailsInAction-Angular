@@ -5,7 +5,7 @@ $(function(){
   api.vms.fetch().then(function(){
     console.log("\n-------查询列表-------\n")
     console.log("search all: ");
-    console.log(api.vms.attributes);
+    console.log(api.vms.toJSON());
 
     console.log("search all, select name: ");
     console.log(api.vms.pluck("name"));
@@ -29,7 +29,7 @@ $(function(){
   api.vm.set({id: 1}).fetch().then(function(){
     console.log("\n-------查询详情-------\n");
     console.log("show detail: ");
-    console.log(api.vm.attributes)
+    console.log(api.vm.toJSON())
   });
 
   
@@ -63,7 +63,7 @@ $(function(){
   api.hosts.fetch({data:{maxRecord: 15, firstRecord: 0}}).then(function(){
     console.log("\n-------分页查询-------\n")
     console.log("pagination search: ");
-    console.log(api.hosts.attributes);
+    console.log(api.hosts.toJSON());
 
     console.log("pagination search, select name: ");
     console.log(api.hosts.pluck("name"));
@@ -72,13 +72,13 @@ $(function(){
   api.host.set({id: 1}).volumns.fetch().then(function(){
     console.log("\n-------嵌套模型查询-------\n")
     console.log("search all: ");
-    console.log(api.host.volumns.attributes);
+    console.log(api.host.volumns.toJSON());
   });
 
   api.volumn.set({id: 1}).fetch().then(function(){
     console.log("\n-------查询详情-------\n");
     console.log("show detail: ");
-    console.log(api.volumn.attributes);
+    console.log(api.volumn.toJSON());
   });
 
 })
