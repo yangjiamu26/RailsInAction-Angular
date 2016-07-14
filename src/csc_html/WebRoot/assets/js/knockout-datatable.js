@@ -371,6 +371,7 @@
           req = new XMLHttpRequest();
           req.open('GET', url, true);
           req.setRequestHeader('Content-Type', 'application/json');
+          req.setRequestHeader('If-Modified-Since', '0'); 
           req.onload = function() {
             if (req.status >= 200 && req.status < 400) {
               return cb(null, JSON.parse(req.responseText));
@@ -387,8 +388,8 @@
       _gatherData = function(perPage, currentPage, filter, sortDir, sortField, params) {
         var data;
         data = {
-          perPage: perPage,
-          page: currentPage
+          maxResult: perPage,
+          firstResult: parseInt(currentPage)-1
         };
         if ((filter != null) && filter !== '') {
           data.filter = filter;
