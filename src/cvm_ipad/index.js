@@ -30,10 +30,54 @@ $(function(){
 
   /*filter*/
   function ViewModel(){
+    var self = this;
     this.page = ko.observable("");
     this.changePage = function(str){
       this.page(str);
     }
+    this.busdomain = {
+      list:ko.observableArray([]),
+      busdomainNum:'',
+      projectNum:''
+    };
+    this.getSelectedBus = function(id){
+      var name;
+      for(var i=0;i<this.busdomain.list().length;i++){
+        if(this.busdomain.list()[i].id == id){
+          name = this.busdomain.list()[i].name;
+          break;
+        }
+      }
+      return name;
+    }
+    this.busdomainSelected = ko.observable("全部");
+    this.setSelected = function(object,event){
+      var isAll,busId,busName;
+      if(object.id){
+        isAll = false;
+        busId = object.id;
+        busName = object.name;
+        self.busdomainSelected(object.id);
+      }else{
+        isAll = true;
+        busId = null;
+        busName = null;
+        self.busdomainSelected("全部");
+      }
+      window.business_index_viewModel.loadData(false,busId,busName);
+    }
+
+    this.getBusinessDomains = function(){
+      RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
+        self.busdomain.busdomainNum=data.busdomainNum;
+        self.busdomain.projectNum=data.projectNum;
+        for(var i=0;i<data.data.length;i++){
+          self.busdomain.list.push(data.data[i]);
+        }
+        window.business_index_viewModel.loadData();
+      })
+    }
+    
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, document.getElementById("indexFilter"));

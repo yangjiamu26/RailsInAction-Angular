@@ -44,7 +44,7 @@ myApp.onPageInit("dashboard", function(page) {
   viewModel.loadData();
   viewModel.loadDatacenters();
 
-  window.business_viewModel = viewModel;
+  window.overview_viewModel = viewModel;
 
   // function ViewModel2(){
   //   this.datacenters = ko.observableArray([]);

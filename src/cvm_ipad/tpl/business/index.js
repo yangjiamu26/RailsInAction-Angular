@@ -3,24 +3,36 @@ myApp.onPageInit("business-index", function(page) {
     this.busdomainNum = ko.observable("");
     this.projectNum = ko.observable("");
     this.dataList = ko.observableArray([]);
+    this.busdomainName = ko.observable("");
+    this.isShowAll = ko.observable(true);
+    this.projectNum2 = ko.observable("");
 
     this.loading = false;
     this.page = 1;
-    this.loadData = function(is_loadMore){
+    this.loadData = function(is_loadMore, id, name){
       var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
-        self.busdomainNum(data.busdomainNum);
-        self.projectNum(data.projectNum);
-        initPool_cpu_chart();
-        initPool_memory_chart();
-        initPool_storage_chart();
-      });
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
+      if(id&&name){
+        this.isShowAll(false);
+        this.busdomainName(name);
+      }else{
+        this.isShowAll(true);
+        this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
+      }
+      
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"busdomainId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
         console.log(data)
+
+        self.projectNum(data.size);
+        if(id&&name){
+          initPool_cpu_chart(data.busdomain);
+          initPool_memory_chart(data.busdomain);
+          initPool_storage_chart(data.busdomain);
+        }
+
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
@@ -42,7 +54,7 @@ myApp.onPageInit("business-index", function(page) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
 
-  viewModel.loadData();
+  window.business_index_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();
@@ -51,10 +63,11 @@ myApp.onPageInit("business-index", function(page) {
     viewModel.loadData(true);
   });
 
+  window.indexFilter_viewModel.getBusinessDomains();
 });
 
 
-// 资源池-cpu占比图
+// 业务域-cpu占比图
 function initPool_cpu_chart() {
     $('#pool_cpu_chart').highcharts({
       chart: {
