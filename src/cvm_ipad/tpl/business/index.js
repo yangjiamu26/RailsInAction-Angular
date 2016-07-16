@@ -1,74 +1,7 @@
 myApp.onPageInit("business-index", function(page) {
-  function ViewModel(){
-    this.busdomainNum = ko.observable("");
-    this.projectNum = ko.observable("");
-    this.dataList = ko.observableArray([]);
-    this.busdomainName = ko.observable("");
-    this.isShowAll = ko.observable(true);
-    this.projectNum2 = ko.observable("");
-
-    this.loading = false;
-    this.page = 1;
-    this.loadData = function(is_loadMore, id, name){
-      var self = this;
-      if (self.loading) return;
-      self.loading = true;
-      if(!is_loadMore) self.page = 1;
-
-      if(id&&name){
-        this.isShowAll(false);
-        this.busdomainName(name);
-      }else{
-        this.isShowAll(true);
-        this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
-      }
-      
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"busdomainId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
-        console.log(data)
-
-        self.projectNum(data.size);
-        if(id&&name){
-          initPool_cpu_chart(data.busdomain);
-          initPool_memory_chart(data.busdomain);
-          initPool_storage_chart(data.busdomain);
-        }
-
-        self.loading = false;
-        if(!is_loadMore){
-          myApp.pullToRefreshDone();
-          self.dataList.removeAll();
-        }
-        if(is_loadMore && (data.data.length < PAGE_SIZE)){
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          $$(page.container).find('.infinite-scroll-preloader').remove();
-          return;
-        }
-        for(var i=0; i<data.data.length; i++){       
-          self.dataList.push(data.data[i]);
-        }
-        self.page++;
-      });
-
-    }
-  }
-  var viewModel = new ViewModel();
-  ko.applyBindings(viewModel, $$(page.container)[0]);
-
-  window.business_index_viewModel = viewModel;
-
-  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
-  });
-  $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
-  });
-
-  window.indexFilter_viewModel.getBusinessDomains();
-});
-
-
-// 业务域-cpu占比图
-function initPool_cpu_chart() {
+  // 业务域-cpu占比图
+function init_cpu_chart(data) {
+  console.log(data)
     $('#pool_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -126,12 +59,12 @@ function initPool_cpu_chart() {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: 1.93,
+                  y: data.cpuUsed,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 35.19,
+                  y: data.cpuTotal-data.cpuUsed,
                   color:"#59cb5c"
               }
           ]
@@ -139,7 +72,8 @@ function initPool_cpu_chart() {
     });   
 }
 // 资源池-内存占比图
-function initPool_memory_chart() {
+function init_memory_chart(data) {
+  console.log(data)
     $('#pool_memory_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -171,7 +105,7 @@ function initPool_memory_chart() {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>G',
       },
       plotOptions: {
           pie: {
@@ -197,12 +131,12 @@ function initPool_memory_chart() {
           name: '内存',
           data: [{
                   name: '已用',
-                  y: 112.64,
+                  y: data.memoryUsed,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 76.11,
+                  y: data.memoryTotal-data.memoryUsed,
                   color:"#59cb5c"
               }
           ]
@@ -210,7 +144,8 @@ function initPool_memory_chart() {
     });   
 }
 // 资源池-存储占比图
-function initPool_storage_chart() {
+function init_storage_chart(data) {
+  console.log(data)
     $('#pool_storage_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -242,7 +177,7 @@ function initPool_storage_chart() {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>G',
       },
       plotOptions: {
           pie: {
@@ -268,15 +203,84 @@ function initPool_storage_chart() {
           name: '存储',
           data: [{
                   name: '已用',
-                  y: 4.73,
+                  y: data.storageUsed,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 3.81,
+                  y: data.storageTotal-data.storageUsed,
                   color:"#59cb5c"
               }
           ]
       }]
     });   
 }
+
+  function ViewModel(){
+    this.busdomainNum = ko.observable("");
+    this.projectNum = ko.observable("");
+    this.dataList = ko.observableArray([]);
+    this.busdomainName = ko.observable("");
+    this.isShowAll = ko.observable(true);
+    this.projectNum2 = ko.observable("");
+
+    this.loading = false;
+    this.page = 1;
+    this.loadData = function(is_loadMore, id, name){
+      var self = this;
+      if (self.loading) return;
+      self.loading = true;
+      if(!is_loadMore) self.page = 1;
+
+      if(id&&name){
+        this.isShowAll(false);
+        this.busdomainName(name);
+      }else{
+        this.isShowAll(true);
+        this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
+      }
+      
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"busdomainId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
+        console.log(data)
+
+        self.projectNum(data.size);
+        if(id&&name){
+          init_cpu_chart(data.busdomain);
+          init_memory_chart(data.busdomain);
+          init_storage_chart(data.busdomain);
+        }
+
+        self.loading = false;
+        if(!is_loadMore){
+          myApp.pullToRefreshDone();
+          self.dataList.removeAll();
+        }
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          $$(page.container).find('.infinite-scroll-preloader').remove();
+          return;
+        }
+        for(var i=0; i<data.data.length; i++){       
+          self.dataList.push(data.data[i]);
+        }
+        self.page++;
+      });
+
+    }
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, $$(page.container)[0]);
+
+  window.business_index_viewModel = viewModel;
+
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
+  $$(page.container).find('.infinite-scroll').on('infinite', function () {
+    viewModel.loadData(true);
+  });
+
+  window.indexFilter_viewModel.getBusinessDomains();
+});
+
+

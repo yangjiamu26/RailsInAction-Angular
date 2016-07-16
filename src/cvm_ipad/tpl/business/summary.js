@@ -1,15 +1,15 @@
 myApp.onPageInit("business-summary", function(page) {
   function ViewModel(){
     this.summary = ko.observable({
-      "vms_count": "", 
-      "admin": "",
-      "date": "",
-      "user": "",
-      "mark": ""
+      "vmNum": "", 
+      "manager": "",
+      "creatime": "",
+      "creator": "",
+      "desc": ""
     });
     this.loadData = function(){
       var self = this;
-      $.ajax("tpl/business/summary.json?id="+page.query.id).done(function(data){
+      RestServiceJs(BASE_URL+"/project").get(page.query.id,function(data){
         myApp.pullToRefreshDone();
         self.summary(data);
 

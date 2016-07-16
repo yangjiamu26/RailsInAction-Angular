@@ -50,8 +50,9 @@ $(function(){
       }
       return name;
     }
+    /*busdomain*/
     this.busdomainSelected = ko.observable("全部");
-    this.setSelected = function(object,event){
+    this.setBusdomainSelected = function(object,event){
       var isAll,busId,busName;
       if(object.id){
         isAll = false;
@@ -66,7 +67,6 @@ $(function(){
       }
       window.business_index_viewModel.loadData(false,busId,busName);
     }
-
     this.getBusinessDomains = function(){
       RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
         self.busdomain.busdomainNum=data.busdomainNum;
@@ -76,6 +76,21 @@ $(function(){
         }
         window.business_index_viewModel.loadData();
       })
+    }
+
+    /*pool*/
+    this.poolSelected = ko.observable("全部");
+    this.setPoolSelected = function(object,event){
+      console.log(event)
+      var isAll,busId,busName;
+      if(event.currentTarget){
+        isAll = false;
+        self.poolSelected(object.id);
+      }else{
+        isAll = true;
+        self.poolSelected("全部");
+      }
+      window.business_index_viewModel.loadData(false,busId,busName);
     }
     
   }
