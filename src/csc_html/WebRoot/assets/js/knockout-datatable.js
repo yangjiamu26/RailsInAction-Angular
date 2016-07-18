@@ -37,9 +37,9 @@
         sortField: options.sortField || void 0,
         perPage: options.perPage || 15,
         filterFn: options.filterFn || void 0,
-        unsortedClass: options.unsortedClass || '',
-        descSortClass: options.descSortClass || '',
-        ascSortClass: options.ascSortClass || '',
+        unsortedClass: "glyphicon glyphicon-sort", 
+        ascSortClass:  "glyphicon glyphicon-sort-by-attributes", 
+        descSortClass: "glyphicon glyphicon-sort-by-attributes-alt",
         serverSidePagination: {
           enabled: true,
           path: options.path,
@@ -389,7 +389,7 @@
         var data;
         data = {
           maxResult: perPage,
-          firstResult: parseInt(currentPage)-1
+          firstResult: (parseInt(currentPage)-1) * parseInt(perPage)
         };
         if ((filter != null) && filter !== '') {
           data.filter = filter;

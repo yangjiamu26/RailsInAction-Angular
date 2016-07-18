@@ -34,39 +34,39 @@
 					</tr>
 				</thead>
 				<tbody>
-          <tr data-bind="visible: showNoData">
-            <td colspan="6" class="aligncenter">
-              This table has no data.
-            </td>
-          </tr>
-          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+		            <tr data-bind="visible: showNoData">
+		           		<td colspan="6" class="aligncenter">
+		              		This table has no data.
+		           		</td>
+		            </tr>
+		          	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 					<tr>
-						<td>1</td>
-						<td>业务系统报表</td>
-						<td><a href="#" class="text-info">业务系统报表.rpx</a></td>
-						<td><a href="#" class="text-info">rab.rpx</a></td>
-						<td>业务系统报表</td>
+						<td data-bind="text:$index()+1"></td>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:reportShowFile"><a href="#" class="text-info"></a></td>
+						<td data-bind="text:paramShowFile"><a href="#" class="text-info"></a></td>
+						<td data-bind="text:remark"></td>
 						<td><a data-bind="click: $root.edit">修改</a> | <a data-bind="click: $root.remove">删除</a> | <a href="#pages/reports/show">预览</a></td>
 					</tr>
-          <!-- /ko -->
+		          	<!-- /ko -->
 				</tbody>
 			</table>
 		</div>
-		<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-      <ul class="pagination">
-        <li data-bind="css: leftPagerClass, click: prevPage">
-          <a href="#">&laquo;</a>
-        </li>
-        <!-- ko foreach: {data: (new Array(pages()))} -->
-        <li data-bind="css: $parent.pageClass($index() + 1)">
-          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-        </li>
-        <!-- /ko -->
-        <li data-bind="css: rightPagerClass, click: nextPage">
-          <a href="#">&raquo;</a>
-        </li>
-      </ul>
-    </footer>
+		<footer class="panel-footer" data-bind="with: table">
+			<ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <!-- ko foreach: {data: (new Array(pages()))} -->
+		        <li data-bind="css: $parent.pageClass($index() + 1)">
+		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		        </li>
+		        <!-- /ko -->
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		    </ul>
+    	</footer>
 	</div>		
 </div>
 
@@ -78,11 +78,11 @@
         <h3 class='modal-title' data-bind="ifnot: currentVO().id">创建报表</h3>
         <h3 class='modal-title' data-bind="if: currentVO().id">修改报表</h3>
       </div>
-      <div class='modal-body form-horizontal row'>
+      <div class='modal-body form-horizontal row'>  
         <div class="form-group">
           <label class="col-xs-3 control-label">报表名称：</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control">
+            <input type="text" class="form-control" data-bind="value: currentVO().name">
           </div>
 		  <div class="col-xs-1">
 			<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -91,7 +91,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">报表定义文件：</label>
           <div class="col-xs-6">
-            <input type="file">
+            <input type="file" data-bind="value: currentVO().reportShowFile">
           </div>
           <div class="col-xs-2"><btn class="btn btn-default" type="button">删除</btn></div>
 		  <div class="col-xs-1">
@@ -101,20 +101,21 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">参数模板文件：</label>
           <div class="col-xs-6">
-            <input type="file">
+            <input type="file" data-bind="value: currentVO().paramShowFile">
           </div>
           <div class="col-xs-2"><btn class="btn btn-default" type="button">删除</btn></div>
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">备注：</label>
           <div class="col-xs-8">
-            <textarea name="" id="" cols="30" rows="4" class="form-control"></textarea>
+            <textarea name="" id="" cols="30" rows="4" class="form-control" 
+            	data-bind="value: currentVO().remark"></textarea>
           </div>
         </div>
       	
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn-info" data-bind="click:save">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
@@ -129,27 +130,34 @@
     function ViewModel(){
       this.isAdd = ko.observable(false);
 
-      this.currentVO = ko.observable({});
+      this.currentVO = ko.validatedObservable({
+    	  name: ko.observable().extend({required: true}),
+    	  reportShowFile:  ko.observable(),
+    	  
+      });
 
       var self = this;
       this.add = function(){
-        this.currentVO({
-          id: null
-        });
-
         self.isAdd(true);
+        this.currentVO.fromJSON({
+            id: null,
+            name: ""
+          });
       }
       
       this.edit = function(object, event){
         console.log(object)
-        self.currentVO(object);
+        self.currentVO.fromJSON(object);
         
         self.isAdd(true);        
       }
       this.save = function(){
-        console.log(this.currentVO())
-        this.isAdd(false);
-        this.table.refreshData();
+    	ko.validation.group(this.currentVO).showAllMessages();
+        if(this.currentVO.isValid()){
+        	//console.log(this.currentVO.toJSON())
+        	this.isAdd(false);
+        	this.table.refreshData();
+        }
       }
 
       this.remove = function(){
@@ -158,17 +166,15 @@
       }
 
       this.searchParam = ko.observable({
-        name: ""
+        name: "",
       })
       this.search = function(){
         this.table.params(this.searchParam());
       }
 
-      this.table = new DataTable([], {path: 'pages/reports/definitions.json'});
+      this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
-
-
   });
 </script>
