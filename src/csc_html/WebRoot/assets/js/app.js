@@ -95,3 +95,5 @@ function systemMessage(){
 	};
 };
 var systemMsg = new systemMessage();
+window.alert = systemMsg.alert;
+window.confirm = systemMsg.confirm;
