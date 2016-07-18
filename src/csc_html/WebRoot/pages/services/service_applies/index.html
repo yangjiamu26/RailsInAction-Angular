@@ -23,28 +23,28 @@
 								<table class='table table-striped table-hover left-list'>
 									<tbody>
 										<tr class="active">
-											<td><a href="javascript:void(0)">VDC</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(1)">VDC</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">云主机</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(2)">云主机</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">云硬盘</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(3)">云硬盘</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">对象存储</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(4)">对象存储</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">公网IP</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(5)">公网IP</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">负载均衡器</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(6)">负载均衡器</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">SSH密钥</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(7)">SSH密钥</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)">自定义产品</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(8)">自定义产品</a></td>
 										</tr>
 									</tbody>
 								</table>
@@ -280,7 +280,7 @@
 
 								<div class="service-right-content" style="display: none;">
                                    	
-									<div class="service-list-box row"   data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -310,12 +310,29 @@
 										</div>
 										<!-- /ko -->
 									</div>
-									
+									<footer class="panel-footer" data-bind="with: table">
+										<ul class="pagination">
+									        <li data-bind="css: leftPagerClass, click: prevPage">
+									          <a href="#">&laquo;</a>
+									        </li>
+									        <!-- ko foreach: {data: (new Array(pages()))} -->
+									        <li data-bind="css: $parent.pageClass($index() + 1)">
+									          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+									        </li>
+									        <!-- /ko -->
+									        <li data-bind="css: rightPagerClass, click: nextPage">
+									          <a href="#">&raquo;</a>
+									        </li>
+									    </ul>
+							    	</footer>
 								</div>
+								
+								
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row">
+									<div class="service-list-box row" data-bind="with: table">
+									    <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
 												<div class="panel-heading wrapper-xs bg-primary no-border"></div>
@@ -338,11 +355,28 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
-														onclick="showModal('pages/services/service_applies/modal7.html')">申请服务</a>
+														data-bind="click: $root.add_SSH">申请服务</a>
 												</div>
 											</div>
 										</div>
+										<!-- /ko -->
 									</div>
+									
+									<footer class="panel-footer" data-bind="with: table_SSH">
+										<ul class="pagination">
+									        <li data-bind="css: leftPagerClass, click: prevPage">
+									          <a href="#">&laquo;</a>
+									        </li>
+									        <!-- ko foreach: {data: (new Array(pages()))} -->
+									        <li data-bind="css: $parent.pageClass($index() + 1)">
+									          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+									        </li>
+									        <!-- /ko -->
+									        <li data-bind="css: rightPagerClass, click: nextPage">
+									          <a href="#">&raquo;</a>
+									        </li>
+									    </ul>
+							    	</footer>
 								</div>
 
 								<div class="service-right-content" style="display: none;">
@@ -351,21 +385,7 @@
 
 							</div>
 							
-							<footer class="panel-footer" data-bind="with: table">
-								<ul class="pagination">
-							        <li data-bind="css: leftPagerClass, click: prevPage">
-							          <a href="#">&laquo;</a>
-							        </li>
-							        <!-- ko foreach: {data: (new Array(pages()))} -->
-							        <li data-bind="css: $parent.pageClass($index() + 1)">
-							          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-							        </li>
-							        <!-- /ko -->
-							        <li data-bind="css: rightPagerClass, click: nextPage">
-							          <a href="#">&raquo;</a>
-							        </li>
-							    </ul>
-					    	</footer>
+							
 						</div>
 					</div>
 				</div>
@@ -414,6 +434,15 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
   //负载均衡申请
     function ViewModel(){
 	    var self = this;
+	    
+	    this.productType = ko.observable();
+	    this.productTypeChecked = function(obj){
+	    	self.productType(obj);
+	    }
+	    
+	    
+	    
+	    
 	    this.modelVO = ko.validatedObservable({
 	        loadbalancerCartInfo: ko.observableArray([])
 	    });
@@ -453,7 +482,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	    	}
 	    	
 	    	
-	    })
+	    });
 	    
 	    //控制 负载均衡服务 申请页面显示
 	    this.isAdd = ko.observable(false);
@@ -466,13 +495,24 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	    //添加到购物车操作
 		this.addToCart = function(){
 			//console.log(this.modelVO.toJSON());
-			if(this.modelVO.isValid()){
-			 	console.log(this.modelVO.toJSON());
-			 	csc.rest.post('api/v5.0.0/cart',this.modelVO.toJSON(),function(data){
-			 		systemMsg.alert('添加到购物车成功！');
-			 		self.isAdd(false);
-			    });
+			if(self.productType()=='6'){
+				if(this.modelVO.isValid()){
+				 	console.log(this.modelVO.toJSON());
+				 	/* csc.rest.post('api/v5.0.0/cart',this.modelVO.toJSON(),function(data){
+				 		systemMsg.alert('添加到购物车成功！');
+				 		self.isAdd(false);
+				    }); */
+				}
+			}else if(self.productType()=='7'){
+				if(this.model_SSH.isValid()){
+				 	console.log(this.model_SSH.toJSON());
+				 	/* csc.rest.post('api/v5.0.0/cart',this.model_SSH.toJSON(),function(data){
+				 		systemMsg.alert('添加到购物车成功！');
+				 		self.isAdd(false);
+				    }); */
+				}
 			}
+			
 		} 
 		
 		//添加到购物车操作
@@ -490,11 +530,35 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 		this.table = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 		
 		//SSH密钥
-	    this.isAddSSH = ko.observable(false);
-	    this.addSSH = function(){
-	    	self.isAddSSH(true);
+	    this.isAdd_SSH = ko.observable(false);
+	    this.add_SSH = function(){
+	    	self.isAdd_SSH(true);
+	    	self.sshNum(1);
+	    	self.loadCatelogs();
 	    }
+	    this.sshNum = ko.observable().extend({max:20});
 	    
+	    this.model_SSH = ko.validatedObservable({
+	    	sshKeytCartInfo: ko.observableArray([])
+	    });
+	    
+	    this.sshNum.subscribe(function(){
+	    	self.model_SSH().sshKeytCartInfo([]);
+	    	var num = self.sshNum();
+	    	for(var i=0; i<num; i++){
+	    		self.model_SSH().sshKeytCartInfo.push({
+	    			name: ko.observable("").extend({required:true}),
+					vdcUuid: ko.observable(""),
+					applyType: ko.observable("1"),
+					applyNum: ko.observable(""),
+					applyTime: ko.observable(""),
+					billRuleUuid: ko.observable("")
+	    		})
+	    	}
+	    	
+	    	
+	    });
+	    this.table_SSH = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
     }
 	ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]); 
   });
@@ -578,7 +642,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 </div>
 <!-- 负载均衡 end -->	
 <!-- SSH密钥 start -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSSH }">
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_SSH }">
 	<div class='modal-dialog modal-lg' role='document'>
   
     <div class='modal-content'>
@@ -589,7 +653,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
-             <input type="text" class="form-control" onpropertychange="value=applyChangeSSHnum(value)" oninput="value=applyChangeSSHnum(value)">
+             <input type="text" class="form-control"  data-bind="value: sshNum, valueUpdate: 'afterkeydown'">
           </div>
         </div>
         <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
@@ -601,15 +665,48 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
               <th>申请时长<i style="color:red">*</i></th>
               <th>收费标准</th>
             </thead>
-            <tbody id="applyServiceSSHBox">
-              
+            <tbody id="applyServiceSSHBox" data-bind="foreach: model_SSH().sshKeytCartInfo">
+                  <tr>
+						<td><span data-bind="text: ($index()+1)"></span></td>
+						<td><input type="text" class="form-control input-sm"
+							data-bind="value: name"></td>
+						<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
+						<td>
+							<div class="radio">
+								<label class="form-inline"> <input type="radio"
+									name="optionsRadios'+i+'" id="optionsRadios'+i+'1"
+									value="1" data-bind="checked: applyType" > 永久
+								</label>
+							</div>
+							<div class="radio">
+								<label class="form-inline"> <input type="radio"
+									class="form-control" style="top: 2px;"
+									name="optionsRadios'+i+'" id="optionsRadios'+i+'2"
+									value="2" data-bind="checked: applyType"> <select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+								</label>
+							</div>
+							<div class="radio disabled">
+								<label class="form-inline"> <input type="radio"
+									class="form-control" style="top: 2px;"
+									name="optionsRadios'+i+'" id="optionsRadios'+i+'3"
+									value="3" data-bind="checked: applyType"> <input type="text"
+									style="width: 206px" class="form-control"
+									id="applyServiceBalancingBox_daterange'+i+'">
+								</label>
+							</div>
+						</td>
+						<td><select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid">
+						</select></td>
+						<td>0.5元/小时</td>
+					</tr>  
             </tbody>
           </table>
         </div>
         
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">添加到购物车</a>
+        <a class="btn btn-default btn-info" 
+           data-bind="click: $root.addToCart">添加到购物车</a>
         <a class="btn btn-default btn-success">提交订单</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>

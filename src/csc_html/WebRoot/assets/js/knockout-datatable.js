@@ -50,13 +50,11 @@
       };
       var self = this;
       this.chosenItems = ko.observableArray();
-      this._selectedAll = ko.observable(false);
       this.isSelectedAll = ko.pureComputed({
         read: function () {
-            return this._selectedAll();
+            return (this.chosenItems().length > 0) && (this.chosenItems().length === this.pagedRows().length);
         },
         write: function (value) {
-          this._selectedAll(value);
           if(value){
             this.chosenItems([]);
             var rows = this.pagedRows();
