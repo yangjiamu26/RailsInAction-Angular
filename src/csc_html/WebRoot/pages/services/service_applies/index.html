@@ -73,7 +73,7 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg">xxxxxxx</td>
+															<td class="v-middle text-lg" ></td>
 														</tr>
 														<tr>
 															<th>支持操作系统：</th>
@@ -279,8 +279,9 @@
 								</div>
 
 								<div class="service-right-content" style="display: none;">
-
-									<div class="service-list-box row">
+                                   	
+									<div class="service-list-box row"   data-bind="with: table">
+										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
 												<div class="panel-heading wrapper-xs bg-primary no-border"></div>
@@ -288,7 +289,7 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+															<td class="v-middle text-lg"><span data-bind="text:name"></span></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
@@ -303,11 +304,13 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
-														data-bind="click: add">申请服务</a>
+														data-bind="click: $root.add">申请服务</a>
 												</div>
 											</div>
 										</div>
+										<!-- /ko -->
 									</div>
+									
 								</div>
 
 								<div class="service-right-content" style="display: none;">
@@ -347,20 +350,22 @@
 								</div>
 
 							</div>
-							<footer class="panel-footer">
+							
+							<footer class="panel-footer" data-bind="with: table">
 								<ul class="pagination">
-									<li class="page active"><a
-										href="#pages/javascript:void(0)">1</a></li>
-									<li class="page"><a>2</a></li>
-									<li class="page"><a>3</a></li>
-									<li class="page"><a>4</a></li>
-									<li class="page"><a>5</a></li>
-									<li class="page gap disabled"><a
-										href="#pages/javascript:void(0)">…</a></li>
-									<li class="next"><a>下页 ›</a></li>
-									<li class="last"><a>末页 »</a></li>
-								</ul>
-							</footer>
+							        <li data-bind="css: leftPagerClass, click: prevPage">
+							          <a href="#">&laquo;</a>
+							        </li>
+							        <!-- ko foreach: {data: (new Array(pages()))} -->
+							        <li data-bind="css: $parent.pageClass($index() + 1)">
+							          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							        </li>
+							        <!-- /ko -->
+							        <li data-bind="css: rightPagerClass, click: nextPage">
+							          <a href="#">&raquo;</a>
+							        </li>
+							    </ul>
+					    	</footer>
 						</div>
 					</div>
 				</div>
@@ -407,7 +412,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
     })
 
   //负载均衡申请
-    function ViewModel_LoadBanancer(){
+    function ViewModel(){
 	    var self = this;
 	    this.modelVO = ko.validatedObservable({
 	        loadbalancerCartInfo: ko.observableArray([])
@@ -454,24 +459,44 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	    this.isAdd = ko.observable(false);
 	    this.add = function(){
 	        self.isAdd(true);
-	        this.loadBalancerNum(1);
-	        this.loadCatelogs();
+	        self.loadBalancerNum(1);
+	        self.loadCatelogs();
 	    }
-	      
-		//添加到购物车操作
+
+	    //添加到购物车操作
 		this.addToCart = function(){
 			//console.log(this.modelVO.toJSON());
 			if(this.modelVO.isValid()){
 			 	console.log(this.modelVO.toJSON());
-			 	/* csc.rest.post('api/v5.0.0/cart',this.modelVO.toJSON(),function(data){
+			 	csc.rest.post('api/v5.0.0/cart',this.modelVO.toJSON(),function(data){
 			 		systemMsg.alert('添加到购物车成功！');
 			 		self.isAdd(false);
-			    }); */
+			    });
 			}
 		} 
+		
+		//添加到购物车操作
+		this.addToOrder = function(){
+			if(this.modelVO.isValid()){
+			 	csc.rest.post('api/v5.0.0/orders',this.modelVO.toJSON(),function(data){
+			 		systemMsg.alert('提交订单成功！');
+			 		self.isAdd(false);
+			    });
+			}
+		} 
+		
+		//负载均衡列表数据
+		
+		this.table = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+		
+		//SSH密钥
+	    this.isAddSSH = ko.observable(false);
+	    this.addSSH = function(){
+	    	self.isAddSSH(true);
+	    }
+	    
     }
-	ko.applyBindings(new ViewModel_LoadBanancer, $('#page-content .tab-pane')[0]); 
-  
+	ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]); 
   });
   
 </script>
@@ -489,8 +514,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 				<div class="form-inline">
 					<div class="input-group">
 						<span class="input-group-addon">申请数量</span> <input type="text"
-							class="form-control"
-							data-bind="value: loadBalancerNum, valueUpdate: 'afterkeydown'">
+							class="form-control" data-bind="value: loadBalancerNum, valueUpdate: 'afterkeydown'">
 					</div>
 				</div>
 				<div class="panel panel-default table-responsive no-height"
@@ -546,10 +570,50 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 			<div class='modal-footer' style="text-align: center;">
 				<a class="btn btn-default btn-info"
 					data-bind="click: $root.addToCart">添加到购物车</a> <a
-					class="btn btn-default btn-success">提交订单</a> <a
+					class="btn btn-default btn-success" data-bind="click: $root.addToOrder">提交订单</a> <a
 					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- 负载均衡 end -->	
+<!-- SSH密钥 start -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSSH }">
+	<div class='modal-dialog modal-lg' role='document'>
+  
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请SSH密钥服务</h3>
+      </div>
+      <div class='modal-body form-horizontal'>
+        <div class="form-inline">
+          <div class="input-group">
+             <span class="input-group-addon">申请数量</span>
+             <input type="text" class="form-control" onpropertychange="value=applyChangeSSHnum(value)" oninput="value=applyChangeSSHnum(value)">
+          </div>
+        </div>
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+          <table class="table table-striped">
+            <thead>
+              <th>序号</th>
+              <th>SSH密钥名称<i style="color:red">*</i></th>
+              <th>所属VDC<i style="color:red">*</i></th>
+              <th>申请时长<i style="color:red">*</i></th>
+              <th>收费标准</th>
+            </thead>
+            <tbody id="applyServiceSSHBox">
+              
+            </tbody>
+          </table>
+        </div>
+        
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info">添加到购物车</a>
+        <a class="btn btn-default btn-success">提交订单</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- SSH密钥 end -->

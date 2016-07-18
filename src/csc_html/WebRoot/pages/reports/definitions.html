@@ -90,7 +90,7 @@
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">报表定义文件：</label>
-          <div class="col-xs-6">
+          <div class="col-xs-4">
             <input type="file" data-bind="value: currentVO().reportShowFile">
           </div>
           <div class="col-xs-2"><btn class="btn btn-default" type="button">删除</btn></div>
@@ -124,57 +124,75 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	var scripts = [null, null]
+  	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
-    function ViewModel(){
-      this.isAdd = ko.observable(false);
+    	function ViewModel(){
+      		this.isAdd = ko.observable(false);
 
-      this.currentVO = ko.validatedObservable({
-    	  name: ko.observable().extend({required: true}),
-    	  reportShowFile:  ko.observable(),
-    	  
-      });
+      		this.currentVO = ko.validatedObservable({
+    	  		name: ko.observable().extend({required: true}),
+    	  		reportShowFile:  ko.observable(),
+    	  		paramShowFile: ko.observable(),
+    	  		remark: ko.observable()
+      		});
 
-      var self = this;
-      this.add = function(){
-        self.isAdd(true);
-        this.currentVO.fromJSON({
-            id: null,
-            name: ""
-          });
-      }
-      
-      this.edit = function(object, event){
-        console.log(object)
-        self.currentVO.fromJSON(object);
-        
-        self.isAdd(true);        
-      }
-      this.save = function(){
-    	ko.validation.group(this.currentVO).showAllMessages();
-        if(this.currentVO.isValid()){
-        	//console.log(this.currentVO.toJSON())
-        	this.isAdd(false);
-        	this.table.refreshData();
-        }
-      }
+      		var self = this;
+      		this.add = function(){
+        		self.isAdd(true);
+        		this.currentVO.fromJSON({
+           	 		id: null,
+            		name: '',
+      	  			reportShowFile:  '',
+      	  			paramShowFile: '',
+      	  			remark: ''
+          		});
+      		}
+      		
+      		this.save = function(){
+    			ko.validation.group(this.currentVO).showAllMessages();
+		        if(this.currentVO.isValid()){
+		        	if(this.currentVO().id){
+		        		csc.rest.put('api/v5.0.0/reports/customReports/'+this.currentVO().id,this.currentVO.toJSON(),function(data){
+					 		systemMsg.alert('修改自定义报表成功！');
+					 		self.isAdd(false);
+				        	self.table.refreshData();
+					    }); 
+		        	}else{
+		        		
+		        		csc.rest.post('api/v5.0.0/reports/customReports',this.currentVO.toJSON(),function(data){
+					 		systemMsg.alert('添加自定义报表成功！');
+					 		self.isAdd(false);
+				        	self.table.refreshData();
+					    }); 
+		        	}
+		        }
+      		}
+	      	//修改
+	      	this.edit = function(object, event){
+	        	self.currentVO.fromJSON(object);
+	        	self.isAdd(true); 
+	      	}
+		  	//删除
+	      	this.remove = function(object, event){
+	      		systemMsg.confirm("确定要删除报表 "+object.name+" ?",function(){
+	      			csc.rest.del('api/v5.0.0/reports/customReports/'+object.id,function(data){
+				 		systemMsg.alert('删除自定义报表成功！');
+				 		self.table.refreshData();
+				    });
+	      		});
+	      	}
+		  	//查询
+	      	this.searchParam = ko.observable({
+	    	  	name: "",
+	      	})
+	      	this.search = function(){
+	        	this.table.params(this.searchParam());
+	      	}
+	
+	      	this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
+    	}
 
-      this.remove = function(){
-        console.log(this.table.chosenItems())
-        this.table.refreshData();
-      }
-
-      this.searchParam = ko.observable({
-        name: "",
-      })
-      this.search = function(){
-        this.table.params(this.searchParam());
-      }
-
-      this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
-    }
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
-  });
+    	ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+  	});
 </script>
