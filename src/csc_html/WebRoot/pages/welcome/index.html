@@ -557,7 +557,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
 
-    function doHighcharts(){
+    function doHighchartsVDC(){
       // cpu占比图
       $('#total_cpu_chart').highcharts({
         chart: {
@@ -976,107 +976,109 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             ]
         }]
       });
+    }
 
+    function doHighchartsWarning(){
       // 资源告警统计
       $("#total_alarm_chart").highcharts({
-          chart: {
-                  type: 'column'
-              },
-          credits:{ 
-              enabled:false
+        chart: {
+                type: 'column'
             },
-          title: {
-              text: '资源告警统计',
-              style:{
-                fontSize:'12px'
-              }
+        credits:{ 
+            enabled:false
           },
-          legend: {
-              margin: 10,
-              padding: 0,
-              itemStyle: {
-                  fontWeight: 'normal'
-              }
-          },
-          colors:['#39bee8'],
-          xAxis: {
-              categories: [
-                  '系统告警','VDC配额告警','云主机告警'
-              ]
-          },
-          yAxis: {
-              min: 0,
-              gridLineColor: '#eee',
-              title: {
-                  text: '单位 (条)'
-              }
-          },
-          plotOptions: {
-              column: {
-                  pointPadding: 0.2,
-                  borderWidth: 0
-              }
-          },
-          series: [
-            {
-                name: '告警数量',
-                data: [3, 2, 5]
+        title: {
+            text: '资源告警统计',
+            style:{
+              fontSize:'12px'
             }
-          ]
-        });
+        },
+        legend: {
+            margin: 10,
+            padding: 0,
+            itemStyle: {
+                fontWeight: 'normal'
+            }
+        },
+        colors:['#39bee8'],
+        xAxis: {
+            categories: [
+                '系统告警','VDC配额告警','云主机告警'
+            ]
+        },
+        yAxis: {
+            min: 0,
+            gridLineColor: '#eee',
+            title: {
+                text: '单位 (条)'
+            }
+        },
+        plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
+        series: [
+          {
+              name: '告警数量',
+              data: [3, 2, 5]
+          }
+        ]
+      });
 
-      // VDC配额告警统计
-      $("#vdc_alarm_chart").highcharts({
-          chart: {
-                  type: 'column'
-              },
-          credits:{ 
-              enabled:false
+    // VDC配额告警统计
+    $("#vdc_alarm_chart").highcharts({
+        chart: {
+                type: 'column'
             },
-          title: {
-              text: 'VDC配额告警统计',
-              style:{
-                fontSize:'12px'
-              }            
+        credits:{ 
+            enabled:false
           },
-          legend: {
-              margin: 10,
-              padding: 0,
-              itemStyle: {
-                  fontWeight: 'normal'
-              }
-          },
-          colors:['#f9d21a'],
-          xAxis: {
-              categories: [
-                  'CPU','内存','存储','VPC','云主机','云硬盘','对象存储','负载均衡器','公网IP','SSH密钥'
-              ]
-          },
-          yAxis: {
-              min: 0,
-              gridLineColor: '#eee',
-              title: {
-                  text: '单位 (条)'
-              }
-          },
-          plotOptions: {
-              column: {
-                  pointPadding: 0.2,
-                  borderWidth: 0,
-              }
-          },
-          series: [
-            {
-                name: '告警数量',
-                data: [2, 5, 3, 4,2, 5, 3, 5,3,4]
+        title: {
+            text: 'VDC配额告警统计',
+            style:{
+              fontSize:'12px'
+            }            
+        },
+        legend: {
+            margin: 10,
+            padding: 0,
+            itemStyle: {
+                fontWeight: 'normal'
             }
-          ]
-        });
-
+        },
+        colors:['#f9d21a'],
+        xAxis: {
+            categories: [
+                'CPU','内存','存储','VPC','云主机','云硬盘','对象存储','负载均衡器','公网IP','SSH密钥'
+            ]
+        },
+        yAxis: {
+            min: 0,
+            gridLineColor: '#eee',
+            title: {
+                text: '单位 (条)'
+            }
+        },
+        plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0,
+            }
+        },
+        series: [
+          {
+              name: '告警数量',
+              data: [2, 5, 3, 4,2, 5, 3, 5,3,4]
+          }
+        ]
+      });
     }
 
   setTimeout(function(){
-    doHighcharts();
+    doHighchartsVDC();
+    doHighchartsWarning();
   },10);
 
       
@@ -1136,16 +1138,42 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   // }
   //配置栏 end
 
+  //解决highchart图标溢出div问题
+  function doHighchartInList(item,action){
+    if(action == "show"){
+      if(item.index == 2 && $("#dragDiv"+item.index).attr('redrawed') != "true"){
+        doHighchartsVDC();
+        $("#dragDiv2").attr("redrawed","true");
+      };
+
+      if(item.index == 8 && $("#dragDiv"+item.index).attr('redrawed') != "true"){
+        doHighchartsWarning();
+        $("#dragDiv8").attr("redrawed","true");
+      };
+    };
+    if(action == "hide"){
+      if(item.index == 2){
+        $("#dragDiv2").attr("redrawed","false");
+      }
+      if(item.index == 8){
+        $("#dragDiv8").attr("redrawed","false");
+      }
+    }
+  };
+
   //列表渲染 start
   function enterList(_List){
     //var newListHtml=[];
     for(var i=0;i<_List.length;i++){
       if(_List[i].select){
         $("#dragDiv"+_List[i].index).show();
+        doHighchartInList(_List[i],"show");
       }else{
         $("#dragDiv"+_List[i].index).hide();
+        doHighchartInList(_List[i],"hide");
       }
     }
+    
     // $("#index_list_box").html('');
     // for(var i=0;i<newListHtml.length;i++){
     //   $("#index_list_box").append(newListHtml[i]);
