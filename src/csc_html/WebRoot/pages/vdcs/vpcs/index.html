@@ -22,21 +22,23 @@
 			</li>
 		</ul>
 		<div class="tab-content">
+		
+		
 			<div class="tab-pane active" id="VPC" role="tabpanel">
-
+			
 				<div class="panel panel-default">
 					<div class="row wrapper">
 						<div class="col-xs-8">
-							<a class="btn btn-sm btn-primary" data-bind="click: add">创建VPC</a>
+							<a class="btn btn-sm btn-primary" data-bind="click: createVpc">创建VPC</a>
 						</div>
 						<div class="col-xs-3">          
 	                        <div class="input-group">
 	                          <span class="input-group-addon">名称</span>
-	                          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+	                          <input type="text" class="input-sm form-control" placeholder="请输入名称"  data-bind="value: searchParam().name">
 	                        </div>
 	                    </div>
 	                    <div class="col-xs-1">
-	                        <button class="btn btn-sm btn-default" type="button">搜索</button>
+	                        <button class="btn btn-sm btn-default" type="button" data-bind="click:search">搜索</button>
 	                    </div>
 					</div>				
 					<div class="table-responsive" data-bind="with: vpcListTable">
@@ -57,15 +59,15 @@
 						              This table has no data.
 						            </td>
 						          </tr>
-						          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td><a data-url="" href="#pages/vdcs/vpcs/show" data-bind="text: $row.name"></a></td>
-									<td data-bind="text: $row.name"></td>
-									<td data-bind="text: $row.vdcUuId"></td>
-									<td>张三</td>
-									<td>2016-04-24 19:38</td>
+									<td><a data-url=""   data-bind="text: $row.name,attr:{href:'#pages/vdcs/vpcs/show?vpcUuid='+$row.uuid}"></a></td>
+									<td data-bind="text: $row.vdcName"></td>
+									<td data-bind="text: $row.azName"></td>
+									<td></td>
+									<td data-bind="text: $row.createTime"></td>
 									<td>
-										<a onclick="showModal('pages/vdcs/vpcs/new.html')">修改</a> | <a>删除</a>
+										<a  data-bind="click:$root.modifyVpc">修改</a> | <a   data-bind="click:$root.delVpc">删除</a>
 									</td>
 								</tr>
 								<!--  /ko  -->
@@ -93,7 +95,9 @@
 				  <div class='modal-dialog' role='document'>
 				    <div class='modal-content'>
 				      <div class='modal-header'>
-				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增VPC</h3>
+				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+				        <h3 class='modal-title' data-bind="ifnot: vpcVO().uuid">新增VPC</h3>
+				        <h3 class='modal-title' data-bind="if: vpcVO().uuid">修改VPC</h3>
 				      </div>
 				      <div class='modal-body form-horizontal'>
 				        <div class="form-group">
@@ -112,9 +116,7 @@
 				            所属VDC
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control"  data-bind="value: vpcVO().vdcId">
-				              <option  value="550E8400-E29B-11D4-A716-4466554400043">研发部</option>
-				              <option  value="550E8400-E29B-11D4-A716-4466554422243">人资部</option>
+				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcUuid',optionsValue:'vdcUuid',value: vpcVO().vdcUuid, enable: vpcVO().uuid==null">
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -126,9 +128,7 @@
 				            可用分区
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control" data-bind="value:  vpcVO().azId">
-				              <option value="550E8400-E29B-11D4-A716-4466554400033">分区1</option>
-				              <option value="550E8400-E29B-11D4-A716-4466554400034">分区2</option>
+				            <select class="form-control"  data-bind="options:azList,optionsText:'azUuid',optionsValue:'azUuid',value: vpcVO().azUuid, enable: vpcVO().uuid==null" >
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -137,14 +137,18 @@
 				        </div>
 				      </div>
 				      <div class='modal-footer'>
-				        <input type="button" name="commit" value="确定" data-bind="click: createVpc" class="btn btn-default btn-info" />
+				        <input type="button" name="commit" value="确定" data-bind="click: vpcSubmit" class="btn btn-default btn-info" />
 				        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
 				      </div>
 				    </div>
 				  </div>
 				</div>
-								
+				
 			</div>
+			
+			
+			
+			
 			<div class="tab-pane" id="router" role="tabpanel">
 
 				<div class="panel panel-default">
@@ -362,34 +366,110 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = [null, null]
+	var scripts = ["api/vpc/vpc.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    	function ViewModel(){
+		
+		/******************************vpc*************************************/
+    	function vpcViewModel(){
     		var self = this;
+    		self.vdcList = ko.observableArray();
+    		self.azList = ko.observableArray();
+    		this.vpcVO = ko.validatedObservable({
+    			     "name":ko.observable().extend({required: true}),
+					 "vdcUuid":ko.observable().extend({required: true}),
+					 "azUuid":ko.observable().extend({required: true})
+					});
     		
     		this.createVpcModal = ko.observable(false);
-    		this.vpcVO = ko.observable({"name":"",
-					"vdcId":"",
-					 "azId": ""
-					});
-    		this.add = function(){
-    			this.vpcVO({"name":"",
-					"vdcId":"",
-					 "azId": ""
-					});
-    			this.createVpcModal(true)	
-    		}
     		this.createVpc = function(){
-    		    csc.rest.post('api/v5.0.0/vpcs',this.vpcVO(),function(data){
-    		    	self.createVpcModal(false);
-    		    	self.vpcListTable.params({})
-    		    });
+    			//TODO 查询其他模块的接口
+    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.azList([{"azUuid": "f6c595dd-fb09-4144-a783-2da3ceb277b8","azName": "华南区"},{"azUuid": "550E8400-E29B-11D4-A716-4466554400043 ","azName": "华北区"}])
+    			self.vpcVO.fromJSON({"name":"",
+					 "vdcUuid":"",
+					 "azUuid": "",
+					 "uuid":null
+					});
+    			self.createVpcModal(true)	
     		}
+    		
+    		
+    		this.modifyVpc = function(rowObj, event){
+    			//TODO 查询其他模块的接口
+    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.azList([{"azUuid": "f6c595dd-fb09-4144-a783-2da3ceb277b8","azName": "华南区"},{"azUuid": "550E8400-E29B-11D4-A716-4466554400043 ","azName": "华北区"}])
+    			self.vpcVO.fromJSON(rowObj);
+    			self.createVpcModal(true)	
+    		}
+    		
+    		
+    		this.vpcSubmit = function(){
+    		    var vpcUuid = self.vpcVO.toJSON().uuid;
+    			if(!vpcUuid){
+    				  ko.validation.group(self.vpcVO).showAllMessages();
+    	    	        if(self.vpcVO.isValid()){
+    	    	        	$.VPC.createVpc(self.vpcVO.toJSON(),function(data){
+    	        			 	self.createVpcModal(false);
+    	        		    	self.vpcListTable.refreshData();
+    	        			});
+    	    	        }
+    			}else{
+    				ko.validation.group(self.vpcVO).showAllMessages();
+          	        if(self.vpcVO.isValid()){
+          	        	 var uuid = self.vpcVO.toJSON().uuid;
+            			 var putBody = {
+            					 "name":self.vpcVO.toJSON().name
+            			 }
+           				$.VPC.modifyVpc(uuid,putBody,function(data){
+           					self.createVpcModal(false);
+            		    	self.vpcListTable.refreshData();
+               			});
+          	        }
+    			}
+    		}
+    		
+    		
+    		this.delVpc = function(rowObj){
+    			var vpcName = rowObj.name;
+    			confirm("确定删除VPC["+vpcName+"]？",function(arg){
+    				$.VPC.delVPc(rowObj.uuid,function(data){
+    					  self.vpcListTable.refreshData();
+    					  alert("删除VPC["+vpcName+"]成功！")
+           			});
+    			 });
+    		}
+    		
+
+    	    this.searchParam = ko.observable({
+    	      name: ""
+    	    })
+    	    
+    	    this.search = function(){
+    	      self.vpcListTable.params(this.searchParam());
+    	    }
+    		
     		this.vpcListTable = new DataTable([], {path: 'api/v5.0.0/vpcs', perPage: 1});
 	 	};
 	    
-	    ko.applyBindings(new ViewModel(), $("#page-content .tab-pane")[0]);
+	    ko.applyBindings(new vpcViewModel(), $("#page-content .tab-pane")[0]);
+		/******************************vpc*************************************/
+		
+	    /******************************router*************************************/
 	    
-
+	    
+	    
+		
+	    /******************************router*************************************/
+	    
+	    
+	    /******************************firewall*************************************/
+	    
+	    
+	    
+	    /******************************firewall*************************************/
+	    
+        /******************************secretGroup*************************************/
+	    
+	    /******************************secretGroup*************************************/
 	});
 </script>

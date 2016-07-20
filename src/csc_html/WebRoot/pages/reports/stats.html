@@ -141,18 +141,18 @@
 				        </div>
 				      	<div class="form-group">
 				          <div class="col-xs-12 form-inline">
-				            <label class="control-label">每页显示数据：</label><input id="vdcPerPage" type="text" style="width:40px" class="form-control input-sm" /> <span style="top: 3px;position: Relative;"> 条</span>
+				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" data-bind="value: pageSize"/> <span style="top: 3px;position: Relative;"> 条</span>
 				          </div>
 				        </div>
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">显示内容：</label>
 				          <div class="col-xs-8">
 				              <label class="checkbox-inline i-checks">
-				                <input id="vdcDate" type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowCollectTime">
 				                <i></i>数据时间
 				              </label>
 				              <label class="checkbox-inline i-checks">
-				                <input id="vdcExport" type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowExport">
 				                <i></i>导出Excel文件
 				              </label>
 				          </div>
@@ -1055,6 +1055,7 @@
 				  </div>
 				</div>						
 			</div>
+			
 			<div class="tab-pane" id="defined1" role="tabpanel">
 				<div class="panel panel-default">
 
@@ -1220,12 +1221,26 @@
 		            this.configVO().fields_selected_ids(value ? _.pluck(this.configVO().fields, 'id') : []);
 		        },
 		        owner: this
-		    })
+		    }),
+		    pageSize : ko.observable(),
+		    isShowCollectTime: ko.observable(),
+		    isShowExport: ko.observable()
       	});
       	
       	this.conditions_selected_ids = ko.observableArray([]);
       	this.fields_selected_ids = ko.observableArray([]);
-      	
+      	//整合选中的查询字段
+      	this.makeup_conditions_selected_ids = function(){
+      		self.conditions_selected_ids([]);
+      		
+      		var fields = _.filter(self.configVO().conditions, function(condition){
+          		return _.contains(self.configVO().conditions_selected_ids(), condition.id)
+          	}, self);
+      		_.each(conditions, function(condition){
+      			self.conditions_selected_ids.push(condition);
+      		}, self)
+      	}
+      	//整合选中的展示字段
       	this.makeup_fields_selected_ids = function(){
       		self.fields_selected_ids([]);
       		
@@ -1241,25 +1256,29 @@
     	this.isVdcAdd = ko.observable(false);
       	this.vdcConfigAdd = function(){
         	this.isVdcAdd(true);
+        	this.addOpen('vdc');  
       	};
       	this.vdcConfigSave = function(){
       		var putBody = {
       			conditions: ""+self.configVO().conditions_selected_ids()+"",
       			fields: ""+self.configVO().fields_selected_ids()+"",
-      			pageSize: 10,
-      			isShowCollectTime: 'true',
-      			isShowExport: 'true'
+      			pageSize: self.configVO().pageSize(),
+      			isShowCollectTime: self.configVO().isShowCollectTime(),
+      			isShowExport: self.configVO().isShowExport()
       		}
+      		console.log(putBody);
       		csc.rest.get('api/v5.0.0/reports/define/vdc',function(data){
       			if(data == 0){
       				csc.rest.post('api/v5.0.0/reports/define/vdc', putBody,function(data){
       			 		systemMsg.alert('VDC报表定义创建成功！');
+      			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
       			 		self.isVdcAdd(false);
       			    }); 
       			}else{
       				csc.rest.put('api/v5.0.0/reports/define/vdc', putBody,function(data){
       			 		systemMsg.alert('VDC报表定义修改成功！');
+      			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
       			 		self.isVdcAdd(false);
       			    });
@@ -1271,22 +1290,88 @@
       	//加载页面报表定义配置信息
       	this.loadData = function(){
       		csc.rest.get('api/v5.0.0/reports/define',function(data){
+      			var vdcExsit = 0;
+      			var billExsit = 0;
+      			var hostExsit = 0;
+      			var vmExsit = 0;
       			for(var num=0;num<data.length;num++){
       				if(data[num].code == "vdc"){
+      					var db_conditions = data[num].conditions ? data[num].conditions.split(",") : [];
+      					self.configVO().conditions_selected_ids(db_conditions);
       					var db_fields = data[num].fields.split(",");
       					self.configVO().fields_selected_ids(db_fields);
-      					self.makeup_fields_selected_ids();
+      					self.configVO().pageSize(data[num].pageSize);
+      				    self.configVO().isShowCollectTime(data[num].isShowCollectTime=="true");
+      				  	self.configVO().isShowExport(data[num].isShowExport=="true");
+      				  
+      				  	self.makeup_conditions_selected_ids();
+      				  	self.makeup_fields_selected_ids();
+      					vdcExsit = 1;
       				}else if(data[num].code == "billing"){
-      					console.log(data[num].name)
+      					billExsit = 1;
       				}else if(data[num].code == "host"){
-      					console.log(data[num].name)
+      					hostExsit = 1;
       				}else if(data[num].code == "vm"){
-      					console.log(data[num].name)
+      					vmExsit = 1;
+      				}
+      			}
+      			if(vdcExsit == 0){
+      				self.configVO().conditions_selected_ids(['vdcName']);
+      				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
+      				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
+      				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
+      				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
+      				self.configVO().pageSize(15);
+  				    self.configVO().isShowCollectTime(true);
+  				  	self.configVO().isShowExport(true);
+      				self.makeup_conditions_selected_ids();
+      				self.makeup_fields_selected_ids();
+      			}
+      			if(billExsit == 0){
+      			}
+      			if(hostExsit == 0){
+      			}
+      			if(vmExsit == 0){
+      			}
+    		});
+      	}
+      	this.loadData();
+      	
+      	this.addOpen = function(flag){
+      		csc.rest.get('api/v5.0.0/reports/define',function(data){
+      			var count = 0;
+      			for(var num=0;num<data.length;num++){
+      				if(data[num].code == flag){
+      					var db_conditions = data[num].conditions ? data[num].conditions.split(",") : [];
+      					self.configVO().conditions_selected_ids(db_conditions);
+      					var db_fields = data[num].fields.split(",");
+      					self.configVO().fields_selected_ids(db_fields);
+      					self.configVO().pageSize(data[num].pageSize);
+      				    self.configVO().isShowCollectTime(data[num].isShowCollectTime=="true");
+      				  	self.configVO().isShowExport(data[num].isShowExport=="true");
+      					count = 1;
+      				}
+      			}
+      			if(count == 0){
+      				if(flag == 'vdc'){
+      					self.configVO().conditions_selected_ids(['vdcName']);
+          				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
+          				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
+          				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
+          				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
+          				self.configVO().pageSize(15);
+      				    self.configVO().isShowCollectTime(true);
+      				  	self.configVO().isShowExport(true);
+      				}else if(flag == 'billing'){
+      					
+      				}else if(flag == 'host'){
+      					
+      				}else if(flag == 'vm'){
+      					
       				}
       			}
     		});
       	}
-      	this.loadData();      	
     };
     
     var vdcViewModel = new ViewModel(
