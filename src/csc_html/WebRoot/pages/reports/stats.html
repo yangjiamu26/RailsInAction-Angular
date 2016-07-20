@@ -30,7 +30,7 @@
 				<div class="panel panel-default">
 					<div class="row wrapper">
 						<div class="col-xs-8">
-							<button class="btn btn-sm btn-primary" data-bind="click: vdcConfigAdd">报表定义</button>
+							<button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('vdc') }">报表定义</button>
 							<button class="btn btn-sm btn-default">导出</button>
 						</div>
 						<div class="col-xs-3">
@@ -160,7 +160,7 @@
 				
 				      </div>
 				      <div class='modal-footer' style="text-align:center;">
-				        <a class="btn btn-default btn-info" data-bind="click:vdcConfigSave">确定</a>
+				        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.configSave('vdc') }">确定</a>
 				         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 				      </div>
 				    </div>
@@ -1254,11 +1254,11 @@
 
       	//vdc报表定义页面操作
     	this.isVdcAdd = ko.observable(false);
-      	this.vdcConfigAdd = function(){
+      	this.configAdd = function(report){
         	this.isVdcAdd(true);
-        	this.addOpen('vdc');  
+        	this.addOpen(report);  
       	};
-      	this.vdcConfigSave = function(){
+      	this.configSave = function(report){
       		var putBody = {
       			conditions: ""+self.configVO().conditions_selected_ids()+"",
       			fields: ""+self.configVO().fields_selected_ids()+"",
@@ -1267,17 +1267,17 @@
       			isShowExport: self.configVO().isShowExport()
       		}
       		console.log(putBody);
-      		csc.rest.get('api/v5.0.0/reports/define/vdc',function(data){
+      		csc.rest.get('api/v5.0.0/reports/define/'+report,function(data){
       			if(data == 0){
-      				csc.rest.post('api/v5.0.0/reports/define/vdc', putBody,function(data){
-      			 		systemMsg.alert('VDC报表定义创建成功！');
+      				csc.rest.post('api/v5.0.0/reports/define/'+report, putBody,function(data){
+      			 		systemMsg.alert('报表定义创建成功！');
       			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
       			 		self.isVdcAdd(false);
       			    }); 
       			}else{
-      				csc.rest.put('api/v5.0.0/reports/define/vdc', putBody,function(data){
-      			 		systemMsg.alert('VDC报表定义修改成功！');
+      				csc.rest.put('api/v5.0.0/reports/define/'+report, putBody,function(data){
+      			 		systemMsg.alert('报表定义修改成功！');
       			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
       			 		self.isVdcAdd(false);
@@ -1337,11 +1337,11 @@
       	}
       	this.loadData();
       	
-      	this.addOpen = function(flag){
+      	this.addOpen = function(report){
       		csc.rest.get('api/v5.0.0/reports/define',function(data){
       			var count = 0;
       			for(var num=0;num<data.length;num++){
-      				if(data[num].code == flag){
+      				if(data[num].code == report){
       					var db_conditions = data[num].conditions ? data[num].conditions.split(",") : [];
       					self.configVO().conditions_selected_ids(db_conditions);
       					var db_fields = data[num].fields.split(",");
