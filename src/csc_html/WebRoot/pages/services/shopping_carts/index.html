@@ -113,6 +113,7 @@
               <th>操作</th>
             </thead>
             <tbody>
+              <!-- ko foreach: vdiskList  -->
               <tr>
               	<td>
                   <div class="checkbox">
@@ -122,13 +123,14 @@
                     </label>
                   </div>
                 </td>
-        				<td>云硬盘1</td>
-        				<td>300</td>
-        				<td>云主机1</td>
-        				<td>研发部</td>
-        				<td><a onclick="showModal('pages/services/product/modal2.html')">查看</a> | <a onclick="showModal('pages/services/product/modal2.html')">修改</a> | <a onclick="confirm('确定删除吗？')">删除</a>
+        				<td data-bind="text:name"></td>
+        				<td data-bind="text:size"></td>
+        				<td data-bind="text:mountVmUuid"></td>
+        				<td data-bind="text:vdcUuId">研发部</td>
+        				<td><a data-bind="click: $root.queryVdisk">查看</a> | <a onclick="showModal('pages/services/product/modal2.html')">修改</a> | <a data-bind="click: $root.deleteVdisk" >删除</a>
                 </td>
               </tr>
+              <!-- /ko -->
             </tbody>
           </table>
         </div>
@@ -349,6 +351,99 @@
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+
+// 	 	csc.rest.get('api/v5.0.0/cart',function(data){
+// 	 		vdiskList = data['vdiskCartInfo'];		 		
+// 	 		console.log(vdiskList);s
+// 	 		objectStorageList = data['objectStorageCartInfo'];
+// 	 		publicNetworkList = data['publicNetworkCartInfo'];
+// 	    }); 
+	 	
+	 	function ViewModel(){
+		    var self = this;
+		    
+		    var vList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];  
+		    this.vdiskList = ko.observableArray();
+ 		 	csc.rest.get('api/v5.0.0/cart',function(data){
+ 		 		console.log(data['vdiskCartInfo']);
+		 		vdiskList = data['vdiskCartInfo'];		 		
+		 		self.vdiskList(vdiskList);
+		 		objectStorageList = data['objectStorageCartInfo'];
+		 		publicNetworkList = data['publicNetworkCartInfo'];
+		    }); 
+ 		 	
+ 		 	this.isAdd_Vdisk = ko.observable(false);
+ 		 	
+ 		 	this.model_Vdisk = ko.validatedObservable({
+			    	vdiskCartInfo:ko.observable({
+			    			name:"",
+			    			
+	 			    	})
+ 		 	});
+ 		 	
+ 		 	this.queryVdisk = function(object, event){
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/vdiskCartInfo/'+object.id,function(data){	
+ 	 			  self.model_Vdisk().vdiskCartInfo(data);
+ 			    }); 
+ 		 		self.isAdd_Vdisk(true);	
+ 		 	}
+ 		 	
+ 		 	this.editVdisk = function(object, event){
+ 		 		
+ 		 	}
+ 		 		 	
+	      	this.deleteVdisk = function(object, event){
+	      		
+ 	      		systemMsg.confirm("确定删除云硬盘"+object.name+"吗?",function(){
+	 	 		 	csc.rest.del('api/v5.0.0/cart/delete/vdiskCartInfo/'+object.id,function(data){
+	 	 		 		systemMsg.alert('删除云硬盘成功！');	
+	 	 		 		self.vdiskList.remove(object);
+	 			    }); 
+	      		}); 
+
+	      	}
+	    }
+		ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]);
   });
 </script>
+
+
+
+
+<!-- 云硬盘 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Vdisk}">	
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改云硬盘服务</h3>
+      </div>
+      <div class='modal-body'>
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+              <th>云硬盘名称<i style="color:red">*</i></th>
+              <th>存储大小(G)<i style="color:red">*</i></th>
+              <th>所属VDC<i style="color:red">*</i></th>
+              <th>挂载云主机</th>
+              <th>收费标准</th>
+            </tr></thead>
+            <tbody id="applyServiceDiskBox"><tr>
+            <td><input type="text" class="form-control input-sm" disabled="disabled" data-bind="value:model_Vdisk().vdiskCartInfo().name"></td>
+            <td><input type="text" class="form-control input-sm"></td>
+            <td><select class="form-control input-sm">
+            <option value="">1</option></select></td><td>
+            	<select class="form-control input-sm"><option value="">1</option>
+            	</select></td>
+            	<td>0.5元/小时</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 云硬盘 -->
