@@ -13,12 +13,15 @@
         <a aria-controls='partition_vms' data-toggle='tab' href='#partition_vms' role='tab'>云主机</a></li>
       <li role='presentation'>
         <a aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>云硬盘</a></li>
-      <li role='presentation'>
-        <a aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab'>对象存储</a></li>
+      
       <li role='presentation'>
         <a aria-controls='partition_publicips' data-toggle='tab' href='#partition_publicips' role='tab'>公网IP</a></li>
       <li role='presentation'>
+        <a aria-controls='partition_balancer' data-toggle='tab' href='#partition_balancer' role='tab'>负载均衡器</a></li>
+      <li role='presentation'>
         <a aria-controls='partition_sshkeys' data-toggle='tab' href='#partition_sshkeys' role='tab'>SSH密钥</a></li>
+      <li role='presentation'>
+        <a aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab'>对象存储</a></li>
     </ul>
     <div class='tab-content'>
       <div class='tab-pane active' id='partition_vms' role='tabpanel'>
@@ -336,6 +339,379 @@
           </div>
         </div>
       </div>
+      
+      <div class='tab-pane' id='partition_publicips' role='tabpanel'>
+        <div class='panel panel-default'>
+          <div class="row wrapper">
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon">所属可用分区</span>
+                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
+              </div>      
+            </div>            
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon">名称</span>
+                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+              </div>
+            </div>
+            <div class="col-xs-2">
+              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
+            </div>
+          </div>                        
+          <div id='instance_publicips'>
+            <div class='table-responsive'>
+              <table class='table table-striped'>
+                <thead>
+                  <tr>
+                    <th>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </th>
+                    <th>名称</th>
+                    <th>IP地址</th>
+                    <th>子网掩码</th>
+                    <th>可用分区</th>
+                    <th>路由器</th>
+                    <th>虚拟机</th>
+                    <th>创建时间</th>
+                    <th>有效使用时间</th>
+                    <th>创建人</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </td>
+                    <td>电信IP</td>
+                    <td>192.168.1.1</td>
+                    <td>255.255.255.0</td>
+                    <td>可用分区名</td>
+                    <td>xxx</td>
+                    <td>xxx</td>
+                    <td>20160501</td>
+                    <td>20160501-20160520</td>
+                    <td></td>
+                    <td><a href="#" data-bind="click: bindvmForIP">绑定云主机</a> | <a href="#">解绑</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <footer class='panel-footer'>
+              <ul class="pagination">
+                <li class="page active">
+                  <a href="#pages/javascript:void(0)">1</a></li>
+                <li class="page">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">2</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=3">3</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=4">4</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=5">5</a></li>
+                <li class="page gap disabled">
+                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
+                <li class="next">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">下页 &rsaquo;</a></li>
+                <li class="last">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a></li>
+              </ul>
+            </footer>
+          </div>
+
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForIP }">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">公网IP：</label>
+                    <div class="col-sm-8">
+                      <span>150.152.11.25</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">云主机：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>   
+      <div class='tab-pane' id="partition_balancer" role='tabpanel'>
+        <div class='panel panel-default'>
+          <div class="row wrapper">
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon">所属可用分区</span>
+                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
+              </div>      
+            </div>            
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon">名称</span>
+                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+              </div>
+            </div>
+            <div class="col-xs-2">
+              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
+            </div>
+          </div>                        
+          <div id='instance_publicips'>
+            <div class='table-responsive'>
+              <table class='table table-striped'>
+                <thead>
+                  <tr>
+                    <th>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </th>
+                    <th>名称</th>
+                    <th>创建时间</th>
+                    <th>有效使用时间</th>
+                    <th>创建人</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </td>
+                    <td>均衡器1</td>
+                    <td>20160501</td>
+                    <td>20160501-20160520</td>
+                    <td></td>
+                    <td><a href="#" data-bind="click: bindvmForIP">绑定云主机</a> | <a href="#">解绑</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <footer class='panel-footer'>
+              <ul class="pagination">
+                <li class="page active">
+                  <a href="#pages/javascript:void(0)">1</a></li>
+                <li class="page">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">2</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=3">3</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=4">4</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=5">5</a></li>
+                <li class="page gap disabled">
+                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
+                <li class="next">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">下页 &rsaquo;</a></li>
+                <li class="last">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a></li>
+              </ul>
+            </footer>
+          </div>
+        </div>
+      </div>                                     
+      <div class='tab-pane' id='partition_sshkeys' role='tabpanel'>
+        <div class='panel panel-default'>
+          <div class="row wrapper">
+            <div class="col-xs-4">
+              <button class="btn btn-sm btn-primary" data-bind="click: addSecretkey">创建</button>
+              <button class="btn btn-sm btn-default" onclick="systemMsg.alert('确定删除吗？')">删除</button>
+            </div>
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon">所属可用分区</span>
+                <select class="form-control input-sm">
+                  <option value="">全部</option>
+                  <option value="">可用分区1</option>
+                </select>
+              </div>      
+            </div>                        
+            <div class="col-xs-3">
+              <div class="input-group">
+                      <span class="input-group-addon">名称</span>
+                      <input type="text" class="input-sm form-control" placeholder="请输入名称">
+                    </div>
+            </div>
+            <div class="col-xs-2">
+              <button class="btn btn-sm" type="button">重置</button>
+              <button class="btn btn-sm btn-default" type="button">搜索</button>
+            </div>
+          </div>                         
+          <div id='instance_sshkeys'>
+            <div class='table-responsive'>
+              <table class='table table-striped'>
+                <thead>
+                  <tr>
+                    <th>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </th>
+                    <th>密钥名称</th>
+                    <th>密钥ID</th>
+                    <th>密钥算法</th>
+                    <th>密钥长度</th>
+                    <th>序列号</th>
+                    <th>公钥</th>
+                    <th>创建人</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="checkbox">
+                        <label class="i-checks">
+                          <input type="checkbox" value="">
+                          <i></i>
+                        </label>
+                      </div>
+                    </td>
+                    <td>测试密钥1</td>
+                    <td>1</td>
+                    <td>rsa</td>
+                    <td>128bit</td>
+                    <td>8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a</td>
+                    <td>ssh-rsa AABBCCDDEEFFGG</td>
+                    <td>管理员</td>
+                    <td>20160501</td>
+                    <td><a href="#">下载</a> | <a href="#" data-bind="click: bindvmForSecretkey">挂载云主机</a> | <a href="#">删除</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <footer class='panel-footer'>
+              <ul class="pagination">
+                <li class="page active">
+                  <a href="#pages/javascript:void(0)">1</a></li>
+                <li class="page">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">2</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=3">3</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=4">4</a></li>
+                <li class="page">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=5">5</a></li>
+                <li class="page gap disabled">
+                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
+                <li class="next">
+                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">下页 &rsaquo;</a></li>
+                <li class="last">
+                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=63">末页 &raquo;</a></li>
+              </ul>
+            </footer>
+          </div>
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥名称：</label>
+                    <div class="col-sm-8">
+                      <span>密钥111</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">云主机：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
+            <div class='modal-dialog modal-lg' style="width:600px;">
+              <div class='modal-content'>
+                <div class='modal-header'>
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建密钥</h3>
+                </div>
+                <div class='modal-body form-horizontal row'>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥名称：</label>
+                    <div class="col-sm-8">
+                      <input type="text" class="form-control">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥算法：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label">密钥长度：</label>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                  <a class="btn btn-default btn-info">确定</a>
+                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class='tab-pane' id='partition_object_storages' role='tabpanel'>
         <div class='panel panel-default'>
           <div class="row wrapper">
@@ -522,297 +898,6 @@
           </div>
         </div>
       </div>
-      <div class='tab-pane' id='partition_publicips' role='tabpanel'>
-        <div class='panel panel-default'>
-          <div class="row wrapper">
-            <div class="col-xs-3">
-              <div class="input-group">
-                <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
-              </div>      
-            </div>            
-            <div class="col-xs-3">
-              <div class="input-group">
-                <span class="input-group-addon">名称</span>
-                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
-              </div>
-            </div>
-            <div class="col-xs-2">
-              <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
-              <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
-            </div>
-          </div>                        
-          <div id='instance_publicips'>
-            <div class='table-responsive'>
-              <table class='table table-striped'>
-                <thead>
-                  <tr>
-                    <th>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </th>
-                    <th>名称</th>
-                    <th>IP地址</th>
-                    <th>子网掩码</th>
-                    <th>可用分区</th>
-                    <th>路由器</th>
-                    <th>虚拟机</th>
-                    <th>创建时间</th>
-                    <th>有效使用时间</th>
-                    <th>创建人</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </td>
-                    <td>电信IP</td>
-                    <td>192.168.1.1</td>
-                    <td>255.255.255.0</td>
-                    <td>可用分区名</td>
-                    <td>xxx</td>
-                    <td>xxx</td>
-                    <td>20160501</td>
-                    <td>20160501-20160520</td>
-                    <td></td>
-                    <td><a href="#" data-bind="click: bindvmForIP">绑定云主机</a> | <a href="#">解绑</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <footer class='panel-footer'>
-              <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a></li>
-              </ul>
-          </footer>
-
-          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForIP }">
-            <div class='modal-dialog modal-lg' style="width:600px;">
-              <div class='modal-content'>
-                <div class='modal-header'>
-                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-                </div>
-                <div class='modal-body form-horizontal row'>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">公网IP：</label>
-                    <div class="col-sm-8">
-                      <span>150.152.11.25</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">云主机：</label>
-                    <div class="col-sm-8">
-                      <select class="form-control">
-                        <option value="1">1</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                </div>
-                <div class='modal-footer' style="text-align:center;">
-                  <a class="btn btn-default btn-info">确定</a>
-                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>                                        
-      <div class='tab-pane' id='partition_sshkeys' role='tabpanel'>
-        <div class='panel panel-default'>
-          <div class="row wrapper">
-            <div class="col-xs-4">
-              <button class="btn btn-sm btn-primary" data-bind="click: addSecretkey">创建</button>
-              <button class="btn btn-sm btn-default" onclick="systemMsg.alert('确定删除吗？')">删除</button>
-            </div>
-            <div class="col-xs-3">
-              <div class="input-group">
-                <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">可用分区1</option>
-                </select>
-              </div>      
-            </div>                        
-            <div class="col-xs-3">
-              <div class="input-group">
-                      <span class="input-group-addon">名称</span>
-                      <input type="text" class="input-sm form-control" placeholder="请输入名称">
-                    </div>
-            </div>
-            <div class="col-xs-2">
-              <button class="btn btn-sm" type="button">重置</button>
-              <button class="btn btn-sm btn-default" type="button">搜索</button>
-            </div>
-          </div>                         
-          <div id='instance_sshkeys'>
-            <div class='table-responsive'>
-              <table class='table table-striped'>
-                <thead>
-                  <tr>
-                    <th>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </th>
-                    <th>密钥名称</th>
-                    <th>密钥ID</th>
-                    <th>密钥算法</th>
-                    <th>密钥长度</th>
-                    <th>序列号</th>
-                    <th>公钥</th>
-                    <th>创建人</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </td>
-                    <td>测试密钥1</td>
-                    <td>1</td>
-                    <td>rsa</td>
-                    <td>128bit</td>
-                    <td>8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a</td>
-                    <td>ssh-rsa AABBCCDDEEFFGG</td>
-                    <td>管理员</td>
-                    <td>20160501</td>
-                    <td><a href="#">下载</a> | <a href="#" data-bind="click: bindvmForSecretkey">挂载云主机</a> | <a href="#">删除</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <footer class='panel-footer'>
-              <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=63">末页 &raquo;</a></li>
-              </ul>
-          </footer>
-
-          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
-            <div class='modal-dialog modal-lg' style="width:600px;">
-              <div class='modal-content'>
-                <div class='modal-header'>
-                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-                </div>
-                <div class='modal-body form-horizontal row'>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">密钥名称：</label>
-                    <div class="col-sm-8">
-                      <span>密钥111</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">云主机：</label>
-                    <div class="col-sm-8">
-                      <select class="form-control">
-                        <option value="1">1</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                </div>
-                <div class='modal-footer' style="text-align:center;">
-                  <a class="btn btn-default btn-info">确定</a>
-                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
-            <div class='modal-dialog modal-lg' style="width:600px;">
-              <div class='modal-content'>
-                <div class='modal-header'>
-                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建密钥</h3>
-                </div>
-                <div class='modal-body form-horizontal row'>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">密钥名称：</label>
-                    <div class="col-sm-8">
-                      <input type="text" class="form-control">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">密钥算法：</label>
-                    <div class="col-sm-8">
-                      <select class="form-control">
-                        <option value="1">1</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label">密钥长度：</label>
-                    <div class="col-sm-8">
-                      <select class="form-control">
-                        <option value="1">1</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                </div>
-                <div class='modal-footer' style="text-align:center;">
-                  <a class="btn btn-default btn-info">确定</a>
-                  <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -827,7 +912,8 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //如果是普通用户就隐藏tab按钮
     if(args.type){
-      $("#instancesListBox").hide().find("li").find("a").eq(args.type).tab('show');
+      console.log($("#instancesListBox").hide().find("li").eq(args.type).find("a").attr("href"))
+      $("#instancesListBox").hide().find("li").eq(args.type).find("a").tab('show');
     };
     function ViewModel_VM(){
       var self = this;
