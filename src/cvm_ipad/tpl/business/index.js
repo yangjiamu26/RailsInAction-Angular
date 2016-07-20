@@ -2,7 +2,7 @@ myApp.onPageInit("business-index", function(page) {
   // 业务域-cpu占比图
 function init_cpu_chart(data) {
   console.log(data)
-    $('#pool_cpu_chart').highcharts({
+    $('#business_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -74,7 +74,7 @@ function init_cpu_chart(data) {
 // 资源池-内存占比图
 function init_memory_chart(data) {
   console.log(data)
-    $('#pool_memory_chart').highcharts({
+    $('#business_memory_chart').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -146,7 +146,7 @@ function init_memory_chart(data) {
 // 资源池-存储占比图
 function init_storage_chart(data) {
   console.log(data)
-    $('#pool_storage_chart').highcharts({
+    $('#business_storage_chart').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -240,7 +240,7 @@ function init_storage_chart(data) {
         this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
       }
       
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"busdomainId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
         console.log(data)
 
         self.projectNum(data.size);

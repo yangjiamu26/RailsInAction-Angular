@@ -94,7 +94,7 @@ function initPool_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>个',
+        labelFormat: '{name}：<b>{y:.2f}</b>Ghz',
       },
       plotOptions: {
           pie: {
@@ -120,12 +120,12 @@ function initPool_cpu_chart(data) {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: data.cpuUsed,
+                  y: (data.cpuTotal-data.availCpu)/1024,
                   color:"#ffd800"
               },
               {
-                  name: '未用',
-                  y: data.cpuTotal-data.cpuUsed,
+                  name: '可用',
+                  y: (data.availCpu)/1024,
                   color:"#59cb5c"
               }
           ]
@@ -165,7 +165,7 @@ function initPool_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>G',
       },
       plotOptions: {
           pie: {
@@ -191,12 +191,12 @@ function initPool_memory_chart(data) {
           name: '内存',
           data: [{
                   name: '已用',
-                  y: data.memoryUsed,
+                  y: (data.memoryTotal-data.availMemory)/1024,
                   color:"#ffd800"
               },
               {
-                  name: '未用',
-                  y: data.memoryTotal-data.memoryUsed,
+                  name: '可用',
+                  y: (data.availMemory)/1024,
                   color:"#59cb5c"
               }
           ]
@@ -236,7 +236,7 @@ function initPool_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>G',
       },
       plotOptions: {
           pie: {
@@ -262,12 +262,12 @@ function initPool_storage_chart(data) {
           name: '存储',
           data: [{
                   name: '已用',
-                  y: data.storageUsed,
+                  y: data.storageTotal-data.availStorage,
                   color:"#ffd800"
               },
               {
-                  name: '未用',
-                  y: data.storageTotal-data.storageUsed,
+                  name: '可用',
+                  y: data.availStorage,
                   color:"#59cb5c"
               }
           ]
@@ -276,20 +276,25 @@ function initPool_storage_chart(data) {
 }
 
   function ViewModel(){
+    this.hypervisor = ko.observable("");
     this.pools_count = ko.observable("");
     this.dataList = ko.observableArray([]);
 
     this.loading = false;
     this.page = 1;
-    this.loadData = function(is_loadMore){
+    this.loadData = function(is_loadMore,hypervisor){
+      if(hypervisor){
+        this.hypervisor(hypervisor);
+      }else{
+        this.hypervisor("");
+      }
       var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      //RestServiceJs(BASE_URL+"/resPool").query({"hypervisor":"", "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
-        $.ajax("tpl/pool/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
-        console.log(data)
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
+        //$.ajax("tpl/pool/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
 
         self.loading = false;
         if(!is_loadMore){
@@ -315,15 +320,14 @@ function initPool_storage_chart(data) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-
-  
   viewModel.loadData();
+  window.pool_index_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false, this.hypervisor());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
+    viewModel.loadData(true, this.hypervisor());
   });  
   
 });

@@ -81,16 +81,19 @@ $(function(){
     /*pool*/
     this.poolSelected = ko.observable("全部");
     this.setPoolSelected = function(object,event){
-      console.log(event)
-      var isAll,busId,busName;
-      if(event.currentTarget){
-        isAll = false;
-        self.poolSelected(object.id);
-      }else{
-        isAll = true;
-        self.poolSelected("全部");
-      }
-      window.business_index_viewModel.loadData(false,busId,busName);
+      var val = event.currentTarget.attributes["toselect"].nodeValue;
+      self.poolSelected(val);
+      var type = val == "全部" ? "" : val;
+      window.pool_index_viewModel.loadData(false,type);
+    }
+
+    /*host*/
+    this.hostSelected = ko.observable("全部");
+    this.setHostSelected = function(object,event){
+      var val = event.currentTarget.attributes["toselect"].nodeValue;
+      self.hostSelected(val);
+      var type = val == "全部" ? "" : val;
+      window.host_index_viewModel.loadData(false,type);
     }
     
   }
