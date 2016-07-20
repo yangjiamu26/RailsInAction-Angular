@@ -62,7 +62,7 @@ function systemMessage(){
 			modal.remove();
 		})
 	};
-	this.confirm = function(msg,callBack){
+	this.confirm = function(msg,callBack,callBack2){
 		$("body").append('<div class="modal fade" id="systemMessageConfirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
   							'<div class="modal-dialog modal-sm" role="document">' +
 							    '<div class="modal-content">' +
@@ -74,7 +74,7 @@ function systemMessage(){
 							        msg +
 							      '</div>' +
 							      '<div class="modal-footer">' +
-							        '<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>' +
+							        '<button type="button" class="btn btn-default" id="systemMessageModalCancle" data-dismiss="modal">取消</button>' +
 							        '<button type="button" class="btn btn-primary" id="systemMessageModalOk" data-dismiss="modal">确定</button>' +
 							      '</div>' +
 							    '</div>' +
@@ -89,6 +89,13 @@ function systemMessage(){
 			if(callBack){
 				setTimeout(function(){
 					callBack();
+				},1000);
+			}	
+		});
+		$("#systemMessageModalCancle",modal).on("click",function(){
+			if(callBack2){
+				setTimeout(function(){
+					callBack2();
 				},1000);
 			}	
 		});
