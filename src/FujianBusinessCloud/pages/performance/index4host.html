@@ -1,0 +1,424 @@
+<style type="text/css">
+	.dl-horizontal.performance dt{width:60px;}
+	.dl-horizontal.performance dd{margin-left:80px;}
+</style>
+<div class="clearfix">
+	<button class="btn btn-info pull-right" onclick="showMainContent('pages/device/index.html'),'云主机'">返回</button>
+</div>
+<hr />
+<div class="row show-grid">
+	<div class="col-md-3">
+		<div class="panel">
+            <div class="panel-content">
+                <p class="text-muted"><i class="fa fa-building-o text-danger"></i> 云主机：虚拟机A　　　<a href="#">正常</a></p>
+                <p class="text-muted"> IP：192.168.1.1</p>
+                <p class="text-muted"> 映像：Linux...</p>
+                <p class="text-muted"> 承载业务系统：OA系统</p>
+                <p class="text-muted"> CPU：3核</p>
+                <p class="text-muted"> 内存：10G</p>
+                <p class="text-muted"> 存储：50G</p>
+            </div>  
+        </div>
+	</div>
+  	<div class="col-md-9">
+  		<div class="panel">
+            <div class="row">
+                <div class="col-md-3">
+                    <div id="usedPercent" style="height:180px;"></div>
+                    <p class="text-center">正常运行时间:175小时30分</p>
+                </div>
+                <div class="col-md-9">
+                   <div class="row">
+                        <div class="col-md-4">
+                            <div id="cpuPie" style="height:210px;"></div>
+                            <div class="pie-info">
+                                <h5>60%</h5>
+                                <p>CPU使用率</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="memeryPie" style="height:210px;"></div>
+                            <div class="pie-info">
+                                <h5>30%</h5>
+                                <p>内存使用率</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="storagePie" style="height:210px;"></div>
+                            <div class="pie-info">
+                                <h5>90%</h5>
+                                <p>存储使用率</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  	</div>
+</div>
+<div class="panel">
+    <div class="panel-title">
+        <p></p>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default btn-sm active">
+                <input type="radio" name="options" autocomplete="off"> 1小时
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 2小时
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 4小时
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 天
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 周
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 月
+            </label>
+            <label class="btn btn-default btn-sm">
+                <input type="radio" name="options" autocomplete="off"> 年
+            </label>
+        </div>
+        <form class="form-inline btn-group-sm pull-right" role="form">
+          <div class="form-group">
+            <label class="sr-only" for="exampleInputEmail2">Email address</label>
+            <input type="email" class="form-control input-sm daterangepicker_input" id="exampleInputEmail2" placeholder="从">
+          </div>
+          -
+          <div class="form-group">
+            <div class="input-group">
+              <input class="form-control input-sm daterangepicker_input" type="email" placeholder="到">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-default">确定</button>
+          <button type="submit" class="btn btn-info" onclick="showModal('pages/performance/config4host.html')"><i class="fa fa-cog"></i> 告警配置</button>
+        </form>
+        <p></p>
+    </div>
+    <div class="panel-content">
+        <div id="cpu" style="height:300px"></div>
+        <div id="memery" style="height:300px"></div>
+        <div id="storage" style="height:300px"></div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+	$('#usedPercent').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            spacing:[0,10,10,10]
+        },
+        credits:{
+        	enabled: false
+      	},
+        title: false,
+        tooltip: {
+    	    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: false
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: '时长',
+            data: [
+                ['正常',   95.0],
+                ['宕机',   5.0]
+            ]
+        }]
+    });
+
+    $('#cpuPie').highcharts({ 
+         chart: { 
+             plotBackgroundColor: null, 
+             plotBorderWidth: null, 
+             plotShadow: false, 
+             backgroundColor: "none" 
+         }, 
+         exporting:{ 
+             enabled: false 
+         }, 
+         credits:{ 
+             enabled: false, 
+             text : "" 
+         }, 
+
+         title: { 
+             floating:true, 
+             text: '' 
+         }, 
+         legend:false, 
+         tooltip: { 
+           headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>', 
+           pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' 
+         }, 
+         plotOptions: { 
+             pie: { 
+                 innerSize: '50%', 
+                 borderWidth:1, 
+                 allowPointSelect: false, 
+                 cursor: 'pointer', 
+                 dataLabels: false,
+                 showInLegend: true ,
+                 startAngle: -90,
+                 endAngle:90,  
+                 center: ['50%', '70%']
+             } 
+         }, 
+         series: [{ 
+             type: 'pie', 
+             name: '百分率', 
+             data: [{ 
+                     name: '已使用', 
+                     y: 60, 
+                     color:"#90ec7d" 
+                 }, 
+                 { 
+                     name: '未使用', 
+                     y: 40, 
+                     color:"#f1f1f1" 
+                 } 
+             ] 
+         }] 
+     });  
+
+    $('#memeryPie').highcharts({ 
+         chart: { 
+             plotBackgroundColor: null, 
+             plotBorderWidth: null, 
+             plotShadow: false, 
+             backgroundColor: "none" 
+         }, 
+         exporting:{ 
+             enabled: false 
+         }, 
+         credits:{ 
+             enabled: false, 
+             text : "" 
+         }, 
+
+         title: { 
+             floating:true, 
+             text: '' 
+         }, 
+         legend:false, 
+         tooltip: { 
+           headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>', 
+           pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' 
+         }, 
+         plotOptions: { 
+             pie: { 
+                 innerSize: '50%', 
+                 borderWidth:1, 
+                 allowPointSelect: false, 
+                 cursor: 'pointer', 
+                 dataLabels: false,
+                 showInLegend: true ,
+                 startAngle: -90,
+                 endAngle:90,  
+                 center: ['50%', '70%']
+             } 
+         }, 
+         series: [{ 
+             type: 'pie', 
+             name: '百分率', 
+             data: [{ 
+                     name: '已使用', 
+                     y: 30, 
+                     color:"#ffcc00" 
+                 }, 
+                 { 
+                     name: '未使用', 
+                     y: 70, 
+                     color:"#f1f1f1" 
+                 } 
+             ] 
+         }] 
+     });  
+
+    $('#storagePie').highcharts({ 
+         chart: { 
+             plotBackgroundColor: null, 
+             plotBorderWidth: null, 
+             plotShadow: false, 
+             backgroundColor: "none" 
+         }, 
+         exporting:{ 
+             enabled: false 
+         }, 
+         credits:{ 
+             enabled: false, 
+             text : "" 
+         }, 
+
+         title: { 
+             floating:true, 
+             text: '' 
+         }, 
+         legend:false, 
+         tooltip: { 
+           headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>', 
+           pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' 
+         }, 
+         plotOptions: { 
+             pie: { 
+                 innerSize: '50%', 
+                 borderWidth:1, 
+                 allowPointSelect: false, 
+                 cursor: 'pointer', 
+                 dataLabels: false,
+                 showInLegend: true ,
+                 startAngle: -90,
+                 endAngle:90,  
+                 center: ['50%', '70%']
+             } 
+         }, 
+         series: [{ 
+             type: 'pie', 
+             name: '百分率', 
+             data: [{ 
+                     name: '已使用', 
+                     y: 90, 
+                     color:"#444349" 
+                 }, 
+                 { 
+                     name: '未使用', 
+                     y: 10, 
+                     color:"#f1f1f1" 
+                 } 
+             ] 
+         }] 
+     });  
+
+
+    $('#cpu').highcharts({
+        title: {
+            text: 'CPU使用率',
+            x: -20 //center
+        },
+        credits:{
+        	enabled: false
+      	},
+        xAxis: {
+            categories: ['08-26', '08-25', '08-24', '08-23', '08-22', '08-21','08-20', '08-19', '08-18', '08-17', '08-16', '08-15']
+        },
+        yAxis: {
+            title: {
+                text: '使用率'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            valueSuffix: '%'
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        series: [{
+            name: 'cpu',
+            data: [7.0, 69, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+        }]
+    });
+    $('#memery').highcharts({
+        title: {
+            text: '内存使用率',
+            x: -20 //center
+        },
+        credits:{
+        	enabled: false
+      	},
+        xAxis: {
+            categories: ['08-26', '08-25', '08-24', '08-23', '08-22', '08-21','08-20', '08-19', '08-18', '08-17', '08-16', '08-15']
+        },
+        yAxis: {
+            title: {
+                text: '使用率'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            valueSuffix: '%'
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        series: [{
+            name: '内存',
+            data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 75.2, 26.5, 23.3, 88.3, 13.9, 9.6]
+        }]
+    });
+    $('#storage').highcharts({
+        title: {
+            text: '存储使用率',
+            x: -20 //center
+        },
+        credits:{
+        	enabled: false
+      	},
+        xAxis: {
+            categories: ['08-26', '08-25', '08-24', '08-23', '08-22', '08-21','08-20', '08-19', '08-18', '08-17', '08-16', '08-15']
+        },
+        yAxis: {
+            title: {
+                text: '使用率'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            valueSuffix: '%'
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        series: [{
+            name: '存储',
+            data: [7.0, 29, 9.5, 34.5, 18.2, 21.5, 85.2, 26.5, 23.3, 18.3, 93.9, 9.6]
+        }]
+    });
+
+
+    $('.daterangepicker_input').daterangepicker({
+          startDate: Date.today().add({ hour: -2 }),
+          timePicker: false, 
+          timePickerIncrement: 1, 
+          singleDatePicker:true,
+          format:"YYYY-MM-DD HH:mm",
+          maxDate:moment(),
+          locale:{
+            customRangeLabel:"自定义开始时间",//自定义开始时间
+            fromLabel: "开始时间"//开始时间
+          }
+        } 
+    );
+</script>
