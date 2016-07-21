@@ -2,7 +2,7 @@
   <ol class="breadcrumb">
     <li>当前位置：</li>
     <li>订单</li>
-    <li class="active">订单管理</li>
+    <li class="active">订单管理--开发中....</li>
   </ol>
 </div>
 
@@ -82,31 +82,48 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr data-bind="visible: showNoData">
-	            <td colspan="11" class="aligncenter">
-	              This table has no data.
-	            </td>
-	          </tr>
+					<tr data-bind="visible: showNoData">
+	                    <td colspan="11" class="aligncenter">
+	                        This table has no data.
+	                    </td>
+	                 </tr>
 	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 						<tr>
 							<td>
 								<a href="#pages/orders/show?items=vm-harddisk-software">harddisk</a> | 
 								<a href="#pages/orders/show?items=sshkey">sshkey</a>
 							</td>
-							<td>资源申请</td>
 							<td>
-								<span class="label label-info">审批中</span>
-								<span class="label label-success">已审批</span>
-								<span class="label label-danger">不通过</span>
+								<span data-bind="visible: type=='RESOURCE_APPLY'">资源申请</span>
+								<span data-bind="visible: type=='RESOURCEC_HANGE'">资源变更</span>
+								<span data-bind="visible: type=='RESOURCER_ECYCLE'">资源删除</span>
+								<span data-bind="visible: type=='RESOURCE_DELETE'">资源删除</span>
+								<span data-bind="visible: type=='VALIDTIME_CHANGE'">有效时间变更</span>
+								<span data-bind="visible: type=='VDC_APPLY'">VDC申请</span>
+								<span data-bind="visible: type=='VDC_CHANGE'">VDC变更</span>
 							</td>
-							<td>资源审批</td>
-							<td>hgk</td>
-							<td>2</td>
-							<td>2016-04-21 13:47:00</td>
-							<td>研发部</td>
-							<td></td>
-							<td>VM01,VM02</td>
-							<td><a href="#">查看</a></td>
+							<td >
+								<span class="label label-warning" data-bind="visible: state=='UNSUBMIT'">未提交</span>
+								<span class="label label-info" data-bind="visible: state=='DOING'">审批中</span>
+								<span class="label label-success" data-bind="visible: state=='FINISHED'">审批完成</span>
+							</td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:userName"></td>
+							<td data-bind="text:itemCount"></td>
+							<td data-bind="text:createTime"></td>
+							<td data-bind="text:vdcName"></td>
+							<td >
+								<span data-bind="visible: resourceType=='VM'">云主机</span>
+								<span data-bind="visible: resourceType=='DISK'">云硬盘</span>
+								<span data-bind="visible: resourceType=='ROUTER'">路由器</span>
+								<span data-bind="visible: resourceType=='PUBLICIP'">负载均衡</span>
+								<span data-bind="visible: resourceType=='LOAD_BALANCING'">负载均衡</span>
+								<span data-bind="visible: resourceType=='SECRET_KEY'">SSH密钥对</span>
+								<span data-bind="visible: resourceType=='OBJECT_STORAGE'">对象存储</span>
+								<span data-bind="visible: resourceType=='VDC'">VDC</span>
+							</td>
+							<td data-bind="text:resourceNames"></td>
+							<td ><a href="#">查看</a></td>
 						</tr>
 						<!-- /ko -->
 					</tbody>
@@ -133,6 +150,8 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
+  var getOrdersUrl = "api/v5.0.0/orders";
+
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
@@ -160,12 +179,13 @@
         this.table.params(this.searchParam());
       }
 
-      this.table = new DataTable([], {path: 'pages/orders/service_orders.json'});
+      //this.table = new DataTable([], {path: 'pages/orders/service_orders.json'});
+      this.table = new DataTable([], {path: getOrdersUrl,perPage:1});
 
       this.catelogs = ko.observableArray([]);
       this.vdcs = ko.observableArray([]);
 
-      //软件类型下拉选择
+      //vdc下拉选择
       this.loadVdcs = function(){
         $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
           self.vdcs(data.results);
