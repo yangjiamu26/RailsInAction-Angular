@@ -1,4 +1,217 @@
 myApp.onPageInit("dashboard", function(page) {
+  // 首页cpu占比图
+function initTotal_cpu_chart(data) {
+    $('#total_cpu_chart').highcharts({
+      chart: {
+          marginTop: 10,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      exporting:{
+          enabled: false
+      },
+      credits:{
+          enabled: false,
+          text : ""
+      },
+
+      title: {
+          floating:true,
+          text: ''
+      },
+      legend:{
+        enabled:true,
+        margin: 0,
+        layout: 'vertical',
+        backgroundColor:"none",
+        borderColor:"none",
+        itemStyle: {
+          
+          fontWeight: 'normal'
+        },
+        // labelFormatter: function() {  
+        //             return this.name + '：' + '<span style="{color}">'+ this.y + 'GHz' + '</span>';  
+        // }, 
+        labelFormat: '{name}：<b>{y:.2f}</b>个',
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '70%',
+              borderWidth:1,
+              allowPointSelect: false,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: true,
+                  distance: -25,
+                  color: '#6d6d72',
+                  style:{
+                    fontSize:'13px'
+                  },
+                  connectorColor: '#000000',
+                  format: '{point.percentage:.1f} %'
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: 'CPU',
+          data: [{
+                  name: '已用',
+                  y: data.cpuUsed,
+                  color:"#4791d2"
+              },
+              {
+                  name: '未用',
+                  y: data.cpuTotal - data.cpuUsed,
+                  color:"#ffd800"
+              }
+          ]
+      }]
+    });   
+}
+// 首页内存占比图
+function initTotal_memory_chart(data) {
+    $('#total_memory_chart').highcharts({
+      chart: {
+          marginTop: 10,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      exporting:{
+          enabled: false
+      },
+      credits:{
+          enabled: false,
+          text : ""
+      },
+
+      title: {
+          floating:true,
+          text: ''
+      },
+      legend:{
+        enabled:true,
+        margin: 0,
+        layout: 'vertical',
+        backgroundColor:"none",
+        borderColor:"none",
+        itemStyle: {
+          
+          fontWeight: 'normal'
+        },
+        labelFormat: '{name}：<b>{y:.2f}</b>G',
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '70%',
+              borderWidth:1,
+              allowPointSelect: false,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: true,
+                  distance: -25,
+                  color: '#6d6d72',
+                  style:{
+                    fontSize:'13px'
+                  },
+                  connectorColor: '#000000',
+                  format: '{point.percentage:.1f} %'
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: '内存',
+          data: [{
+                  name: '已用',
+                  y: data.memoryUsed,
+                  color:"#4791d2"
+              },
+              {
+                  name: '未用',
+                  y: data.memoryTotal - data.memoryUsed,
+                  color:"#ffd800"
+              }
+          ]
+      }]
+    });   
+}
+// 首页存储占比图
+function initTotal_storage_chart(data) {
+    $('#total_storage_chart').highcharts({
+      chart: {
+          marginTop: 10,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      exporting:{
+          enabled: false
+      },
+      credits:{
+          enabled: false,
+          text : ""
+      },
+
+      title: {
+          floating:true,
+          text: ''
+      },
+      legend:{
+        enabled:true,
+        margin: 0,
+        layout: 'vertical',
+        backgroundColor:"none",
+        borderColor:"none",
+        itemStyle: {
+          
+          fontWeight: 'normal'
+        },
+        labelFormat: '{name}：<b>{y:.2f}</b>G',
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '70%',
+              borderWidth:1,
+              allowPointSelect: false,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: true,
+                  distance: -25,
+                  color: '#6d6d72',
+                  style:{
+                    fontSize:'13px'
+                  },
+                  connectorColor: '#000000',
+                  format: '{point.percentage:.1f} %'
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: '存储',
+          data: [{
+                  name: '已用',
+                  y: data.storageUsed,
+                  color:"#4791d2"
+              },
+              {
+                  name: '未用',
+                  y: data.storageTotal - data.storageUsed,
+                  color:"#ffd800"
+              }
+          ]
+      }]
+    });   
+}
   function ViewModel(){
     this.datacenters = ko.observableArray([]);
     this.infos = ko.observable({
@@ -99,216 +312,3 @@ function popoverClose(event){
 
 }
 
-// 首页cpu占比图
-function initTotal_cpu_chart(data) {
-    $('#total_cpu_chart').highcharts({
-      chart: {
-          marginTop: 10,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
-
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        // labelFormatter: function() {  
-        //             return this.name + '：' + '<span style="{color}">'+ this.y + 'GHz' + '</span>';  
-        // }, 
-        labelFormat: '{name}：<b>{y}</b>GHz',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: 'CPU',
-          data: [{
-                  name: '已用',
-                  y: data.cpuUsed,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.cpuTotal - data.cpuUsed,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
-// 首页内存占比图
-function initTotal_memory_chart(data) {
-    $('#total_memory_chart').highcharts({
-      chart: {
-          marginTop: 10,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
-
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        labelFormat: '{name}：<b>{y}</b>GHz',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: '内存',
-          data: [{
-                  name: '已用',
-                  y: data.memoryUsed,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.memoryTotal - data.memoryUsed,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
-// 首页存储占比图
-function initTotal_storage_chart(data) {
-    $('#total_storage_chart').highcharts({
-      chart: {
-          marginTop: 10,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
-
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        labelFormat: '{name}：<b>{y}</b>GHz',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: '存储',
-          data: [{
-                  name: '已用',
-                  y: data.storageUsed,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.storageTotal - data.storageUsed,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
