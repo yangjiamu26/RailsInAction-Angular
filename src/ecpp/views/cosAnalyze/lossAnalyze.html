@@ -1,0 +1,180 @@
+<!-- 搜索条件栏 -->
+<form class="form-horizontal" role="form">
+  <div class="form-group">
+    <label class="col-lg-1 col-md-2 control-label">选择日期:</label>
+    <div class="col-lg-3 col-md-4">
+          <div class="control-group">
+            <div class="controls">
+             <div class="input-prepend input-group">
+               <span class="add-on input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span><input type="text" id="lossAnalyze_daterange" class="form-control input-sm" value=""/>
+             </div>
+            </div>
+          </div>
+    </div>
+    <label class="col-lg-1 col-md-2 control-label">统计方式:</label>
+    <div class="col-lg-1 col-md-4">
+        <select class="form-control">
+            <option>按日</option>
+            <option>按月</option>
+            <option>按季度</option>
+        </select>
+    </div>
+    <label class="col-lg-1 col-md-2 control-label">用户类型:</label>
+    <div class="col-lg-2 col-md-4">
+        <select class="form-control">
+            <option>全部用户</option>
+            <option>个人会员</option>
+            <option>企业会员</option>
+        </select>
+    </div>
+    <div class="col-lg-1 col-md-2">
+        <button type="submit" class="btn btn-info"><i class="fa fa-search"></i> 查询</button>         
+    </div>
+    <div class="col-lg-1 col-md-3">
+        <div class="dropdown">
+          <button id="dLabel" type="button" data-toggle="dropdown" class="btn btn-success dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-share"></i> 输出
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li><a href="#"><i class="fa fa-weixin"></i> 微信</a></li>
+            <li><a href="#"><i class="fa fa-envelope"></i> 邮件</a></li>
+            <li><a href="#"><i class="fa fa-comment"></i> 短信</a></li>
+            <li><a href="#"><i class="fa fa-weibo"></i> 微博</a></li>
+            <li><a href="#"><i class="fa fa-laptop"></i> 电视墙</a></li>
+          </ul>
+        </div>          
+    </div>
+  </div>
+</form>
+
+<!-- 用户统计chart -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">流失会员分析</h3>
+            </div>
+            <div class="panel-body">
+                <div id="lossAnalyze_userChart" style="height:300px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    // daterange             
+    $('#lossAnalyze_daterange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+      {
+        format:'YYYY/MM/DD',
+        startDate: moment().subtract('days', 29),
+        endDate: moment(),
+        separator:'至',
+        locale:{
+          applyLabel: '确认',
+          cancelLabel: '取消',
+          fromLabel: '开始日期',
+          toLabel: '结束日期',
+          weekLabel: '周',
+          customRangeLabel: '自定义范围',                            
+          daysOfWeek:["日","一","二","三","四","五","六"],
+          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+        },
+        ranges: {
+         '当天': [moment(), moment()],
+         '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
+         '近7天': [moment().subtract('days', 6), moment()],
+         '近30天': [moment().subtract('days', 29), moment()],
+         '当月': [moment().startOf('month'), moment().endOf('month')],
+         '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        }
+      }
+
+    ); 
+
+    /*
+    * 百度echarts
+    */
+    // 路径配置
+    require.config({
+        paths: {
+            echarts: 'assets/js/plugins/echarts'
+        }
+    });
+
+    // 流失会员分析
+    require(
+        [
+            'echarts',
+            'echarts/theme/macarons', //加载主题macarons
+            'echarts/chart/line' // 使用折线图，按需加载
+        ],
+        function (ec,theme) {
+            // 基于准备好的dom，初始化echarts图表
+            var lossAnalyze_userChart = ec.init(document.getElementById('lossAnalyze_userChart'),theme); 
+            var option = {
+                tooltip : {
+                    trigger: 'axis'
+                },
+    toolbox: {
+        show : true,
+        orient: 'vertical',
+        x: 'right',
+        y: 'center',
+        feature : {
+            mark : {show: true},
+            dataView : {show: true, readOnly: false},
+            magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+            restore : {show: true},
+            saveAsImage : {show: true}
+        }
+    },                
+                legend: {
+                    data:['流失会员','流失个人会员','流失企业会员']
+                },
+                calculable : true,
+                xAxis : [
+                    {
+                        type : 'category',
+                        boundaryGap : false,
+                        data : ['2015-12-28','2015-12-29','2015-12-30','2015-12-31','2015-01-01','2015-01-02','2015-01-03','2015-01-04','2015-01-05','2015-01-06','2015-01-07','2015-01-08','2015-01-09','2015-01-10','2015-01-11','2015-01-12','2015-01-13','2015-01-14','2015-01-15','2015-01-16','2015-01-17','2015-01-18','2015-01-19','2015-01-20','2015-01-21','2015-01-22','2015-01-23','2015-01-24','2015-01-25','2015-01-26']
+                    }
+                ],
+                yAxis : [
+                    {
+                        type : 'value',
+                        name : '会员数 (个)'
+                    }
+                ],
+                series : [
+                    {
+                        name:'流失会员',
+                        type:'line',
+                        smooth:true,
+                        itemStyle: {normal: {areaStyle: {type: 'default'}}},
+                        data:[1500, 1200, 2000, 2300, 4500, 1550, 800,1500, 1200, 2000, 2300, 4500, 1550, 800,1500, 1200, 2000, 2300, 4500, 1550, 800,1500, 1200, 2000, 2300, 4500, 1550, 800, 1550, 800]
+                    },
+                    {
+                        name:'流失个人会员',
+                        type:'line',
+                        smooth:true,
+                        itemStyle: {normal: {areaStyle: {type: 'default'}}},
+                        data:[100, 500, 900, 700, 900, 1050, 400,100, 500, 900, 700, 900, 1050, 400,100, 500, 900, 700, 900, 1050, 400,100, 500, 900, 700, 900, 1050, 400, 1050, 400]
+                    },
+                    {
+                        name:'流失企业会员',
+                        type:'line',
+                        smooth:true,
+                        itemStyle: {normal: {areaStyle: {type: 'default'}}},
+                        data:[100, 70, 150, 300, 600, 450, 200,100, 70, 150, 300, 600, 450, 200,100, 70, 150, 300, 600, 450, 200,100, 70, 150, 300, 600, 450, 200, 450, 200]
+                    }
+                ]
+            };      
+
+            // 为echarts对象加载数据 
+            lossAnalyze_userChart.setOption(option); 
+        }
+    );
+
+</script>

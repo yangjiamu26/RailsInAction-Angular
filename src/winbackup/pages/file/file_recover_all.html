@@ -1,0 +1,138 @@
+  <div class="modal-dialog">
+  <form id="form_file_plan_new" class="form-horizontal">    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">恢复全部文件</h4>
+      </div>
+      <div class="modal-body">
+
+            <div class="form-group">
+              <label class="col-sm-3 control-label">选择恢复路径：</label>
+              <div class="col-sm-9">
+
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-default btn-sm active" data-toggle="tab" data-target="#tab_dafault">
+                      <input type="radio" name="period" id="day"> 原路径
+                    </label>
+                    <label class="btn btn-default btn-sm" data-toggle="tab" data-target="#tab_local">
+                      <input type="radio" name="period" id="week"> 本机新路径
+                    </label>
+                    <label class="btn btn-default btn-sm" data-toggle="tab" data-target="#tab_other">
+                      <input type="radio" name="period" id="month"> 异机路径
+                    </label>
+                </div>
+
+              </div>
+            </div>
+            <div class="form-group tab-content">
+              <div class="tab-pane active" id="tab_dafault">
+              </div>
+              <div class="tab-pane" id="tab_local">
+                <div class="col-sm-12">
+                  <div class="panel panel-info">
+                    <div class="panel-heading panel-heading-sm">请选择：</div>
+                    <div class="panel-body">
+                      <ul id="treeLocal" class="ztree"></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane" id="tab_other">
+                <div class="col-sm-12">
+                  <div class="panel panel-info">
+                    <div class="panel-heading panel-heading-sm">请选择：</div>
+                    <div class="row panel-body">
+                      <div class="col-sm-4">
+                        <ul id="treehost" class="ztree ztree_recover_host"></ul>
+                      </div>
+                      <div class="col-sm-8" id="tree_content">
+                        
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="submit" class="btn btn-primary">恢复</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </form>
+  </div><!-- /.modal-dialog -->
+<!-- 备份路径 -->
+  <SCRIPT type="text/javascript">
+    // <!--本机路径
+    var setting = {
+      data: {
+        simpleData: {
+          enable: true
+        }
+      }
+    };
+
+    var zNodes =[
+      { id:1, pId:0, name:"chenyb-PC", open:true},
+      { id:11, pId:1, name:"alipay"},
+      { id:111, pId:11, name:"叶子节点111"},
+      { id:112, pId:11, name:"叶子节点112"},
+      { id:113, pId:11, name:"叶子节点113"},
+      { id:114, pId:11, name:"叶子节点114"},
+      { id:12, pId:1, name:"apache-tomcat-6.0.14", isParent:true},
+      { id:13, pId:1, name:"HP Universal Print Driver", isParent:true},
+      { id:14, pId:1, name:"Python27", isParent:true},
+      { id:15, pId:1, name:"Intel"},
+      { id:16, pId:1, name:"Output"},
+      { id:17, pId:1, name:"PerfLogs"},
+    ];
+
+    $(document).ready(function(){
+      $.fn.zTree.init($("#treeLocal"), setting, zNodes);
+    });
+    //-->
+    // <!--异机列表
+    var setting = {
+      view: {
+        showLine: false,
+      },
+      data: {
+        simpleData: {
+          enable: true
+        }
+      },
+      callback: {
+        onClick: onClick
+      }
+    };
+
+    var zNodes =[
+      { id:1, pId:0, name:"10.0.0.33",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:2, pId:0, name:"10.0.0.45",url:"pages/file/file_recover_tree2.html",iconSkin:"icon_host"},
+      { id:3, pId:0, name:"10.0.0.222",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:4, pId:0, name:"10.1.15.102",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:5, pId:0, name:"10.10.112.211",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:6, pId:0, name:"192.168.105.101",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:7, pId:0, name:"10.0.0.26",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+      { id:8, pId:0, name:"10.1.15.115",url:"pages/file/file_recover_tree1.html",iconSkin:"icon_host"},
+    ];
+
+    function onClick(e,treeId, treeNode) {
+      if (treeNode.level > 0) {
+      var zTree = $.fn.zTree.getZTreeObj("treehost");
+      zTree.expandNode(treeNode);
+      };
+      // 点击左边树链接页面，右边内容load该页面
+      if (treeNode.url) {
+        showTreeContent(treeNode.url);
+        e.preventDefault();
+      }
+    }    
+
+    $(document).ready(function(){
+      $.fn.zTree.init($("#treehost"), setting, zNodes);
+    });
+    //-->
+  </SCRIPT>
