@@ -22,7 +22,7 @@ myApp.onPageInit("home-index", function(page) {
     });
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/overallDetails").get(CVM_PAD.dcId,function(data){
+      RestServiceJs(BASE_URL+"/overallDetails").get(CVM_PAD.dcId,{},function(data){
         myApp.pullToRefreshDone();
         self.stat(data);
         initTotal_cpu_chart_home(data);

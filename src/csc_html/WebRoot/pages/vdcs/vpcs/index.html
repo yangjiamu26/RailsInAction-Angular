@@ -116,7 +116,7 @@
 				            所属VDC
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcUuid',optionsValue:'vdcUuid',value: vpcVO().vdcUuid, enable: vpcVO().uuid==null">
+				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: vpcVO().vdcUuid, enable: vpcVO().uuid==null">
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -128,7 +128,7 @@
 				            可用分区
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control"  data-bind="options:azList,optionsText:'azUuid',optionsValue:'azUuid',value: vpcVO().azUuid, enable: vpcVO().uuid==null" >
+				            <select class="form-control"  data-bind="options:azList,optionsText:'azName',optionsValue:'azUuid',value: vpcVO().azUuid, enable: vpcVO().uuid==null" >
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -150,23 +150,22 @@
 			
 			
 			<div class="tab-pane" id="router" role="tabpanel">
-
 				<div class="panel panel-default">
 					<div class="row wrapper">
 						<div class="col-xs-8">
-							<a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/routers/new.html')">创建路由器</a>
+							<a class="btn btn-sm btn-primary" data-bind="click: createRouter">创建路由器</a>
 						</div>
 						<div class="col-xs-3">          
 	                        <div class="input-group">
 	                          <span class="input-group-addon">名称</span>
-	                          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+	                          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchRouterParam().name">
 	                        </div>
 	                    </div>
 	                    <div class="col-xs-1">
-	                        <button class="btn btn-sm btn-default" type="button">搜索</button>
+	                        <button class="btn btn-sm btn-default" type="button" data-bind="click:searchRouter">搜索</button>
 	                    </div>
 					</div>				
-					<div class="table-responsive">
+					<div class="table-responsive" data-bind="with: routerListTable">
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -178,48 +177,114 @@
 								</tr>
 							</thead>
 							<tbody>
+							   <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						          </tr>
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td><a href="#pages/vdcs/routers/show">路由器01</a></td>
-									<td>研发中心</td>
-									<td>VPC01</td>
-									<td>192.168.202.1</td>
+									<td><a href="#pages/vdcs/routers/show"  data-bind="text: $row.name"></a></td>
+									<td data-bind="text: $row.vdcName"></td>
+									<td data-bind="text: $row.vpcName"></td>
+									<td data-bind="text: $row.routerIp"></td>
 									<td>
-										<a>删除</a>
+										<a  data-bind="click:$root.modifyRouter">修改</a> | <a   data-bind="click:$root.delRouter">删除</a>
 									</td>
 								</tr>
+								<!--  /ko  -->
 							</tbody>
 						</table>
 					</div>
-					<footer class="panel-footer">
-						<ul class="pagination">
-							<li class="page active">
-								<a href="#pages/javascript:void(0)">1</a>
-							</li>
-							<li class="page">
-								<a>2</a>
-							</li>
-							<li class="page">
-								<a>3</a>
-							</li>
-							<li class="page">
-								<a>4</a>
-							</li>
-							<li class="page">
-								<a >5</a>
-							</li>
-							<li class="page gap disabled">
-								<a href="#pages/javascript:void(0)">…</a>
-							</li>
-							<li class="next">
-								<a>下页 ›</a>
-							</li>
-							<li class="last">
-								<a>末页 »</a>
-							</li>
-						</ul>
-					</footer>
+					<footer class="panel-footer" data-bind="with: routerListTable, visible: routerListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>
+				</div>
+			
+			
+			
+			  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createRouterModal }">
+				<div class='modal-dialog' role='document'>
+					    <div class='modal-content'>
+					      <div class='modal-header'>
+					        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+					        <h3 class='modal-title' data-bind="ifnot: routerVO().uuid">创建路由器</h3>
+					        <h3 class='modal-title' data-bind="if: routerVO().uuid">修改路由器</h3>
+					      </div>
+					      <div class='modal-body form-horizontal'>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            路由器名称
+					          </label>
+					          <div class="col-xs-8">
+					            <input class="form-control" type="text"  data-bind="value: routerVO().name"/>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            所属VDC
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: routerVO().vdcUuid, enable: routerVO().uuid==null">
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            所属VPC
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: routerVO().vpcUuid, enable: routerVO().uuid==null">
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            网络名称
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control">
+					              <option>网络1</option>
+					              <option>网络2</option>
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					      </div>
+					      <div class='modal-footer'>
+					        <input type="button" name="commit" value="确定"  data-bind="click: routerSubmit" class="btn btn-default btn-info" />
+					        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					      </div>
+					    </div>
+					  </div>
 				</div>
 			</div>
+			
+			
+			
 			<div class="tab-pane" id="firewall" role="tabpanel">
 
 				<div class="panel panel-default">
@@ -366,7 +431,7 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = ["api/vpc/vpc.js"]
+	var scripts = ["api/vpc/vpc.js","api/vpc/router.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		
 		/******************************vpc*************************************/
@@ -455,10 +520,88 @@
 		/******************************vpc*************************************/
 		
 	    /******************************router*************************************/
+	    function routerViewModel(){
+    		var self = this;
+    		self.vdcList = ko.observableArray();
+    		self.vpcList = ko.observableArray();
+    		self.routerVO = ko.validatedObservable({
+    			     "name":ko.observable().extend({required: true}),
+					 "vdcUuid":ko.observable().extend({required: true}),
+					 "vpcUuid":ko.observable().extend({required: true})
+					});
+    		
+    		self.createRouterModal = ko.observable(false);
+    		self.createRouter = function(){
+    			//TODO 查询其他模块的接口
+    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.routerVO.fromJSON({"name":"",
+					 "vdcUuid":"",
+					 "vpcUuid": "",
+					 "uuid":null
+					});
+   			    self.createRouterModal(true)	
+    		}
+    		
+    		
+    		self.modifyRouter = function(rowObj, event){
+    			//TODO 查询其他模块的接口
+                self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.routerVO.fromJSON(rowObj);
+    			self.createRouterModal(true)	
+    		}
+    		
+      		
+    		self.routerSubmit = function(){
+    		    var routerUuid = self.routerVO.toJSON().uuid;
+    			if(!routerUuid){
+    				  ko.validation.group(self.routerVO).showAllMessages();
+    	    	        if(self.routerVO.isValid()){
+    	    	        	$.ROUTER.createRouter(self.routerVO.toJSON(),function(data){
+    	        			 	self.createRouterModal(false);
+    	        		    	self.routerListTable.refreshData();
+    	        			});
+    	    	        }
+    			}else{
+    				console.log(self.routerVO)
+    				ko.validation.group(self.routerVO).showAllMessages();
+          	        if(self.routerVO.isValid()){
+          	        	 var uuid = self.routerVO.toJSON().uuid;
+            			 var putBody = {
+            					 "name":self.routerVO.toJSON().name
+            			 }
+           				$.ROUTER.modifyRouter(uuid,putBody,function(data){
+           					self.createRouterModal(false);
+            		    	self.routerListTable.refreshData();
+               			});
+          	        }
+    			}
+    		}
+    		
+    		
+    		self.delRouter = function(rowObj){
+    			var routerName = rowObj.name;
+    			confirm("确定删除路由器["+routerName+"]？",function(arg){
+    				$.ROUTER.delRouter(rowObj.uuid,function(data){
+    					  self.routerListTable.refreshData();
+    					  alert("删除路由器["+routerName+"]成功！")
+           			});
+    			 });
+    		}
+    		
+    		self.searchRouterParam = ko.observable({
+        	      name: ""
+        	    })
+        	    
+       	    self.searchRouter = function(){
+       	      self.routerListTable.params(this.searchRouterParam());
+       	    }
+    		
+    		self.routerListTable = new DataTable([], {path: 'api/v5.0.0/routers', perPage: 1});
+	 	};
 	    
-	    
-	    
-		
+	    ko.applyBindings(new routerViewModel(), $("#page-content .tab-pane")[1]);
 	    /******************************router*************************************/
 	    
 	    

@@ -1,0 +1,700 @@
+<div class="row">
+  <div class="col-md-7">
+    <div class="panel panel-success">
+      <div class="panel-heading">总体资讯统计</div>
+      <div class="panel-body">  
+
+        <div class="row stat-box">
+          <div class="col-md-3">
+              <div class="item item-all">
+                <div class="text-primary">
+                  <i class="fa fa-bar-chart"></i>
+                  <b>总计</b>
+                </div>
+                <div class="num">
+                  <strong>1550000</strong>
+                </div>              
+              </div>
+          </div>
+          <div class="col-md-9">
+            <div class="row stat-box">
+
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-1">
+                    <i class="fa fa-smile-o"></i>
+                    <b>正面</b>
+                  </div>
+                  <div class="right">
+                    <span>1050000</span>
+                  </div>              
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-2">
+                    <i class="fa fa-frown-o"></i>
+                    <b>反面</b>
+                  </div>
+                  <div class="right">
+                    <span>17</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-3">
+                    <i class="fa fa-meh-o"></i>
+                    <b>中性</b>
+                  </div>
+                  <div class="right">
+                    <span>107</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row stat-box">
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-4">
+                    <i class="fa fa-globe"></i>
+                    <b>网媒</b>
+                  </div>
+                  <div class="right">
+                    <span>55000</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-5">
+                    <i class="fa fa-weibo"></i>
+                    <b>微博</b>
+                  </div>
+                  <div class="right">
+                    <span>55</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="item">
+                  <div class="left text-6">
+                    <i class="fa fa-newspaper-o"></i>
+                    <b>平媒</b>
+                  </div>
+                  <div class="right">
+                    <span>55</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div> 
+
+
+      </div>
+    </div> 
+  </div>
+  <div class="col-md-5"> 
+    <div class="panel panel-info">
+      <div class="panel-heading">总体资讯分布图</div>
+      <div class="panel-body">   
+        <div class="row">
+          <div class="col-md-6"><div id="article_feeling" style="height:207px;"></div></div>
+          <div class="col-md-6"><div id="article_type" style="height:207px;"></div></div>
+        </div> 
+      </div>
+    </div> 
+  </div>
+</div>
+
+
+<div class="panel panel-warning">
+  <div class="panel-heading">总体资讯走势图</div>
+  <div class="panel-body">
+   <div class="row">
+      <div class="col-md-6">
+        <div id="opinion_line1" style="height:300px"></div>  
+      </div>
+      <div class="col-md-6"> 
+        <div id="opinion_line2" style="height:300px"></div> 
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="panel panel-info">
+  <div class="panel-heading">文章情感统计</div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-md-4">
+        <div id="article_positive" style="height:250px;"></div>
+      </div>
+      <div class="col-md-4"> 
+        <div id="article_neutral" style="height:250px;"></div>
+      </div>
+      <div class="col-md-4">
+        <div id="article_negative" style="height:250px;"></div>
+      </div>        
+    </div>
+  </div>
+</div>  
+  
+
+
+<script type="text/javascript">
+    // daterange             
+    $('#daterange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+      {
+        format:'YYYY/MM/DD',
+        startDate: moment().subtract('days', 29),
+        endDate: moment(),
+        separator:'至',
+        locale:{
+          applyLabel: '确认',
+          cancelLabel: '取消',
+          fromLabel: '开始日期',
+          toLabel: '结束日期',
+          weekLabel: '周',
+          customRangeLabel: '自定义范围',                            
+          daysOfWeek:["日","一","二","三","四","五","六"],
+          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+        },
+        ranges: {
+         '当天': [moment(), moment()],
+         '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
+         '近7天': [moment().subtract('days', 6), moment()],
+         '近30天': [moment().subtract('days', 29), moment()],
+         '当月': [moment().startOf('month'), moment().endOf('month')],
+         '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        }
+      }
+
+    ); 
+// 文章情感
+$('#article_feeling').highcharts({
+          chart: {
+              plotBackgroundColor: null,
+              plotBorderWidth: null,
+              plotShadow: false,
+              backgroundColor: "none"
+          },
+          exporting:{
+              enabled: false
+          },
+          credits:{
+              enabled: false,
+              text : ""
+          },
+
+          title: {
+              floating:false,
+              margin:0,
+              text: '文章情感',
+              style:{
+                  fontSize:'12px',
+                  fontFamily:'Microsoft YaHei'
+              }
+          },
+          legend:{
+            enabled:true,
+            backgroundColor:"none",
+            borderColor:"none",
+            layout: 'vertical',
+            margin:0,
+            labelFormat: '{name}:{y}',
+            itemHoverStyle: {
+              color: '#000'
+            },
+            itemStyle: {
+              fontFamily:'Microsoft YaHei'
+            }
+          },
+          tooltip: {
+            headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>',
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+          },
+          plotOptions: {
+              pie: {
+                  // innerSize: '50%',
+                  borderWidth:1,
+                  allowPointSelect: false,
+                  cursor: 'pointer',
+                  dataLabels: {
+                      enabled: true,
+                      distance: 1,
+                      style:{
+                        fontSize:'12px'
+                      },
+                      connectorColor: '#000000',
+                      format: '{point.percentage:.1f} %'
+                  },
+                  showInLegend: true
+              }
+          },
+          series: [{
+              type: 'pie',
+              name: '文章',
+              data: [{
+                      name: '正面',
+                      y: 6555522,
+                      color:"#1BC2A1"
+                  },
+                  {
+                      name: '负面',
+                      y: 17000,
+                      color:"#BCBCBC"
+                  },
+                  {
+                      name: '中性',
+                      y: 107000,
+                      color:"#7798BF"
+                  }
+              ]
+          }]
+      });   
+// 文章类型分布
+$('#article_type').highcharts({
+          chart: {
+              plotBackgroundColor: null,
+              plotBorderWidth: null,
+              plotShadow: false,
+              backgroundColor: "none"
+          },
+          exporting:{
+              enabled: false
+          },
+          credits:{
+              enabled: false,
+              text : ""
+          },
+
+          title: {
+              floating:false,
+              margin:0,
+              text: '文章类型',
+              style:{
+                      fontSize:'12px',
+                      fontFamily:'Microsoft YaHei'
+                    }
+          },
+          legend:{
+            // align: 'right',
+            // verticalAlign: 'top',
+            // layout: 'vertical',
+            // x: 0,
+            // y: 100,
+            enabled:true,
+            backgroundColor:"none",
+            borderColor:"none",
+            layout: 'vertical',
+            margin:0,
+            labelFormat: '{name}:{y}',
+            itemHoverStyle: {
+              color: '#000'
+            },
+            itemStyle: {
+              fontFamily:'Microsoft YaHei'
+            }
+          },
+          tooltip: {
+            headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>',
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+          },
+          plotOptions: {
+              pie: {
+                  // innerSize: '50%',
+                  borderWidth:1,
+                  allowPointSelect: false,
+                  cursor: 'pointer',
+                  dataLabels: {
+                      enabled: true,
+                      distance: 1,
+                      style:{
+                        fontSize:'12px'
+                      },
+                      connectorColor: '#000000',
+                      format: '{point.percentage:.1f} %'
+                  },
+                  showInLegend: true
+              }
+          },
+          series: [{
+              type: 'pie',
+              name: '媒体',
+              data: [{
+                      name: '网媒',
+                      y: 650,
+                      color:"#B172C5"
+                  },
+                  {
+                      name: '微博',
+                      y: 17,
+                      color:"#DF5353"
+                  },
+                  {
+                      name: '平媒',
+                      y: 107,
+                      color:"#55BF3B"
+                  }
+              ]
+          }]
+      });
+
+  // 正面文章分布
+    $('#article_positive').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        title: {
+            text: '正面',
+            style:{
+                  fontSize:'12px',
+                  fontFamily:'Microsoft YaHei'
+              }
+        },
+        credits:{
+          enabled: false,
+          text : ""
+        }, 
+        // colors: ["#DDDF0D", "#7798BF", "#55BF3B", "#DF5353", "#aaeeee", "#ff0066", "#eeaaee","#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],            
+        tooltip: {
+            headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>',
+            pointFormat: '<b>{point.percentage:.1f}%</b>'
+        },
+        legend:{
+          borderColor:"none",
+          itemMarginTop: 5,
+          padding:0,
+          labelFormat: '{name}:{y}',
+          itemStyle: {
+            fontFamily:'Microsoft YaHei'
+        },
+        itemHoverStyle: {
+          color: '#000',
+        }
+        },
+        plotOptions: {
+            pie: {
+                borderWidth:0,
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: false
+                },
+                dataLabels: {
+                      enabled: true,
+                      distance: -25,
+                      color: '#fff',
+                      style:{
+                        fontSize:'12px'
+                      },
+                      connectorColor: '#000000',
+                      format: '{point.percentage:.1f} %'
+                  },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: '媒体',
+            data: [
+              {
+                  name: '网媒',
+                  y: 6,
+                  color:"#6E87D7"
+              },
+              {
+                  name: '微博',
+                  y: 7,
+                  color:"#11C897"
+              },
+              {
+                  name: '平媒',
+                  y: 20,
+                  color:"#F367A7"
+              }
+          ]
+        }]
+    });
+  // 中性文章分布
+    $('#article_neutral').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        title: {
+            text: '中性',
+            style:{
+                  fontSize:'12px',
+                  fontFamily:'Microsoft YaHei'
+              }
+        },
+        credits:{
+          enabled: false,
+          text : ""
+        }, 
+        // colors: ["#DDDF0D", "#7798BF", "#55BF3B", "#DF5353", "#aaeeee", "#ff0066", "#eeaaee","#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],            
+        tooltip: {
+            headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>',
+            pointFormat: '<b>{point.percentage:.1f}%</b>'
+        },
+        legend:{
+          borderColor:"none",
+          itemMarginTop: 5,
+          padding:0,
+          labelFormat: '{name}:{y}',
+          itemStyle: {
+            fontFamily:'Microsoft YaHei'
+        },
+        itemHoverStyle: {
+          color: '#000',
+        }
+        },
+        plotOptions: {
+            pie: {
+                borderWidth:0,
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: false
+                },
+                dataLabels: {
+                      enabled: true,
+                      distance: -25,
+                      color: '#fff',
+                      style:{
+                        fontSize:'12px'
+                      },
+                      connectorColor: '#000000',
+                      format: '{point.percentage:.1f} %'
+                  },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: '媒体',
+            data: [{
+                  name: '网媒',
+                  y: 25,
+                  color:"#6E87D7"
+              },
+              {
+                  name: '微博',
+                  y: 26,
+                  color:"#11C897"
+              },
+              {
+                  name: '平媒',
+                  y: 20,
+                  color:"#F367A7"
+              }
+          ]
+        }]
+    });
+  // 负面文章分布
+    $('#article_negative').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        title: {
+            text: '负面',
+            style:{
+                  fontSize:'12px',
+                  fontFamily:'Microsoft YaHei'
+              }
+        },
+        credits:{
+          enabled: false,
+          text : ""
+        }, 
+        // colors: ["#DDDF0D", "#7798BF", "#55BF3B", "#DF5353", "#aaeeee", "#ff0066", "#eeaaee","#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],            
+        tooltip: {
+            headerFormat: '<span style="font-size: 12px;font-weight:700">{point.key}</span><br/>',
+            pointFormat: '<b>{point.percentage:.1f}%</b>'
+        },
+        legend:{
+          borderColor:"none",
+          itemMarginTop: 5,
+          padding:0,
+          labelFormat: '{name}:{y}',
+          itemStyle: {
+            fontFamily:'Microsoft YaHei'
+        },
+        itemHoverStyle: {
+          color: '#000',
+        }
+        },
+        plotOptions: {
+            pie: {
+                borderWidth:0,
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: false
+                },
+                dataLabels: {
+                      enabled: true,
+                      distance: -25,
+                      color: '#fff',
+                      style:{
+                        fontSize:'12px'
+                      },
+                      connectorColor: '#000000',
+                      format: '{point.percentage:.1f} %'
+                  },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: '媒体',
+            data: [{
+                  name: '网媒',
+                  y: 25,
+                  color:"#6E87D7"
+              },
+              {
+                  name: '微博',
+                  y: 26,
+                  color:"#11C897"
+              },
+              {
+                  name: '平媒',
+                  y: 20,
+                  color:"#F367A7"
+              }
+          ]
+        }]
+    });
+
+// 文章来源对比
+    $('#opinion_line1').highcharts({
+        chart: {
+            type: 'line'
+        },
+        colors: [ "#6E87D7", "#11C897","#F367A7", "#aaeeee", "#55BF3B","#DF5353", "#7798BF", "#aaeeee"],
+        credits:{
+            enabled:false
+        },        
+        title: {
+            text: '文章来源对比',
+            style:{
+                fontSize: '12px',
+                fontFamily:'Microsoft YaHei'
+            }
+        },
+        xAxis: {
+            categories: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+        },
+        yAxis: {
+            title: {
+                text: null
+            },
+            min: 0, 
+            gridLineColor: '#eee'
+        },
+        tooltip: {
+            formatter: function() {
+                return '<b>' + this.series.name + '</b><br>' + this.x + ': ' + this.y + '篇';
+            },
+        },
+        legend: {
+            itemStyle: {
+                fontFamily:'Microsoft YaHei',
+            },
+            borderWidth: 0
+        },        
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: false
+                },
+                enableMouseTracking: true
+            }
+        },
+        series: [{
+            name: '网媒',
+            data: [33242, 78, 98, 93, 106, 84, 105, 104, 91, 83, 106, 132077]
+        }, {
+            name: '微博',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        }, {
+            name: '平媒',
+            data: [3434, 38, 39, 41, 47, 48, 59, 59, 52, 65, 59, 8323]
+        }]
+    });
+
+// 文章情感对比
+    $('#opinion_line2').highcharts({
+        chart: {
+            type: 'line'
+        },
+        colors: [ "#1BC2A1", "#BCBCBC", "#7798BF"],
+        credits:{
+            enabled:false
+        },        
+        title: {
+            text: '文章情感对比',
+            style:{
+                fontSize: '12px',
+                fontFamily:'Microsoft YaHei'
+            }
+        },
+        xAxis: {
+            categories: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+        },
+        yAxis: {
+            title: {
+                text: null
+            },
+            min: 0,
+            gridLineColor: '#eee'
+        },
+        tooltip: {
+            enabled: false,
+            formatter: function() {
+                return '<b>' + this.series.name + '</b><br>' + this.x + ': ' + this.y + '°C';
+            }
+        },
+        legend: {
+            itemStyle: {
+                fontFamily:'Microsoft YaHei',
+            },
+            borderWidth: 0
+        },        
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
+        },
+        series: [{
+            name: '正面',
+            data: [45, 785, 867, 544, 455, 424, 424, 444, 214, 44, 42, 444]
+        }, {
+            name: '负面',
+            data: [83, 78, 98, 93, 106, 84, 105, 104, 91, 83, 106, 92]
+        }, {
+            name: '中性',
+            data: [49, 71, 106, 129, 144, 176, 135, 148, 216, 194, 95, 54]
+        }]
+    });
+
+
+</script>

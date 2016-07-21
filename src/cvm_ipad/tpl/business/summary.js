@@ -9,7 +9,7 @@ myApp.onPageInit("business-summary", function(page) {
     });
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/project").get(page.query.id,function(data){
+      RestServiceJs(BASE_URL+"/project").get(page.query.id,{},function(data){
         myApp.pullToRefreshDone();
         self.summary(data);
 

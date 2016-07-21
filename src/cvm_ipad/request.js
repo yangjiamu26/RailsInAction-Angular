@@ -22,11 +22,11 @@ function RestServiceJs(newurl) {
       });  
   };  
    
-  self.put= function(model, callback) {  
+  self.put= function(params, callback) {  
       $.ajax({  
           type: 'PUT',  
           url: self.myurl,  
-          data: JSON.stringify(model), 
+          data: JSON.stringify(params), 
           processData: false,  
           contentType: 'application/json',  
           success: callback,  
@@ -41,13 +41,15 @@ function RestServiceJs(newurl) {
       });  
   };  
    
-  self.get = function(id, callback) {  
+  self.get = function(id, params, callback) {
       $.ajax({  
           type: 'GET',  
-          url: self.myurl + '/' + id,  
+          url: self.myurl + '/' + id,
+          data: params, 
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
+            console.log(req.responseText)
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -58,11 +60,11 @@ function RestServiceJs(newurl) {
       });  
   };
    
-  self.query = function(model, callback) {
+  self.query = function(params, callback) {
       $.ajax({  
           type: 'GET',  
           url: self.myurl,
-          data: model, 
+          data: params, 
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
