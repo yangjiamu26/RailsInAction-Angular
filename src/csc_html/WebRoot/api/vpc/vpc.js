@@ -30,7 +30,7 @@
 			},
 			/**
 			 * 获取VPC列表
-			 * @param param VPC创建入参
+			 * @param param  查询条件
 			 */
 			getVpcs:function(param,callback,errorCallback){
 				 var param = csc.util.httpQueryParamConvert(param);
