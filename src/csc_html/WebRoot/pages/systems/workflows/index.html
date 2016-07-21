@@ -6,6 +6,7 @@
 	</ol>
 </div>
 <div class="wrapper-md nav-tabs-alt">
+	<div id="workflow_content">
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active"><a href="#tab1" aria-controls="home" role="tab" data-toggle="tab">模型管理</a></li>
 		<li role="presentation"><a href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">流程管理</a></li>
@@ -22,7 +23,8 @@
             <div class="input-group">
               <span class="input-group-addon">流程类型</span>
               <!-- , options: $root.catelogs, optionsText: 'name', optionsValue: 'id' -->
-              <select class="form-control input-sm" data-bind="value: searchParam().catelog">
+              <select class="form-control input-sm" data-bind="value: searchModelParam().processType">
+              	<option value="">--请选择--</option>
               	<option value="reourceApply">资源申请</option>
               	<option value="resourceChange">资源变更</option>
               	<option value="resourceRecycle">资源回收</option>
@@ -37,7 +39,7 @@
 					<div class="col-xs-3">
 						<div class="input-group">
 		          <span class="input-group-addon">模型名称</span>
-		          <input type="text" value="" class="form-control input-sm" data-bind="searchParam().name">
+		          <input type="text" value="" class="form-control input-sm" data-bind="value: searchModelParam().name">
 		        </div>   
 					</div>
 					<div class="col-xs-1">
@@ -68,18 +70,21 @@
 				          </tr>
 				          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
-								<td data-bind="text: $row.name"></td>
-								<td data-bind="text: $row.processType"></td>
+								<td data-bind="text: $row.name"><input type="hidden" data-bind="text: $row.id"></td>
+								<td data-bind="text: $row.processTypeName"></td>
 								<td data-bind="text: $row.productTypes"></td>
 								<td data-bind="text: $row.vdcName"></td>
 								<td data-bind="text: $row.createUser"></td>
 								<td data-bind="text: $row.createTime"></td>
-								<td><span class="label label-success">正常</span><span class="label label-danger">异常</span></td>
-								<td>未变更</td>
-								<td>未变更的</td>
+								<!-- <td><span class="label label-success">正常</span><span class="label label-danger">异常</span></td> -->
+								<td><span class="label" data-bind="text: $row.deploy, css: {'label-danger':!$row.isDeploy,'label-success':$row.isDeploy}"></span></td>
+								<!-- <td><span data-bind="text: $row.deploy,attr: {'class': $row.deployClass }"></span></td> -->
+								<td data-bind="text: $row.change"></td>
+								<td data-bind="text: $row.description"></td>
 								<td>
 									<a data-bind="click: $root.edit,visible:true">修改</a> |
-									<a >设计</a> |
+									<a data-bind="click: $root.design">设计</a> |
+									<a >导出</a> |
 									<a data-bind="click: $root.publish">发布</a> |
 									<a data-bind="click: $root.remove">删除</a>
 								</td>
@@ -89,26 +94,27 @@
 					</table>
 				</div>
 				<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-	      <ul class="pagination">
-	        <li data-bind="css: leftPagerClass, click: prevPage">
-	          <a href="#">&laquo;</a>
-	        </li>
-	        <!-- ko foreach: {data: (new Array(pages()))} -->
-	        <li data-bind="css: $parent.pageClass($index() + 1)">
-	          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-	        </li>
-	        <!-- /ko -->
-	        <li data-bind="css: rightPagerClass, click: nextPage">
-	          <a href="#">&raquo;</a>
-	        </li>
-	      </ul>
-	    </footer>
+			      <ul class="pagination">
+			        <li data-bind="css: leftPagerClass, click: prevPage">
+			          <a href="#">&laquo;</a>
+			        </li>
+			        <!-- ko foreach: {data: (new Array(pages()))} -->
+			        <li data-bind="css: $parent.pageClass($index() + 1)">
+			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+			        </li>
+			        <!-- /ko -->
+			        <li data-bind="css: rightPagerClass, click: nextPage">
+			          <a href="#">&raquo;</a>
+			        </li>
+			      </ul>
+			    </footer>
 
       <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
         <div class='modal-dialog modal-md' role='document'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建</h3></div>
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 id="modelTitle" class='modal-title'>创建</h3></div>
+              <input type="hidden" id="modelFlag">
             <div class='modal-body form-horizontal'>
               <div class="form-group">
                 <label for="inputEmail3" class="col-xs-3 control-label">模型名称</label>
@@ -120,7 +126,8 @@
                 <label for="inputEmail3" class="col-xs-3 control-label">流程类型</label>
                 <div class="col-xs-8">
                   <select class="form-control" data-bind="value: modelVO().processType">
-                    <option value="reourceApply">资源申请</option>
+                    <option value="">--请选择--</option>
+                    <option value="resourceApply">资源申请</option>
 	              	<option value="resourceChange">资源变更</option>
 	              	<option value="resourceRecycle">资源回收</option>
 	              	<option value="resourceDelete">资源删除</option>
@@ -234,13 +241,23 @@
 					<div class="col-xs-3">
             <div class="input-group">
               <span class="input-group-addon">流程类型</span>
-              <select class="form-control input-sm" data-bind="value: searchParam().catelog, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
+              <select class="form-control input-sm" data-bind="value: searchProcessDefParam().processType">
+              	<option value="">--请选择--</option>
+              	<option value="reourceApply">资源申请</option>
+              	<option value="resourceChange">资源变更</option>
+              	<option value="resourceRecycle">资源回收</option>
+              	<option value="resourceDelete">资源删除</option>
+              	<option value="validTimeChange">有效时间变更</option>
+              	<option value="vdcApply">VDC申请</option>
+              	<option value="vdcChange">VDC变更</option>
+              	<option value="custom">自定义</option>
+              </select>
             </div>					
 					</div>
 					<div class="col-xs-3">
 						<div class="input-group">
 		          <span class="input-group-addon">流程名称</span>
-		          <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
+		          <input type="text" value="" class="form-control input-sm" data-bind="value: searchProcessDefParam().name">
 		        </div>   
 					</div>
 					<div class="col-xs-1">
@@ -268,10 +285,10 @@
 				          	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td data-bind="text: $row.name"></td>
-								<td data-bind="text: $row.name"></td>
-								<td data-bind="text: $row.name"></td>
-								<td data-bind="text: $row.name"></td>
-								<td><span class="label label-success">已激活</span><span class="label label-danger">未激活</span></td>
+								<td data-bind="text: $row.processTypeName"></td>
+								<td data-bind="text: $row.productTypes"></td>
+								<td data-bind="text: $row.deployTime"></td>
+								<td><span class="label" data-bind="text: $row.statusName, css: {'label-danger':$row.status,'label-success':!$row.status}"></span></td>
 								<td>
 									<a data-bind="click: $root.pause">挂起</a> |
 									<a data-bind="click: $root.activate">激活</a> |
@@ -283,23 +300,27 @@
 					</table>
 				</div>
 				<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-	      <ul class="pagination">
-	        <li data-bind="css: leftPagerClass, click: prevPage">
-	          <a href="#">&laquo;</a>
-	        </li>
-	        <!-- ko foreach: {data: (new Array(pages()))} -->
-	        <li data-bind="css: $parent.pageClass($index() + 1)">
-	          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-	        </li>
-	        <!-- /ko -->
-	        <li data-bind="css: rightPagerClass, click: nextPage">
-	          <a href="#">&raquo;</a>
-	        </li>
-	      </ul>
-	    </footer>
+			      <ul class="pagination">
+			        <li data-bind="css: leftPagerClass, click: prevPage">
+			          <a href="#">&laquo;</a>
+			        </li>
+			        <!-- ko foreach: {data: (new Array(pages()))} -->
+			        <li data-bind="css: $parent.pageClass($index() + 1)">
+			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+			        </li>
+			        <!-- /ko -->
+			        <li data-bind="css: rightPagerClass, click: nextPage">
+			          <a href="#">&raquo;</a>
+			        </li>
+			      </ul>
+			    </footer>
 			</div>
 		</div>
 	</div>
+	</div>
+    <div id="workflow_edit" class="main_content_container" style="display:none;"></div>
+    <input id="editModelId" type="hidden">
+    <input id="editModelType" type="hidden">
 </div>
 
 
@@ -311,69 +332,144 @@
 
 	    function ViewModel(){
 	      var self = this;
+	      /* ko.validation.rules['modelNameUsed'] = {
+   		  	validator: function (val, otherVal) {       
+   		    	var isUnique = true;
+   		     	csc.rest.get('api/v5.0.0/workflows/models?name='+val,
+   		     		function(data){
+		        		if(data.total>0){
+		        			isUnique = false;
+		        		}
+ 		    	},function(data){systemMsg.alert('校验模型名称失败！')});
+   		     	console.log(isUnique);
+   		        return isUnique;
+   		    },
+   		    message: '模型名称重复！'
+   		  };
+   		  ko.validation.registerExtenders(); */
 	
 	      this.modelVO = ko.validatedObservable({
-	        //name: ko.observable("fdsafdas").extend({required: true})
+	        //name: ko.observable("fdsafdas").extend({required: true,modelNameUsed: true})
+	        id: ko.observable(),
 	        name: ko.observable().extend({required: true}),
-	        processType: ko.observable().extend({required: true}),
+	        processType: ko.observable("").extend({required: true}),
 	        vdcId: ko.observable().extend({required: true}),
-	        description: ko.observable(),
+	        description: ko.observable(""),
 	        productTypes: ko.observable()
 	      });
-	
+	      
 	      this.isAdd = ko.observable(false);
 	      this.add = function(){
-	        /* this.modelVO.fromJSON({
-	          name: "fengzj"
-	        }) */
+	        /* this.modelVO({
+	          name: "",
+	          description:""
+	        }); */
 	        self.isAdd(true);
+	        $("#modelTitle").text("创建");
+	        $("#modelFlag").val('add');
 	      }
 	      
 	      this.edit = function(object, event){
-	        console.log(object)
+	        console.log(object);
 	        self.modelVO(object);
-	        
-	        self.isAdd(true);        
+	        self.isAdd(true);
+	        $("#modelTitle").text("修改");
+	        $("#modelFlag").val('edit');
+	        var productTypes=object.productTypes;
+	        if(productTypes!=null){
+	        	var p = productTypes.split(",");
+	        	console.log(p.length);
+	        	for(var i=0;i<p.length;i++){
+	        		$("input[name='productTypes'][value="+p[i]+"]").prop('checked', true);
+	        	}
+	        }
 	      }
-	      //创建模型
+	      //保存模型
 	      this.save = function(){
+	    	this.modelVO.errors.showAllMessages();
 	        if(this.modelVO.isValid()){
-	        	var types = "";
-	        	$("input[name='productTypes']").each(function(){
-	        		types += $(this).val() + ",";
-	        	});
-	        	types=types.substring(0,types.length-1);
-	        	this.modelVO.fromJSON({
-	        		productTypes: types
-	  	        });
-	        	console.log(this.modelVO.toJSON());
-	        	this.modelVO = ko.observable(this.modelVO.toJSON());
-	        	csc.rest.post('api/v5.0.0/workflows/models',this.modelVO(),function(data){
-		          	self.isAdd(false);
-		          	self.table.refreshData();
-    		    });
+	        	/* csc.rest.get('api/v5.0.0/workflows/models?name='+this.modelVO().name(),
+   		     		function(data){
+		        		if(data.total>0){
+		        			systemMsg.alert('模型名称重复！');
+		        			return;
+		        		}else{
+		        			
+		        		}
+ 		    	},function(data){systemMsg.alert('校验模型名称失败！')});
+	        	console.log("swwww"); */
+	        	var isUnique = true;
+	        	var flag = $("#modelFlag").val();
+	        	/* $("input[name='productTypes']").each(function(){
+		        	csc.rest.get('api/v5.0.0/workflows/models/unique?name='+this.modelVO.name()+'&vdcId='+this.modelVO.vdcId+'&productId='+$(this).val(),
+	   		     		function(data){
+			        		isUnique = data;
+	 		    	},function(data){systemMsg.alert('操作失败！')});
+	        	}); */
+	        	if(isUnique){
+		        	var types = "";
+		        	$("input[name='productTypes']:checked").each(function(){
+		        		types += $(this).val() + ",";
+		        	});
+		        	types=types.substring(0,types.length-1);
+		        	this.modelVO.fromJSON({
+		        		productTypes: types
+		  	        });
+		        	console.log(this.modelVO.toJSON());
+		        	this.modelVO = ko.observable(this.modelVO.toJSON());
+		        	if(flag=='add'){
+			        	csc.rest.post('api/v5.0.0/workflows/models',this.modelVO(),function(data){
+			        		alert('创建成功！');
+				          	self.isAdd(false);
+				          	self.table.refreshData();
+		    		    });
+		        	}else{
+		        		csc.rest.put('api/v5.0.0/workflows/models',this.modelVO(),function(data){
+			        		alert('修改成功！');
+				          	self.isAdd(false);
+				          	self.table.refreshData();
+		    		    });
+		        	}
+	        	}
 	        }
 	      }
 	
 	      this.design = function(object, event){
-	
+	    	  showModelView(object.id,'model');
 	      }
+	      
 	      this.publish = function(object, event){
-	      	systemMsg.alert('发布成功！');
+	    	confirm('确定发布模型？', function(){
+	    		console.log(object);
+	    		//console.log(object.id);return;
+		        //self.modelVO(object);
+		        //this.modelVO = ko.observable(this.modelVO.toJSON());
+	    		//console.log(self.modelVO.toJSON());return;
+	    		/* var param = {"modelId":object.id};
+	    		console.log(JSON.stringify(param)); */
+	    		//return;
+		    	csc.rest.post('api/v5.0.0/workflows/deployments',object,function(data){
+	        		alert('发布成功！');
+		          	self.table.refreshData();
+    		    });
+		    });
 	      }
 	
 	      this.remove = function(object, event){
-	        systemMsg.alert('删除流程后，云主机、云硬盘将不能提交申请！', function(){
-	       		systemMsg.alert('删除成功！'); 	
-	        });
+	        confirm('删除流程后，云主机、云硬盘将不能提交申请！', function(){
+	        	csc.rest.del('api/v5.0.0/workflows/models/'+object.id,function(data){
+	        		alert('删除成功！');
+		          	self.table.refreshData();
+    		    });
+	        },function(){alert('删除失败！')});
 	      }
 	
-	      this.searchParam = ko.observable({
-	      	catelog: "",
+	      this.searchModelParam = ko.observable({
+	      	processType: "",
 	        name: ""
 	      })
 	      this.search = function(){
-	        this.table.params(this.searchParam());
+	        this.table.params(this.searchModelParam());
 	      }
 	
 	      this.isImport = ko.observable(false);
@@ -402,40 +498,62 @@
 	
 	    ko.applyBindings(new ViewModel(), $('#page-content .tab-pane')[0]); 
 	
-	
+	  	//编辑模型
+	    function showModelView(id,type){	
+	    	showFlowContent("pages/systems/workflows/workflow_edit_index.html",id,type,"whole");
+	    }
+	    function showFlowContent(url,id,type,wholeFlag){
+	    	$("#workflow_content").hide();
+	        $("#workflow_edit").show();
+	        $("#workflow_edit").html();
+	        $("#workflow_edit").load(url);
+	        $("#editModelId").val(id);
+	        $("#editModelType").val(type);
+	        /* if(wholeFlag==="whole")
+	        {
+	          $(".csc_leftMenuBox").hide();
+	          $(".csc_wholeBox").removeClass("span9").addClass("span12").css({"margin-left":"0","padding":"0 19px"});
+	        }else{
+	          $(".csc_leftMenuBox").show();
+	          $(".csc_wholeBox").removeClass("span12").addClass("span9").css({"margin-left":"12px","padding":"0 0 19px"});
+	        }; */
+	      }
 	
 	
 	    function ViewModel_Workflow(){
 	      var self = this;
 	      this.pause = function(object, event){
-	        systemMsg.alert("挂起成功！")
+	    	  confirm("确定挂起流程？",function(){
+	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id+'?action=suspend',"",function(data){
+		        		alert('挂起成功！');
+			          	self.table.refreshData();
+	    		    },function(){alert('挂起失败！')});
+		      })
 	      }
 	
 	      this.activate = function(object, event){
-	        systemMsg.alert("激活成功！")
+	    	  confirm("确定激活流程？",function(){
+	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id+'?action=activate',"",function(data){
+		        		alert('激活成功！');
+			          	self.table.refreshData();
+	    		    },function(){alert('激活失败！')});
+		      })
 	      }
 	
 	      this.review = function(object, event){
-	
+		  	showModelView(object.id,'processDef');
 	      }
 	
-	      this.searchParam = ko.observable({
-	        catelog: "",
+	      this.searchProcessDefParam = ko.observable({
+	        processType: "",
 	        name: ""
 	      })
 	      this.search = function(){
-	        this.table.params(this.searchParam());
+	        this.table.params(this.searchProcessDefParam());
 	      }
 	
-	      this.table = new DataTable([], {path: 'pages/systems/workflows/workflows.json'});
+	      this.table = new DataTable([], {path: 'api/v5.0.0/workflows/process-definitions'});
 	
-	      this.catelogs = ko.observableArray();
-	      this.loadCatelogs = function(){
-	        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
-	          self.catelogs(data.results);
-	        });
-	      }
-	      this.loadCatelogs();
 	    }
 	
 	    ko.applyBindings(new ViewModel_Workflow(), $('#page-content .tab-pane')[1]); 
