@@ -9,7 +9,7 @@
 	<div class="nav-tabs-alt bg-white-only">
 		<ul class="nav nav-tabs" role="tablist">
 			<li class="active" role="presentation">
-				<a aria-controls="VPC" data-toggle="tab" href="#VDC" role="tab">VDC</a>
+				<a aria-controls="VPC" data-toggle="tab" href="#vdc" role="tab">VDC</a>
 			</li>
 			<li role="presentation">
 				<a aria-controls="billing" data-toggle="tab" href="#billing" role="tab">计费</a>
@@ -31,15 +31,15 @@
 					<div class="row wrapper">
 						<div class="col-xs-8">
 							<button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('vdc') }">报表定义</button>
-							<button class="btn btn-sm btn-default">导出</button>
+							<button class="btn btn-sm btn-default" data-bind="visible: $root.configVO().checkToShowExport">导出</button>
 						</div>
-						<div class="col-xs-3">
+						<div class="col-xs-3" data-bind="visible: true">
 						  <div class="input-group">
 						     <span class="input-group-addon">VDC名称</span>
 						     <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().vdcName">
 						  </div>        
 						</div>
-						<div class="col-xs-1">
+						<div class="col-xs-1" data-bind="visible: false">
 						  <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>       
 						</div>					
 					</div>				
@@ -65,7 +65,7 @@
 						</table>
 					</div>
 					<footer class="panel-footer" data-bind="with: table">
-						<div class="pull-left text-muted">数据时间：2016-06-21 16:28:30</div>
+						<div class="pull-left text-muted" data-bind="visible: $root.configVO().checkToShowDate">数据时间：<span data-bind="text: $root.configVO().updateTime"></span></div>
 						<ul class="pagination">
 					        <li data-bind="css: leftPagerClass, click: prevPage">
 					          <a href="#">&laquo;</a>
@@ -82,7 +82,7 @@
 			    	</footer>
 				</div>
 			
-				<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isVdcAdd }">
+				<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
 				  <div class='modal-dialog modal-lg' style="width:600px;">
 				    <div class='modal-content'>
 				      <div class='modal-header'>
@@ -173,8 +173,8 @@
 					<div class="wrapper">
 						<div class="row">
 						  <div class="col-xs-2">
-						     	<button class="btn btn-sm btn-primary" data-bind="click: add">报表定义</button>
-								<button class="btn btn-sm btn-default">导出</button>    
+						     	<button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('billing') }">报表定义</button>
+								<button class="btn btn-sm btn-default" data-bind="visible: $root.configVO().checkToShowExport">导出</button>  
 						  </div>
 						  <div class="col-xs-3">
 						      <div class="input-group">
@@ -221,40 +221,29 @@
 						</div>					
 						
 					</div>
-					<div class="table-responsive" data-bind="with: table">
+					<div class="table-responsive">
 						<table class="table table-striped">
 							<thead>
-								<tr>
-									<th class="sortable" data-bind="click: toggleSort('serviceName')">服务名称&nbsp;&nbsp;<i data-bind="css: sortClass('serviceName')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('type')">产品类型&nbsp;&nbsp;<i data-bind="css: sortClass('type')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('billing')">费用(元)&nbsp;&nbsp;<i data-bind="css: sortClass('billing')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('user')">用户&nbsp;&nbsp;<i data-bind="css: sortClass('user')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('vdcName')">所属VDC&nbsp;&nbsp;<i data-bind="css: sortClass('vdcName')"/></th>
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<th class="sortable" data-bind="click: $root.table.toggleSort(id)"><span data-bind="text: name"></span>&nbsp;&nbsp;<i data-bind="css: $root.table.sortClass(id)"/></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr data-bind="visible: showNoData">
-		           					<td colspan="5" class="aligncenter">
+								<tr data-bind="visible: $root.table.showNoData">
+		           					<td colspan="19" class="aligncenter">
 		              					This table has no data.
 		           					</td>
 		            			</tr>
-		            			<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-								<tr>
-									<td data-bind="text:serviceName"></td>
-									<td data-bind="text:type"></td>
-									<td data-bind="text:billing"></td>
-									<td data-bind="text:user"></td>
-									<td data-bind="text:vdcName"></td>
-								</tr>
-								<tr>
-									<td colspan="5" class="text-info">合计：400.00元</td>
+		            			<!-- ko foreach: {data: $root.table.pagedRows, as: '$row'}  -->
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<td data-bind="text:$row[id]"></td>
 								</tr>
 								<!-- /ko -->
 							</tbody>
 						</table>
 					</div>
 					<footer class="panel-footer" data-bind="with: table">
-						<div class="pull-left text-muted">数据时间：2016-06-21 16:28:30</div>
+						<div class="pull-left text-muted" data-bind="visible: $root.configVO().checkToShowDate">数据时间：<span data-bind="text: $root.configVO().updateTime"></span></div>
 						<ul class="pagination">
 					        <li data-bind="css: leftPagerClass, click: prevPage">
 					          <a href="#">&laquo;</a>
@@ -277,7 +266,7 @@
 				      <div class='modal-header'>
 				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>报表定义</h3>
 				      </div>
-				      <div class='modal-body form-horizontal row'>
+				      <div class='modal-body form-horizontal row' data-bind="with: configVO">
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">报表名称：</label><span class="col-xs-8" style="top: 7px;position: relative;">计费报表</span>
 				        </div>
@@ -287,51 +276,21 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: conditions_all">
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>时间段
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>产品类型
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>服务名称
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>所属VDC
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" value="1">
-				                  <i></i>用户
-				                </label>
-				              </div>
-				            </div>
+				            <div data-bind="foreach: conditions">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.conditions_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
+					         </div>
 				          </div>
 				        </div>
 				        <div class="form-group">
@@ -340,67 +299,38 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: fields_all" >
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>服务名称
-				                </label>
-				              </div>
+				            <div data-bind="foreach: fields">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.fields_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>产品类型
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>费用(元)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>用户
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>所属VDC
-				                </label>
-				              </div>
-				            </div>
+				            
 				          </div>
 				        </div>
 				      	<div class="form-group">
 				          <div class="col-xs-12 form-inline">
-				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" /> <span style="top: 3px;position: Relative;"> 条</span>
+				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" data-bind="value: pageSize"/> <span style="top: 3px;position: Relative;"> 条</span>
 				          </div>
 				        </div>
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">显示内容：</label>
 				          <div class="col-xs-8">
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowCollectTime">
 				                <i></i>数据时间
 				              </label>
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowExport">
 				                <i></i>导出Excel文件
 				              </label>
 				          </div>
@@ -408,8 +338,8 @@
 				
 				      </div>
 				      <div class='modal-footer' style="text-align:center;">
-				        <a class="btn btn-default btn-info">确定</a>
-				        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+				        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.configSave('billing') }">确定</a>
+				         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 				      </div>
 				    </div>
 				  </div>
@@ -421,8 +351,8 @@
 					<div class="wrapper">
 						<div class="row">
 						  <div class="col-xs-3">
-						     	<button class="btn btn-sm btn-primary" data-bind="click: add">报表定义</button>
-								<button class="btn btn-sm btn-default">导出</button>    
+						  	  <button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('host') }">报表定义</button>
+							  <button class="btn btn-sm btn-default" data-bind="visible: $root.configVO().checkToShowExport">导出</button>
 						  </div>
 						  <div class="col-xs-3">
 						    <div class="input-group">
@@ -472,59 +402,29 @@
 							</div>
 						</div>	
 					</div>				
-					<div class="table-responsive" data-bind="with: table">
+					<div class="table-responsive">
 						<table class="table table-striped">
 							<thead>
-								<tr>
-									<th class="sortable" data-bind="click: toggleSort('name')">物理机名称&nbsp;&nbsp;<i data-bind="css: sortClass('name')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('ip')">物理机IP&nbsp;&nbsp;<i data-bind="css: sortClass('ip')"/></th>
-									<th class="sorting">所属数据中心</th>
-									<th class="sortable" data-bind="click: toggleSort('partitionName')">所属可用分区&nbsp;&nbsp;<i data-bind="css: sortClass('partitionName')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('virtualType')">虚拟化类型&nbsp;&nbsp;<i data-bind="css: sortClass('virtualType')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('vmNum')">虚拟机总数&nbsp;&nbsp;<i data-bind="css: sortClass('vmNum')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('status')">状态&nbsp;&nbsp;<i data-bind="css: sortClass('status')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('totalCpu')">CPU&nbsp;&nbsp;<i data-bind="css: sortClass('totalCpu')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('usedCpu')">CPU已用&nbsp;&nbsp;<i data-bind="css: sortClass('usedCpu')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('cpuUsage')">CPU使用率&nbsp;&nbsp;<i data-bind="css: sortClass('cpuUsage')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('totalMemory')">内存总量(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('totalMemory')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('usedMemory')">内存已用(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('usedMemory')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('memoryUsage')">内存使用率&nbsp;&nbsp;<i data-bind="css: sortClass('memoryUsage')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('totalStorage')">存储总量(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('totalStorage')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('usedStorage')">存储已用(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('usedStorage')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('storageUsage')">存储使用率&nbsp;&nbsp;<i data-bind="css: sortClass('storageUsage')"/></th>
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<th class="sortable" data-bind="click: $root.table.toggleSort(id)"><span data-bind="text: name"></span>&nbsp;&nbsp;<i data-bind="css: $root.table.sortClass(id)"/></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr data-bind="visible: showNoData">
-		           					<td colspan="15" class="aligncenter">
+								<tr data-bind="visible: $root.table.showNoData">
+		           					<td colspan="19" class="aligncenter">
 		              					This table has no data.
 		           					</td>
 		            			</tr>
-		            			<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-								<tr>
-									<td data-bind="text:name"></td>
-									<td data-bind="text:ip"></td>
-									<td>数据中心1</td>
-									<td data-bind="text:partitionName"></td>
-									<td data-bind="text:virtualType"></td>
-									<td data-bind="text:vmNum"></td>
-									<td data-bind="text:status"></td>
-									<td data-bind="text:totalCpu"></td>
-									<td data-bind="text:usedCpu"></td>
-									<td data-bind="text:cpuUsage"></td>
-									<td data-bind="text:totalMemory"></td>
-									<td data-bind="text:usedMemory"></td>
-									<td data-bind="text:memoryUsage"></td>
-									<td data-bind="text:totalStorage"></td>
-									<td data-bind="text:usedStorage"></td>
-									<td data-bind="text:storageUsage"></td>
+		            			<!-- ko foreach: {data: $root.table.pagedRows, as: '$row'}  -->
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<td data-bind="text:$row[id]"></td>
 								</tr>
 								<!-- /ko -->
 							</tbody>
 						</table>
 					</div>
 					<footer class="panel-footer" data-bind="with: table">
-						<div class="pull-left text-muted">数据时间：2016-06-21 16:28:30</div>
+						<div class="pull-left text-muted" data-bind="visible: $root.configVO().checkToShowDate">数据时间：<span data-bind="text: $root.configVO().updateTime"></span></div>
 						<ul class="pagination">
 					        <li data-bind="css: leftPagerClass, click: prevPage">
 					          <a href="#">&laquo;</a>
@@ -547,7 +447,7 @@
 				      <div class='modal-header'>
 				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>报表定义</h3>
 				      </div>
-				      <div class='modal-body form-horizontal row'>
+				      <div class='modal-body form-horizontal row' data-bind="with: configVO">
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">报表名称：</label><span class="col-xs-8" style="top: 7px;position: relative;">物理机报表</span>
 				        </div>
@@ -557,43 +457,21 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: conditions_all">
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>虚拟化类型
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>可用分区名称
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>物理机名称
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>物理机IP
-				                </label>
-				              </div>
-				            </div>
+				            <div data-bind="foreach: conditions">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.conditions_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
+					         </div>
 				          </div>
 				        </div>
 				        <div class="form-group">
@@ -602,147 +480,38 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: fields_all" >
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>物理机名称
-				                </label>
-				              </div>
+				            <div data-bind="foreach: fields">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.fields_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>物理机IP
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>可用分区名称
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>虚拟化类型
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>虚拟机总数
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>状态
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>CPU
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>CPU已用
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>CPU使用率
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>内存总量(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>内存已用(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>内存使用率
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>存储总量(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>存储已用(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>存储使用率
-				                </label>
-				              </div>
-				            </div>
+				            
 				          </div>
 				        </div>
 				      	<div class="form-group">
 				          <div class="col-xs-12 form-inline">
-				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" /> <span style="top: 3px;position: Relative;"> 条</span>
+				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" data-bind="value: pageSize"/> <span style="top: 3px;position: Relative;"> 条</span>
 				          </div>
 				        </div>
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">显示内容：</label>
 				          <div class="col-xs-8">
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowCollectTime">
 				                <i></i>数据时间
 				              </label>
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowExport">
 				                <i></i>导出Excel文件
 				              </label>
 				          </div>
@@ -750,8 +519,8 @@
 				
 				      </div>
 				      <div class='modal-footer' style="text-align:center;">
-				        <a class="btn btn-default btn-info">确定</a>
-				        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+				        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.configSave('host') }">确定</a>
+				         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 				      </div>
 				    </div>
 				  </div>
@@ -762,8 +531,8 @@
 				<div class="panel panel-default">
 					<div class="row wrapper">
 					  <div class="col-xs-2">
-					     	<button class="btn btn-sm btn-primary" data-bind="click: add">报表定义</button>
-							<button class="btn btn-sm btn-default">导出</button>    
+					     	<button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('vm') }">报表定义</button>
+							<button class="btn btn-sm btn-default" data-bind="visible: $root.configVO().checkToShowExport">导出</button>
 					  </div>
 					  <div class="col-xs-2">
 					    <div class="input-group">
@@ -790,55 +559,29 @@
 					  </div>
 
 					</div>					
-					<div class="table-responsive" data-bind="with: table">
+					<div class="table-responsive">
 						<table class="table table-striped">
 							<thead>
-								<tr>
-									<th class="sortable" data-bind="click: toggleSort('name')">云主机名称&nbsp;&nbsp;<i data-bind="css: sortClass('name')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('status')">服务状态&nbsp;&nbsp;<i data-bind="css: sortClass('status')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('ip')">IP地址&nbsp;&nbsp;<i data-bind="css: sortClass('ip')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('cpu')">CPU(个)&nbsp;&nbsp;<i data-bind="css: sortClass('cpu')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('memory')">内存(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('memory')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('storage')">存储(GB)&nbsp;&nbsp;<i data-bind="css: sortClass('storage')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('operateSystem')">操作系统&nbsp;&nbsp;<i data-bind="css: sortClass('operateSystem')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('applicant')">申请人&nbsp;&nbsp;<i data-bind="css: sortClass('applicant')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('effectDate')">生效日期&nbsp;&nbsp;<i data-bind="css: sortClass('effectDate')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('failureDate')">失效日期&nbsp;&nbsp;<i data-bind="css: sortClass('failureDate')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('ownerHost')">所属物理机&nbsp;&nbsp;<i data-bind="css: sortClass('ownerHost')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('ownerBusdomain')">所属业务系统&nbsp;&nbsp;<i data-bind="css: sortClass('ownerBusdomain')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('ownerVdc')">所属VDC&nbsp;&nbsp;<i data-bind="css: sortClass('ownerVdc')"/></th>
-									<th class="sortable" data-bind="click: toggleSort('busdomainHead')">业务系统负责人&nbsp;&nbsp;<i data-bind="css: sortClass('busdomainHead')"/></th>
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<th class="sortable" data-bind="click: $root.table.toggleSort(id)"><span data-bind="text: name"></span>&nbsp;&nbsp;<i data-bind="css: $root.table.sortClass(id)"/></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr data-bind="visible: showNoData">
+								<tr data-bind="visible: $root.table.showNoData">
 		           					<td colspan="14" class="aligncenter">
 		              					This table has no data.
 		           					</td>
 		            			</tr>
-		            			<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-								<tr>
-									<td data-bind="text:name"></td>
-									<td data-bind="text:status"></td>
-									<td data-bind="text:ip"></td>
-									<td data-bind="text:cpu"></td>
-									<td data-bind="text:memory"></td>
-									<td data-bind="text:storage"></td>
-									<td data-bind="text:operateSystem"></td>
-									<td data-bind="text:applicant"></td>
-									<td data-bind="text:effectDate"></td>
-									<td data-bind="text:failureDate"></td>
-									<td data-bind="text:ownerHost"></td>
-									<td data-bind="text:ownerBusdomain"></td>
-									<td data-bind="text:ownerVdc"></td>
-									<td data-bind="text:busdomainHead"></td>
+		            			<!-- ko foreach: {data: $root.table.pagedRows, as: '$row'}  -->
+								<tr data-bind="foreach: $root.fields_selected_ids">
+									<td data-bind="text:$row[id]"></td>
 								</tr>
 								<!-- /ko -->
 							</tbody>
 						</table>
 					</div>
 					<footer class="panel-footer" data-bind="with: table">
-						<div class="pull-left text-muted">数据时间：2016-06-21 16:28:30</div>
+						<div class="pull-left text-muted" data-bind="visible: $root.configVO().checkToShowDate">数据时间：<span data-bind="text: $root.configVO().updateTime"></span></div>
 						<ul class="pagination">
 					        <li data-bind="css: leftPagerClass, click: prevPage">
 					          <a href="#">&laquo;</a>
@@ -861,7 +604,7 @@
 				      <div class='modal-header'>
 				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>报表定义</h3>
 				      </div>
-				      <div class='modal-body form-horizontal row'>
+				      <div class='modal-body form-horizontal row' data-bind="with: configVO">
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">报表名称：</label><span class="col-xs-8" style="top: 7px;position: relative;">云主机报表</span>
 				        </div>
@@ -871,35 +614,21 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: conditions_all">
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>服务状态
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>云主机名称
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>IP地址
-				                </label>
-				              </div>
-				            </div>
+				            <div data-bind="foreach: conditions">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.conditions_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
+					         </div>
 				          </div>
 				        </div>
 				        <div class="form-group">
@@ -908,139 +637,38 @@
 				            <div class="col-xs-12">
 				              <div class="checkbox">
 				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
+				                  <input type="checkbox" data-bind="checked: fields_all" >
 				                  <i></i>全选
 				                </label>
 				              </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>云主机名称
-				                </label>
-				              </div>
+				            <div data-bind="foreach: fields">
+					            <div class="col-xs-4">
+					              <div class="checkbox">
+					                <label class="i-checks">
+					                  <input type="checkbox" data-bind="checkedValue: $data.id, checked: $parent.fields_selected_ids">
+					                  <i></i><a data-bind="text: name"></a>
+					                </label>
+					              </div>
+					            </div>
 				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>服务状态
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>IP地址
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>CPU(个)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>内存(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>存储(GB)
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>操作系统
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>申请人
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>生效日期
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>失效日期
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>所属物理机
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>所属业务系统
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>所属VDC
-				                </label>
-				              </div>
-				            </div>
-				            <div class="col-xs-4">
-				              <div class="checkbox">
-				                <label class="i-checks">
-				                  <input type="checkbox" checked="checked">
-				                  <i></i>业务系统负责人
-				                </label>
-				              </div>
-				            </div>
+				            
 				          </div>
 				        </div>
 				      	<div class="form-group">
 				          <div class="col-xs-12 form-inline">
-				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" /> <span style="top: 3px;position: Relative;"> 条</span>
+				            <label class="control-label">每页显示数据：</label><input type="text" style="width:40px" class="form-control input-sm" data-bind="value: pageSize"/> <span style="top: 3px;position: Relative;"> 条</span>
 				          </div>
 				        </div>
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">显示内容：</label>
 				          <div class="col-xs-8">
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowCollectTime">
 				                <i></i>数据时间
 				              </label>
 				              <label class="checkbox-inline i-checks">
-				                <input type="checkbox" checked="checked">
+				                <input type="checkbox" data-bind="checked: isShowExport">
 				                <i></i>导出Excel文件
 				              </label>
 				          </div>
@@ -1048,12 +676,12 @@
 				
 				      </div>
 				      <div class='modal-footer' style="text-align:center;">
-				        <a class="btn btn-default btn-info">确定</a>
-				        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+				        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.configSave('vm') }">确定</a>
+				         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 				      </div>
 				    </div>
 				  </div>
-				</div>						
+				</div>					
 			</div>
 			
 			<div class="tab-pane" id="defined1" role="tabpanel">
@@ -1161,8 +789,9 @@
   var scripts = ["assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	
-    function ViewModel(path, conditions, fields){
+    function ViewModel(path, conditions, fields, name){
     	var self = this;
+    	var perPage = 5;
       	//计费  产品类型下拉列表
       	var typeCountries = [{text:'全部', value:''},
       	                 	 {text:'云主机', value:'云主机'},
@@ -1195,7 +824,7 @@
       	this.search = function(){
           	this.table.params(this.searchParam());
         };
-      	this.table = new DataTable([], {path: path})
+      	this.table = new DataTable([], {path: path, perPage:5})
       	
       	//报表自定义界面操作
       	this.configVO = ko.observable({
@@ -1224,7 +853,14 @@
 		    }),
 		    pageSize : ko.observable(),
 		    isShowCollectTime: ko.observable(),
-		    isShowExport: ko.observable()
+		    isShowExport: ko.observable(),
+		    updateTime: ko.observable(), 
+		    checkToShowExport: ko.observable(),
+		    checkToShowDate: ko.observable(),
+		    afterSave: function(){
+		    	self.configVO().checkToShowDate(self.configVO().isShowCollectTime());
+		    	self.configVO().checkToShowExport(self.configVO().isShowExport());
+		    }
       	});
       	
       	this.conditions_selected_ids = ko.observableArray([]);
@@ -1253,9 +889,9 @@
       	}
 
       	//vdc报表定义页面操作
-    	this.isVdcAdd = ko.observable(false);
+    	this.isAdd = ko.observable(false);
       	this.configAdd = function(report){
-        	this.isVdcAdd(true);
+        	this.isAdd(true);
         	this.addOpen(report);  
       	};
       	this.configSave = function(report){
@@ -1273,14 +909,16 @@
       			 		systemMsg.alert('报表定义创建成功！');
       			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
-      			 		self.isVdcAdd(false);
+      			 		self.configVO().afterSave();
+      			 		self.isAdd(false);
       			    }); 
       			}else{
       				csc.rest.put('api/v5.0.0/reports/define/'+report, putBody,function(data){
       			 		systemMsg.alert('报表定义修改成功！');
       			 		self.makeup_conditions_selected_ids();
       			 		self.makeup_fields_selected_ids();
-      			 		self.isVdcAdd(false);
+      			 		self.configVO().afterSave();
+      			 		self.isAdd(false);
       			    });
       			}
       		});
@@ -1290,48 +928,52 @@
       	//加载页面报表定义配置信息
       	this.loadData = function(){
       		csc.rest.get('api/v5.0.0/reports/define',function(data){
-      			var vdcExsit = 0;
-      			var billExsit = 0;
-      			var hostExsit = 0;
-      			var vmExsit = 0;
+      			var count = 0;
       			for(var num=0;num<data.length;num++){
-      				if(data[num].code == "vdc"){
+      				if(data[num].code == name){
       					var db_conditions = data[num].conditions ? data[num].conditions.split(",") : [];
       					self.configVO().conditions_selected_ids(db_conditions);
       					var db_fields = data[num].fields.split(",");
       					self.configVO().fields_selected_ids(db_fields);
       					self.configVO().pageSize(data[num].pageSize);
       				    self.configVO().isShowCollectTime(data[num].isShowCollectTime=="true");
+      				  	self.configVO().checkToShowDate(data[num].isShowCollectTime=="true");
       				  	self.configVO().isShowExport(data[num].isShowExport=="true");
-      				  
+      				  	self.configVO().checkToShowExport(data[num].isShowExport=="true");
+      				  	self.configVO().updateTime(data[num].updateTime);
       				  	self.makeup_conditions_selected_ids();
       				  	self.makeup_fields_selected_ids();
-      					vdcExsit = 1;
-      				}else if(data[num].code == "billing"){
-      					billExsit = 1;
-      				}else if(data[num].code == "host"){
-      					hostExsit = 1;
-      				}else if(data[num].code == "vm"){
-      					vmExsit = 1;
+      				  	count = 1;
       				}
       			}
-      			if(vdcExsit == 0){
-      				self.configVO().conditions_selected_ids(['vdcName']);
-      				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
-      				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
-      				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
-      				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
+      			if(count == 0){
+      				if(name == 'vdc'){
+      					self.configVO().conditions_selected_ids(['vdcName']);
+          				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
+          				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
+          				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
+          				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
+      				}else if(name == 'billing'){
+      					self.configVO().conditions_selected_ids(['serviceName','vdcName','user']);
+          				self.configVO().fields_selected_ids(['serviceName','type','billing','user','vdcName']);
+      				}else if(name == 'host'){
+      					self.configVO().conditions_selected_ids(['partitionName','name','ip']);
+          				self.configVO().fields_selected_ids(['name','ip','partitionName','virtualType','vmNum','status',
+          				                                     'totalCpu','usedCpu','cpuUsage','totalMemory','usedMemory',
+          				                                     'memoryUsage','totalStorage','usedStorage','storageUsage']);
+      				}else if(name == 'vm'){
+      					self.configVO().conditions_selected_ids(['status','name','ip']);
+          				self.configVO().fields_selected_ids(['name','status','ip','cpu','memory','storage',
+          				                                     'operateSystem','applicant','effectDate','failureDate','ownerHost',
+          				                                     'ownerBusdomain','ownerVdc','busdomainHead']);
+      				}
       				self.configVO().pageSize(15);
   				    self.configVO().isShowCollectTime(true);
+  				  	self.configVO().checkToShowDate(true);
   				  	self.configVO().isShowExport(true);
+  				  	self.configVO().checkToShowExport(true)
       				self.makeup_conditions_selected_ids();
       				self.makeup_fields_selected_ids();
-      			}
-      			if(billExsit == 0){
-      			}
-      			if(hostExsit == 0){
-      			}
-      			if(vmExsit == 0){
       			}
     		});
       	}
@@ -1353,21 +995,27 @@
       				}
       			}
       			if(count == 0){
-      				if(flag == 'vdc'){
+      				if(report == 'vdc'){
       					self.configVO().conditions_selected_ids(['vdcName']);
           				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
           				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
-          				self.configVO().pageSize(15);
-      				    self.configVO().isShowCollectTime(true);
-      				  	self.configVO().isShowExport(true);
-      				}else if(flag == 'billing'){
-      					
-      				}else if(flag == 'host'){
-      					
-      				}else if(flag == 'vm'){
-      					
+      				}else if(report == 'billing'){
+      					self.configVO().conditions_selected_ids(['serviceName','vdcName','user']);
+          				self.configVO().fields_selected_ids(['serviceName','type','billing','user','vdcName']);
+      				}else if(report == 'host'){
+      					self.configVO().conditions_selected_ids(['vdcName']);
+          				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
+          				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
+          				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
+          				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
+      				}else if(report == 'vm'){
+      					self.configVO().conditions_selected_ids(['vdcName']);
+          				self.configVO().fields_selected_ids(['vdcName','busdomainNum','vpcNum','vmNum','volumeNum','routerNum',
+          				                                     'securityGroupNum','ipNum','loadBalanceNum','firewallNum','sshNum',
+          				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
+          				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}
       			}
     		});
@@ -1399,16 +1047,78 @@
 				{id: 'totalUsedMem', name: '内存已使用(GB)'},
 				{id: 'totalStorageQuota', name: '存储配额(GB)'},
 				{id: 'totalUsedStorage', name: '存储已使用(GB)'}
-	  		]);
+	  		],
+	  		'vdc');
     ko.applyBindings(vdcViewModel, $('#page-content .tab-pane')[0]); 
     
-    var feeViewModel = new ViewModel('api/v5.0.0/reports/fee')
+    var feeViewModel = new ViewModel(
+    		'api/v5.0.0/reports/fee',
+    		[
+		    	{id: 'serviceName', name: '服务名称'},
+		    	{id: 'vdcName', name: '所属VDC'},
+		    	{id: 'user', name: '用户'}
+			],
+			[
+				{id: 'serviceName', name: '服务名称'},
+				{id: 'type', name: '产品类型'},
+				{id: 'billing', name: '费用(元)'},
+				{id: 'user', name: '用户'},
+				{id: 'vdcName', name: '所属VDC'}
+	  		],
+	  		'billing');
     ko.applyBindings(feeViewModel, $('#page-content .tab-pane')[1]); 
     
-    var hostViewModel = new ViewModel('api/v5.0.0/reports/macReport')
+    var hostViewModel = new ViewModel(
+    		'api/v5.0.0/reports/macReport',
+    		[
+		    	{id: 'partitionName', name: '所属可用分区'},
+		    	{id: 'name', name: '物理机名称'},
+		    	{id: 'ip', name: '物理机IP'}
+			],
+			[
+				{id: 'name', name: '物理机名称'},
+				{id: 'ip', name: '物理机IP'},
+				{id: 'partitionName', name: '所属可用分区'},
+				{id: 'virtualType', name: '虚拟化类型'},
+				{id: 'vmNum', name: '虚拟机总数'},
+				{id: 'status', name: '状态'},
+				{id: 'totalCpu', name: 'CPU'},
+				{id: 'usedCpu', name: 'CPU已用'},
+				{id: 'cpuUsage', name: 'CPU使用率'},
+				{id: 'totalMemory', name: '内存总量(GB)'},
+				{id: 'usedMemory', name: '内存已用(GB)'},
+				{id: 'memoryUsage', name: '内存使用率'},
+				{id: 'totalStorage', name: '存储总量(GB)'},
+				{id: 'usedStorage', name: '存储已用(GB)'},
+				{id: 'storageUsage', name: '存储使用率'}
+	  		],
+	  		'host');
     ko.applyBindings(hostViewModel, $('#page-content .tab-pane')[2]); 
     
-    var vmViewModel = new ViewModel('api/v5.0.0/reports/vmReport')
+    var vmViewModel = new ViewModel(
+    		'api/v5.0.0/reports/vmReport',
+    		[
+		    	{id: 'status', name: '服务状态'},
+		    	{id: 'name', name: '云主机名称'},
+		    	{id: 'ip', name: 'IP地址'}
+			],
+			[
+				{id: 'name', name: '云主机名称'},
+				{id: 'status', name: '服务状态'},
+				{id: 'ip', name: 'IP地址'},
+				{id: 'cpu', name: 'CPU(个)'},
+				{id: 'memory', name: '内存(GB)'},
+				{id: 'storage', name: '存储(GB)'},
+				{id: 'operateSystem', name: '操作系统'},
+				{id: 'applicant', name: '申请人'},
+				{id: 'effectDate', name: '生效日期'},
+				{id: 'failureDate', name: '失效日期'},
+				{id: 'ownerHost', name: '所属物理机'},
+				{id: 'ownerBusdomain', name: '所属业务系统'},
+				{id: 'ownerVdc', name: '所属VDC'},
+				{id: 'busdomainHead', name: '业务系统负责人'}
+	  		],
+	  		'vm');
     ko.applyBindings(vmViewModel, $('#page-content .tab-pane')[3]); 
     
       	

@@ -1,0 +1,355 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="">
+    <meta name="description" content="">
+
+    <meta name="viewport" content="minimal-ui">
+    <script>
+    document.documentElement.className = 'js';
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+    <!-- Force latest IE rendering engine & Chrome Frame -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- Make IE recognise HTML5 elements for styling -->
+    <!--[if lte IE 8]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script type="text/javascript" src="assets/js/hm.js"></script>
+    <script type="text/javascript" src="assets/js/jquery-1.11.0.min.js"></script>
+    <script src="assets/js/jquery.event.move.js"></script>
+    <script src="assets/js/jquery.event.swipe.js"></script>
+    <script src="assets/js/weixin.js"></script>
+    <script src="assets/js/jquery.transit.min.js"></script>
+    <title>企业名片</title>
+</head>
+
+
+<style>
+body {
+    background:gray;
+}
+.page {
+    position:absolute;
+    width:320px;
+    height:504px;
+    left:50%;
+    top:50%;
+    overflow:hidden;
+    margin:-252px 0 0 -160px;
+    background:gray;
+}
+.pagecontent {
+    position:absolute;
+    width:320px;
+    height:504px;
+    left:50%;
+    top:50%;
+    margin:-252px 0 0 -160px;
+}
+</style>
+<body>
+    <div id="pages" style="position:absolute;left:0%;top:0%;width:100%;height:100%;overflow:hidden">
+    </div>
+
+    <div id="makaad" class='page' style="background:rgba(0,0,0,0);top:150%;display:none">
+
+        <div style="border-radius:10px;position:absolute;background:rgba(255,255,255,0.9);width:160px;height:200px;left:80px;top:0;overflow:hidden">
+            <img src="assets/index/ad_tab.png" style="position:absolute;width:20px;height:10px;left:70px;top:5px;" /></img>
+
+            <img src="assets/index/makaad.png" style="position:absolute;width:140px;height:60px;left:10px;top:12px;" /></img>
+            <div style="font-size:small;position:absolute;top:68px;width:160px;height:30px;text-align:center;color:gray">Power by Winhong.</div>
+        </div>
+    </div>
+
+
+    <div id="preload" style="position:absolute;left:0%;top:0%;width:100%;height:100%;background:white;overflow:hidden"></div>
+
+</body>
+
+
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=stGifYW7DV6tMfOs1NHGyxwn"></script>
+<script>
+
+$.ajaxSetup({cache: false});
+
+window.onload = function() {
+
+    window.setInterval(function() {
+        window.scrollTo(0, 0);
+    }, 0);
+
+};
+
+var preload = "preload.html";
+var pagearray = ["commute", "schedule", "guest", "meeting", "cover"];
+//
+var pagedata = new Array(pagearray.length);
+page_framework();
+
+var page = $('#pages');
+var pages = page.find('.page');
+var page_i = pagearray.length - 1;
+
+
+var ajax_num = 0;
+loadpage_init();
+
+function loadpage_init() {
+
+    $.ajax({
+        type: 'get', //可选get
+        url: preload, //这里是接收数据的PHP程序
+        data: 'pid=demo', //传给PHP的数据，多个参数用&连接
+        dataType: 'html', //服务器返回的数据类型 可选XML ,Json jsonp script html text等
+        timeout: 100000,
+        success: function(msg) {
+
+            //这里是ajax提交成功后，PHP程序返回的数据处理函数。msg是返回的数据，数据类型在dataType参数里定义！
+            $('#preload').html(msg);
+            for (var i = 0; i < pagearray.length; i++) {
+                ajax_request(i);
+            }
+        },
+        error: function() {
+            //alert("error loading");
+            //loadpage_init();
+
+        }
+    });
+}
+
+
+
+var is_adshow = 0;
+
+function showad() {
+    $('#makaad').transition({
+        y: '-100px'
+    }, page_ublock);
+    is_adshow = 1;
+}
+
+function hidead() {
+    $('#makaad').transition({
+        y: '-20px'
+    }, page_ublock);
+    is_adshow = 0;
+}
+
+function showadbar() {
+    $('#makaad').transition({
+        y: '-20px'
+    });
+}
+
+function hideadbar() {
+    $('#makaad').transition({
+        y: '0'
+    });
+}
+
+
+
+function page_framework() {
+    for (var i = 0; i < pagearray.length; i++) {
+
+        $('#pages').append("<div class='page'>page </div>");
+    }
+    hideadbar();
+}
+
+function ajax_request(num) {
+
+    $.ajax({
+        type: 'get', //可选get
+        url: pagearray[num] + '.html', //这里是接收数据的PHP程序
+        data: 'pid=demo', //传给PHP的数据，多个参数用&连接
+        dataType: 'html', //服务器返回的数据类型 可选XML ,Json jsonp script html text等
+
+        success: function(msg) {
+            //这里是ajax提交成功后，PHP程序返回的数据处理函数。msg是返回的数据，数据类型在dataType参数里定义！
+            pagedata[num] = msg;
+            load_page(num);
+            ajax_count();
+
+        },
+        error: function() {
+            ajax_request(num);
+
+        }
+    });
+}
+
+
+function ajax_count() {
+    ajax_num++;
+    if (ajax_num == pagearray.length) {
+
+        ajax_end();
+    }
+}
+
+
+function ajax_end() {
+
+    init_page();
+
+
+
+
+    pages.eq(pages.length - 1)
+        .on('click', function(e) {
+            if (page_lock == 1) {
+                return;
+            }
+            if (page_i === 0) {
+                page_lock = 1;
+                showad();
+                return
+            }
+            page_lock = 1;
+            eval(pagearray[page_i] + "_disappear_effect()");
+            eval(pagearray[page_i - 1] + "_show_effect_up()");
+
+            pages.eq(page_i).transition({
+                y: '-101%'
+            }, 800, 'ease', function() {
+
+                eval(pagearray[page_i - 1] + "_init()");
+                page_i--;
+                if (page_i == 0) showadbar();
+            });
+        })
+
+    for (var i = 0; i < pages.length; i++) {
+
+        pages.eq(i).on('swipeup', {
+            a: i
+        }, function(e) {
+
+            if (e.data.a === 0) {
+                showad();
+                return
+            }
+
+            eval(pagearray[e.data.a] + "_disappear_effect()");
+            eval(pagearray[e.data.a - 1] + "_show_effect_up()");
+            pages.eq(e.data.a - 1).css({
+                y: '0'
+            }, 100, 'ease');
+            pages.eq(e.data.a).transition({
+                y: '-101%'
+            }, 800, 'ease', function() {
+
+                eval(pagearray[e.data.a - 1] + "_init()");
+
+                if (e.data.a == 1) showadbar();
+            });
+        })
+            .on('swipedown', {
+                a: i
+            }, function(e) {
+
+                if (e.data.a === pages.length - 1) {
+                    return;
+                }
+                if (is_adshow == 1) {
+                    hidead();
+                    return
+                }
+                if (e.data.a == 0) hideadbar();
+
+                eval(pagearray[e.data.a] + "_disappear_effect()");
+                eval(pagearray[e.data.a + 1] + "_show_effect_down()");
+                pages.eq(e.data.a + 1).transition({
+                    y: 0
+                }, 800, 'ease', function() {
+                    eval(pagearray[e.data.a + 1] + "_init()");
+                    pages.eq(e.data.a).css({
+                        y: '-100%'
+                    }, 100, 'ease');
+                });
+            })
+
+
+    }
+
+
+
+
+}
+var page_lock = 0;
+
+function page_ublock() {
+    page_lock = 0;
+}
+
+function init_page() {
+
+    load_page(page_i);
+
+    eval(pagearray[page_i] + "_init()");
+
+    eval(pagearray[page_i] + "_disappear_effect()");
+    $('#preload').delay(1000).transition({
+        'top': '-100%',
+        opacity: 0
+    }, 500, function() {
+        eval(pagearray[page_i] + "_show_effect_down()")
+    });
+
+}
+
+
+
+function load_page(i) {
+    if (i >= 0 || i <= pagearray.length - 1) pages.eq(i).html(pagedata[i]);
+    //alert("load"+i);
+}
+
+function clean_page(i) {
+    if (i >= 0 || i <= pagearray.length - 1) pages.eq(i).empty();
+    //alert("clean"+i);
+}
+
+(function(jQuery, undefined) {
+
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        WeixinJSBridge.call('hideToolbar');
+    });
+
+    ws = document.body.clientWidth / 320.0;
+    hs = document.body.clientHeight / 504.0;
+
+
+
+    window.onresize = function() {
+
+        ws = document.body.clientWidth / 320.0;
+        hs = document.body.clientHeight / 504.0;
+
+
+
+        $('.page').each(function() {
+            $(this).css({
+                scale: hs
+            });
+
+        });
+
+    }
+
+    jQuery(document).ready(function() {
+
+        $('.page').each(function() {
+            $(this).css({
+                scale: hs
+            });
+        });
+
+
+
+
+    })
+})(jQuery);
+</script>

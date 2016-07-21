@@ -127,7 +127,9 @@
         				<td data-bind="text:size"></td>
         				<td data-bind="text:mountVmUuid"></td>
         				<td data-bind="text:vdcUuId">研发部</td>
-        				<td><a data-bind="click: $root.queryVdisk">查看</a> | <a onclick="showModal('pages/services/product/modal2.html')">修改</a> | <a data-bind="click: $root.deleteVdisk" >删除</a>
+        				<td><a data-bind="click: function(data, event){ $root.queryElement('vdiskCartInfo',data,event) }">查看</a> 
+        				| <a data-bind="click: function(data, event){ $root.editElement('vdiskCartInfo',data,event) }">修改</a> 
+        				| <a data-bind="click: function(data, event){ $root.deleteElement('vdiskCartInfo',data,event) }">删除</a>
                 </td>
               </tr>
               <!-- /ko -->
@@ -164,6 +166,7 @@
               <th>操作</th>
             </thead>
             <tbody>
+              <!-- ko foreach: objectStorageList  -->
               <tr>
               	<td>
                   <div class="checkbox">
@@ -173,12 +176,16 @@
                     </label>
                   </div>
                 </td>
-				<td>对象存储1</td>
-				<td>300</td>
-				<td>研发部</td>
-				<td>永久</td>
-				<td><a onclick="showModal('pages/services/product/modal3.html')">查看</a> | <a onclick="showModal('pages/services/product/modal3.html')">修改</a> | <a onclick="confirm('确定删除吗？')">删除</a></td>
+               	<td data-bind="text:name"></td>
+ 				<td data-bind="text:size"></td>
+ 				<td data-bind="text:vdcUuid"></td>
+ 				<td data-bind="text:applyType">研发部</td>
+				<td><a data-bind="click: function(data, event){ $root.queryElement('objectStorageCartInfo',data,event) }">查看</a> 
+        				| <a data-bind="click: function(data, event){ $root.editElement('objectStorageCartInfo',data,event) }">修改</a> 
+        				| <a data-bind="click: function(data, event){ $root.deleteElement('objectStorageCartInfo',data,event) }">删除</a>
+        		</td>
               </tr>
+              <!-- /ko -->
             </tbody>
           </table>
         </div>
@@ -361,46 +368,98 @@
 	 	
 	 	function ViewModel(){
 		    var self = this;
-		    
-		    var vList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];  
+		      
 		    this.vdiskList = ko.observableArray();
+		    this.objectStorageList = ko.observableArray();
  		 	csc.rest.get('api/v5.0.0/cart',function(data){
- 		 		console.log(data['vdiskCartInfo']);
-		 		vdiskList = data['vdiskCartInfo'];		 		
-		 		self.vdiskList(vdiskList);
-		 		objectStorageList = data['objectStorageCartInfo'];
+ 		 		console.log(data['vdiskCartInfo']); 		
+		 		self.vdiskList(data['vdiskCartInfo']);
+		 		self.objectStorageList(data['objectStorageCartInfo']);
 		 		publicNetworkList = data['publicNetworkCartInfo'];
 		    }); 
  		 	
- 		 	this.isAdd_Vdisk = ko.observable(false);
+ 		 	this.isView_Vdisk = ko.observable(false);
+ 		 	this.isView_ObjectStorage = ko.observable(false); 
  		 	
  		 	this.model_Vdisk = ko.validatedObservable({
 			    	vdiskCartInfo:ko.observable({
+			    			id:"",
 			    			name:"",
-			    			
+			    			size:"",
+			    			vdcUuId:"",
+			    			mountVmUuid:""	
 	 			    	})
  		 	});
  		 	
- 		 	this.queryVdisk = function(object, event){
- 	 		 	csc.rest.get('api/v5.0.0/cart/query/vdiskCartInfo/'+object.id,function(data){	
- 	 			  self.model_Vdisk().vdiskCartInfo(data);
+ 		 	this.model_ObjectStorage = ko.validatedObservable({
+		    	objectStorageCartInfo:ko.observable({
+		    			id:"",
+		    			name:"",
+		    			size:"",
+		    			applyTime:"",
+		    			vdcUuId:"",
+		    			billRuleUuid:""	
+ 			    	})
+		 	});
+ 		 	
+ 		 	this.queryElement = function(arg,object, event){
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.id,function(data){
+ 	 		 	  console.log(data);
+ 	 		 	  if(arg=='vdiskCartInfo'){
+ 	 		 		self.model_Vdisk().vdiskCartInfo(data);
+ 	 		 		self.isView_Vdisk(true);	
+ 	 		 	  }else if(arg=='objectStorageCartInfo'){
+ 	 		 		self.model_ObjectStorage().objectStorageCartInfo(data);
+ 	 		 		self.isView_ObjectStorage(true);	 		 		  
+ 	 		 	  }
  			    }); 
- 		 		self.isAdd_Vdisk(true);	
  		 	}
  		 	
- 		 	this.editVdisk = function(object, event){
- 		 		
+ 		 	this.isEdit_Vdisk = ko.observable(false);
+ 		 	this.isEdit_ObjectStorage = ko.observable(false);
+ 		 	
+ 		 	this.editElement = function(arg,object, event){
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.id,function(data){
+ 	 	 		 	  if(arg=='vdiskCartInfo'){
+	 	 	 		 		self.model_Vdisk().vdiskCartInfo(data);
+	 	 	 		 		self.model_Vdisk().vdiskCartInfo().id = object.id;
+	 	  	 		 		self.isEdit_Vdisk(true);	
+ 	  	 		 	  }else if(arg=='objectStorageCartInfo'){
+ 	 	 	 		 		self.model_ObjectStorage().objectStorageCartInfo(data);
+ 	 	 	 		 		self.model_ObjectStorage().objectStorageCartInfo().id = object.id;
+ 	 	  	 		 		self.isEdit_ObjectStorage(true);	 		 		  
+ 	 	 		 	  }
+ 	 			    }); 	 		
  		 	}
  		 		 	
-	      	this.deleteVdisk = function(object, event){
-	      		
- 	      		systemMsg.confirm("确定删除云硬盘"+object.name+"吗?",function(){
-	 	 		 	csc.rest.del('api/v5.0.0/cart/delete/vdiskCartInfo/'+object.id,function(data){
-	 	 		 		systemMsg.alert('删除云硬盘成功！');	
-	 	 		 		self.vdiskList.remove(object);
+	      	this.deleteElement = function(arg,object,event){
+  	      		systemMsg.confirm("确定删除"+object.name+"吗?",function(){debugger
+	 	 		 	csc.rest.del('api/v5.0.0/cart/delete/'+arg+'/'+object.id,function(data){
+	 	 		 		 systemMsg.alert('删除成功！');	
+	 	 	 		 	 if(arg=='vdiskCartInfo'){
+	 	 	 		 		self.vdiskList.remove(object);	
+	 	 	  	 		 }else if(arg=="objectStorageCartInfo"){
+	 	 	  	 			self.objectStorageList.remove(object);	
+	 	 	  	 		 }
 	 			    }); 
-	      		}); 
+	      		});
+	      	}
+	      	
+	      	this.confirmCommit = function(arg){
+	      		var json;
+	      		if(arg=="vdiskCartInfo"){
+					json = this.model_Vdisk.toJSON();
+	      		}else if(arg=="objectStorageCartInfo"){
+	      			json = this.model_ObjectStorage.toJSON();
+	      		}
 
+			 	 csc.rest.put('api/v5.0.0/cart/update',json,function(data){
+			 		systemMsg.alert('修改成功！');
+			 		self.isEdit_Vdisk(false);
+			 		self.isEdit_ObjectStorage(false);
+			    }); 
+
+	      		
 	      	}
 	    }
 		ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]);
@@ -410,12 +469,12 @@
 
 
 
-<!-- 云硬盘 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Vdisk}">	
+<!-- 云硬盘查看 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isView_Vdisk}">	
   <div class='modal-dialog modal-lg' style="width:800px;">
     <div class='modal-content'>
       <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改云硬盘服务</h3>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>查看云硬盘服务</h3>
       </div>
       <div class='modal-body'>
         <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
@@ -428,22 +487,135 @@
               <th>挂载云主机</th>
               <th>收费标准</th>
             </tr></thead>
-            <tbody id="applyServiceDiskBox"><tr>
-            <td><input type="text" class="form-control input-sm" disabled="disabled" data-bind="value:model_Vdisk().vdiskCartInfo().name"></td>
-            <td><input type="text" class="form-control input-sm"></td>
-            <td><select class="form-control input-sm">
-            <option value="">1</option></select></td><td>
-            	<select class="form-control input-sm"><option value="">1</option>
-            	</select></td>
-            	<td>0.5元/小时</td></tr></tbody>
+            <tbody><tr>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().name"></span></td>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().size"></span></td>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().vdcUuId"></span></td>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().mountVmUuid"></span></td>
+            <td>0.5元/小时</td></tr></tbody>
           </table>
         </div>
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 云硬盘查看 -->
+<!-- 云硬盘修改 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEdit_Vdisk}">	
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改云硬盘服务</h3>
+      </div>
+      <div class='modal-body'>
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+        <input style="display:none" type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().id">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+              <th>云硬盘名称<i style="color:red">*</i></th>
+              <th>存储大小(G)<i style="color:red">*</i></th>
+              <th>所属VDC<i style="color:red">*</i></th>
+              <th>挂载云主机</th>
+              <th>收费标准</th>
+            </tr></thead>
+            <tbody><tr>
+            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().name"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().size"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().vdcUuId"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().mountVmUuid"></td>
+            <td>0.5元/小时</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.confirmCommit('vdiskCartInfo') }">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
   </div>
 </div>
-<!-- 云硬盘 -->
+<!-- 云硬盘修改 -->
+<!-- 对象存储查看 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isView_ObjectStorage}">
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改对象存储服务</h3>
+      </div>
+      <div class='modal-body'>
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+              <th>对象存储名称<i style="color:red">*</i></th>
+              <th>存储大小(G)<i style="color:red">*</i></th>
+              <th>所属VDC<i style="color:red">*</i></th>
+              <th>申请时长</th>
+              <th>套餐</th>
+              <th>收费标准</th>
+            </tr></thead>
+            <tbody>
+            <tr>
+	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().name"></span></td>
+	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().size"></span></td>
+	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().vdcUuid"></span></td>
+	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().applyTime"></span></td>
+	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().billRuleUuid"></span></td>
+	            <td>0.5元/小时</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 对象存储查看 -->
+<!-- 对象存储修改 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEdit_ObjectStorage}">
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改对象存储服务</h3>
+      </div>
+      <div class='modal-body'>
+      	<input style="display:none" type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().id">
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+              <th>对象存储名称<i style="color:red">*</i></th>
+              <th>存储大小(G)<i style="color:red">*</i></th>
+              <th>所属VDC<i style="color:red">*</i></th>
+              <th>申请时长</th>
+              <th>套餐</th>
+              <th>收费标准</th>
+            </tr></thead>
+            <tbody>
+            <tr>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().name"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().size"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().vdcUuid"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().applyTime"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().billRuleUuid"></td>
+	            <td>0.5元/小时</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.confirmCommit('objectStorageCartInfo') }">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 对象存储修改 -->
