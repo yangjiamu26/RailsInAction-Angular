@@ -322,7 +322,7 @@
 						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
 									<td><a href="#pages/vdcs/firewalls/show" data-bind="text: $row.name"></a></td>
-									<td  data-bind="text: $row.vdcName"</td>
+									<td  data-bind="text: $row.vdcName"></td>
 									<td  data-bind="text: $row.vpcName"></td>
 									<td  data-bind="text: $row.routerName"></td>
 									<td>
@@ -418,25 +418,23 @@
 			
 			
 			
-			
 			<div class="tab-pane" id="safegroup" role="tabpanel">
-
 				<div class="panel panel-default">
 					<div class="row wrapper">
 						<div class="col-xs-8">
-							<a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/safegroups/new.html')">创建安全组</a>
+							<a class="btn btn-sm btn-primary" data-bind="click:createSecretGroup">创建安全组</a>
 						</div>
 						<div class="col-xs-3">          
 	                        <div class="input-group">
 	                          <span class="input-group-addon">名称</span>
-	                          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+	                          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchSecretGroupParam().name">
 	                        </div>
 	                    </div>
 	                    <div class="col-xs-1">
-	                        <button class="btn btn-sm btn-default" type="button">搜索</button>
+	                        <button class="btn btn-sm btn-default" type="button"  data-bind="click:searchSecretGroup">搜索</button>
 	                    </div>
 					</div>				
-					<div class="table-responsive">
+					<div class="table-responsive" data-bind="with: secretGroupListTable">
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -447,54 +445,109 @@
 								</tr>
 							</thead>
 							<tbody>
+							    <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						        </tr>
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td><a href="#pages/vdcs/safegroups/show">安全组01</a></td>
-									<td>研发部</td>
-									<td>VPC01</td>
+									<td><a href="#pages/vdcs/safegroups/show" data-bind="text: $row.name"></a></td>
+									<td data-bind="text: $row.vdcName"></td>
+									<td data-bind="text: $row.vpcName"></td>
 									<td>
-										<a onclick="showModal('pages/vdcs/safegroups/new.html')">修改</a> | <a>删除</a>
+										   <a data-bind="click:$root.delSecretGroup">删除</a>
 									</td>
 								</tr>
+								<!--  /ko  -->
 							</tbody>
 						</table>
 					</div>
-					<footer class="panel-footer">
-						<ul class="pagination">
-							<li class="page active">
-								<a href="#pages/javascript:void(0)">1</a>
-							</li>
-							<li class="page">
-								<a>2</a>
-							</li>
-							<li class="page">
-								<a>3</a>
-							</li>
-							<li class="page">
-								<a>4</a>
-							</li>
-							<li class="page">
-								<a >5</a>
-							</li>
-							<li class="page gap disabled">
-								<a href="#pages/javascript:void(0)">…</a>
-							</li>
-							<li class="next">
-								<a>下页 ›</a>
-							</li>
-							<li class="last">
-								<a>末页 »</a>
-							</li>
-						</ul>
-					</footer>					
+		            <footer class="panel-footer" data-bind="with: secretGroupListTable, visible: secretGroupListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>				
 				</div>
-			</div>			
+				
+			  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createSecretGroupModel }">
+				 <div class='modal-dialog' role='document'>
+				    <div class='modal-content'>
+				      <div class='modal-header'>
+				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+				           <h3 class='modal-title' data-bind="ifnot: secretGroupVO().uuid">创建安全组</h3>
+					       <h3 class='modal-title' data-bind="if: secretGroupVO().uuid">创建安全组</h3>
+				      </div>
+				      <div class='modal-body form-horizontal'>
+				        <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            安全组名称
+				          </label>
+				          <div class="col-xs-8">
+				            <input class="form-control" type="text" data-bind="value:secretGroupVO().name"/>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div> 
+				        </div>
+				        <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            所属VDC
+				          </label>
+				          <div class="col-xs-8">
+				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: secretGroupVO().vdcUuid, enable: secretGroupVO().uuid==null">
+				            </select>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div> 
+				        </div>
+				        <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            所属VPC
+				          </label>
+				          <div class="col-xs-8">
+				            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: secretGroupVO().vpcUuid, enable: secretGroupVO().uuid==null">
+				            </select>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div> 
+				        </div>
+				        <div class="form-group charge_factor_properties">
+				          <label class="col-xs-3 control-label" for="charge_factor_properties">描述</label>
+				          <div class="col-xs-8">
+				            <textarea class="form-control" name="charge_factor[properties]" id="charge_factor_properties"   data-bind="value:secretGroupVO().desc"></textarea>
+				          </div>
+				        </div>        
+				      </div>
+				      <div class='modal-footer'>
+				        <input type="button" name="commit" value="确定"  data-bind="click: secretGroupSubmit" class="btn btn-default btn-info" />
+				        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+				      </div>
+				    </div>
+				  </div>
+				
+			</div>	
+			
+					
 		</div>
 	</div>
 </div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js"]
+	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js","api/vpc/secretGroup.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		
 		/******************************vpc*************************************/
@@ -757,7 +810,91 @@
 	    /******************************firewall*************************************/
 	    
         /******************************secretGroup*************************************/
+	    function secretGroupViewModel(){
+    		var self = this;
+    		self.vdcList = ko.observableArray();
+    		self.vpcList = ko.observableArray();
+    		self.secretgroupListTable = ko.observableArray();
+    		
+    		self.secretGroupVO = ko.validatedObservable({
+    			     "name":ko.observable().extend({required: true}),
+					 "vdcUuid":ko.observable().extend({required: true}),
+					 "vpcUuid":ko.observable().extend({required: true}),
+					 "desc":""
+					});
+    		     
+    		self.createSecretGroupModel = ko.observable(false);
+    		self.createSecretGroup = function(){
+    			//TODO 查询其他模块的接口
+    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.secretGroupVO.fromJSON({"name":"",
+					 "vdcUuid":"",
+					 "vpcUuid": "",
+					 "desc":"",
+					 "uuid":null
+					});
+   			    self.createSecretGroupModel(true)	
+    		}
+    		
+    		self.modifySecretGroup = function(rowObj, event){
+    			//TODO 查询其他模块的接口
+                self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.secretGroupVO.fromJSON(rowObj);
+    			self.createSecretGroupModel(true)	
+    		}
+    		
+      		
+    		self.secretGroupSubmit = function(){
+    		    var secretGroupUuid = self.secretGroupVO.toJSON().uuid;
+    		    
+    			if(!secretGroupUuid){
+    				  ko.validation.group(self.secretGroupVO).showAllMessages();
+    	    	        if(self.secretGroupVO.isValid()){
+    	    	        	$.SECRETGROUP.createSecretGroup(self.secretGroupVO.toJSON(),function(data){
+    	        			 	self.createSecretGroupModel(false);
+    	        		    	self.secretgroupListTable.refreshData();
+    	        			});
+    	    	        }
+    			}else{
+    				ko.validation.group(self.secretGroupVO).showAllMessages();
+          	        if(self.secretGroupVO.isValid()){
+          	        	 var uuid = self.secretGroupVO.toJSON().uuid;
+            			 var putBody = {
+            					 "name":self.secretGroupVO.toJSON().name
+            			 }
+           				$.SECRETGROUP.modifySecretGroup(uuid,putBody,function(data){
+           					self.createSecretGroupModel(false);
+            		    	self.secretgroupListTable.refreshData();
+               			});
+          	        }
+    			}
+    		}
+    		
+    		
+    		self.delSecretGroup = function(rowObj){
+    			var secretGroupName = rowObj.name;
+    			confirm("确定删除安全组["+secretGroupName+"]？",function(arg){
+    				$.SECRETGROUP.delSecretGroup(rowObj.uuid,function(data){
+    					  self.secretGroupListTable.refreshData();
+    					  alert("删除安全组["+secretGroupName+"]成功！")
+           			});
+    			 });
+    		}
+    		
+    		self.searchSecretGroupParam = ko.observable({
+        	        name: ""
+        	    })
+        	    
+       	    self.searchSecretGroup = function(){
+       	      self.secretGroupListTable.params(this.searchSecretGroupParam());
+       	    }
+    		
+    		self.secretGroupListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups', perPage: 1});
+	 	};
 	    
+	    ko.applyBindings(new secretGroupViewModel(), $("#page-content .tab-pane")[3]);
 	    /******************************secretGroup*************************************/
 	});
 </script>
