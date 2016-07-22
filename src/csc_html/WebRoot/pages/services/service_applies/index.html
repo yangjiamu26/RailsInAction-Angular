@@ -1,3 +1,7 @@
+<style>
+  .ztree.release li a.curSelectedNode{background:none;color: #82939E;}
+  .ztree.release li a:hover{border-color:#fff;background-color:#fff;}
+</style>
 <div class="app-content-full">
 	<div class="bg-light lter b-b wrapper-sm">
 		<ol class="breadcrumb">
@@ -65,7 +69,7 @@
 							<div class="wrapper-md">
 
 								<div class="service-right-content">
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_VDC">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -128,26 +132,21 @@
 									<div class="form-inline" style="margin-bottom: 10px;">
 										<div class="input-group">
 											<span class="input-group-addon">操作系统类型</span> <select name=""
-												id="" class="form-control input-sm">
-												<option value="">1</option>
-											</select>
+												id="" class="form-control input-sm" data-bind="options:osTypeList,optionsText:'name',optionsValue:'value',value:searchParam().osType"></select>
 										</div>
 										<div class="input-group">
 											<span class="input-group-addon">CPU(核)</span> <select name=""
-												id="" class="form-control input-sm">
-												<option value="">1</option>
-											</select>
+												id="" class="form-control input-sm" data-bind="options:cpuList,optionsText:'name',optionsValue:'value',value:searchParam().cpu"></select>
 										</div>
 										<div class="input-group">
 											<span class="input-group-addon">内存(G)</span> <select name=""
-												id="" class="form-control input-sm">
-												<option value="">1</option>
-											</select>
+												id="" class="form-control input-sm" data-bind="options:memoryList,optionsText:'name',optionsValue:'value',value:searchParam().memory"></select>
 										</div>
-										<a class="btn btn-default btn-sm">搜索</a>
+										<a class="btn btn-default btn-sm" data-bind="click: search">搜索</a>
 									</div>
 
-									<div class="service-list-box row">
+									<div class="service-list-box row" data-bind="with: table_VM">
+										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
 												<div class="panel-heading wrapper-xs bg-primary no-border"></div>
@@ -156,7 +155,7 @@
 														<tr>
 															<th><img src="assets/img/winhost.png" alt=""
 																width="60" height="60"></th>
-															<td class="v-middle text-lg">xxxxxxx</td>
+															<td class="v-middle text-lg">VM</td>
 														</tr>
 														<tr>
 															<th>虚拟化：</th>
@@ -187,16 +186,32 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
-														onclick="showModal('pages/services/service_applies/modal2.html')">申请服务</a>
+														data-bind="click: $root.add_VM">申请服务</a>
 												</div>
 											</div>
 										</div>
+									    <!-- /ko -->
 									</div>
+								    <footer class="panel-footer" data-bind="with: table_VM">
+										<ul class="pagination">
+									        <li data-bind="css: leftPagerClass, click: prevPage">
+									          <a href="#">&laquo;</a>
+									        </li>
+									        <!-- ko foreach: {data: (new Array(pages()))} -->
+									        <li data-bind="css: $parent.pageClass($index() + 1)">
+									          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+									        </li>
+									        <!-- /ko -->
+									        <li data-bind="css: rightPagerClass, click: nextPage">
+									          <a href="#">&raquo;</a>
+									        </li>
+									    </ul>
+							    	</footer>
 								</div>
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_Vdisk">
 									    <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -251,7 +266,7 @@
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_ObjectStorage">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -300,7 +315,7 @@
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_Vdisk">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -349,7 +364,7 @@
 
 								<div class="service-right-content" style="display: none;">
                                    	
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_LB">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -379,7 +394,7 @@
 										</div>
 										<!-- /ko -->
 									</div>
-									<footer class="panel-footer" data-bind="with: table">
+									<footer class="panel-footer" data-bind="with: table_LB">
 										<ul class="pagination">
 									        <li data-bind="css: leftPagerClass, click: prevPage">
 									          <a href="#">&laquo;</a>
@@ -400,7 +415,7 @@
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row" data-bind="with: table">
+									<div class="service-list-box row" data-bind="with: table_SSH">
 									    <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -464,7 +479,10 @@
 
 	<!-- page specific plugin scripts -->
 	<script type="text/javascript">
-var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
+               'assets/lib/zTree/js/jquery.ztree.excheck.js',
+               "assets/lib/moment/moment.js",
+               "assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
     if(args.type){
@@ -517,11 +535,29 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	    }
 
 	    var billRoles = [{name:'按天',value:'1'},{name:'按月',value:'2'},{name:'按季度',value:'3'},{name:'按年',value:'4'}];
-	    var countries = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];  
+	    var countries = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
+	    var osTypes = [{name:'windows',value:'windows'},{name:'linux',value:'linux'},{name:'vmware',value:'vmware'}];
+	    var cups = [{name:'1',value:'1'},{name:'2',value:'2'},{name:'4',value:'4'}];
+	    var memorys = [{name:'2',value:'2'},{name:'8',value:'8'},{name:'16',value:'16'}];
+	    var projects = [{name:'业务系统1',value:'1'},{name:'业务系统2',value:'2'},{name:'业务系统3',value:'3'}];
+	    var osVersions = [{name:'windows2003',value:'windows2003'},{name:'windows2008',value:'windows2008'},{name:'redhat6',value:'redhat6'}];
+	    var netTypes = [{name:'外部网络',value:'1'},{name:'内部网络',value:'2'}];
+	    var vpcOrIpPools=[{name:'vpc1',value:'1',type:'vpc'},{name:'ippool1',value:'11',type:'ippool'},{name:'ippool2',value:'12',type:'ippool'}];
+	    
+	    var netNames = [{name:'206',value:'206'},{name:'207',value:'207'},{name:'208',value:'208'}];
+	    var ips = [{name:'192.168.206.11',value:'192.168.206.11'},{name:'192.168.206.12',value:'192.168.206.12'},{name:'192.168.206.13',value:'192.168.206.13'},{name:'192.168.206.14',value:'192.168.206.14'}]
 	    //申请时长 下拉列表
 	    this.applyList = ko.observableArray(countries);
 	    this.billRoleList = ko.observableArray(billRoles);
-	    
+	    this.osTypeList = ko.observableArray(osTypes);
+	    this.cpuList = ko.observableArray(cups);
+	    this.memoryList = ko.observableArray(memorys);
+	    this.projectList = ko.observableArray(projects);
+	    this.osVersionList = ko.observableArray(osVersions);
+	    this.netTypeList = ko.observableArray(netTypes)
+	    this.vpcOrIpPoolList = ko.observableArray(vpcOrIpPools);
+	    this.netNameList = ko.observableArray(netNames);
+	    this.ipList = ko.observableArray(ips);
 	    //添加到购物车操作
 		this.addToCart = function(){
 			//console.log(this.model_LB.toJSON());
@@ -653,9 +689,9 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	        self.num_LB(1);
 	        self.loadCatelogs();
 	    }
-	     
+	    MyDate : ko.observable(new Date());
 		//负载均衡列表数据
-		this.table = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+		this.table_LB = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 		//################## 负载均衡  end ##################
 		
 		 
@@ -724,6 +760,210 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	    });
 	    this.table_Vdisk = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	    //################## 云硬盘 end ##################
+	    
+	  //################## 云主机start ##################
+	    this.isAdd_VM = ko.observable(false);
+	    this.add_VM = function(){
+	    	self.isAdd_VM(true);
+	    	self.num_VM(1); 	
+	    	self.loadCatelogs();
+	    	self.myStep(1);
+	    	self.isAdd_partition(false);
+	    	self.isUpdate_partition(false);
+	    }
+	    this.num_VM = ko.observable().extend({max:20});
+	    
+	    this.model_VM = ko.validatedObservable({
+	    	vmCartInfo: ko.observableArray([])
+	    });
+	    function Info(){
+            this.vmName =  ko.observable("").extend({required:true});
+            this.computerName = ko.observable("");
+            this.projectUuid = ko.observable("");
+            this.vdcUuid = ko.observable("");
+            this.desc = ko.observable("");
+            this.billRuleUuid = ko.observable("");
+            this.applyTime = ko.observable("");
+            this.networkType = ko.observable("");
+            
+            this.ipPoolUuid = ko.pureComputed(function(){
+            	var item = _.findWhere(self.vpcOrIpPoolList(), {value: this.vpcOrIpPoolList()});
+            	return item.type!="vpc" ? item.value : "";
+            }, this);
+            this.vpcUuid = ko.pureComputed(function(){
+            	var item = _.findWhere(self.vpcOrIpPoolList(), {value: this.vpcOrIpPoolList()});
+            	return item.type=="vpc" ? item.value : "";
+            }, this);
+			
+            this.vpcOrIpPoolList = ko.observable("");
+            
+            this.vpcNetworkUuid = ko.observable("");
+            this.ip = ko.observable("");
+            this.account = ko.observable("");
+            this.password = ko.observable("");
+            this.osType = ko.observable("");
+            this.osVersion = ko.observable("");
+            this.cpu = ko.observable("");
+            this.memory = ko.observable("");
+            this.storage = ko.observable("");
+            this.applyType = ko.observable("");
+            this.applyNum = ko.observable("");
+            //分区
+            this.partitions = ko.observableArray([]);
+            //硬盘
+            this.mountdisks = ko.observableArray([]);
+   		}
+	    
+	    
+	    
+	    this.num_VM.subscribe(function(){
+	    	self.model_VM().vmCartInfo([]);
+	    	var num = self.num_VM();
+	    	for(var i=0; i<num; i++){
+	    		self.model_VM().vmCartInfo.push(new Info());
+	    	}
+	    });
+	    
+	    //#### 分区 start ####
+	    
+	    //数组里面存放vo
+	    function PartitionVO(){
+	    	this.name = ko.observable();
+		  	this.size = ko.observable();
+	    }
+	    //页面展示vo
+	    this.partitions=ko.validatedObservable({
+	    	name: ko.observable(""),
+	    	size: ko.observable("")
+	    });
+	    
+	    this.isAdd_partition = ko.observable(false);
+	    this.isUpdate_partition = ko.observable(false);
+	    
+	    var obje="";//用了存储添加操作的 infovo
+	    //添加分区
+	    this.addPartitions = function(info){
+	    	obje=""
+	    	self.partitions.fromJSON({
+	    		name: "",
+	    		size: ""
+	    	});
+	    	self.isAdd_partition(true);
+	    	obje=info;
+	    }
+	    this.savePartitions = function(){
+	    	var partitionVO = new PartitionVO();
+	    	partitionVO.name(self.partitions().name());
+	    	partitionVO.size(self.partitions().size());
+	    	
+	    	obje.partitions.push(partitionVO);
+	    	self.isAdd_partition(false);
+	    } 
+	    //删除分区
+	    this.delPartitions = function(info, object, event){
+	    	info.partitions.remove(object);
+	    }
+	    //修改分区
+	    var editObject;
+	    this.updatePartitions = function(info, object, event){
+	    	self.partitions.fromJSON({
+	    		name: object.name(),
+	    		size: object.size()
+	    	});
+	    	self.isUpdate_partition(true);
+	    	editObject=object;
+	    }
+	    this.submitPartitions = function(){
+	    	editObject.name(self.partitions().name())
+	    	editObject.size(self.partitions().size());
+	    	self.isUpdate_partition(false);
+	    }
+	    //#### 分区 end ####
+	    //#### 硬盘 start #### 
+	     function MountdiskVO(){
+	    	this.name = ko.observable();
+	    	this.type = ko.observable();
+		  	this.size = ko.observable();
+	    } 
+	    
+	    this.mountdisks=ko.validatedObservable({
+	    	name: ko.observable(""),
+	    	type: ko.observable(""),
+	    	size: ko.observable("")
+	    });
+	    
+	    this.isAdd_mountdisk = ko.observable(false);
+	    this.isUpdate_mountdisk = ko.observable(false);
+	    var obje="";
+	    //添加
+	    
+	    this.addMountdisks = function(info){
+	    	obje=""
+	    	self.isAdd_mountdisk(true);
+	    	obje=info;
+	    }
+	    this.saveMountdisks = function(){debugger
+	    	obje.mountdisks.removeAll();
+	        self.rightData().forEach(function(e){
+		    	obje.mountdisks.push(e);
+	        });
+	    	self.isAdd_mountdisk(false);
+	    } 
+	    //删除
+	    this.delMountdisks = function(info, object, event){debugger;
+	    	info.mountdisks.remove(object);
+	    } 
+	    
+	    this.rightData = ko.observableArray([]);
+	    
+	    this.toRight = function(e){
+	    	self.rightData.removeAll();
+	    	self.table_VM.chosenItems().forEach(function(e){
+    			var mountdiskVO = new MountdiskVO();
+	    		mountdiskVO.name(e.name);
+	    		mountdiskVO.size(e.size);
+	    		self.rightData.push(mountdiskVO);
+	        });
+	    	//obje.mountdisks()
+	    }
+	    
+	    //修改
+	    /* this.updateMountdisks = function(info, object, event){
+	    	self.mountdisks(object);
+	    	self.isUpdate_mountdisk(true);
+	    }
+	    this.submitMountdisks = function(obj){
+	    	self.isUpdate_mountdisk(false);
+	    }  */
+	    //#### 硬盘 end ####
+	   //查询
+      	this.searchParam = ko.observable({
+    	  	osType: "",
+    	  	cpu:"",
+    	  	memory:""
+      	})
+      	this.search = function(){
+        	self.table_VM.params(this.searchParam());
+      	}
+	   
+      	// this.showMessage= ko.observable();   ///初始化的时候div是visible的
+        this.myStep = ko.observable(1);         
+        
+      	this.next = function(){
+        	this.myStep(this.myStep()+1)
+        	
+        	console.log(this.model_VM.toJSON())
+        }
+	    
+      	this.pre = function(){
+      		this.myStep(this.myStep()-1)
+      	}
+        
+        
+	    this.table_VM = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+	    
+	  //################## 云主机end ##################
+	   
 	    
 	    //################## 对象存储 start ##################
 	    this.isAdd_ObjectStorage = ko.observable(false);
@@ -900,30 +1140,23 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 								<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
 								<td>
 									<div class="radio">
-										<label class="form-inline"> <input type="radio"
-											name="optionsRadios'+i+'" id="optionsRadios'+i+'1"
-											value="1" data-bind="checked: applyType" > 永久
+										<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
 										</label>
 									</div>
 									<div class="radio">
 										<label class="form-inline"> <input type="radio"
-											class="form-control" style="top: 2px;"
-											name="optionsRadios'+i+'" id="optionsRadios'+i+'2"
-											value="2" data-bind="checked: applyType"> <select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+											class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
+											<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
 										</label>
 									</div>
 									<div class="radio disabled">
 										<label class="form-inline"> <input type="radio"
-											class="form-control" style="top: 2px;"
-											name="optionsRadios'+i+'" id="optionsRadios'+i+'3"
-											value="3" data-bind="checked: applyType"> <input type="text"
-											style="width: 206px" class="form-control"
-											id="applyServiceBalancingBox_daterange'+i+'">
+											class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
+											<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
 										</label>
 									</div>
 								</td>
-								<td><select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid">
-								</select></td>
+								<td><select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select></td>
 								<td>0.5元/小时</td>
 							</tr>
 						</tbody>
@@ -931,8 +1164,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 				</div>
             </div>
 			<div class='modal-footer' style="text-align: center;">
-				<a class="btn btn-default btn-info"
-					data-bind="click: $root.addToCart">添加到购物车</a> <a
+				<a class="btn btn-default btn-info" data-bind="click: $root.addToCart">添加到购物车</a> <a
 					class="btn btn-default btn-success" data-bind="click: $root.addToOrder">提交订单</a> <a
 					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
@@ -973,25 +1205,19 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 						<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
 						<td>
 							<div class="radio">
-								<label class="form-inline"> <input type="radio"
-									name="optionsRadios'+i+'" id="optionsRadios'+i+'1"
-									value="1" data-bind="checked: applyType" > 永久
+								<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
 								</label>
 							</div>
 							<div class="radio">
 								<label class="form-inline"> <input type="radio"
-									class="form-control" style="top: 2px;"
-									name="optionsRadios'+i+'" id="optionsRadios'+i+'2"
-									value="2" data-bind="checked: applyType"> <select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+									class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)" > 
+									<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
 								</label>
 							</div>
 							<div class="radio disabled">
 								<label class="form-inline"> <input type="radio"
-									class="form-control" style="top: 2px;"
-									name="optionsRadios'+i+'" id="optionsRadios'+i+'3"
-									value="3" data-bind="checked: applyType"> <input type="text"
-									style="width: 206px" class="form-control"
-									id="applyServiceBalancingBox_daterange'+i+'">
+									class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
+									<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
 								</label>
 							</div>
 						</td>
@@ -1069,6 +1295,261 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
   </div>
 </div>
 <!-- 云硬盘 -->
+
+<!-- 云主机 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VM }">
+	<div class='modal-dialog modal-lg' role='document'>
+	    <div class='modal-content'>
+	    	<div class='modal-header'>
+	        	<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请云主机服务</h3>
+	      	</div>
+		    <div class='modal-body'>
+		        <ul class="nav nav-tabs service-step-select">
+		          <li data-bind="css: {active: myStep()==1}"><a >1基本信息</a></li>
+		          <li data-bind="css: {active: myStep()==2}"><a >2规格配置</a></li>
+		          <li data-bind="css: {active: myStep()==3}"><a >3网络配置</a></li>
+		          <li data-bind="css: {active: myStep()==4}"><a >4系统盘分区</a></li>
+		          <li data-bind="css: {active: myStep()==5}"><a >5挂载云硬盘</a></li>
+		          <li data-bind="css: {active: myStep()==6}"><a >6绑定密钥</a></li>
+		          <li data-bind="css: {active: myStep()==7}"><a >7软件安装</a></li>
+		          <li data-bind="css: {active: myStep()==8}"><a >8信息确认</a></li>
+		        </ul>
+				<div class="tab-content service-step-box" style="margin-top:20px;">
+			    	  <div data-bind="visible: myStep()==1">
+			        	<div class="form-inline">
+			                <div class="input-group">
+			                    <span class="input-group-addon">申请数量</span>
+			                    <input type="text" class="form-control" data-bind="value: num_VM, valueUpdate: 'afterkeydown'">
+			                </div>
+			            </div>
+			            <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+			                <table class="table table-striped">
+				                <thead>
+				                  <th>序号</th>
+				                  <th>云主机名称<i style="color:red">*</i></th>
+				                  <th>计算机名称</th>
+				                  <th>业务系统</th>
+				                  <th>所属VDC<i style="color:red">*</i></th>
+				                  <th>备注</th>
+				                  <th>申请时长<i style="color:red">*</i></th>
+				                  <th>套餐</th>
+				                </thead>
+				                <tbody data-bind="foreach: model_VM().vmCartInfo">
+				                     <tr>
+					                     <td><span data-bind="text: ($index()+1)"></span></td>
+					                     <td><input type="text" class="form-control w" data-bind="value:vmName"></td>
+					                     <td><input type="text" class="form-control w" data-bind="value:computerName"></td>
+					                     <td><select class="form-control w-xs" data-bind="options:$parent.projectList,optionsText:'name',optionsValue:'value',value:projectUuid"></select></td>
+					                     <td><select class="form-control w-xs" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'value',value:vdcUuid"></select></td>
+					                     <td><input type="text" class="form-control w"></td>
+					                     <td>
+					                         <div class="radio">
+												<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
+												</label>
+											</div>
+											<div class="radio">
+												<label class="form-inline"> <input type="radio"
+													class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
+													<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+												</label>
+											</div>
+											<div class="radio disabled">
+												<label class="form-inline"> <input type="radio"
+													class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
+													<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
+												</label>
+											</div>
+					                     </td>
+					                     <td>
+					                         <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+					                     </td>
+					                 </tr>  
+				                </tbody>
+			                </table>
+			            </div>
+			          </div>
+			
+			          <div data-bind="visible: myStep()==2">
+			            <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+			              <table class="table table-striped">
+			                <thead>
+			                  <th>序号</th>
+			                  <th>云主机名称</th>
+			                  <th>操作系统类型<i style="color:red">*</i></th>
+			                  <th>操作系统版本<i style="color:red">*</i></th>
+			                  <th>CPU(核)<i style="color:red">*</i></th>
+			                  <th>内存(G))<i style="color:red">*</i></th>
+			                  <th>存储(G</th>
+			                </thead>
+			                <tbody data-bind="foreach: model_VM().vmCartInfo">
+			                  <tr>
+                                <td><span data-bind="text: ($index()+1)"></span></td>
+		                        <td><span data-bind="text:vmName"></span></td>
+		                        <td><select class="form-control" data-bind="options:$parent.osTypeList,optionsText:'name',optionsValue:'value',value:osType"></select></td>
+		                        <td><select class="form-control" data-bind="options:$parent.osVersionList,optionsText:'name',optionsValue:'value',value:osVersion"></select></td>
+		                        <td><select class="form-control" data-bind="options:$parent.cpuList,optionsText:'name',optionsValue:'value',value:cpu"></select></td>
+		                        <td><select class="form-control" data-bind="options:$parent.memoryList,optionsText:'name',optionsValue:'value',value:osVersion"></select></td>
+		                        <td><input type="text" class="form-control" data-bind="value:storage"></td>
+		                      </tr>
+			                </tbody>
+			              </table>
+			            </div>
+			          </div> 
+			
+			          <div data-bind="visible: myStep()==3">
+			            <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+			              <table class="table table-striped">
+			                <thead>
+			                  <th>序号</th>
+			                  <th>云主机名称</th>
+			                  <th>网络类型<i style="color:red">*</i></th>
+			                  <th>VPC/IP池<i style="color:red">*</i></th>
+			                  <th>网络名称</th>
+			                  <th>指定IP</th>
+			                </thead>
+			                <tbody data-bind="foreach: model_VM().vmCartInfo">
+			                    <tr>
+			                       <td><span data-bind="text: ($index()+1)"></span></td>
+			                       <td><span data-bind="text:vmName"></span></td>
+			                       <td><select class="form-control" data-bind="options:$parent.netTypeList,optionsText:'name',optionsValue:'value',value:networkType"></select></td>
+			                       <td><select class="form-control" data-bind="options:$parent.vpcOrIpPoolList,optionsText:'name',optionsValue:'value',value:vpcOrIpPoolList"></select></td>
+			                       <td><select class="form-control" data-bind="options:$parent.netNameList,optionsText:'name',optionsValue:'value',value:vpcNetworkUuid"></select></td>
+			                       <td><select class="form-control" data-bind="options:$parent.ipList,optionsText:'name',optionsValue:'value',value:ip"></select></td>
+			                    </tr>
+			                </tbody>
+			              </table>
+			            </div>
+			          </div>
+			
+			          <div data-bind="visible: myStep()==4">
+			              <div data-bind="foreach: model_VM().vmCartInfo">
+				              <div style="margin:0;margin-top:10px">
+				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click:$root.addPartitions">添加分区</a>
+				              <div class="clearfix" style="height:10px;clear:both;"></div>
+				              <div class="panel panel-default table-responsive no-height">
+				                  <table class="table table-striped">
+				                      <thead>
+				                          <th>分区名称</th>
+				                          <th>分区大小</th>
+				                          <th>操作</th>
+				                      </thead>
+				                      <tbody data-bind="foreach: partitions">
+				                          <tr >
+				                              <td><span data-bind="text:name"></span></td>
+				                              <td><span data-bind="text:size"></span></td>
+				                              <td><a class="btn btn-xs btn-default" data-bind="click:function(object, event){ $root.updatePartitions($parent, object, event) }">修改</a> 
+				                              <a class="btn btn-xs btn-danger" data-bind="click:function(object, event){ $root.delPartitions($parent, object, event) }">删除</a></td>
+				                          </tr>
+				                      </tbody>
+				                  </table>
+				               </div>
+				               </div>
+				           </div>    
+			          </div>
+			
+			          <div data-bind="visible: myStep()==5">
+			              <div data-bind="foreach: model_VM().vmCartInfo">
+				              <div style="margin:0;margin-top:10px">
+					              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click:$root.addMountdisks">挂载云硬盘</a>
+					              <div class="clearfix" style="height:10px;clear:both;"></div>
+				                  <div class="panel panel-default table-responsive no-height">
+				                      <table class="table table-striped">
+				                          <thead>
+				                              <th>云硬盘名称</th>
+				                              <th>云硬盘类型</th>
+				                              <th>云硬盘大小</th>
+				                              <th>操作</th>
+				                          </thead>
+				                          <tbody data-bind="foreach: mountdisks">
+				                              <tr>
+				                                  <td><span data-bind="text:name"></span></td>
+				                                  <td><span data-bind="text:type"></span></td>
+				                                  <td><span data-bind="text:size"></span></td>
+				                                  <td><a class="btn btn-xs btn-default" data-bind="click:function(object, event){ $root.updateMountdisks($parent, object, event) }">修改</a> 
+				                                      <a class="btn btn-xs btn-danger" data-bind="click:function(object, event){ $root.delMountdisks($parent, object, event) }">删除</a></td>
+				                              </tr>
+				                          </tbody>
+				                      </table>
+				                  </div>
+				              </div>
+				          </div>    
+			          </div>
+			<!-- 
+			          <div class="tab-pane" id="applyServiceSSHBox">
+			
+			          </div>
+			
+			          <div class="tab-pane" id="applyServiceSoftwareBox">
+			
+			          </div> -->
+			
+			          <!-- <div class="tab-pane">
+			            <div style="margin:0;margin-top:10px">
+			              <span class="pull-left" style="font-size:16px;">云主机个数：3</span>
+			              <div class="clearfix" style="height:10px;clear:both;"></div>
+			              <div class="panel panel-default table-responsive no-height">
+			                <table class="table table-striped">
+			                  <thead>
+			                    <th>云主机名称</th>
+			                    <th>CPU(核)</th>
+			                    <th>内存(G)</th>
+			                    <th>存储(G)</th>
+			                    <th>安装软件</th>
+			                    <th>所属VDC</th>
+			                    <th>申请时长</th>
+			                    <th>收费标准</th>
+			                  </thead>
+			                  <tbody>
+			                    <tr>
+			                      <td>云主机1</td>
+			                      <td>1</td>
+			                      <td>1</td>
+			                      <td>100</td>
+			                      <td>oracle 10g</td>
+			                      <td>研发部</td>
+			                      <td>永久</td>
+			                      <td>0.5元/小时</td>
+			                    </tr>
+			                    <tr>
+			                      <td>云主机2</td>
+			                      <td>1</td>
+			                      <td>1</td>
+			                      <td>100</td>
+			                      <td>oracle 10g</td>
+			                      <td>研发部</td>
+			                      <td>永久</td>
+			                      <td>0.5元/小时</td>
+			                    </tr>
+			                    <tr>
+			                      <td>云主机3</td>
+			                      <td>1</td>
+			                      <td>1</td>
+			                      <td>100</td>
+			                      <td>oracle 10g</td>
+			                      <td>研发部</td>
+			                      <td>永久</td>
+			                      <td>0.5元/小时</td>
+			                    </tr>
+			                  </tbody>
+			                </table>
+			              </div>
+			            </div>
+			          </div>  -->
+		
+		        </div>
+		        
+		      </div>
+		    <div class='modal-footer' style="text-align:center;">
+		        <a class="btn btn-default btn-info " data-bind="visible: myStep()>1,click:pre">上一步</a>
+		        <a class="btn btn-default btn-info " data-bind="click:next">下一步</a>
+		        <a class="btn btn-default btn-info service-step-btn-save" style="display:none;">添加到购物车</a>
+		        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" style="display:none;">提交订单</a>
+		        <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
+		    </div>
+	    </div>
+	</div>
+</div>
+<!-- 云主机 -->
 <!-- 对象存储 -->
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_ObjectStorage }">
   <div class='modal-dialog modal-lg'>
@@ -1222,7 +1703,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
         <div class="form-group">
           <label class="col-sm-3 control-label">VDC名称：</label>
           <div class="col-sm-8">
-            <input type="email" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:model_VDC().vdcCartInfo().name">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:model_VDC().vdcCartInfo().name">
           </div>
         </div>
         <div class="form-group">
@@ -1249,7 +1730,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">CPU配额(个)：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().cpu">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().cpu">
             </div>
           </div>
         </div>
@@ -1257,7 +1738,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">内存配额(G)：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().memory">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().memory">
             </div>
           </div>
         </div>
@@ -1265,7 +1746,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">存储配额(G)：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().storage">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().storage">
             </div>
           </div>
         </div>
@@ -1273,7 +1754,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">云主机最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vm">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vm">
             </div>
           </div>
         </div>
@@ -1281,7 +1762,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">云硬盘最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().disk">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().disk">
             </div>
           </div>
         </div>
@@ -1289,7 +1770,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">对象存储最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().objectStorage">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().objectStorage">
             </div>
           </div>
         </div>
@@ -1297,7 +1778,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">VPC最大可创建数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vpcNum">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vpcNum">
             </div>
           </div>
         </div>
@@ -1305,7 +1786,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">路由器最大可创建数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().router">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().router">
             </div>
           </div>
         </div>
@@ -1313,7 +1794,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">防火墙最大可创建数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().fireWall">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().fireWall">
             </div>
           </div>
         </div>
@@ -1321,7 +1802,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">公网IP最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().publicIp">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().publicIp">
             </div>
           </div>
         </div>
@@ -1329,7 +1810,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">负载均衡器最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().loadBalancer">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().loadBalancer">
             </div>
           </div>
         </div>
@@ -1337,7 +1818,7 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
           <div >
             <label class="col-xs-8 control-label">SSH密钥最大申请数：</label>
             <div class="col-xs-4">
-              <input type="email" class="form-control" data-bind="value:model_VDC().vdcCartInfo().secretKey">
+              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().secretKey">
             </div>
           </div>
         </div>
@@ -1384,3 +1865,223 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
   </div>
 </div>
 <!-- VDC -->
+<!-- 新增分区 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_partition }">
+  <div class='modal-dialog '>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加分区</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">分区名称：</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:partitions().name">
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: savePartitions">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 新增分区 -->
+<!-- 修改分区 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isUpdate_partition }">
+  <div class='modal-dialog '>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改分区</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">分区名称：</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:partitions().name">
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: submitPartitions">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 修改分区 -->
+
+<!-- 挂载云盘 -->
+<!-- <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_mountdisk }">
+  <div class='modal-dialog '>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云硬盘服务</h3>
+      </div>
+      <div class='modal-body'>
+         <div class="" data-bind="with: table_VM">
+            <table class="table">
+			    <thead>
+				    <th><label class="i-checks"><input type="checkbox"  data-bind="checked: isSelectedAll"><i></i></label>全选</th>
+					<th>硬盘服务名称</th>
+					<th>硬盘类型</th>
+					<th>大小</th>
+			    </thead>
+				<tbody>
+				     <tr data-bind="visible: showNoData">
+					     <td colspan="6" class="aligncenter">
+					              		This table has no data.
+					     </td>
+					 </tr>
+		          	 ko foreach: {data: pagedRows, as: '$row'} 
+					<tr>
+						<td><label class="i-checks"><input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems"/><i></i></label></td>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:name"></td>
+					</tr>
+		          	/ko
+		        </tbody>
+			</table>
+			</div>
+			<footer class="panel-footer" data-bind="with: table_VM">
+				<ul class="pagination">
+			        <li data-bind="css: leftPagerClass, click: prevPage">
+			          <a href="#">&laquo;</a>
+			        </li>
+			        ko foreach: {data: (new Array(pages()))}
+			        <li data-bind="css: $parent.pageClass($index() + 1)">
+			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+			        </li>
+			        /ko
+			        <li data-bind="css: rightPagerClass, click: nextPage">
+			          <a href="#">&raquo;</a>
+			        </li>
+			    </ul>
+	    	</footer>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: saveMountdisks">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+
+
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_mountdisk }">
+      <div class='modal-dialog modal-lg' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加云硬盘服务</h3>
+      </div>
+      <div class='modal-body'>
+        <div>
+          <div class="row" id="net_0">
+            <div class="col-xs-5">
+              <p>待选择：</p>
+              <div class="table-responsive" data-bind="with: table_VM">
+                 <table class="table table-striped">
+                  <thead>
+				    <th><label class="i-checks"><input type="checkbox"  data-bind="checked: isSelectedAll"><i></i></label>全选</th>
+					<th>硬盘服务名称</th>
+					<th>硬盘类型</th>
+					<th>大小</th>
+			    </thead>
+				<tbody>
+				     <tr data-bind="visible: showNoData">
+					     <td colspan="6" class="aligncenter">
+					              		This table has no data.
+					     </td>
+					 </tr>
+		          	 <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+					<tr>
+						<td><label class="i-checks"><input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems"/><i></i></label></td>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:name"></td>
+						<td data-bind="text:name"></td>
+					</tr>
+		          	<!-- /ko -->
+		        </tbody>
+              </table>
+              </div>
+              <footer class="panel-footer" data-bind="with: table_VM">
+				<ul class="pagination">
+			        <li data-bind="css: leftPagerClass, click: prevPage">
+			          <a href="#">&laquo;</a>
+			        </li>
+			        <!-- ko foreach: {data: (new Array(pages()))} -->
+			        <li data-bind="css: $parent.pageClass($index() + 1)">
+			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+			        </li>
+			        <!-- /ko -->
+			        <li data-bind="css: rightPagerClass, click: nextPage">
+			          <a href="#">&raquo;</a>
+			        </li>
+			    </ul>
+	    	</footer>  
+            </div>
+            <div class="col-xs-2">
+              <button class="btn btn-block btn-default" style="margin-top:150px"  data-bind="click:$root.toRight">&gt;&gt;</button>
+              <button class="btn btn-block btn-default" data-bind="click:$root.toLeft">&lt;&lt;</button>
+            </div>
+            <div class="col-xs-5">
+              <p>已选择：</p>
+              <div class="table-responsive">               
+              <table class="table table-striped">
+                    <thead>
+					    <th></th>
+						<th>硬盘服务名称</th>
+						<th>硬盘类型</th>
+						<th>大小</th>
+				    </thead>
+					<tbody data-bind="foreach:rightData">
+						<tr>
+							<td><label class="i-checks"><i></i></label></td>
+							<td data-bind="text:name"></td>
+							<td data-bind="text:name"></td>
+							<td data-bind="text:name"></td>
+						</tr>
+			        </tbody>
+              </table>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer'>
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: saveMountdisks"/>
+        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>   
+</div>
+<!-- 挂载云盘  -->
+<!-- 修改挂载云盘 -->
+<!-- <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isUpdate_mountdisk }">
+  <div class='modal-dialog '>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改分区</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">分区名称：</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:partitions().name">
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: submitPartitions">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div> -->
+<!-- 修改挂载云盘 -->

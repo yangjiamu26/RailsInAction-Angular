@@ -68,10 +68,10 @@ angular.module('activitiModeler')
 	                if(key === "oryx-process_id"){
 	                	if(property.value == "" || property.value == null || typeof(property.value) == "undefined"){
 	                		msg += "流程定义名称字段不能为空！\r\n";
-	                	}else if(!REGEXP.test(property.value)){
+	                	}/*else if(!REGEXP.test(property.value)){
 	                		console.log(property.value);
 	                		msg +="流程定义名称开头必须包含字母,可以由字母、横线、下划线、数字组成！\r\n";
-	                	}
+	                	}*/
 	                }
 	                /*if(key === "oryx-name"){
 	                	if(property.value == "" || property.value == null || typeof(property.value) == "undefined"){

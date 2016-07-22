@@ -32,7 +32,7 @@ function initSinglePool_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>颗',
       },
       plotOptions: {
           pie: {
