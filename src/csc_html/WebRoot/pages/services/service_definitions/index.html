@@ -85,7 +85,7 @@
 										</div>
 										<div class="col-xs-2">
 											<button class="btn btn-sm" type="button">重置</button>
-											<button class="btn btn-sm btn-default" type="button">搜索</button>
+											<button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
 										</div>
 									</div>
 
@@ -112,11 +112,11 @@
 													<td data-bind="text: $row.dirName"></td>
 													<td data-bind="text: $row.createUserName"></td>
 													<td data-bind="text: $row.effectTime"></td>
-													<td><a data-bind="if: $row.state == 0 || $row.state == 2" onclick="systemMsg.alert('发布成功！')">发布</a> 
-													| <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService.html')">修改</a>
-													| <a data-bind="if: $row.state == 0" onclick="systemMsg.alert('确定删除吗？')">删除</a>
-													| <a data-bind="if: $row.state == 1" onclick="systemMsg.alert('确定删除吗？')">下线</a>
-													| <a data-bind="if: $row.state == 2" onclick="systemMsg.alert('确定删除吗？')">销毁</a>													
+													<td><a data-bind="if: $row.state == 0 || $row.state == 2" onclick="alert('发布成功！')">发布&nbsp;&nbsp;</a> 
+													 <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService.html')">修改&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 0" onclick="alert('确定删除吗？')">删除 &nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 1" onclick="alert('确定删除吗？')">下线&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 2" onclick="alert('确定删除吗？')">销毁 </a>													
 													</td>													
 												</tr>
 												<!-- /ko -->
@@ -192,12 +192,20 @@
   var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
-
+    var dirUuid = 0;
     <!--
     var setting = {
       view:{
         showIcon:false,
         showLine:false
+      },
+      callback : {
+          //beforeClick: beforeClick,
+          onClick : function(srcEvent, treeId, node, clickFlag) {
+              srcEvent.preventDefault();
+              dirUuid = node.uuid;
+              viewModel.search(node.uuid)
+          }
       }
     };    
 
@@ -211,8 +219,6 @@
         });
     }
     //-->
-    
-    var treeObj = $.fn.zTree.getZTreeObj("serverDefinitionsTree"); 
             
     function ViewModel(){
       //服务目录start
@@ -222,8 +228,7 @@
       this.directoryVO = ko.validatedObservable({    	  
           name: ko.observable().extend({required: true}),          
           parentName: ko.observable("服务目录")
-      });
-      
+      });      
       
       //新增           
       this.add = function(){
@@ -273,7 +278,6 @@
               }else{
             	  confirm("确定要删除目录 "+nodes[0].name+" ?",function(){
                       csc.rest.del('api/v5.0.0/service/directory/'+nodes[0].uuid, function(data){
-                    	  debugger;
                     	  loadTree();
                           self.table.refreshData();
                           alert('删除目录成功！');                          
@@ -305,19 +309,26 @@
            }
       }
       //服务目录end
-      
-      
+            
       this.searchParam = ko.observable({
+    	  dirUUID: dirUuid,
           state: "",
           product: "",
           serviceName: ""
       })
       
+      this.search = function(dirUuid){    	  
+    	  if(typeof(dirUuid) != "object"){
+    	     this.searchParam().dirUUID = dirUuid;
+    	  }
+          this.table.params(this.searchParam());
+      }
+      
       this.table = new DataTable([], {path: 'api/v5.0.0/service'});
                   
     }
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+    var viewModel = new ViewModel();
+    ko.applyBindings(viewModel, $('#page-content')[0]);
 
   });
 </script>

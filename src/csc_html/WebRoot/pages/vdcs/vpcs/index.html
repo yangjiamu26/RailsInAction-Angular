@@ -290,19 +290,19 @@
 				<div class="panel panel-default">
 					<div class="row wrapper">
 						<div class="col-xs-8">
-							<a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/firewalls/new.html')">创建防火墙</a>
+							<a class="btn btn-sm btn-primary" data-bind="click:createFirewall">创建防火墙</a>
 						</div>
 						<div class="col-xs-3">          
 	                        <div class="input-group">
 	                          <span class="input-group-addon">名称</span>
-	                          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+	                          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchFirewallParam().name">
 	                        </div>
 	                    </div>
 	                    <div class="col-xs-1">
-	                        <button class="btn btn-sm btn-default" type="button">搜索</button>
+	                        <button class="btn btn-sm btn-default" type="button" data-bind="click:searchFirewall">搜索</button>
 	                    </div>
 					</div>				
-					<div class="table-responsive">
+					<div class="table-responsive" data-bind="with: firewallListTable">
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -314,48 +314,111 @@
 								</tr>
 							</thead>
 							<tbody>
+							     <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						         </tr>
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td><a href="#pages/vdcs/firewalls/show">防火墙01</a></td>
-									<td>研发部</td>
-									<td>VPC01</td>
-									<td>路由器01</td>
+									<td><a href="#pages/vdcs/firewalls/show" data-bind="text: $row.name"></a></td>
+									<td  data-bind="text: $row.vdcName"</td>
+									<td  data-bind="text: $row.vpcName"></td>
+									<td  data-bind="text: $row.routerName"></td>
 									<td>
-										<a>删除</a>
+										<a  data-bind="click:$root.modifyFirewall">修改</a> | <a   data-bind="click:$root.delFirewall">删除</a>
 									</td>
 								</tr>
+								<!--  /ko  -->
 							</tbody>
 						</table>
 					</div>
-					<footer class="panel-footer">
-						<ul class="pagination">
-							<li class="page active">
-								<a href="#pages/javascript:void(0)">1</a>
-							</li>
-							<li class="page">
-								<a>2</a>
-							</li>
-							<li class="page">
-								<a>3</a>
-							</li>
-							<li class="page">
-								<a>4</a>
-							</li>
-							<li class="page">
-								<a >5</a>
-							</li>
-							<li class="page gap disabled">
-								<a href="#pages/javascript:void(0)">…</a>
-							</li>
-							<li class="next">
-								<a>下页 ›</a>
-							</li>
-							<li class="last">
-								<a>末页 »</a>
-							</li>
-						</ul>
-					</footer>
+		            <footer class="panel-footer" data-bind="with: firewallListTable, visible: firewallListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>
 				</div>
+				
+				<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createFirewallModal }">
+				  <div class='modal-dialog' role='document'>
+					    <div class='modal-content'>
+					      <div class='modal-header'>
+					        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                            <h3 class='modal-title' data-bind="ifnot: firewallVO().uuid">创建防火墙</h3>
+					        <h3 class='modal-title' data-bind="if: firewallVO().uuid">修改防火墙</h3>
+					      </div>
+					      <div class='modal-body form-horizontal'>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            防火墙名称
+					          </label>
+					          <div class="col-xs-8">
+					            <input class="form-control" type="text" data-bind="value:firewallVO().name"/>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            所属VDC
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: firewallVO().vdcUuid, enable: firewallVO().uuid==null">
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            所属VPC
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: firewallVO().vpcUuid, enable: firewallVO().uuid==null">
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>
+					        <div class="form-group">
+					          <label class="col-xs-3 control-label">
+					            路由器
+					          </label>
+					          <div class="col-xs-8">
+					            <select class="form-control"  data-bind="options:routerList,optionsText:'name',optionsValue:'uuid',value: firewallVO().routerUuid, enable: firewallVO().uuid==null">
+					            </select>
+					          </div>
+					          <div class="col-xs-1">
+					            <span class="text-danger inline m-l-n m-t-sm">*</span>
+					          </div>          
+					        </div>        
+					      </div>
+					      <div class='modal-footer' style="text-align: center">
+					        <input type="button" name="commit" value="确定" data-bind="click: firewallSubmit" class="btn btn-default btn-info" />
+					        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					      </div>
+					    </div>
+					  </div>
+					 </div>
 			</div>
+			
+			
+			
+			
 			<div class="tab-pane" id="safegroup" role="tabpanel">
 
 				<div class="panel panel-default">
@@ -431,7 +494,7 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = ["api/vpc/vpc.js","api/vpc/router.js"]
+	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		
 		/******************************vpc*************************************/
@@ -564,7 +627,6 @@
     	        			});
     	    	        }
     			}else{
-    				console.log(self.routerVO)
     				ko.validation.group(self.routerVO).showAllMessages();
           	        if(self.routerVO.isValid()){
           	        	 var uuid = self.routerVO.toJSON().uuid;
@@ -606,9 +668,92 @@
 	    
 	    
 	    /******************************firewall*************************************/
+	    function firewallViewModel(){
+    		var self = this;
+    		self.vdcList = ko.observableArray();
+    		self.vpcList = ko.observableArray();
+    		self.routerList = ko.observableArray();
+    		
+    		self.firewallVO = ko.validatedObservable({
+    			     "name":ko.observable().extend({required: true}),
+					 "vdcUuid":ko.observable().extend({required: true}),
+					 "vpcUuid":ko.observable().extend({required: true}),
+					 "routerUuid":ko.observable().extend({required: true})
+					});
+    		
+    		self.createFirewallModal = ko.observable(false);
+    		self.createFirewall = function(){
+    			//TODO 查询其他模块的接口
+    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.routerList([{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器1"},{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器2"}])
+    			self.firewallVO.fromJSON({"name":"",
+					 "vdcUuid":"",
+					 "vpcUuid": "",
+					 "routerUuid":"",
+					 "uuid":null
+					});
+   			    self.createFirewallModal(true)	
+    		}
+    		
+    		self.modifyFirewall = function(rowObj, event){
+    			//TODO 查询其他模块的接口
+                self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.routerList([{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器1"},{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器2"}])
+    			self.firewallVO.fromJSON(rowObj);
+    			self.createFirewallModal(true)	
+    		}
+    		
+      		
+    		self.firewallSubmit = function(){
+    		    var firewallUuid = self.firewallVO.toJSON().uuid;
+    			if(!firewallUuid){
+    				  ko.validation.group(self.firewallVO).showAllMessages();
+    	    	        if(self.firewallVO.isValid()){
+    	    	        	$.FIREWALL.createFirewall(self.firewallVO.toJSON(),function(data){
+    	        			 	self.createFirewallModal(false);
+    	        		    	self.firewallListTable.refreshData();
+    	        			});
+    	    	        }
+    			}else{
+    				ko.validation.group(self.firewallVO).showAllMessages();
+          	        if(self.firewallVO.isValid()){
+          	        	 var uuid = self.firewallVO.toJSON().uuid;
+            			 var putBody = {
+            					 "name":self.firewallVO.toJSON().name
+            			 }
+           				$.FIREWALL.modifyFirewall(uuid,putBody,function(data){
+           					self.createFirewallModal(false);
+            		    	self.firewallListTable.refreshData();
+               			});
+          	        }
+    			}
+    		}
+    		
+    		
+    		self.delFirewall = function(rowObj){
+    			var firewallName = rowObj.name;
+    			confirm("确定删除防火墙["+firewallName+"]？",function(arg){
+    				$.FIREWALL.delFirewall(rowObj.uuid,function(data){
+    					  self.firewallListTable.refreshData();
+    					  alert("删除防火墙["+firewallName+"]成功！")
+           			});
+    			 });
+    		}
+    		
+    		self.searchFirewallParam = ko.observable({
+        	      name: ""
+        	    })
+        	    
+       	    self.searchFirewall = function(){
+       	      self.firewallListTable.params(this.searchFirewallParam());
+       	    }
+    		
+    		self.firewallListTable = new DataTable([], {path: 'api/v5.0.0/firewalls', perPage: 1});
+	 	};
 	    
-	    
-	    
+	    ko.applyBindings(new firewallViewModel(), $("#page-content .tab-pane")[2]);
 	    /******************************firewall*************************************/
 	    
         /******************************secretGroup*************************************/

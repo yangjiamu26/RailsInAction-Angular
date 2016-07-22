@@ -125,8 +125,8 @@
                 </td>
         				<td data-bind="text:name"></td>
         				<td data-bind="text:size"></td>
-        				<td data-bind="text:mountVmUuid"></td>
-        				<td data-bind="text:vdcUuId">研发部</td>
+        				<td data-bind="text:mountVmName"></td>
+        				<td data-bind="text:vdcName"></td>
         				<td><a data-bind="click: function(data, event){ $root.queryElement('vdiskCartInfo',data,event) }">查看</a> 
         				| <a data-bind="click: function(data, event){ $root.editElement('vdiskCartInfo',data,event) }">修改</a> 
         				| <a data-bind="click: function(data, event){ $root.deleteElement('vdiskCartInfo',data,event) }">删除</a>
@@ -363,22 +363,15 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-
-// 	 	csc.rest.get('api/v5.0.0/cart',function(data){
-// 	 		vdiskList = data['vdiskCartInfo'];		 		
-// 	 		console.log(vdiskList);s
-// 	 		objectStorageList = data['objectStorageCartInfo'];
-// 	 		publicNetworkList = data['publicNetworkCartInfo'];
-// 	    }); 
-	 	
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) { 	
 	 	function ViewModel(){
 		    var self = this;
 		      
 		    this.vdiskList = ko.observableArray();
 		    this.objectStorageList = ko.observableArray();
 		    this.publicNetworkList = ko.observableArray();
- 		 	csc.rest.get('api/v5.0.0/cart',function(data){	
+ 		 	csc.rest.get('api/v5.0.0/cart',function(data){
+ 		 		console.log(data);
 		 		self.vdiskList(data['vdiskCartInfo']);
 		 		self.objectStorageList(data['objectStorageCartInfo']);
 		 		self.publicNetworkList(data['publicNetworkCartInfo']);
@@ -393,8 +386,10 @@
 			    			id:"",
 			    			name:"",
 			    			size:"",
-			    			vdcUuId:"",
-			    			mountVmUuid:""	
+			    			vdcUuid:"",
+			    			vdcName:"",
+			    			mountVmUuid:"",
+			    			mountVmName:""	
 	 			    	})
  		 	});
  		 	
@@ -404,7 +399,7 @@
 		    			name:"",
 		    			size:"",
 		    			applyTime:"",
-		    			vdcUuId:"",
+		    			vdcUuid:"",
 		    			billRuleUuid:""	
  			    	})
 		 	});
@@ -414,15 +409,15 @@
 		    			id:"",
 		    			name:"",
 		    			workip:"",
-		    			vdcUuId:"",
-		    			vpdcUuId:"",
+		    			vdcUuid:"",
+		    			vpdcUuid:"",
 		    			applyTime:"",
 		    			billRuleUuid:""	
  			    	})
 		 	});
  		 	
  		 	this.queryElement = function(arg,object, event){
- 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.id,function(data){
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid,function(data){
  	 		 	  console.log(data);
  	 		 	  if(arg=='vdiskCartInfo'){
  	 		 		self.model_Vdisk().vdiskCartInfo(data);
@@ -444,7 +439,7 @@
  		 	
  		 	var editObject; 
  		 	this.editElement = function(arg,object, event){
- 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.id,function(data){
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid,function(data){
  	 	 		 	  if(arg=='vdiskCartInfo'){
 	 	 	 		 		self.model_Vdisk().vdiskCartInfo(data);
 	 	 	 		 		self.model_Vdisk().vdiskCartInfo().id = object.id;
@@ -540,8 +535,8 @@
             <tbody><tr>
             <td><span data-bind="text:model_Vdisk().vdiskCartInfo().name"></span></td>
             <td><span data-bind="text:model_Vdisk().vdiskCartInfo().size"></span></td>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().vdcUuId"></span></td>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().mountVmUuid"></span></td>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().vdcName"></span></td>
+            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().mountVmName"></span></td>
             <td>0.5元/小时</td></tr></tbody>
           </table>
         </div>
@@ -575,7 +570,7 @@
             <tbody><tr>
             <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().name"></td>
             <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().size"></td>
-            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().vdcUuId"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().vdcUuid"></td>
             <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().mountVmUuid"></td>
             <td>0.5元/小时</td></tr></tbody>
           </table>
