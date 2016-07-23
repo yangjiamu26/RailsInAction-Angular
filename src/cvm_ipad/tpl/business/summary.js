@@ -13,9 +13,6 @@ myApp.onPageInit("business-summary", function(page) {
         myApp.pullToRefreshDone();
         self.summary(data);
 
-        initTotal_cpu_chart();
-        initTotal_memory_chart();
-        initTotal_storage_chart();
       });      
     };
   }

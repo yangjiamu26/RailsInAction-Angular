@@ -293,7 +293,7 @@ function initPool_storage_chart(data) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE+1,"maxResult":self.page*PAGE_SIZE},function(data){
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
         //$.ajax("tpl/pool/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
 
         self.loading = false;
@@ -324,10 +324,10 @@ function initPool_storage_chart(data) {
   window.pool_index_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData(false, this.hypervisor());
+    viewModel.loadData(false, viewModel.hypervisor());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true, this.hypervisor());
+    viewModel.loadData(true, viewModel.hypervisor());
   });  
   
 });
