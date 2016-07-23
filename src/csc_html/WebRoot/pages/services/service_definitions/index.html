@@ -85,7 +85,7 @@
 										</div>
 										<div class="col-xs-2">
 											<button class="btn btn-sm" type="button">重置</button>
-											<button class="btn btn-sm btn-default" type="button">搜索</button>
+											<button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
 										</div>
 									</div>
 
@@ -112,11 +112,11 @@
 													<td data-bind="text: $row.dirName"></td>
 													<td data-bind="text: $row.createUserName"></td>
 													<td data-bind="text: $row.effectTime"></td>
-													<td><a data-bind="if: $row.state == 0 || $row.state == 2" onclick="systemMsg.alert('发布成功！')">发布</a> 
-													| <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService.html')">修改</a>
-													| <a data-bind="if: $row.state == 0" onclick="systemMsg.alert('确定删除吗？')">删除</a>
-													| <a data-bind="if: $row.state == 1" onclick="systemMsg.alert('确定删除吗？')">下线</a>
-													| <a data-bind="if: $row.state == 2" onclick="systemMsg.alert('确定删除吗？')">销毁</a>													
+													<td><a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.release">发布&nbsp;&nbsp;</a> 
+													 <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService.html')">修改&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 0,click: $root.deleteService">删除 &nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 1,click: $root.offline">下线&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 2,click: $root.destory">销毁 </a>													
 													</td>													
 												</tr>
 												<!-- /ko -->
@@ -146,8 +146,7 @@
 		</div>
 	</div>
 
-	<div role="dialog" aria-hidden="true" class="modal fade"
-		data-bind="modal: { show: isAdd }">
+	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
 		<div class='modal-dialog modal-lg' style="width: 600px;">
 			<div class='modal-content'>
 				<div class='modal-header'>
@@ -192,12 +191,19 @@
   var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
-
-    <!--
+    var dirUuid = 0;//目录UUID
+    //目录树start
     var setting = {
       view:{
         showIcon:false,
         showLine:false
+      },
+      callback : {
+        onClick : function(srcEvent, treeId, node, clickFlag) {
+            srcEvent.preventDefault();
+            dirUuid = node.uuid;
+            viewModel.search(node.uuid)
+        }
       }
     };    
 
@@ -210,9 +216,7 @@
             $.fn.zTree.init($("#serverDefinitionsTree"), setting, data);
         });
     }
-    //-->
-    
-    var treeObj = $.fn.zTree.getZTreeObj("serverDefinitionsTree"); 
+  //目录树end
             
     function ViewModel(){
       //服务目录start
@@ -222,9 +226,7 @@
       this.directoryVO = ko.validatedObservable({    	  
           name: ko.observable().extend({required: true}),          
           parentName: ko.observable("服务目录")
-      });
-      
-      
+      });            
       //新增           
       this.add = function(){
     	var treeObj = $.fn.zTree.getZTreeObj("serverDefinitionsTree");
@@ -273,7 +275,6 @@
               }else{
             	  confirm("确定要删除目录 "+nodes[0].name+" ?",function(){
                       csc.rest.del('api/v5.0.0/service/directory/'+nodes[0].uuid, function(data){
-                    	  debugger;
                     	  loadTree();
                           self.table.refreshData();
                           alert('删除目录成功！');                          
@@ -306,18 +307,63 @@
       }
       //服务目录end
       
+      //服务状态修改start
+      this.serviceStateVO = ko.observable({    	  
+          uuid: "",          
+          state: ""
+      })
+      //发布
+      this.release = function(object, event){    	  
+    	  object.state = "1";
+    	  self.changeState(object, "发布");
+      }
+      //下线
+      this.offline = function(object,event){    	  
+    	  object.state = "2";
+    	  self.changeState(object, "下线");
+      }
+      //销毁
+      this.destory = function(object,event){    	  
+    	  object.state = "3";
+    	  self.changeState(object, "销毁");
+      }
+      //删除服务
+      this.deleteService = function(object,event){
+    	  confirm("确定要删除服务 "+object.name+" ?",function(){
+              csc.rest.del('api/v5.0.0/service/'+object.uuid, function(data){
+                  self.table.refreshData();
+                  alert('删除服务成功！');                          
+              });
+          });
+      }
+      //修改状态接口
+      this.changeState = function(object,stateDesc){    	  
+    	  csc.rest.put('api/v5.0.0/service/changeState/'+object.uuid,object,function(data){
+        	  self.isAdd(false);
+        	  self.table.refreshData();
+              alert('服务' + stateDesc + '成功！');
+          });
+      }
+      //服务状态修改end      
       
+      //查询条件参数
       this.searchParam = ko.observable({
+    	  dirUUID: dirUuid,
           state: "",
           product: "",
           serviceName: ""
       })
-      
-      this.table = new DataTable([], {path: 'api/v5.0.0/service'});
-                  
+      //搜搜查询
+      this.search = function(dirUuid){    	  
+    	  if(typeof(dirUuid) != "object"){
+    	     this.searchParam().dirUUID = dirUuid;
+    	  }
+          this.table.params(this.searchParam());
+      }
+      //列表数据
+      this.table = new DataTable([], {path: 'api/v5.0.0/service'});                  
     }
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
-
+    var viewModel = new ViewModel();
+    ko.applyBindings(viewModel, $('#page-content')[0]);
   });
 </script>

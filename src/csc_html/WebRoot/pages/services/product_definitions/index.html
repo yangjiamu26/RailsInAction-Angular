@@ -19,32 +19,17 @@
             <div class="cell-inner">
               <div class='table-responsive'>
                 <table class='table table-striped table-hover left-list'>
-                  <tbody>
-                    <tr class="active">
-						<td><a href="javascript:void(0)">VDC</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">云主机</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">云硬盘</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">对象存储</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">公网IP</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">负载均衡器</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">SSH密钥</a></td>
-					</tr>
-					<tr>
-						<td><a href="javascript:void(0)">自定义产品</a></td>
-					</tr>
-                  </tbody>
+
+                               
+                  <tbody data-bind="foreach: products">
+                  
+                    <tr data-bind="css: {'active': $root.currentProduct().name==name}">
+						<td><a data-bind="text: name, click: $root.setCurrent"></a></td>
+					</tr> 
+			     </tbody>
+                  
+                  
+                  
                 </table>
               </div>
             </div>
@@ -478,13 +463,7 @@
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
-    $('.left-list tr td a').click(function(){
-    	var _tr = $(this).parent().parent();
-    	if(_tr.hasClass('active')) return;
-    	_tr.addClass('active').siblings().removeClass('active');
-    	$(".service-right-content").eq(_tr.index()).show().siblings().hide();
-    })
+    
 
     $(".form-edit").click(function(){
     	$(this).hide();
@@ -506,6 +485,32 @@
     		console.log('执行删除！')
     	}
     })
+    
+    
+    
+    
+    function ViewModel_Products() {
+        var self = this;
+        
+        this.products = ko.observableArray([]);
+        this.currentProduct = ko.observable({
+        	name: ""
+        })
+        this.loadProducts = function() {
+        	csc.rest.get('api/v5.0.0/products',function(data){
+        		self.products(data);
+        		self.currentProduct(data[0])
+      		});
+        }
+        this.setCurrent = function(object, event){
+        	self.currentProduct(object);
+        	console.log(object)
+        }
+        
+        this.loadProducts();
+      }
+
+    ko.applyBindings(new ViewModel_Products(), $('#page-content')[0]);
 
   });
 </script>

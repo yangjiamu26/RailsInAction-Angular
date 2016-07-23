@@ -90,3 +90,29 @@ csc.util = {
 					return paramString;
 			}
 }
+
+// 全局上传
+// ouhang 2016-07-21
+csc.uploader = {
+		holder: {},
+		
+		bind: function(dataKey, uploader) {
+			this.holder[dataKey] = uploader; 
+		},
+		
+		getUploader: function(dataKey) {
+			return this.holder[dataKey];
+		},
+		
+		unbind: function(dataKey) {
+			var uploader = this.holder[dataKey];
+			
+			if (uploader) {
+				uploader.reset();
+				uploader = null;
+				
+				delete this.holder[dataKey];
+			}
+		}
+}
+
