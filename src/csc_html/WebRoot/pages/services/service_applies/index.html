@@ -528,11 +528,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    }
 	    //vdc下拉列表
 	    this.vdcList = ko.observableArray();
-	    this.loadCatelogs = function(){
-	        csc.rest.get("api/v5.0.0/cart/getselect", function(data){
-	        	self.vdcList(data);
-	        });
-	    }
+	   // this.loadCatelogs = function(){
+        csc.rest.get("api/v5.0.0/cart/getselect", function(data){
+        	self.vdcList(data);
+        });
+	    //}
 
 	    var billRoles = [{name:'按天',value:'1'},{name:'按月',value:'2'},{name:'按季度',value:'3'},{name:'按年',value:'4'}];
 	    var countries = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
@@ -552,6 +552,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.osTypeList = ko.observableArray(osTypes);
 	    this.cpuList = ko.observableArray(cups);
 	    this.memoryList = ko.observableArray(memorys);
+	    
 	    this.projectList = ko.observableArray(projects);
 	    this.osVersionList = ko.observableArray(osVersions);
 	    this.netTypeList = ko.observableArray(netTypes)
@@ -603,13 +604,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		}
 		//添加到购物车操作
 		this.addToOrder = function(){
-			console.log("1111");
 			console.log(self.productType());
 			if(self.productType()=='6'){
 				if(this.model_LB.isValid()){
 				 	//console.log(this.model_LB.toJSON());
 				 	csc.rest.post('api/v5.0.0/orders',this.model_LB.toJSON(),function(data){
-				 		systemMsg.alert('添加到购物车成功！');
+				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_LB(false);
 				    });
 				}
@@ -617,9 +617,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				if(this.model_SSH.isValid()){
 				 	//console.log(this.model_SSH.toJSON());
 				 	csc.rest.post('api/v5.0.0/orders',this.model_SSH.toJSON(),function(data){
-				 		systemMsg.alert('添加到购物车成功！');
+				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_SSH(false);
 				    });
+				}
+			}else if(self.productType()=='2'){
+				if(this.model_VM.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',this.model_VM.toJSON(),function(data){
+				 		systemMsg.alert('成功提交订单！');
+				 		self.isAdd_VM(false);
+				    }); 
 				}
 			}else if(self.productType()=='3'){
 				if(this.model_Vdisk.isValid()){
@@ -642,7 +649,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				 		self.isAdd(false);
 				    }); 
 				}
-			}else if(self.productType()=='1'){debugger
+			}else if(self.productType()=='1'){
 				console.log("22");
 				console.log(this.model_VDC.toJSON());
 				if(this.model_VDC.isValid()){
@@ -687,7 +694,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add = function(){
 	        self.isAdd_LB(true);
 	        self.num_LB(1);
-	        self.loadCatelogs();
+	        //self.loadCatelogs();
 	    }
 	    MyDate : ko.observable(new Date());
 		//负载均衡列表数据
@@ -703,7 +710,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add_SSH = function(){
 	    	self.isAdd_SSH(true);
 	    	self.num_SSH(1);
-	    	self.loadCatelogs();
+	    	//self.loadCatelogs();
 	    }
 	    this.num_SSH = ko.observable().extend({max:20});
 	    
@@ -735,7 +742,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add_Vdisk = function(){
 	    	self.isAdd_Vdisk(true);
 	    	self.num_vdisk(1);
-	    	self.loadCatelogs();
+	    	//self.loadCatelogs();
 	    }
 	    this.num_vdisk = ko.observable().extend({max:20});
 	    
@@ -766,7 +773,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add_VM = function(){
 	    	self.isAdd_VM(true);
 	    	self.num_VM(1); 	
-	    	self.loadCatelogs();
+	    	//self.loadCatelogs();
 	    	self.myStep(1);
 	    	self.isAdd_partition(false);
 	    	self.isUpdate_partition(false);
@@ -781,6 +788,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             this.computerName = ko.observable("");
             this.projectUuid = ko.observable("");
             this.vdcUuid = ko.observable("");
+            this.vdcText = ko.pureComputed(function(){
+            	var item = _.findWhere(self.vdcList(), {uuid: this.vdcUuid()});
+            	return item.name;
+            }, this);
+            this.applyTimeText = ko.pureComputed(function(){
+            	if(this.applyType()=="1"){
+            		return "永久";
+            	}else if(this.applyType()=="2"){
+            		return this.applyNum()+"个月";
+            	}else{
+            		return this.applyTime();
+            	}
+            }, this);
             this.desc = ko.observable("");
             this.billRuleUuid = ko.observable("");
             this.applyTime = ko.observable("");
@@ -808,10 +828,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             this.storage = ko.observable("");
             this.applyType = ko.observable("");
             this.applyNum = ko.observable("");
+            this.azUuid = ko.observable("");
+            this.userName = ko.observable("");
+            this.password = ko.observable("");
+            this.repeatPassword = ko.observable("");
+            this.sshIsMount = ko.observable("NO");
+            this.sshUuid = ko.observable("");
             //分区
             this.partitions = ko.observableArray([]);
             //硬盘
             this.mountdisks = ko.observableArray([]);
+            
+            this.softwares = ko.observableArray([]);
    		}
 	    
 	    
@@ -833,8 +861,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    }
 	    //页面展示vo
 	    this.partitions=ko.validatedObservable({
-	    	name: ko.observable(""),
-	    	size: ko.observable("")
+	    	name: ko.observable("").extend({required:true}),
+	    	size: ko.observable("").extend({required:true})
 	    });
 	    
 	    this.isAdd_partition = ko.observable(false);
@@ -852,12 +880,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	obje=info;
 	    }
 	    this.savePartitions = function(){
-	    	var partitionVO = new PartitionVO();
-	    	partitionVO.name(self.partitions().name());
-	    	partitionVO.size(self.partitions().size());
-	    	
-	    	obje.partitions.push(partitionVO);
-	    	self.isAdd_partition(false);
+	    	if(self.partitions.isValid()){
+	    		var partitionVO = new PartitionVO();
+		    	partitionVO.name(self.partitions().name());
+		    	partitionVO.size(self.partitions().size());
+		    	
+		    	obje.partitions.push(partitionVO);
+			 	self.isAdd_partition(false);
+			}
 	    } 
 	    //删除分区
 	    this.delPartitions = function(info, object, event){
@@ -874,9 +904,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	editObject=object;
 	    }
 	    this.submitPartitions = function(){
-	    	editObject.name(self.partitions().name())
-	    	editObject.size(self.partitions().size());
-	    	self.isUpdate_partition(false);
+	    	if(self.partitions.isValid()){
+		    	editObject.name(self.partitions().name())
+		    	editObject.size(self.partitions().size());
+		    	self.isUpdate_partition(false);
+	    	}
 	    }
 	    //#### 分区 end ####
 	    //#### 硬盘 start #### 
@@ -899,10 +931,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    
 	    this.addMountdisks = function(info){
 	    	obje=""
+	    	self.rightData.removeAll();
+	    	info.mountdisks().forEach(function(e){
+	    		self.rightData.push(e);
+	        });
 	    	self.isAdd_mountdisk(true);
 	    	obje=info;
 	    }
-	    this.saveMountdisks = function(){debugger
+	    this.saveMountdisks = function(){
 	    	obje.mountdisks.removeAll();
 	        self.rightData().forEach(function(e){
 		    	obje.mountdisks.push(e);
@@ -910,7 +946,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	self.isAdd_mountdisk(false);
 	    } 
 	    //删除
-	    this.delMountdisks = function(info, object, event){debugger;
+	    this.delMountdisks = function(info, object, event){
 	    	info.mountdisks.remove(object);
 	    } 
 	    
@@ -951,14 +987,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
         
       	this.next = function(){
         	this.myStep(this.myStep()+1)
-        	
         	console.log(this.model_VM.toJSON())
         }
 	    
       	this.pre = function(){
       		this.myStep(this.myStep()-1)
       	}
-        
         
 	    this.table_VM = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	    
@@ -970,7 +1004,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add_ObjectStorage = function(){
 	    	self.isAdd_ObjectStorage(true);
 	    	self.num_ObjectStorage(1);
-	    	self.loadCatelogs();
+	    	//self.loadCatelogs();
 	    }
 	    this.num_ObjectStorage = ko.observable().extend({max:20});
 	    
@@ -1004,7 +1038,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.add_PublicNetwork = function(){
 	    	self.isAdd_PublicNetwork(true);
 	    	self.num_PublicNetwork(1);
-	    	self.loadCatelogs();
+	    	//self.loadCatelogs();
 	    }
 	    this.num_PublicNetwork = ko.observable().extend({max:20});
 	    
@@ -1099,7 +1133,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	  //################## VDC end ##################
     }
-	ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]); 
+	ko.applyBindings(new ViewModel, $('#page-content')[0]); 
   });
   
 </script>
@@ -1310,9 +1344,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		          <li data-bind="css: {active: myStep()==3}"><a >3网络配置</a></li>
 		          <li data-bind="css: {active: myStep()==4}"><a >4系统盘分区</a></li>
 		          <li data-bind="css: {active: myStep()==5}"><a >5挂载云硬盘</a></li>
-		          <li data-bind="css: {active: myStep()==6}"><a >6绑定密钥</a></li>
-		          <li data-bind="css: {active: myStep()==7}"><a >7软件安装</a></li>
-		          <li data-bind="css: {active: myStep()==8}"><a >8信息确认</a></li>
+		          <li data-bind="css: {active: myStep()==6}"><a >6软件安装</a></li>
+		          <li data-bind="css: {active: myStep()==7}"><a >7信息确认</a></li>
 		        </ul>
 				<div class="tab-content service-step-box" style="margin-top:20px;">
 			    	  <div data-bind="visible: myStep()==1">
@@ -1328,6 +1361,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				                  <th>序号</th>
 				                  <th>云主机名称<i style="color:red">*</i></th>
 				                  <th>计算机名称</th>
+				                  <th>可用分区</th>
 				                  <th>业务系统</th>
 				                  <th>所属VDC<i style="color:red">*</i></th>
 				                  <th>备注</th>
@@ -1339,8 +1373,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					                     <td><span data-bind="text: ($index()+1)"></span></td>
 					                     <td><input type="text" class="form-control w" data-bind="value:vmName"></td>
 					                     <td><input type="text" class="form-control w" data-bind="value:computerName"></td>
+					                     <td><select class="form-control w-xs" data-bind="options:$parent.projectList,optionsText:'name',optionsValue:'value',value:azUuid"></select></td>
 					                     <td><select class="form-control w-xs" data-bind="options:$parent.projectList,optionsText:'name',optionsValue:'value',value:projectUuid"></select></td>
-					                     <td><select class="form-control w-xs" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'value',value:vdcUuid"></select></td>
+					                     <td><select class="form-control w-xs" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
 					                     <td><input type="text" class="form-control w"></td>
 					                     <td>
 					                         <div class="radio">
@@ -1356,7 +1391,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 											<div class="radio disabled">
 												<label class="form-inline"> <input type="radio"
 													class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
-													<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
+													<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate,value:applyTime" type="date">
 												</label>
 											</div>
 					                     </td>
@@ -1378,8 +1413,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                  <th>操作系统类型<i style="color:red">*</i></th>
 			                  <th>操作系统版本<i style="color:red">*</i></th>
 			                  <th>CPU(核)<i style="color:red">*</i></th>
-			                  <th>内存(G))<i style="color:red">*</i></th>
-			                  <th>存储(G</th>
+			                  <th>内存(G)<i style="color:red">*</i></th>
+			                  <th>存储(G)</th>
+			                  <th>用户名<i style="color:red">*</i></th>
+			                  <th>密码<i style="color:red">*</i></th>
+			                  <th>重复密码<i style="color:red">*</i></th>
 			                </thead>
 			                <tbody data-bind="foreach: model_VM().vmCartInfo">
 			                  <tr>
@@ -1387,9 +1425,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		                        <td><span data-bind="text:vmName"></span></td>
 		                        <td><select class="form-control" data-bind="options:$parent.osTypeList,optionsText:'name',optionsValue:'value',value:osType"></select></td>
 		                        <td><select class="form-control" data-bind="options:$parent.osVersionList,optionsText:'name',optionsValue:'value',value:osVersion"></select></td>
-		                        <td><select class="form-control" data-bind="options:$parent.cpuList,optionsText:'name',optionsValue:'value',value:cpu"></select></td>
-		                        <td><select class="form-control" data-bind="options:$parent.memoryList,optionsText:'name',optionsValue:'value',value:osVersion"></select></td>
+		                        <td><select class="form-control" style="width: 80px;" data-bind="options:$parent.cpuList,optionsText:'name',optionsValue:'value',value:cpu"></select></td>
+		                        <td><select class="form-control" style="width: 80px;" data-bind="options:$parent.memoryList,optionsText:'name',optionsValue:'value',value:memory"></select></td>
 		                        <td><input type="text" class="form-control" data-bind="value:storage"></td>
+		                        <td><input type="text" class="form-control" data-bind="value:userName"></td>
+		                        <td><input type="text" class="form-control" data-bind="value:password"></td>
+		                        <td><input type="text" class="form-control" data-bind="value:repeatPassword"></td>
 		                      </tr>
 			                </tbody>
 			              </table>
@@ -1406,6 +1447,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                  <th>VPC/IP池<i style="color:red">*</i></th>
 			                  <th>网络名称</th>
 			                  <th>指定IP</th>
+			                  <th>绑定密钥</th>
 			                </thead>
 			                <tbody data-bind="foreach: model_VM().vmCartInfo">
 			                    <tr>
@@ -1415,6 +1457,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                       <td><select class="form-control" data-bind="options:$parent.vpcOrIpPoolList,optionsText:'name',optionsValue:'value',value:vpcOrIpPoolList"></select></td>
 			                       <td><select class="form-control" data-bind="options:$parent.netNameList,optionsText:'name',optionsValue:'value',value:vpcNetworkUuid"></select></td>
 			                       <td><select class="form-control" data-bind="options:$parent.ipList,optionsText:'name',optionsValue:'value',value:ip"></select></td>
+			                       <td>
+			                           <input type="radio" data-bind="checked: sshIsMount" value="NO" >否<input type="radio" data-bind="checked: sshIsMount" value="YES">是 <select class="form-control" data-bind="options:$parent.osTypeList,optionsText:'name',optionsValue:'value',value:sshUuid"></select>
+			                       </td>
 			                    </tr>
 			                </tbody>
 			              </table>
@@ -1430,7 +1475,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				                  <table class="table table-striped">
 				                      <thead>
 				                          <th>分区名称</th>
-				                          <th>分区大小</th>
+				                          <th>分区大小(G)</th>
 				                          <th>操作</th>
 				                      </thead>
 				                      <tbody data-bind="foreach: partitions">
@@ -1474,18 +1519,41 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				              </div>
 				          </div>    
 			          </div>
-			<!-- 
-			          <div class="tab-pane" id="applyServiceSSHBox">
+
+			          <div  data-bind="visible: myStep()==6">
+			              <div data-bind="foreach: model_VM().vmCartInfo">
+			              <div style="margin:0;margin-top:10px">
+				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right">添加软件</a>
+				              <div class="clearfix" style="height:10px;clear:both;"></div>
+				              <div class="panel panel-default table-responsive no-height">
+				                  <table class="table table-striped">
+				                      <thead>
+				                          <th>软件名称</th>
+				                          <th>软件分类</th>
+				                          <th>软件类型</th>
+				                          <th>软件版本</th>
+				                          <th>静默安装属性</th>
+				                          <th>操作</th>
+				                      </thead>
+				                      <tbody data-bind="foreach: softwares">
+				                          <tr>
+					                          <td>oracle 10g</td>
+					                          <td>数据库</td>
+					                          <td>oracle</td>
+					                          <td>10g企业版</td>
+					                          <td><a class="btn btn-xs btn-info">查看</a> <a class="btn btn-xs btn-default">修改</a></td>
+					                          <td><a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
+				                          </tr>
+				                      </tbody>
+				                  </table>
+				              </div>
+				          </div> 
+				          </div>   
+			          </div> 
 			
-			          </div>
-			
-			          <div class="tab-pane" id="applyServiceSoftwareBox">
-			
-			          </div> -->
-			
-			          <!-- <div class="tab-pane">
+			         <div data-bind="visible: myStep()==7">
 			            <div style="margin:0;margin-top:10px">
-			              <span class="pull-left" style="font-size:16px;">云主机个数：3</span>
+			              <span class="pull-left" style="font-size:16px;">云主机个数：<span data-bind="text: model_VM().vmCartInfo().length"></span></span>
 			              <div class="clearfix" style="height:10px;clear:both;"></div>
 			              <div class="panel panel-default table-responsive no-height">
 			                <table class="table table-striped">
@@ -1494,56 +1562,38 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                    <th>CPU(核)</th>
 			                    <th>内存(G)</th>
 			                    <th>存储(G)</th>
-			                    <th>安装软件</th>
+			                    <th>软件个数</th>
+			                    <th>云盘个数</th>
 			                    <th>所属VDC</th>
 			                    <th>申请时长</th>
 			                    <th>收费标准</th>
 			                  </thead>
-			                  <tbody>
+			                  <tbody data-bind="foreach: model_VM().vmCartInfo">
 			                    <tr>
-			                      <td>云主机1</td>
-			                      <td>1</td>
-			                      <td>1</td>
-			                      <td>100</td>
-			                      <td>oracle 10g</td>
-			                      <td>研发部</td>
-			                      <td>永久</td>
-			                      <td>0.5元/小时</td>
-			                    </tr>
-			                    <tr>
-			                      <td>云主机2</td>
-			                      <td>1</td>
-			                      <td>1</td>
-			                      <td>100</td>
-			                      <td>oracle 10g</td>
-			                      <td>研发部</td>
-			                      <td>永久</td>
-			                      <td>0.5元/小时</td>
-			                    </tr>
-			                    <tr>
-			                      <td>云主机3</td>
-			                      <td>1</td>
-			                      <td>1</td>
-			                      <td>100</td>
-			                      <td>oracle 10g</td>
-			                      <td>研发部</td>
-			                      <td>永久</td>
-			                      <td>0.5元/小时</td>
+			                      <td data-bind="text: vmName"></td>
+			                      <td data-bind="text: cpu"></td>
+			                      <td data-bind="text: memory"></td>
+			                      <td data-bind="text: storage">100</td>
+			                      <td data-bind="text: softwares().length"></td>
+			                      <td data-bind="text: mountdisks().length"></td>
+			                      <td data-bind="text: vdcText"></td>
+			                      <td data-bind="text: applyTimeText"></td>
+			                      <td data-bind="text: vmName"></td>
 			                    </tr>
 			                  </tbody>
 			                </table>
 			              </div>
 			            </div>
-			          </div>  -->
+			          </div>  
 		
 		        </div>
 		        
 		      </div>
 		    <div class='modal-footer' style="text-align:center;">
 		        <a class="btn btn-default btn-info " data-bind="visible: myStep()>1,click:pre">上一步</a>
-		        <a class="btn btn-default btn-info " data-bind="click:next">下一步</a>
-		        <a class="btn btn-default btn-info service-step-btn-save" style="display:none;">添加到购物车</a>
-		        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" style="display:none;">提交订单</a>
+		        <a class="btn btn-default btn-info " data-bind="visible: myStep()<7,click:next">下一步</a>
+		        <a class="btn btn-default btn-info " data-bind="visible: myStep()==7,click:addToCart">添加到购物车</a>
+		        <a class="btn btn-default btn-success " data-bind="visible: myStep()==7,click:addToOrder">提交订单</a>
 		        <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
 		    </div>
 	    </div>
@@ -1874,9 +1924,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
       </div>
       <div class='modal-body form-horizontal row'>
         <div class="form-group">
-          <label class="col-sm-3 control-label">分区名称：</label>
+          <label class="col-sm-3 control-label">分区名称：<i style="color: red">*</i></label>
           <div class="col-sm-8">
             <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:partitions().name">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="col-sm-3 control-label">分区大小(G)：<i style="color: red">*</i></label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入分区大小" data-bind="value:partitions().size">
           </div>
         </div>
       </div>
@@ -1890,16 +1947,23 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 <!-- 新增分区 -->
 <!-- 修改分区 -->
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isUpdate_partition }">
-  <div class='modal-dialog '>
+  <div class='modal-dialog'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改分区</h3>
       </div>
       <div class='modal-body form-horizontal row'>
         <div class="form-group">
-          <label class="col-sm-3 control-label">分区名称：</label>
+          <label class="col-sm-3 control-label">分区名称：<i style="color: red">*</i></label>
           <div class="col-sm-8">
             <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:partitions().name">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="col-sm-3 control-label">分区大小(G)：<i style="color: red">*</i></label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入分区大小" data-bind="value:partitions().size">
           </div>
         </div>
       </div>

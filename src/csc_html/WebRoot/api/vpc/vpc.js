@@ -23,7 +23,7 @@
 			 * 删除VPC
 			 *  @param uuid vpc uuid
 			 */
-			delVPc:function(uuid,callback){
+			delVpc:function(uuid,callback){
 				csc.rest.del('api/v5.0.0/vpcs/'+uuid,function(data){
 					 callback(data)
    		        })
@@ -38,5 +38,23 @@
 					     callback(data);
 	    		    }); 
 			},
+			/**
+			 * 创建VPC网络
+			 * @param param VPC创建入参
+			 */
+			createVpcNetwork:function(param,callback,errorCallback){
+				 csc.rest.post('api/v5.0.0/vpcNetworks',param,function(data){
+					     callback(data);
+	    		    }); 
+			},
+			/**
+			 * 删除VPC 网络
+			 *  @param uuid vpc uuid
+			 */
+			delVpcNet:function(uuid,callback){
+				csc.rest.del('api/v5.0.0/vpcNetworks/'+uuid,function(data){
+					 callback(data)
+   		        })
+			}
 	};
 }(window.jQuery);
