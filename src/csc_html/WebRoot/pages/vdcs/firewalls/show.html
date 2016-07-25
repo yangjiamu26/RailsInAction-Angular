@@ -17,10 +17,10 @@
 		<div class="tab-content">
 			<div class="tab-pane active" id="baseInfo" role="tabpanel">
 				<div class="wrapper-md">
-					<p><strong>防火墙名称：</strong>防火墙01</p>
-					<p><strong>所属VDC：</strong>VDC01</p>
-					<p><strong>所属VPC：</strong>VPC01</p>
-					<p><strong>路由器：</strong>路由器01</p>
+					<p><strong>防火墙名称：</strong><span data-bind="text:firewallVO().name"></span></p>
+					<p><strong>所属VDC：</strong><span data-bind="text:firewallVO().vdcName"></span></p>
+					<p><strong>所属VPC：</strong><span data-bind="text:firewallVO().vpcName"></span></p>
+					<p><strong>路由器：</strong><span data-bind="text:firewallVO().routerName"></span></p>
 				</div>
 				<div class="panel panel-default">
 					<div class="panel-heading">规则</div>
@@ -232,15 +232,24 @@
 <script type="text/javascript">
 var scripts = [null, null]
 $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    function ViewModel(){
-      this.isAddRule = ko.observable(false);
-
-      this.addRule = function(){
-        this.isAddRule(true);
-      };
-    };
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+	var fwUuid = args.fwUuid;
+	$.FIREWALL.getFirewalls({uuid:fwUuid},function(data){
+		  if(data.results && data.results.length > 0){
+			    var firewallObj = data.results[0];
+				function firewallInfoViewModel(){
+		    		var self = this;
+		    		//self.vdcList = ko.observableArray();
+		    		//self.azList = ko.observableArray();
+		    		 self.firewallVO = ko.validatedObservable(firewallObj);
+		    		//self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks', perPage: 1});
+		    		 
+				}
+	
+			    ko.applyBindings(new firewallInfoViewModel(), $("#page-content")[0]);
+		  }
+    });
+	
+ 
 
     $("#firewall_rule_add").on("shown.bs.modal",function(){
 		// 根据协议显示隐藏相关字段

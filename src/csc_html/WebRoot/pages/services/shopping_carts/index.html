@@ -416,69 +416,79 @@
 		        owner: this
 		      });
 
+            function ListVO(obj){         	
+            	for(var s in obj){
+                   this[s] = ko.observable(obj[s]);
+            	}
+            } 
+		    
+            
 		    this.vdiskNum = ko.observable("");
 		    this.objectStorageNum = ko.observable("");
 		    this.publicNetworkNum = ko.observable("");
+		    
  		 	csc.rest.get('api/v5.0.0/cart',function(data){
  		 		console.log(data);
  		 		self.vdiskNum(data['vdiskCartInfo'].length);
-		 		self.vdiskList(data['vdiskCartInfo']);
+ 		 		data['vdiskCartInfo'].forEach(function(e){
+ 		 			var vo=new ListVO(e);
+  		 			self.vdiskList.push(vo);
+ 		 		});
 		 		self.objectStorageNum(data['objectStorageCartInfo'].length);
-		 		self.objectStorageList(data['objectStorageCartInfo']);
+ 		 		data['objectStorageCartInfo'].forEach(function(e){
+ 		 			var vo=new ListVO(e);
+  		 			self.objectStorageList.push(vo);
+ 		 		});
 		 		self.publicNetworkNum(data['publicNetworkCartInfo'].length);
-		 		self.publicNetworkList(data['publicNetworkCartInfo']);
+ 		 		data['publicNetworkCartInfo'].forEach(function(e){
+ 		 			var vo=new ListVO(e);
+  		 			self.publicNetworkList.push(vo);
+ 		 		});
 		    }); 
  		 	
  		 	this.isView_Vdisk = ko.observable(false);
  		 	this.isView_ObjectStorage = ko.observable(false);
  		 	this.isView_PublicNetwork = ko.observable(false);
  		 	
- 		 	this.model_Vdisk = ko.validatedObservable({
-			    	vdiskCartInfo:ko.observable({
-			    			id:"",
-			    			name:"",
-			    			size:"",
-			    			vdcUuid:"",
-			    			vdcName:"",
-			    			mountVmUuid:"",
-			    			mountVmName:""	
-	 			    	})
+ 		 	this.vdiskCartInfo = ko.validatedObservable({
+    			id:"",
+    			name:"",
+    			size:"",
+    			vdcUuid:"",
+    			vdcName:"",
+    			mountVmUuid:"",
+    			mountVmName:""	
  		 	});
  		 	
- 		 	this.model_ObjectStorage = ko.validatedObservable({
-		    	objectStorageCartInfo:ko.observable({
-		    			id:"",
-		    			name:"",
-		    			size:"",
-		    			applyTime:"",
-		    			vdcUuid:"",
-		    			billRuleUuid:""	
- 			    	})
+ 		 	this.objectStorageCartInfo = ko.validatedObservable({
+    			id:"",
+    			name:"",
+    			size:"",
+    			applyTime:"",
+    			vdcUuid:"",
+    			billRuleUuid:""
 		 	});
  		 	
- 		 	this.model_PublicNetwork = ko.validatedObservable({
-		    	publicNetworkCartInfo:ko.observable({
-		    			id:"",
-		    			name:"",
-		    			workip:"",
-		    			vdcUuid:"",
-		    			vpdcUuid:"",
-		    			applyTime:"",
-		    			billRuleUuid:""	
- 			    	})
+ 		 	this.publicNetworkCartInfo = ko.validatedObservable({
+    			id:"",
+    			name:"",
+    			workip:"",
+    			vdcUuid:"",
+    			vpdcUuid:"",
+    			applyTime:"",
+    			billRuleUuid:""	
 		 	});
  		 	
  		 	this.queryElement = function(arg,object, event){
- 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid,function(data){
- 	 		 	  console.log(data);
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
  	 		 	  if(arg=='vdiskCartInfo'){
- 	 		 		self.model_Vdisk().vdiskCartInfo(data);
+ 	 		 		self.vdiskCartInfo.fromJSON(data);
  	 		 		self.isView_Vdisk(true);	
  	 		 	  }else if(arg=='objectStorageCartInfo'){
- 	 		 		self.model_ObjectStorage().objectStorageCartInfo(data);
+ 	 		 		self.objectStorageCartInfo.fromJSON(data);
  	 		 		self.isView_ObjectStorage(true);	 		 		  
  	 		 	  }else if(arg=="publicNetworkCartInfo"){
- 	 		 		self.model_PublicNetwork().publicNetworkCartInfo(data);
+ 	 		 		self.publicNetworkCartInfo.fromJSON(data);
  	 		 		self.isView_PublicNetwork(true);	 	 		 		  
  	 		 	  }
  			    }); 
@@ -487,43 +497,41 @@
  		 	this.isEdit_Vdisk = ko.observable(false);
  		 	this.isEdit_ObjectStorage = ko.observable(false);
  		 	this.isEdit_PublicNetwork = ko.observable(false);
+ 		 	var editObject;
  		 	this.editElement = function(arg,object, event){
- 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid,function(data){
+ 		 		console.log(object);
+ 	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
  	 	 		 	  if(arg=='vdiskCartInfo'){
-	 	 	 		 		self.model_Vdisk().vdiskCartInfo(data);
-	 	 	 		 		self.model_Vdisk().vdiskCartInfo().id = object.id;
+ 	 	 		 		    console.log(data);
+	 	 	 		 		self.vdiskCartInfo.fromJSON(data);
+	 	 	 		 		self.vdiskCartInfo().id = object.id();
 	 	  	 		 		self.isEdit_Vdisk(true);	
+	 	  	 		 		editObject = object;
  	  	 		 	  }else if(arg=='objectStorageCartInfo'){
- 	 	 	 		 		self.model_ObjectStorage().objectStorageCartInfo(data);
- 	 	 	 		 		self.model_ObjectStorage().objectStorageCartInfo().id = object.id;
- 	 	  	 		 		self.isEdit_ObjectStorage(true);	 		 		  
+ 	 	 	 		 		self.objectStorageCartInfo.fromJSON(data);
+ 	 	 	 		 		self.objectStorageCartInfo().id = object.id();
+ 	 	  	 		 		self.isEdit_ObjectStorage(true);
+ 	 	  	 		 		editObject = object;
  	 	 		 	  }else if(arg=="publicNetworkCartInfo"){
-	 	 	 		 		self.model_PublicNetwork().publicNetworkCartInfo(data);
- 	 	 	 		 		self.model_PublicNetwork().publicNetworkCartInfo().id = object.id;
- 	 	  	 		 		self.isEdit_PublicNetwork(true);		
+	 	 	 		 		self.publicNetworkCartInfo.fromJSON(data);
+ 	 	 	 		 		self.publicNetworkCartInfo().id = object.id();
+ 	 	  	 		 		self.isEdit_PublicNetwork(true);
+ 	 	  	 		 		editObject = object;
 	 		      	  }
  	 			    }); 	 		
  		 	}
  		 		 	
 	      	this.deleteElement = function(arg,object,event){
-  	      		systemMsg.confirm("确定删除"+object.name+"吗?",function(){
-	 	 		 	csc.rest.del('api/v5.0.0/cart/delete/'+arg+'/'+object.id,function(data){
+  	      		systemMsg.confirm("确定删除"+object.name()+"吗?",function(){
+	 	 		 	csc.rest.del('api/v5.0.0/cart/delete/'+arg+'/'+object.id(),function(data){
 	 	 		 		systemMsg.alert('删除成功！');	
-	 				 	csc.rest.get('api/v5.0.0/cart/query/'+arg,function(data){
-						 	if(arg=="vdiskCartInfo"){
-						 		self.vdiskList.removeAll();
-						 		self.vdiskList(data['vdiskCartInfo']);
-						 		self.vdiskNum(data['vdiskCartInfo'].length);
-				      		}else if(arg=="objectStorageCartInfo"){
-				      			self.objectStorageList.removeAll();
-				      			self.objectStorageList(data['objectStorageCartInfo']);
-				      			self.objectStorageNum(data['objectStorageCartInfo'].length);
-				      		}else if(arg=="publicNetworkCartInfo"){
-				      			self.publicNetworkList.removeAll();
-				      			self.publicNetworkList(data['publicNetworkCartInfo']);
-				      			self.publicNetworkNum(data['publicNetworkCartInfo'].length);
-				      		}
-					    });
+					 	if(arg=="vdiskCartInfo"){
+					 		self.vdiskList.remove(object);
+			      		}else if(arg=="objectStorageCartInfo"){
+			      			self.objectStorageList.remove(object);
+			      		}else if(arg=="publicNetworkCartInfo"){
+			      			self.publicNetworkList.remove(object);
+			      		}
 	 			    }); 
 	      		});
 	      	}
@@ -531,32 +539,30 @@
 	      	this.confirmCommit = function(arg){
 	      		var json;
 	      		if(arg=="vdiskCartInfo"){
-					json = this.model_Vdisk.toJSON();
+					json = this.vdiskCartInfo.toJSON();
 	      		}else if(arg=="objectStorageCartInfo"){
-	      			json = this.model_ObjectStorage.toJSON();
+	      			json = this.objectStorageCartInfo.toJSON();
 	      		}else if(arg=="publicNetworkCartInfo"){
-	      			json = this.model_PublicNetwork.toJSON();
+	      			json = this.publicNetworkCartInfo.toJSON();
 	      		}
-			 	csc.rest.put('api/v5.0.0/cart/update',json,function(data){
+	      		
+			 	csc.rest.put('api/v5.0.0/cart/update/'+arg,json,function(data){
 			 		systemMsg.alert('修改成功！');
-				 	csc.rest.get('api/v5.0.0/cart/query/'+arg,function(data){
-					 	if(arg=="vdiskCartInfo"){
-					 		self.vdiskList.removeAll();
-					 		self.vdiskList(data['vdiskCartInfo']);
-					 		self.vdiskNum(data['vdiskCartInfo'].length);
-			      			self.isEdit_Vdisk(false);
-			      		}else if(arg=="objectStorageCartInfo"){
-			      			self.objectStorageList.removeAll();
-			      			self.objectStorageList(data['objectStorageCartInfo']);
-			      			self.objectStorageNum(data['objectStorageCartInfo'].length);
-			      			self.isEdit_ObjectStorage(false);
-			      		}else if(arg=="publicNetworkCartInfo"){
-			      			self.publicNetworkList.removeAll();
-			      			self.publicNetworkList(data['publicNetworkCartInfo']);
-			      			self.publicNetworkNum(data['publicNetworkCartInfo'].length);
-			      			self.isEdit_PublicNetwork(false);
-			      		}
-				    });
+					 if(arg=="vdiskCartInfo"){
+		      			self.isEdit_Vdisk(false);
+		      			editObject.name(self.vdiskCartInfo().name);
+		      			editObject.size(self.vdiskCartInfo().size);
+		      			//..
+		      		}else if(arg=="objectStorageCartInfo"){
+		      			self.isEdit_ObjectStorage(false);
+		      			editObject.name(self.objectStorageCartInfo().name);
+		      			editObject.size(self.objectStorageCartInfo().size);
+		      			//..
+		      		}else if(arg=="publicNetworkCartInfo"){
+		      			self.isEdit_PublicNetwork(false);
+		      			editObject.name(self.publicNetworkCartInfo().name);
+		      			//..
+		      		}
 			    });
 	      	}
 	    }
@@ -586,10 +592,10 @@
               <th>收费标准</th>
             </tr></thead>
             <tbody><tr>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().name"></span></td>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().size"></span></td>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().vdcName"></span></td>
-            <td><span data-bind="text:model_Vdisk().vdiskCartInfo().mountVmName"></span></td>
+            <td><span data-bind="text:vdiskCartInfo().name"></span></td>
+            <td><span data-bind="text:vdiskCartInfo().size"></span></td>
+            <td><span data-bind="text:vdiskCartInfo().vdcName"></span></td>
+            <td><span data-bind="text:vdiskCartInfo().mountVmName"></span></td>
             <td>0.5元/小时</td></tr></tbody>
           </table>
         </div>
@@ -610,7 +616,7 @@
       </div>
       <div class='modal-body'>
         <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
-        <input style="display:none" type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().id">
+        <input style="display:none" type="text" class="form-control input-sm" data-bind="value:vdiskCartInfo().id">
           <table class="table table-striped">
             <thead>
               <tr>
@@ -621,10 +627,10 @@
               <th>收费标准</th>
             </tr></thead>
             <tbody><tr>
-            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().name"></td>
-            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().size"></td>
-            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().vdcUuid"></td>
-            <td><input type="text" class="form-control input-sm" data-bind="value:model_Vdisk().vdiskCartInfo().mountVmUuid"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:vdiskCartInfo().name"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:vdiskCartInfo().size"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:vdiskCartInfo().vdcUuid"></td>
+            <td><input type="text" class="form-control input-sm" data-bind="value:vdiskCartInfo().mountVmUuid"></td>
             <td>0.5元/小时</td></tr></tbody>
           </table>
         </div>
@@ -658,11 +664,11 @@
             </tr></thead>
             <tbody>
             <tr>
-	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().name"></span></td>
-	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().size"></span></td>
-	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().vdcUuid"></span></td>
-	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().applyTime"></span></td>
-	            <td><span data-bind="text:model_ObjectStorage().objectStorageCartInfo().billRuleUuid"></span></td>
+	            <td><span data-bind="text:objectStorageCartInfo().name"></span></td>
+	            <td><span data-bind="text:objectStorageCartInfo().size"></span></td>
+	            <td><span data-bind="text:objectStorageCartInfo().vdcUuid"></span></td>
+	            <td><span data-bind="text:objectStorageCartInfo().applyTime"></span></td>
+	            <td><span data-bind="text:objectStorageCartInfo().billRuleUuid"></span></td>
 	            <td>0.5元/小时</td>
             </tr>
             </tbody>
@@ -684,7 +690,7 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改对象存储服务</h3>
       </div>
       <div class='modal-body'>
-      	<input style="display:none" type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().id">
+      	<input style="display:none" type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().id">
         <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
           <table class="table table-striped">
             <thead>
@@ -698,11 +704,11 @@
             </tr></thead>
             <tbody>
             <tr>
-	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().name"></td>
-	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().size"></td>
-	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().vdcUuid"></td>
-	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().applyTime"></td>
-	            <td><input type="text" class="form-control input-sm" data-bind="value:model_ObjectStorage().objectStorageCartInfo().billRuleUuid"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().name"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().size"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().vdcUuid"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().applyTime"></td>
+	            <td><input type="text" class="form-control input-sm" data-bind="value:objectStorageCartInfo().billRuleUuid"></td>
 	            <td>0.5元/小时</td>
             </tr>
             </tbody>
@@ -738,12 +744,12 @@
             </tr></thead>
             <tbody>
             <tr>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().name"></span></td>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().vdcUuid"></span></td>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().vpcUuid"></span></td>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().workip"></span></td>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().applyTime"></span></td>
-	            <td><span data-bind="text:model_PublicNetwork().publicNetworkCartInfo().billRuleUuid"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().name"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().vdcUuid"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().vpcUuid"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().workip"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().applyTime"></span></td>
+	            <td><span data-bind="text:publicNetworkCartInfo().billRuleUuid"></span></td>
             </tr></tbody>
           </table>
         </div>
@@ -776,12 +782,12 @@
             </tr></thead>
             <tbody>
             	<tr>
-	            	<td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().name"></td>
-		            <td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().vdcUuid"></td>
-		            <td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().vpcUuid"></td>
-		            <td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().workip"></td>
-		            <td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().applyTime"></td>
-		            <td><input type="text" class="form-control input-sm" data-bind="value:model_PublicNetwork().publicNetworkCartInfo().billRuleUuid"></td>
+	            	<td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().name"></td>
+		            <td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().vdcUuid"></td>
+		            <td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().vpcUuid"></td>
+		            <td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().workip"></td>
+		            <td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().applyTime"></td>
+		            <td><input type="text" class="form-control input-sm" data-bind="value:publicNetworkCartInfo().billRuleUuid"></td>
             	</tr>
             </tbody>
           </table>

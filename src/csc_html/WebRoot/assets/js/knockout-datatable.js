@@ -357,7 +357,13 @@
         return function(data, cb) {
           _this.isSelectedAll(false);
           var key, req, url, val;
-          url = _this.options.paginationPath + "?" + (((function() {
+          var path = _this.options.paginationPath;
+          if(path.indexOf('?')>-1){
+        	  path += "&";
+          }else{
+        	  path += "?";
+          }
+          url = path + (((function() {
             var results1;
             results1 = [];
             for (key in data) {

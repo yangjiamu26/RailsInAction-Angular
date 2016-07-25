@@ -15,13 +15,13 @@
 		<div class="tab-content">
 			<div class="tab-pane active" id="baseInfo" role="tabpanel">
 				<div class="wrapper-md">
-					<p><strong>路由器名称：</strong>路由器1</p>
-					<p><strong>所属VDC：</strong>VDC1</p>
-					<p><strong>所属VPC：</strong>VPC1</p>
-					<p><strong>路由器地址：</strong>192.168.1.1</p>
-					<p><strong>连接子网：</strong><button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/subnets/newforrouter.html')">添加</button></p>
+					<p><strong>路由器名称：</strong><span data-bind="text:routerVO().name"></span></p>
+					<p><strong>所属VDC：</strong><span data-bind="text:routerVO().vdcName"></span></p>
+					<p><strong>所属VPC：</strong><span data-bind="text:routerVO().vpcName"></span></p>
+					<p><strong>路由器地址：</strong><span data-bind="text:routerVO().routerIp"></span></p>
+					<p><strong>连接子网：</strong><button class="btn btn-default btn-sm"  data-bind="click:addRouterNet">添加</button></p>
 				</div>
-				<table class="table table-striped">
+				<table class="table table-striped" data-bind="with: routerNetListTable">
 						<thead>
 							<tr>
 								<th>子网名称</th>
@@ -30,55 +30,157 @@
 							</tr>
 						</thead>
 						<tbody>
+						 	<tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						    </tr>
+					        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
-								<td>VPC01</td>
-								<td>192.168.1.1/25</td>
+								<td data-bind="text: $row.name"></td>
+								<td data-bind="text: $row.cidr"></td>
 								<td>
-									<a href="">删除</a>
+									 <a data-bind="click:$root.delRouterNet">删除</a>
 								</td>
 							</tr>
+							<!-- /ko -->
 						</tbody>
 				</table>
-				<footer class="panel-footer">
-					<ul class="pagination">
-						<li class="page active">
-							<a href="#pages/javascript:void(0)">1</a>
-						</li>
-						<li class="page">
-							<a>2</a>
-						</li>
-						<li class="page">
-							<a>3</a>
-						</li>
-						<li class="page">
-							<a>4</a>
-						</li>
-						<li class="page">
-							<a >5</a>
-						</li>
-						<li class="page gap disabled">
-							<a href="#pages/javascript:void(0)">…</a>
-						</li>
-						<li class="next">
-							<a>下页 ›</a>
-						</li>
-						<li class="last">
-							<a>末页 »</a>
-						</li>
-					</ul>
-				</footer>
+                 <footer class="panel-footer" data-bind="with: routerNetListTable, visible: routerNetListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				 </footer>
 			</div>
-			<div class="tab-pane" id="tuopu" role="tabpanel">
-
+			
+		   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addRouterNetModal}">
+			<div class='modal-dialog modal-lg' role='document'>
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加子网</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <table class="table table-striped" data-bind="with: routerCanAddNetListTable">
+			          <thead>
+			            <th></th>
+			            <th>子网名称</th>
+			            <th>网段</th>
+			          </thead>
+			          <tbody>
+			             <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+					     </tr>
+			             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+			             <tr>
+			              <td>
+			                <div class="radio">
+			                  <label class="i-checks">
+			                    <input name="test" type="radio" data-bind="value:$row.uuid,checked: $root.selectNetUuid().uuid" >
+			                    <i></i>
+			                  </label>
+			                </div> 
+			              </td>
+			              <td data-bind="text: $row.name"></td>
+			              <td data-bind="text: $row.cidr"></td>
+			            </tr>
+			            <!-- /ko -->
+			          </tbody>
+			        </table>
+			        <footer class="panel-footer" data-bind="with: routerCanAddNetListTable, visible: routerCanAddNetListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				  </footer>
+			      </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddRouterNet" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
 			</div>
+			
+			
+			
 		</div>
 	</div>
 </div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = [null, null]
+	var scripts = ["api/vpc/router.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+		var routerUuid = args.routerUuid;
+		$.ROUTER.getRouters({uuid:routerUuid},function(data){
+			  if(data.results && data.results.length > 0){
+				    var routerObj = data.results[0];
+				    var routerUuid = routerObj.uuid;
+				    function routerInfoViewModel(){
+				    	var self = this;
+			    		self.routerVO = ko.validatedObservable(routerObj);
+			    		self.routerNetListTable = new DataTable([], {path: 'api/v5.0.0/routers/'+routerUuid+'/subinterfaces', perPage: 1});
+			    		self.routerCanAddNetListTable = new DataTable([], {path: 'api/v5.0.0/routers/'+routerUuid+'/enabledNetwork', perPage: 2});
+			    		
+			    		self.selectNetUuid = ko.observable({
+		        	        uuid: ""
+		        	    })
+			    		
+			    		this.confirmAddRouterNet = function(){
+			    			 var selUuid = self.selectNetUuid().uuid
+			    			 if(selUuid){
+			    				 $.ROUTER.addSubinterfaces(routerUuid,{uuid:selUuid},function(data){
+			    					 self.routerNetListTable.refreshData();
+			    					 self.addRouterNetModal(false)	
+			    				 })
+			    			 }else{
+			    				 self.addRouterNetModal(false)	 
+			    			 }
+			    		}
+			    		
+			    		
+			    		this.addRouterNetModal = ko.observable(false);
+			    		this.addRouterNet = function(){
+			    			self.routerCanAddNetListTable.refreshData();
+			    			self.addRouterNetModal(true)	
+			    		}
+			    		
+			    		
+			    		self.delRouterNet = function(rowObj){
+			    			var routerNetName = rowObj.name;
+			    			confirm("确定删除网络["+routerNetName+"]？",function(arg){
+			    				$.ROUTER.delSubinterfaces(routerUuid,rowObj.uuid,function(data){
+			    					  self.routerNetListTable.refreshData();
+			    					  alert("删除网络["+routerNetName+"]成功！");
+			           			});
+			    			 });
+			    		}
+				    	
+				    }
+				    ko.applyBindings(new routerInfoViewModel(), $("#page-content")[0]);
+			  }
+		});
+		
 });
 </script>
