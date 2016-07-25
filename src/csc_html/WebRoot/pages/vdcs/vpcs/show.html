@@ -27,7 +27,7 @@
 						<button class="btn btn-default btn-sm">移除</button>
 					</p>
           <p><strong>私有网络：</strong>
-            <button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/vpcs/new_outsidenet.html')">创建</button>
+            <button class="btn btn-default btn-sm"  data-bind="click:createVpcNet" >创建</button>
           </p>
 				</div>
 				<div class="row wrapper">
@@ -37,14 +37,14 @@
 					<div class="col-xs-3">          
                         <div class="input-group">
                           <span class="input-group-addon">名称</span>
-                          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+                          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchVpcNetParam().name">
                         </div>
                     </div>
                     <div class="col-xs-1">
-                        <button class="btn btn-sm btn-default" type="button">搜索</button>
+                        <button class="btn btn-sm btn-default" type="button" data-bind="click:searchVpcNet">搜索</button>
                     </div>
 				</div>		
-				<table class="table table-striped">
+				<table class="table table-striped"  data-bind="with: netListTable">
 					<thead>
 						<tr>
 							<th>子网名称</th>
@@ -56,57 +56,119 @@
 						</tr>
 					</thead>
 					<tbody>
+					   	<tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						</tr>
+					    <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 						<tr>
-							<td>VPC01</td>
-							<td>数据中心网络</td>
-							<td>192.168.1.1/25</td>
-							<td>200</td>
-							<td>2016-04-24 19:38</td>
+							<td data-bind="text: $row.name"></td>
+							<td data-bind="text: $row.name"></td>
+							<td data-bind="text: $row.cidr"></td>
+							<td data-bind="text: $row.ipTotal"></td>
+							<td data-bind="text: $row.createTime"></td>
 							<td>
-								<a>删除</a>
+								 <a data-bind="click:$root.delVpcNet">删除</a>
 							</td>
 						</tr>
-						<tr>
-							<td>VPC01</td>
-							<td>数据中心网络</td>
-							<td>192.168.1.1/25</td>
-							<td>200</td>
-							<td>2016-04-24 19:38</td>
-							<td>
-								<a>查看</a>
-							</td>
-						</tr>
+						<!-- /ko -->
 					</tbody>
 				</table>
-				<footer class="panel-footer">
-					<ul class="pagination">
-						<li class="page active">
-							<a href="#pages/javascript:void(0)">1</a>
-						</li>
-						<li class="page">
-							<a>2</a>
-						</li>
-						<li class="page">
-							<a>3</a>
-						</li>
-						<li class="page">
-							<a>4</a>
-						</li>
-						<li class="page">
-							<a >5</a>
-						</li>
-						<li class="page gap disabled">
-							<a href="#pages/javascript:void(0)">…</a>
-						</li>
-						<li class="next">
-							<a>下页 ›</a>
-						</li>
-						<li class="last">
-							<a>末页 »</a>
-						</li>
-					</ul>
-				</footer>
+				<footer class="panel-footer" data-bind="with: netListTable, visible: netListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				 </footer>
+				 
+		   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createVpcNetModal }">
+			 <div class='modal-dialog' role='document' >
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建网络</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网络名称</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text"  data-bind="value: vpcNetVO().name"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网段</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().cidr,valueUpdate: 'afterkeydown'"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span> 格式如：192.168.1.0/24
+			          </div>          
+			        </div> 
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">子网掩码</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().mask,enable:false"/>
+			          </div>
+			        </div> 
+			        <div class="form-group form-inline">
+			          <label class="col-xs-3 control-label">可用IP段 </label>
+			          <div class="col-xs-9 ">
+			            <div>
+			              <a data-bind="click: addNetPoolsItem">添加</a>
+			            </div>      
+			           </div>
+			          <div class="col-xs-9 " data-bind="foreach: vpcNetVO().netPools">
+			            <div>
+			              <input class="form-control" style="width:140px" type="text"  data-bind="value:start" /> ~ <input class="form-control" style="width:140px" type="text" data-bind="value:end" /> 
+			              <a data-bind="click: $root.removeNetPoolsItem">删除</a>
+			            </div>
+			          </div>       
+			        </div>   
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网关</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().gateway"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>         
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">主DNS</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().masterDns"/>
+			          </div>
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">备DNS</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().slaverDns"/>
+			          </div>
+			        </div>  
+			      </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click: vpcNetSubmit" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
 			</div>
+		   </div>
+			
+			
+			
 			<div class="tab-pane" id="topo" role="tabpanel">
 				<div class="row">
 					<div class="col-xs-8">
@@ -310,103 +372,112 @@
 				    var vpcObj = data.results[0];
 					function vpcInfoViewModel(){
 			    		var self = this;
-			    		self.vdcList = ko.observableArray();
-			    		self.azList = ko.observableArray();
 			    		self.vpcVO = ko.validatedObservable(vpcObj);
+			    		self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks?vpcUuid='+vpcUuid, perPage: 1});
+			    		self.searchVpcNetParam = ko.observable({
+		        	        name: ""
+		        	    })
+		        	    
+			       	    self.searchVpcNet = function(){
+			       	      self.netListTable.params(this.searchVpcNetParam());
+			       	    }
+			    		
+			    		 /*  ko.validation.rules['ipRuleCheck'] = {
+			    			    validator: function (val, otherVal) {
+			    			        return val === otherVal;
+			    			        	if(/^([1-9]|[1-9]\d|1\d\d|2[0-1]\d|22[0-3])(\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])){2}\.([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])$/.test(value)){
+												return true;
+										}
+			    			    },
+			    			    message: 'ip地址格式不正确，正确格式如：192.168.1.1'
+			    			};
+			    			ko.validation.registerExtenders();   */
+			    		
+			    		self.vpcNetVO = ko.validatedObservable({
+		    			     "name":ko.observable().extend({required: true}),
+							 "cidr":ko.observable().extend({required: true}),
+							 "gateway":ko.observable().extend({required: true}),
+							 "masterDns":ko.observable(),
+							 "slaverDns":ko.observable(),
+							 "mask":ko.observable(),
+							 netPools: ko.observableArray()
+							});
+			    			
+		    			  this.vpcNetVO().cidr.subscribe(function(){
+		    				    try{
+		    				    	 var mask = csc.util.segGetMask(self.vpcNetVO.toJSON().cidr);
+				    				     self.vpcNetVO.fromJSON({mask:mask});
+		    				    }catch(e){
+		    				    }
+		    			   });
+			    			
+			    		self.addNetPoolsItem = function(){
+			    			self.vpcNetVO().netPools.push({
+			    				start: "",
+			    				end: ""
+			    			});
+			    		}
+			    		self.removeNetPoolsItem = function(obj){
+			    			self.vpcNetVO().netPools.remove(obj);
+			    		}
+			    		
+			    		this.createVpcNetModal = ko.observable(false);
+			    		this.createVpcNet = function(){
+			    			self.vpcNetVO.fromJSON({"name":"testnet",
+								 "cidr":"10.0.8.0/24",
+								 "gateway": "10.0.8.254",
+								 "masterDns":"8.8.8.8",
+								 "slaverDns":"114.114.114.114"
+								});
+			    			self.createVpcNetModal(true)	
+			    		}
+			    		
+			    		self.vpcNetSubmit = function(){
+		    				    ko.validation.group(self.vpcNetVO).showAllMessages();
+		    				    console.log(self.vpcNetVO.toJSON())
+		    	    	        if(self.vpcNetVO.isValid()){
+		    	    	        	var vpcNetJson = self.vpcNetVO.toJSON();
+		    	    	        	var param = {};
+		    	    	        	param.vpcUuid = vpcUuid;
+		    	    	        	param.name = vpcNetJson.name;
+		    	    	        	param.cidr = vpcNetJson.cidr;
+		    	    	        	param.gateway = vpcNetJson.gateway;
+		    	    	        	param.type="INNER";
+		    	    	        	param.enableDhcp="true";
+		    	    	        	param.dnsNames = [vpcNetJson.masterDns,vpcNetJson.slaverDns];
+		    	    	        	param.pools =  vpcNetJson.netPools;
+		    	    	        	/* var netPoolList = vpcNetJson.netPools;
+		    	    	        	for(var i=0;i<netPoolList.length;i++){
+		    	    	        		var netPool = netPoolList[i];
+		    	    	        		param.netPool += netPool.start+"-"+netPool.end;
+		    	    	        		if(i != netPoolList.length-1){
+		    	    	        			param.netPool+=","
+		    	    	        		}
+		    	    	        	} */
+		    	    	        	$.VPC.createVpcNetwork(param,function(data){
+		    	        			 	self.createVpcNetModal(false);
+		    	        		    	self.netListTable.refreshData();
+		    	        			});
+		    	    	        }
+			    		}
+			    		
+			    		
+			    		self.delVpcNet = function(rowObj){
+			    			var vpcNetName = rowObj.name;
+			    			confirm("确定删除网络["+vpcNetName+"]？",function(arg){
+			    				$.VPC.delVpcNet(rowObj.uuid,function(data){
+			    					  self.netListTable.refreshData();
+			    					  alert("删除网络["+vpcNetName+"]成功！")
+			           			});
+			    			 });
+			    		}
+			    		
 					}
 					
 				    ko.applyBindings(new vpcInfoViewModel(), $("#page-content")[0]);
 			  }
 	    });
 		
-		
-       $(document).ready(function(){                 
-			var canvas = document.getElementById('canvas1');
-			var stage = new JTopo.Stage(canvas);
-        //显示工具栏
-        //showJTopoToobar(stage);
-        var scene = new JTopo.Scene();    
-        scene.background = 'assets/img/topo/bg.jpg';
-        
-        function node(x, y, img){
-        	var node = new JTopo.Node();
-        	node.setImage('assets/img/topo/' + img, true);                
-        	node.setLocation(x, y);
-        	scene.add(node);
-        	return node;
-        }                
-        
-        function linkNode(nodeA, nodeZ, f){
-        	var link;
-        	if(f){
-        		link = new JTopo.FoldLink(nodeA, nodeZ);
-        	}else{
-        		link = new JTopo.Link(nodeA, nodeZ);
-        	}
-        	link.direction = 'vertical';
-        	scene.add(link);
-        	return link;
-        }
-        
-        var s1 = node(305, 43, 'server.png');
-        s1.alarm = '2 W';
-        var s2 = node(365, 43, 'server.png');
-        var s3 = node(425, 43, 'server.png');
-        
-        var g1 = node(366, 125, 'gather.png');
-        linkNode(s1, g1, true);
-        linkNode(s2, g1, true);
-        linkNode(s3, g1, true);
-        
-        var w1 = node(324, 167, 'wanjet.png');
-        linkNode(g1, w1);
-        
-        var c1 = node(364, 214, 'center.png');
-        linkNode(w1, c1);
-        
-        var cloud = node(344, 259, 'cloud.png');
-        linkNode(c1, cloud);
-        
-        var c2 = node(364, 328, 'center.png');
-        linkNode(cloud, c2);
-        
-        var w2 = node(324, 377, 'wanjet.png');
-        linkNode(c2, w2);
-        
-        var g2 = node(366, 411, 'gather.png');
-        linkNode(w2, g2);
-        
-        function hostLink(nodeA, nodeZ){                
-        	var link = new JTopo.FlexionalLink(nodeA, nodeZ);                
-        	link.shadow = false;
-        	link.offsetGap = 44;
-        	scene.add(link);
-        	return link;
-        }
-        
-        var h1 = node(218, 520, 'host.png');
-        h1.alarm = '';
-        hostLink(g2, h1);
-        var h2 = node(292, 520, 'host.png');
-        hostLink(g2, h2);
-        var h3 = node(366, 520, 'host.png');
-        h3.alarm = '二级告警';
-        hostLink(g2, h3);
-        var h4 = node(447, 520, 'host.png');
-        hostLink(g2, h4);
-        var h5 = node(515, 520, 'host.png');
-        h5.alarm = '1M';
-        hostLink(g2, h5);
-        
-        setInterval(function(){
-        	if(h3.alarm == '二级告警'){
-        		h3.alarm = null;
-        	}else{
-        		h3.alarm = '二级告警'
-        	}
-        }, 600);
-        
-        stage.add(scene);
-    });
+ 
 });
 </script>

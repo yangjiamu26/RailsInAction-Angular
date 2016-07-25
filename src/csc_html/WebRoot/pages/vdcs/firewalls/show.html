@@ -17,10 +17,10 @@
 		<div class="tab-content">
 			<div class="tab-pane active" id="baseInfo" role="tabpanel">
 				<div class="wrapper-md">
-					<p><strong>防火墙名称：</strong>防火墙01</p>
-					<p><strong>所属VDC：</strong>VDC01</p>
-					<p><strong>所属VPC：</strong>VPC01</p>
-					<p><strong>路由器：</strong>路由器01</p>
+					<p><strong>防火墙名称：</strong><span data-bind="text:firewallVO().name"></span></p>
+					<p><strong>所属VDC：</strong><span data-bind="text:firewallVO().vdcName"></span></p>
+					<p><strong>所属VPC：</strong><span data-bind="text:firewallVO().vpcName"></span></p>
+					<p><strong>路由器：</strong><span data-bind="text:firewallVO().routerName"></span></p>
 				</div>
 				<div class="panel panel-default">
 					<div class="panel-heading">规则</div>
@@ -32,7 +32,7 @@
 
 						</div>
 					</div>				  
-					<div class="table-responsive">
+					<div class="table-responsive" data-bind="with: firewallRuleListTable">
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -43,58 +43,50 @@
 									<th>源端口</th>
 									<th>目的IP</th>
 									<th>目的端口</th>
-									<th>规则</th>
 									<th>描述</th>
 									<th>操作</th>
 								</tr>
 							</thead>
 							<tbody>
+							    <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						        </tr>
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td>规则1</td>
-									<td>TCP</td>
-									<td><span class="label label-success">允许</span></td>
-									<td>192.168.0.0/23</td>
-									<td>20</td>
-									<td>192.168.0.0/23</td>
-									<td>30</td>
-									<td></td>
-									<td></td>
+									<td  data-bind="text: $row.name">规则1</td>
+									<td  data-bind="text: $row.protocol">TCP</td>
+									<td  data-bind="text: $row.action"><span class="label label-success">允许</span></td>
+									<td  data-bind="text: $row.sourceIpAddress">192.168.0.0/23</td>
+									<td  data-bind="text: $row.sourcePort">20</td>
+									<td  data-bind="text: $row.destinationIpAddress">192.168.0.0/23</td>
+									<td  data-bind="text: $row.destinationPort">30</td>
+									<td  data-bind="text: $row.description"></td>
 									<td>
-										<a>修改</a> |
-										<a>删除</a>
+										<a data-bind="click:$root.modifyFwRuel">修改</a> |
+										<a data-bind="click:$root.delFwRuel">删除</a>
 									</td>
-								</tr>							
+								</tr>	
+								 <!-- /ko -->						
 							</tbody>
 						</table>
 					</div>
-					<footer class="panel-footer">
-						<ul class="pagination">
-							<li class="page active">
-								<a href="#pages/javascript:void(0)">1</a>
-							</li>
-							<li class="page">
-								<a>2</a>
-							</li>
-							<li class="page">
-								<a>3</a>
-							</li>
-							<li class="page">
-								<a>4</a>
-							</li>
-							<li class="page">
-								<a >5</a>
-							</li>
-							<li class="page gap disabled">
-								<a href="#pages/javascript:void(0)">…</a>
-							</li>
-							<li class="next">
-								<a>下页 ›</a>
-							</li>
-							<li class="last">
-								<a>末页 »</a>
-							</li>
-						</ul>
-					</footer>
+                    <footer class="panel-footer" data-bind="with: firewallRuleListTable, visible: firewallRuleListTable.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>	
 				</div>
 			</div>
 		</div>
@@ -104,7 +96,7 @@
 	</div>
 </div>
 
-<div role="dialog" aria-hidden="true" id="firewall_rule_add" class="modal fade" data-bind="modal: { show: isAddRule }">
+<div role="dialog" aria-hidden="true" id="firewall_rule_add" class="modal fade" data-bind="modal: { show: addFirewallRuleMode }">
 	<div class='modal-dialog modal-md'>
 		<div class='modal-content'>
 			<div class='modal-header'>
@@ -114,7 +106,7 @@
 		        <div class="form-group">
 		          <label class="col-xs-3 control-label">名称</label>
 		          <div class="col-xs-8">
-		            <input type="text" class="form-control">
+		            <input type="text" class="form-control" data-bind="value:firewallRuelVO().name">
 		          </div>
 		          <div class="col-xs-1">
 		            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -125,12 +117,8 @@
 		            协议
 		          </label>
 		          <div class="col-xs-8">
-		            <select class="form-control" id="s-protocol">
-		              <option value="">请选择</option>
-		              <option value="v-port">TCP</option>
-		              <option value="v-port">UDP</option>
-		              <option value="v-noPort">ICMP</option>
-		              <option value="v-noPort">任何</option>
+		         <select class="form-control" id="s-protocol"   data-bind="options:protocolList,optionsText:'protocolName',optionsValue:'protocolValue',value:firewallRuelVO().protocol">
+		           
 		            </select>
 		          </div>
 		          <div class="col-xs-1">
@@ -142,9 +130,7 @@
 		            动作
 		          </label>
 		          <div class="col-xs-8">
-		            <select class="form-control">
-		              <option value="">允许</option>
-		              <option value="">拒绝</option>
+		            <select class="form-control" data-bind="options:actionList,optionsText:'actionName',optionsValue:'actionValue',value:firewallRuelVO().action">
 		            </select>
 		          </div>
 		          <div class="col-xs-1">
@@ -154,7 +140,7 @@
 		        <div class="form-group">
 		          <label class="col-xs-3 control-label">源IP</label>
 		          <div class="col-xs-8">
-		            <input type="text" class="form-control">
+		            <input type="text" class="form-control" data-bind="value:firewallRuelVO().sourceIpAddress">
 		          </div>
 		          <div class="col-xs-1">
 		            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -165,7 +151,7 @@
 		            源端口/端口范围
 		          </label>
 		          <div class="col-xs-8">
-		            <input class="form-control" type="text"/>
+		            <input class="form-control" type="text" data-bind="value:firewallRuelVO().sourcePort"/>
 		            <span class="text-info">端口为1~65535的整数，如输入范围，格式为1:65535</span>
 		          </div>
 		          <div class="col-xs-1">
@@ -175,7 +161,7 @@
 		        <div class="form-group">
 		          <label class="col-xs-3 control-label">目的IP</label>
 		          <div class="col-xs-8">
-		            <input type="text" class="form-control">
+		            <input type="text" class="form-control" data-bind="value:firewallRuelVO().destinationIpAddress">
 		          </div>
 		          <div class="col-xs-1">
 		            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -186,7 +172,7 @@
 		            目的端口/端口范围
 		          </label>
 		          <div class="col-xs-8">
-		            <input class="form-control" type="text"/>
+		            <input class="form-control" type="text" data-bind="value:firewallRuelVO().destinationPort"/>
 		            <span class="text-info">端口为1~65535的整数，如输入范围，格式为1:65535</span>
 		          </div>
 		          <div class="col-xs-1">
@@ -198,11 +184,11 @@
 		            规则位置
 		          </label>
 		          <div class="col-xs-8">
-		            <select class="form-control inline w-sm v-middle">
+		            <select class="form-control inline w-sm v-middle"  data-bind="options:strategyTypeList,optionsText:'strategyName',optionsValue:'strategyValue',value:firewallRuelVO().insertStrategyType">
 		              <option value="">前于</option>
 		              <option value="">后于</option>
 		            </select>
-		            <select class="form-control inline w-sm v-middle">
+		            <select class="form-control inline w-sm v-middle" data-bind="options:firewallRuleList,optionsText:'name',optionsValue:'uuid',value:firewallRuelVO().insertFirewallRuleId">
 		              <option value="">规则1</option>
 		              <option value="">规则2</option>
 		            </select>
@@ -216,12 +202,12 @@
 		            描述
 		          </label>
 		          <div class="col-xs-8">
-		            <textarea class="form-control" rows="5"></textarea>
+		            <textarea class="form-control" rows="5" data-bind="value:firewallRuelVO().description" ></textarea>
 		          </div>         
 		        </div>
 			</div>
 			<div class='modal-footer' style="text-align:center;">
-				<a class="btn btn-default btn-info">确定</a>
+				<a class="btn btn-default btn-info" data-bind="click:confirmAddFwRuel">确定</a>
 				<a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
 		</div>
@@ -230,17 +216,89 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-var scripts = [null, null]
+var scripts = ["api/vpc/firewall.js"]
 $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    function ViewModel(){
-      this.isAddRule = ko.observable(false);
-
-      this.addRule = function(){
-        this.isAddRule(true);
-      };
-    };
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+	var fwUuid = args.fwUuid;
+	$.FIREWALL.getFirewalls({uuid:fwUuid},function(data){
+		  if(data.results && data.results.length > 0){
+			    var firewallObj = data.results[0];
+			    console.log(firewallObj)
+				function firewallInfoViewModel(){
+		    		var self = this;
+		    		
+		    		self.firewallRuleListTable = new DataTable([], {path: 'api/v5.0.0/firewalls/'+fwUuid+'/firewallRules', perPage: 1});
+		    		
+		    		
+		    		self.protocolList = ko.observableArray();
+		    		self.actionList = ko.observableArray();
+		    		self.strategyTypeList = ko.observableArray();
+		    		self.firewallRuleList = ko.observableArray();
+		    		self.protocolList([{"protocolName": "TCP","protocolValue": "TCP"},{"protocolName": "UDP","protocolValue": "UDP"},{"protocolName": "ICMP","protocolValue": "ICMP"},{"protocolName": "任何","protocolValue": "NULL"}])
+		    		self.actionList([{"actionName": "允许","actionValue": "ALLOW"},{"actionName": "拒绝","actionValue": "DENY"}]);
+		    		self.strategyTypeList([{"strategyName": "前于","strategyValue": "BEFORE"},{"strategyName": "后于","strategyValue": "AFTER"}]);
+		    		
+		    		//self.firewallRuleList([]);
+		    		
+		    		 self.firewallVO = ko.validatedObservable(firewallObj);
+		    	
+		    		 
+    	    		self.firewallRuelVO = ko.validatedObservable({
+	    			     "name":ko.observable().extend({required: true}),
+						 "protocol":ko.observable().extend({required: true}),
+						 "action":ko.observable().extend({required: true}),
+						 "sourceIpAddress":ko.observable().extend({required: true}),
+						 "sourcePort":ko.observable().extend({required: true}),
+						 "destinationIpAddress":ko.observable().extend({required: true}),
+						 "destinationPort":ko.observable().extend({required: true}),
+						 "insertStrategyType":ko.observable(),
+						 "insertFirewallRuleId":ko.observable(),
+						 "description":ko.observable()
+					});
+		    		
+		    		
+		    	    this.addFirewallRuleMode = ko.observable(false);
+		    		self.addRule = function(){
+		    			self.firewallRuelVO.fromJSON({"name":"testRule",
+							 "protocol":"10.0.8.0/24",
+							 "action": "ALLOW",
+							 "sourceIpAddress":"8.8.8.8",
+							 "sourcePort":"80:80",
+							 "destinationIpAddress":"114.114.114.114",
+							 "destinationPort":"80:80",
+							 "insertStrategyType":"BEFORE",
+							 " rtFirewallRuleId":"",
+							 "description":"描述休息休息"
+							});
+		    			self.addFirewallRuleMode(true)	
+		    		}
+		    		
+		    		self.confirmAddFwRuel = function(){
+		    			ko.validation.group(self.firewallRuelVO).showAllMessages();
+	          	        if(self.firewallRuelVO.isValid()){
+	           				$.FIREWALL.createFirewallRule(fwUuid,self.firewallRuelVO.toJSON(),function(data){
+	           					self.addFirewallRuleMode(false);
+	            		    	self.firewallRuleListTable.refreshData();
+	               			});
+	          	        }
+		    		}
+		    		
+		    		this.delFwRuel = function(rowObj){
+		    			var firewallRuleName = rowObj.name;
+		    			confirm("确定删除防火墙规则["+firewallRuleName+"]？",function(arg){
+		    				$.FIREWALL.delFirewallRule(fwUuid,rowObj.firewallUuid,function(data){
+		    					  self.firewallRuleListTable.refreshData();
+		    					  alert("删除防火墙规则["+firewallRuleName+"]成功！")
+		           			});
+		    			 });
+		    		}
+		    		
+				}
+	
+			    ko.applyBindings(new firewallInfoViewModel(), $("#page-content")[0]);
+		  }
+    });
+	
+ 
 
     $("#firewall_rule_add").on("shown.bs.modal",function(){
 		// 根据协议显示隐藏相关字段

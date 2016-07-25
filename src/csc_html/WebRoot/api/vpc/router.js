@@ -38,5 +38,22 @@
 					     callback(data);
 	    		    }); 
 			},
+			/**
+			 * 添加路由器关联网络
+			 */
+			addSubinterfaces:function(routerUuid,param,callback,errorCallback){
+				csc.rest.post('api/v5.0.0/routers/'+routerUuid+'/subinterfaces',param,function(data){
+				     callback(data);
+   		        }); 
+			},
+			/**
+			 * 删除路由器下网络
+			 *  @param uuid router uuid
+			 */
+			delSubinterfaces:function(routerUuid,netUuid,callback){
+				csc.rest.del('api/v5.0.0/routers/'+routerUuid+'/subinterfaces/'+netUuid,function(data){
+					 callback(data)
+   		        })
+			}
 	};
 }(window.jQuery);

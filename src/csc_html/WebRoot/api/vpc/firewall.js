@@ -38,5 +38,23 @@
 					     callback(data);
 	    		    }); 
 			},
+			/**
+			 * 创建防火墙规则
+			 * @param param 创建入参
+			 */
+			createFirewallRule:function(fwUuid,param,callback,errorCallback){
+				 csc.rest.post('api/v5.0.0/firewalls/'+fwUuid+'/firewallRules',param,function(data){
+					     callback(data);
+	    		    }); 
+			},
+			/**
+			 * 删除防火墙规则
+			 *  @param uuid router uuid
+			 */
+			delFirewallRule:function(fwUuid,uuid,callback){
+				csc.rest.del('api/v5.0.0/firewalls/'+fwUuid+'/firewallRules/'+uuid,function(data){
+					 callback(data)
+   		        })
+			}
 	};
 }(window.jQuery);
