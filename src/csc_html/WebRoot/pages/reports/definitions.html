@@ -90,20 +90,35 @@
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">报表定义文件：</label>
-          <div class="col-xs-4">
-            <input type="file" data-bind="value: currentVO().reportShowFile">
+          <div class="col-xs-8 form-inline">
+          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().reportShowFile">
+          	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
+				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
+					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().reportShowFile"/>浏览
+				</a>
+	    		<a href="javascript:;" class="btn btn-default" 
+	    			data-bind="click: function(data, event){ $root.deleteFile('report') }">删除</a>
+			</form>
           </div>
-          <div class="col-xs-2"><btn class="btn btn-default" type="button">删除</btn></div>
 		  <div class="col-xs-1">
 			<span class="text-danger inline m-l-n m-t-sm">*</span>
 		  </div>           
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">参数模板文件：</label>
-          <div class="col-xs-6">
-            <input type="file" data-bind="value: currentVO().paramShowFile">
+          <div class="col-xs-8 form-inline">
+          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().paramShowFile">
+          	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
+				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
+					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().paramShowFile"/>浏览
+				</a>
+	    		<a href="javascript:;" class="btn btn-default" 
+	    			data-bind="click: function(data, event){ $root.deleteFile('param') }">删除</a>
+			</form>
           </div>
-          <div class="col-xs-2"><btn class="btn btn-default" type="button">删除</btn></div>
+		  <div class="col-xs-1">
+			<span class="text-danger inline m-l-n m-t-sm">*</span>
+		  </div>
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">备注：</label>
@@ -131,13 +146,30 @@
       		this.isAdd = ko.observable(false);
 
       		this.currentVO = ko.validatedObservable({
-    	  		name: ko.observable().extend({required: true}),
-    	  		reportShowFile:  ko.observable(),
-    	  		paramShowFile: ko.observable(),
+      			name: ko.observable().extend({required: true}),
+      			reportShowFile:  ko.observable(),
+      			reportSaveFile: ko.observable(),
+      			paramShowFile: ko.observable(),
+      			paramSaveFile: ko.observable(),
     	  		remark: ko.observable()
       		});
 
       		var self = this;
+      		//删除
+      		this.deleteFile = function(type){
+      			if(type == 'report'){
+      				this.currentVO.fromJSON({
+      					reportShowFile: "",
+      	      			reportSaveFile: ""
+              		});
+      			}else if(type == 'param'){
+      				this.currentVO.fromJSON({
+      	      			paramShowFile: "",
+      	      			paramSaveFile: ""
+              		});
+      			}
+      		}
+      		
       		this.add = function(){
         		self.isAdd(true);
         		this.currentVO.fromJSON({
@@ -159,7 +191,6 @@
 				        	self.table.refreshData();
 					    }); 
 		        	}else{
-		        		
 		        		csc.rest.post('api/v5.0.0/reports/customReports',this.currentVO.toJSON(),function(data){
 					 		systemMsg.alert('添加自定义报表成功！');
 					 		self.isAdd(false);
@@ -189,10 +220,8 @@
 	      	this.search = function(){
 	        	this.table.params(this.searchParam());
 	      	}
-	
 	      	this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
     	}
-
     	ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
   	});
 </script>
