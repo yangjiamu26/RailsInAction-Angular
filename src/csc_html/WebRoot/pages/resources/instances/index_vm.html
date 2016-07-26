@@ -7,7 +7,7 @@
       <div class="col-xs-3">
         <div class="input-group">
           <span class="input-group-addon">所属可用分区</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
+          <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
         </div>      
       </div>  
       <div class="col-xs-2">
@@ -15,14 +15,16 @@
           <span class="input-group-addon">状态</span>
           <select class="form-control input-sm" data-bind="value: searchParam().status">
             <option value="">全部</option>
-            <option value="">运行中</option>
+            <option value="ACTIVE">运行中</option>
+            <option value="SHUTOFF">已关机</option>
+            <option value="SUSPENDED">已挂起</option>
           </select>
         </div>      
       </div>        
       <div class="col-xs-2">
         <div class="input-group">
           <span class="input-group-addon">所属VDC</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
+          <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
         </div>      
       </div>       
       <div class="col-xs-2">
@@ -33,7 +35,7 @@
       </div>                                     
       <div class="col-xs-2">
         <button class="btn btn-sm" type="button">重置</button>
-        <button class="btn btn-default btn-sm" type="submit">搜索</button>
+        <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>        
     </div>
   </div>        
@@ -50,8 +52,8 @@
             <th>所属VPC</th>
             <th>有效期</th>
             <th>VCPU</th>
-            <th>内存</th>
-            <th>存储</th>                                  
+            <th>内存（MB）</th>
+            <th>存储（GB）</th>                                  
             <th>IP地址</th>                                  
             <th>操作系统</th>
             <th>创建人</th>
@@ -66,18 +68,30 @@
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr> 
               <td>
-                <a href="#pages/resources/instances/vms/1">云主机-0-0</a></td>
-                <td><span class="label label-success">运行中</span><span class="label label-default">已关机</span><span class="label label-danger">异常</span></td>
-                <td>可用分区1</td>
-                <td>test123</td>
-                <td>vvvv</td>
-                <td>20160605</td>
-                <td>1个</td>
-                <td>1.00GB</td>
-                <td>9GB</td>
-                <td>192.168.1.101</td>
-                <td>Win2007</td>
-                <td>范冰冰</td>
+                <a href="#pages/resources/instances/vms/1" data-bind="text:name"></a></td>
+                <td>
+	                <span class="label label-success" data-bind="if: state == 'ACTIVE'">运行中</span>
+	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF'">已关机</span>
+	                <span class="label label-info" data-bind="if: state == 'ACTIVE'">已挂起</span>
+	                <span class="label label-warning" data-bind="if: state == 'POWERING_OFF'">正在关机</span>
+	                <span class="label label-warning" data-bind="if: state == 'POWERING_ON'">正在启动</span>
+	                <span class="label label-warning" data-bind="if: state == 'REBOOTING'">正在重启</span>
+	                <span class="label label-warning" data-bind="if: state == 'REBOOTING_HARD'">正在强制重启</span>
+	                <span class="label label-warning" data-bind="if: state == 'SUSPENDING'">正在挂起</span>
+	                <span class="label label-warning" data-bind="if: state == 'RESUMING'">正在恢复</span>
+	                <span class="label label-warning" data-bind="if: state == 'DELETING'">正在删除</span>
+	                <span class="label label-warning" data-bind="if: state == 'RESIZING'">正在调整</span>
+                </td>
+                <td data-bind="text: azName"></td>
+                <td data-bind="text: vdcName"></td>
+                <td data-bind="text: vpcName"></td>
+                <td data-bind="text: expiryDate"></td>
+                <td data-bind="text: vcpu"></td>
+                <td data-bind="text: memory"></td>
+                <td data-bind="text: storage"></td>
+                <td data-bind="text: ip"></td>
+                <td data-bind="text: os"></td>
+                <td data-bind="text: userName"></td>
                 <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.vmAdjustment">调整资源</a> |
                   <div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -86,12 +100,14 @@
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
                       <li>
                         <a>有效时间变更</a>
-                        <a data-bind="click: $root.startOne">开/关机</a>
-                        <a data-bind="click: $root.restartOne">重启</a>
-                        <a data-bind="click: $root.restartForceOne">强制重启</a>
-                        <a data-bind="click: $root.pauseOne">挂起/恢复</a>
+                        <a data-bind="click: $root.startOne,if: state == 'SHUTOFF'">开机</a>
+                        <a data-bind="click: $root.shutoffOne,if: state == 'ACTIVE'">关机</a>
+                        <a data-bind="click: $root.restartOne,if: state == 'ACTIVE'">重启</a>
+                        <a data-bind="click: $root.restartForceOne,if: state == 'ACTIVE'">强制重启</a>
+                        <a data-bind="click: $root.suspend,if: state == 'ACTIVE'">挂起</a>
+                        <a data-bind="click: $root.resume,if: state == 'SUSPENDED'">恢复</a>
                         <a>终止</a>
-                        <a data-bind="click: $root.removeOne">删除</a>
+                        <a data-bind="click: $root.removeOne,if: state == 'SHUTOFF' || state == 'ACTIVE'">删除</a>
                       </li>
                     </ul>
                   </div>                     
@@ -101,7 +117,6 @@
             </tbody>
           </table>
         </div>
-
         <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
           <ul class="pagination">
             <li data-bind="css: leftPagerClass, click: prevPage">
@@ -134,25 +149,21 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">云主机名称</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" data-bind="value: currentVO().name"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">所属VDC</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">VDC1</option>
-                        </select>
+                      	<select class="form-control input-sm" data-bind="value: currentVO().vdc, options: $root.add_vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vdcs}"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">可用分区</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">可用分区1</option>
-                        </select>
+                        <select class="form-control input-sm" data-bind="value: currentVO().partition, options: $root.add_partitions, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_partitions}"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -161,27 +172,21 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">镜像</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">windows</option>
-                        </select>
+                        <select class="form-control input-sm" data-bind="value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId'"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">CPU(个)</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">1</option>
-                        </select>
+                        <input type="text" class="form-control" data-bind="value: currentVO().vcpu"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">内存(GB)</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">2</option>
-                        </select>
+                        <input type="text" class="form-control" data-bind="value: currentVO().memory"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -190,40 +195,55 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">存储(GB)</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" data-bind="value: currentVO().storage"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                      <label class="col-xs-1 control-label no-padder-h">VPC/IP池</label>
+                      <label class="col-xs-1 control-label no-padder-h">VPC</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">VPC1</option>
-                        </select>
+                        <select class="form-control input-sm" data-bind="value: currentVO().vpc, options: $root.add_vpcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vpcs}"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">网络名称</label>
                       <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">208</option>
-                        </select>
+                        <select class="form-control input-sm" data-bind="value: currentVO().network, options: $root.add_networks, optionsText: 'name', optionsValue: 'originalId'"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                     </div>
                     <div class="form-group">
-                      <label class="col-xs-1 control-label no-padder-h">指定IP</label>
+                     <!--  <label class="col-xs-1 control-label no-padder-h">指定IP</label>
                       <div class="col-xs-2">
                         <input type="text" class="form-control">
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                         <a href="#" class="text-info">选择</a>
+                      </div> -->
+                      <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
+                      <div class="col-xs-2">
+                        <select class="form-control" data-bind="value: currentVO().isBind, options: $root.add_isBinds, optionsText: 'text', optionsValue: 'option', event: {change: $root.onchange_add_isBind}">
+                        </select>
                       </div>
-                      <label class="col-xs-1 control-label no-padder-h">主机账号</label>
+                      <div class="col-xs-1">
+                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                      </div>
+                      <div id="resource_instance_vm_add_ssh">
+	                      <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
+	                      <div class="col-xs-2">
+	                        <select class="form-control input-sm" data-bind="value: currentVO().sshKey, options: $root.add_sshKeys, optionsText: 'name', optionsValue: 'uuid'"></select>
+	                      </div>
+	                      <div class="col-xs-1">
+	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+	                      </div>
+                      </div>
+                    </div>
+                    <!-- <div class="form-group">
+                    <label class="col-xs-1 control-label no-padder-h">主机账号</label>
                       <div class="col-xs-2">
                         <input type="text" class="form-control">
                       </div>
@@ -236,9 +256,7 @@
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
-                      </div>
-                    </div>
-                    <div class="form-group">
+                      </div> 
                       <label class="col-xs-1 control-label no-padder-h">重复密码</label>
                       <div class="col-xs-2">
                         <input type="password" class="form-control">
@@ -246,26 +264,9 @@
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                      <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
-                      <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">是</option>
-                        </select>
-                      </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-                      </div>
-                      <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
-                      <div class="col-xs-2">
-                        <select class="form-control">
-                          <option value="">密钥1</option>
-                        </select>
-                      </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-                      </div>
-                    </div>
-                    <div class="form-group">
+                     
+                    </div> -->
+                    <!-- <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                       <div class="col-xs-10">
                         <label class="radio-inline" style="padding-top: 2px">
@@ -286,7 +287,7 @@
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
                 <div class="panel panel-default">
@@ -317,7 +318,7 @@
                     </table>
                   </div>
                 </div>
-                <div class="panel panel-default">
+                <!-- <div class="panel panel-default">
                   <div class="panel-heading">
                     安装软件
                     <a href="#" class="pull-right">添加软件</a>
@@ -346,8 +347,8 @@
                       </tbody>
                     </table>
                   </div>
-                </div>
-                <div class="panel panel-default">
+                </div> -->
+                <!-- <div class="panel panel-default">
                   <div class="panel-heading">
                     系统盘分区
                     <a href="#" class="pull-right">添加分区</a>
@@ -370,8 +371,8 @@
                       </tbody>
                     </table>
                   </div>
-                </div>
-                <div class="panel panel-default">
+                </div> -->
+                <!-- <div class="panel panel-default">
                   <div class="panel-heading">高级选项</div>
                   <div class="panel-body">
                     <div class="form-group">
@@ -389,10 +390,10 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
               <div class='modal-footer' style="text-align:center;">
-                <a class="btn btn-default btn-info">确定</a>
+                <a class="btn btn-default btn-info" data-bind="click:save">确定</a>
                 <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
               </div>
             </div>
@@ -430,10 +431,16 @@
 
       </div>
     </div>
+`     <div id="resource_instance_index_vm_console" style="display:none;"></div> 
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_VM(){
+    	//系统当前登录用户标识
+      var userUuid = "";
+    	//当前用户所辖VDC列表（包括VDC对应的可用分区信息）
+      var vdcList = [];
+    	
       var self = this;
 
       this.isVmAdjustment = ko.observable(false);
@@ -480,82 +487,289 @@
           ); 
 
       })
-
+	  //控制台
       this.console = function(object, event){
-
+    	  csc.rest.get('api/v5.0.0/vms/'+object.uuid+'/vmConsole',{},function(data){
+    		  if(data.consoleUrl){
+    			  var consoleUrl = data.consoleUrl;
+        		  //模拟点击
+        		  $("#resource_instance_index_vm_console").html("<a id='resource_instance_index_vm_console_a' href='"+consoleUrl+"' target='_blank'></a>");
+          		  $("#resource_instance_index_vm_console_a")[0].click();
+    		  }
+		  });
       }
-      this.start = function(){
-
-      }
+      //启动
       this.startOne = function(object, event){
-
+    		systemMsg.confirm("确定要启动云主机 "+object.name+"？",function(){
+    			var startPutBody = {"operationType":"SATRT"};
+      			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('启动云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+      		});
       }
-      this.stop = function(){
-
-      }
+      //关闭
       this.stopOne = function(object, event){
-
+    	  systemMsg.confirm("确定要关闭云主机 "+object.name+"？",function(){
+  			var startPutBody = {"operationType":"STOP"};
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('关闭云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
-      this.restart = function(){
-
-      }
+      //重启
       this.restartOne = function(object, event){
-
+    	  systemMsg.confirm("确定要重启云主机 "+object.name+"？",function(){
+  			var startPutBody = {"operationType":"RESTART"};
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
-      this.restartForce = function(){
-
-      }
+      //强制重启
       this.restartForceOne = function(object, event){
-
+    	  systemMsg.confirm("确定要强制重启云主机 "+object.name+"？",function(){
+  			var startPutBody = {"operationType":"FORCERESTART"};
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('强制重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
+      //终止（服务实例）
       this.pause = function(){
 
       }
-      this.pauseOne = function(object, event){
-
+      //挂起
+      this.suspend = function(object, event){
+    	  systemMsg.confirm("确定要挂起云主机 "+object.name+"？",function(){
+  			var startPutBody = {"operationType":"SUSPEND"};
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('挂起云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
-      this.remove = function(){
-
+      //恢复（从挂起状态）
+      this.resume = function(object, event){
+    	  systemMsg.confirm("确定要恢复云主机 "+object.name+"？",function(){
+  			var startPutBody = {"operationType":"RESUME"};
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+			 		systemMsg.alert('恢复云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
+      //删除
       this.removeOne = function(object, event){
-
+    	  systemMsg.confirm("确定要删除云主机 "+object.name+"？",function(){
+    			csc.rest.del('api/v5.0.0/vms/'+object.uuid,function(data){
+			 		systemMsg.alert('删除云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.table.refreshData();
+			    });
+    		});
       }
 
       this.searchParam = ko.observable({
         partition: '',
         status: '',
-        vdc: '',
+        vdc: ko.observable(''),
         name: ''
       })
       this.reset = function(){
         this.searchParam({
           partition: '',
           status: '',
-          vdc: '',
+          vdc: ko.observable(""),
           name: ''
         })
         this.table.params({});
       }
+      
       this.search = function(){
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([], {path: 'pages/resources/instances/vms.json'})
-
-      //下拉选择
+      this.table = new DataTable([], {path: 'api/v5.0.0/vms'});
+ 
+      //获取可用分区数据
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(azData){
+    	  self.partitions(azData);
+      }
+      
+      var list_vdcs = {};
+      //获取VDC数据
       this.vdcs = ko.observableArray([]);
       this.loadVdcs = function(){
-        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
-          self.vdcs(data.results);
-        });
+    	  csc.rest.get('api/v5.0.0/vdcs?userUuid='+userUuid,function(data){
+    		var vdcDef = {name:"全部",uuid:0};
+    		var vdcDef2 = {name:"全部2",uuid:1};
+    		var zsDef = {name:"ALL",uuid:0}
+    		var zsDef2 = {name:"ALL2",uuid:1};
+    		var vdcList = [];
+    		var zsList = [];
+    		vdcList.unshift(vdcDef);
+    		vdcList.unshift(vdcDef2);
+    		zsList.unshift(zsDef);
+    		zsList.unshift(zsDef2);
+    		
+    		list_vdcs.vdc = vdcList;
+    		list_vdcs.az = zsList;
+    		
+            self.vdcs(list_vdcs.vdc);
+            //self.loadPartitions(list_vdcs.az);
+    	  });
       }
-      this.partitions = ko.observableArray([]);
-      this.loadPartitions = function(){
-        $.ajax("pages/resources/partitions/index.json").done(function(data){
-          self.partitions(data.results);
-        });
-      }
+      
       this.loadVdcs();
-      this.loadPartitions();
+      //选择不同VDC后，可用分区下拉框要跟着改变
+      this.onchange_vdcs = function(){
+    	   self.loadPartitions(list_vdcs.az);
+      }
+
+      
+      
+      /*--------------------------------------创建start---------------------------------------*/
+      //初始化
+      this.isAddvm = ko.observable(false);
+      this.currentVO = ko.validatedObservable({
+			name: ko.observable().extend({required: true}),
+			vdc: ko.observable(),
+			partition: ko.observable(),
+			image:  ko.observable(),
+			vcpu: ko.observable(),
+			memory: ko.observable(),
+			storage: ko.observable(),
+			vpc: ko.observable(),
+			network: ko.observable(),
+			ip: ko.observable(),
+			isBind: ko.observable(),
+			sshKey: ko.observable()
+	  });
+      
+      //是否绑定
+      this.add_isBinds = ko.observableArray([]);
+      this.isBinds_def = function(){
+    	  var bindList = [];
+    	  bindList.push({text:"是",option:"YES"})
+    	  bindList.push({text:"否",option:"NO"});
+    	  self.add_isBinds(bindList);
+      }
+      this.isBinds_def();
+      
+      //是否绑定->SSH
+      this.onchange_add_isBind = function(){
+    	  if(this.currentVO().isBind() == "YES"){
+    		  $("#resource_instance_vm_add_ssh").show();
+    	  }else{
+    		  $("#resource_instance_vm_add_ssh").hide();
+    	  }
+      }
+      
+      //SSH
+      this.add_sshKeys = ko.observableArray([]);
+      
+      
+      //VDC
+      this.add_vdcs = ko.observableArray([]);
+      this.add_vdcs_def = function(){
+    	  self.add_vdcs(vdcList);
+      }
+      this.add_vdcs_def();
+      
+      //VDC->可用分区
+      this.onchange_add_vdcs = function(){
+    	  self.add_partitions(vdcList);
+      }
+      
+      //可用分区
+      this.add_partitions = ko.observableArray([]);
+      
+      //可用分区->镜像+SSH
+      this.onchange_add_partitions = function(){
+    	  var azUuid = this.currentVO().partition();
+    	  var param = {};
+    	  param.azUuid = azUuid;
+    	  csc.rest.get('api/v5.0.0/images',param,function(data){
+    		  self.add_images(data.results);
+    	  });
+    	  csc.rest.get('api/v5.0.0/sshKey',param,function(data){
+    		  self.add_sshKeys(data.results);
+    	  });
+      }
+      
+      //镜像
+      this.add_images = ko.observableArray([]);
+      
+      //VPC
+      this.add_vpcs = ko.observableArray([]);
+      this.add_vpcs_def = function(){
+    	  var vdcUuid = this.currentVO().vdc();
+    	  var param = {};
+    	  param.vdcUuid = vdcUuid;
+    	  csc.rest.get('api/v5.0.0/vpcs',param,function(data){
+    		  self.add_vpcs(data.results);
+    	  });
+      }
+      this.add_vpcs_def();
+      
+      //VPC->网络
+      this.onchange_add_vpcs = function(){
+    	  var vdcUuid = this.currentVO().vpc();
+    	  var param = {};
+    	  param.vpcUuid = vpcUuid;
+    	  param.type = 'INNER';
+    	  csc.rest.get('api/v5.0.0/vpcNetworks',param,function(data){
+    		  self.add_networks(data.results);
+    	  });
+      }
+      
+      //网络
+      this.add_networks = ko.observableArray([]);
+      
+      //提交创建
+      this.save = function(){
+    	  ko.validation.group(this.currentVO).showAllMessages();
+	      if(this.currentVO.isValid()){
+	    	  var postBody = {};
+	    	  postBody.name = self.currentVO.name();
+	    	  postBody.vdcUuid = self.currentVO.vdc();
+	    	  postBody.azUuid = self.currentVO.partition();
+	    	  postBody.imageUuid = self.currentVO.image();
+	    	  postBody.vcpu = self.currentVO.vcpu();
+	    	  postBody.memory = self.currentVO.memory();
+	    	  postBody.storage = self.currentVO.storage();
+	    	  postBody.vpcUuid = self.currentVO.vpc();
+	    	  var networkList= [];
+	    	  var networkInfo = {};
+	    	  nwtworkInfo.networkId = self.currentVO.network();
+	    	  networkList.push(networkInfo);
+	    	  postBody.networkList = networkList;
+	    	  postBody.sshKeyUuid = self.currentVO.sshKey();
+	    	  
+	    	  csc.rest.post('api/v5.0.0/vms',postBody.toJSON(),function(data){
+			 		systemMsg.alert('创建云主机请求成功，任务ID：'+data.taskId+'！');
+			 		self.isAdd(false);
+		        	self.table.refreshData();
+			  });
+	      }
+      }
+      
+      /*--------------------------------------创建end---------------------------------------*/
+      
+      /*--------------------------------------调整资源start---------------------------------------*/
+      /*--------------------------------------调整资源end---------------------------------------*/
+      
+      
+      
+      
+      
+      
+      
+      
+      
     }
     ko.applyBindings(new ViewModel_VM(), $('#partition_vms')[0]);
   })

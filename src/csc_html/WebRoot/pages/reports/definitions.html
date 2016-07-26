@@ -91,10 +91,10 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">报表定义文件：</label>
           <div class="col-xs-8 form-inline">
-          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().reportShowFile">
+          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().defineFile">
           	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
 				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
-					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().reportShowFile"/>浏览
+					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().defineFile"/>浏览
 				</a>
 	    		<a href="javascript:;" class="btn btn-default" 
 	    			data-bind="click: function(data, event){ $root.deleteFile('report') }">删除</a>
@@ -107,18 +107,15 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">参数模板文件：</label>
           <div class="col-xs-8 form-inline">
-          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().paramShowFile">
+          	<input type="text" class="form-control" style="width:243px" data-bind="value: currentVO().paramFile">
           	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
 				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
-					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().paramShowFile"/>浏览
+					<input type="file" style="opacity: 0;position: absolute;left:0;right:0;" data-bind="value: currentVO().paramFile"/>浏览
 				</a>
 	    		<a href="javascript:;" class="btn btn-default" 
 	    			data-bind="click: function(data, event){ $root.deleteFile('param') }">删除</a>
 			</form>
           </div>
-		  <div class="col-xs-1">
-			<span class="text-danger inline m-l-n m-t-sm">*</span>
-		  </div>
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">备注：</label>
@@ -147,6 +144,8 @@
 
       		this.currentVO = ko.validatedObservable({
       			name: ko.observable().extend({required: true}),
+      			defineFile: ko.observable(),
+      			paramFile: ko.observable(),
       			reportShowFile:  ko.observable(),
       			reportSaveFile: ko.observable(),
       			paramShowFile: ko.observable(),
@@ -159,15 +158,40 @@
       		this.deleteFile = function(type){
       			if(type == 'report'){
       				this.currentVO.fromJSON({
-      					reportShowFile: "",
-      	      			reportSaveFile: ""
+      					defineFile: ""
               		});
       			}else if(type == 'param'){
       				this.currentVO.fromJSON({
-      	      			paramShowFile: "",
-      	      			paramSaveFile: ""
+      					paramFile: ""
               		});
       			}
+      		}
+      		// 获取文件名称
+      		this.getFileName = function(path) {
+      			if(path==null||path==''){
+      				return path;
+      			}
+      			var pos1 = path.lastIndexOf('/');
+      			var pos2 = path.lastIndexOf('\\');
+      			var pos = Math.max(pos1, pos2)
+      			if (pos < 0)
+      				return path;
+      			else
+      				return path.substring(pos + 1);
+      		}
+      		// 判断str1是否以str2结尾
+      		this.endWith = function(str1, str2) {
+      			if (str1 == null || str2 == null) {
+      				return false;
+      			}
+      			if (str1.length < str2.length) {
+      				return false;
+      			} else if (str1 == str2) {
+      				return true;
+      			} else if (str1.substring(str1.length - str2.length) == str2) {
+      				return true;
+      			}
+      			return false;
       		}
       		
       		this.add = function(){
@@ -184,18 +208,57 @@
       		this.save = function(){
     			ko.validation.group(this.currentVO).showAllMessages();
 		        if(this.currentVO.isValid()){
-		        	if(this.currentVO().id){
-		        		csc.rest.put('api/v5.0.0/reports/customReports/'+this.currentVO().id,this.currentVO.toJSON(),function(data){
-					 		systemMsg.alert('修改自定义报表成功！');
-					 		self.isAdd(false);
-				        	self.table.refreshData();
-					    }); 
+		        	//组装显示文件
+		        	var dfShowName = self.getFileName(self.currentVO().defineFile());
+		        	var pfShowName = self.getFileName(self.currentVO().paramFile());
+		        	console.log(dfShowName+","+pfShowName);
+		        	
+		        	if(dfShowName.length>32){
+		        		console.log("报表定义文件名称最长为32个字符！");
+		        		return;
+		        	}
+		        	if(!self.endWith(dfShowName,'.rpx')){
+		        		console.log("报表定义文件名称后缀名必须为.rpx！");
+		        		return;
+		        	}
+		        	
+		        	if(pfShowName!='' && pfShowName.length>32){
+		        		console.log("参数模板文件名称最长为32个字符！");
+		        		return;
+		        	}
+		        	
+		        	if(pfShowName!='' && !self.endWith(pfShowName,'.rpx')){
+		        		console.log("参数模板文件名称后缀名必须为.rpx！");
+		        		return;
+		        	}
+		        	self.currentVO().reportShowFile(dfShowName);
+		        	self.currentVO().paramShowFile(pfShowName);
+		        	
+		        	//检查报表名称是否存在
+		        	if(self.currentVO().id){
+		        		csc.rest.get('api/v5.0.0/reports//customReports/check?id='+self.currentVO().id+'&name='+self.currentVO().name(),function(data){
+		        			if(data == 0){
+		        				csc.rest.put('api/v5.0.0/reports/customReports/'+self.currentVO().id,self.currentVO.toJSON(),function(data){
+							 		systemMsg.alert('修改自定义报表成功！');
+							 		self.isAdd(false);
+						        	self.table.refreshData();
+							    });
+		        			}else{
+		        				systemMsg.alert('报表名称已经存在！！');
+		        			}
+			        	});
 		        	}else{
-		        		csc.rest.post('api/v5.0.0/reports/customReports',this.currentVO.toJSON(),function(data){
-					 		systemMsg.alert('添加自定义报表成功！');
-					 		self.isAdd(false);
-				        	self.table.refreshData();
-					    }); 
+		        		csc.rest.get('api/v5.0.0/reports//customReports/check?name='+self.currentVO().name(),function(data){
+		        			if(data == 0){
+		        				csc.rest.post('api/v5.0.0/reports/customReports',self.currentVO.toJSON(),function(data){
+							 		systemMsg.alert('添加自定义报表成功！');
+							 		self.isAdd(false);
+						        	self.table.refreshData();
+							    });
+		        			}else{
+		        				systemMsg.alert('报表名称已经存在！！');
+		        			}
+		        		});
 		        	}
 		        }
       		}
