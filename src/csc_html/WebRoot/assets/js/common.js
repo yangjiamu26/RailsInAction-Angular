@@ -4,7 +4,6 @@ $.ajaxSetup({
 var csc = {};
 
 
-
 csc.rest = {
     post: function(url,content, successFun,errorFun) {
         $.ajax({

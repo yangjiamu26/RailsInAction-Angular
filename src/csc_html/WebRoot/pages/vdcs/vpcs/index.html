@@ -7,7 +7,7 @@
 
 <div class='wrapper-md'>
 	<div class="nav-tabs-alt bg-white-only">
-		<ul class="nav nav-tabs" role="tablist">
+		<ul class="nav nav-tabs" role="tablist" id="vpcTabs">
 			<li class="active" role="presentation">
 				<a aria-controls="VPC" data-toggle="tab" href="#VPC" role="tab">VPC</a>
 			</li>
@@ -375,7 +375,7 @@
 					            所属VDC
 					          </label>
 					          <div class="col-xs-8">
-					            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: firewallVO().vdcUuid, enable: firewallVO().uuid==null">
+					            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: firewallVO().vdcUuid, enable: firewallVO().uuid==null">
 					            </select>
 					          </div>
 					          <div class="col-xs-1">
@@ -387,7 +387,7 @@
 					            所属VPC
 					          </label>
 					          <div class="col-xs-8">
-					            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: firewallVO().vpcUuid, enable: firewallVO().uuid==null">
+					            <select class="form-control" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value: firewallVO().vpcUuid, enable: firewallVO().uuid==null">
 					            </select>
 					          </div>
 					          <div class="col-xs-1">
@@ -452,7 +452,7 @@
 						        </tr>
 						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td><a href="#pages/vdcs/safegroups/show" data-bind="text: $row.name"></a></td>
+									<td><a data-bind="text: $row.name,attr:{href:'#pages/vdcs/safegroups/show?sgUuid='+$row.uuid}" ></a></td>
 									<td data-bind="text: $row.vdcName"></td>
 									<td data-bind="text: $row.vpcName"></td>
 									<td>
@@ -547,8 +547,12 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js","api/vpc/secretGroup.js"]
+	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js",
+	               "api/vpc/secretGroup.js","api/vdc/vdc.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+
+		var pageType = args.type;
+		$("#vpcTabs li").eq(pageType).find("a").tab("show");
 		
 		/******************************vpc*************************************/
     	function vpcViewModel(){
@@ -725,21 +729,43 @@
     		var self = this;
     		self.vdcList = ko.observableArray();
     		self.vpcList = ko.observableArray();
-    		self.routerList = ko.observableArray();
     		
     		self.firewallVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true}),
+    			     "name":ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
 					 "vdcUuid":ko.observable().extend({required: true}),
 					 "vpcUuid":ko.observable().extend({required: true}),
 					 "routerUuid":ko.observable().extend({required: true})
 					});
-    		
+    	
+    		var subscriptionVdc;//subscription.dispose();
+    		var subscriptionVpc;
     		self.createFirewallModal = ko.observable(false);
     		self.createFirewall = function(){
-    			//TODO 查询其他模块的接口
-    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
-    			self.routerList([{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器1"},{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器2"}])
+    			self.vdcList([]);
+    			self.vpcList([]);
+    			self.routerList([]);
+    			
+    			subscriptionVdc = self.firewallVO().vdcUuid.subscribe(function(val){
+    	    	    	$.VPC.getVpcs({vdcUuid:val},function(data){
+    		   				 if(data && data.results){
+    		   					 self.vpcList(data.results);
+    		   				 }
+    		   			});
+    	    	    })
+    	    	    
+    	    	subscriptionVpc =  self.firewallVO().vpcUuid.subscribe(function(val){
+    	    	    	$.ROUTER.getRouters({vpcUuid:val},function(data){
+    		   				 if(data && data.results){
+    		   					 self.routerList(data.results);
+    		   				 }
+    		   			});
+    	    	    })
+    			
+    			$.VDC.getVDCs({},function(data){
+    				 if(data && data.results){
+    					 self.vdcList(data.results);
+    				 }
+    			});
     			self.firewallVO.fromJSON({"name":"",
 					 "vdcUuid":"",
 					 "vpcUuid": "",
@@ -750,10 +776,11 @@
     		}
     		
     		self.modifyFirewall = function(rowObj, event){
-    			//TODO 查询其他模块的接口
-                self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
-    			self.routerList([{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器1"},{"uuid": "83fb34e6-9265-457b-b344-5cec2ca7cc38","name": "路由器2"}])
+    			subscriptionVdc && subscriptionVdc.dispose();
+        		subscriptionVdc  && subscriptionVpc.dispose();
+                self.vdcList([{"uuid": rowObj.vdcUuid,"name": rowObj.vdcName}]);
+    			self.vpcList([{"uuid": rowObj.vpcUuid,"name": rowObj.vpcName}]);
+    			self.routerList([{"uuid": rowObj.routerUuid,"name": rowObj.routerName}]);
     			self.firewallVO.fromJSON(rowObj);
     			self.createFirewallModal(true)	
     		}

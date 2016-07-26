@@ -464,19 +464,26 @@ kv.configuration = configuration;
     //      params: true
     //    });
     //
-    addRule: function (observable, rule) {
-      observable.extend({ validatable: true });
+    addRule: function (observable, rule) { 
+        observable.extend({ validatable: true }); 
+        var thesame = null; 
 
-      var hasRule = !!koUtils.arrayFirst(observable.rules(), function(item) {
-        return item.rule && item.rule === rule.rule;
-      });
+        var hasRule = !!koUtils.arrayFirst(observable.rules(), function(item) { 
+          if(item.rule && item.rule === rule.rule){ 
+            thesame = item; 
+          } 
+          return item.rule && item.rule === rule.rule; 
+        }); 
 
-      if (!hasRule) {
-        //push a Rule Context to the observables local array of Rule Contexts
-        observable.rules.push(rule);
-      }
-      return observable;
-    },
+        if (!hasRule) { 
+          //push a Rule Context to the observables local array of Rule Contexts 
+          observable.rules.push(rule); 
+        }else{ 
+          observable.rules.remove(thesame); 
+          observable.rules.push(rule); 
+        } 
+        return observable; 
+      }, 
 
     // addAnonymousRule:
     // Anonymous Rules essentially have all the properties of a Rule, but are only specific for a certain property
@@ -960,6 +967,47 @@ kv.rules['equal'] = {
   },
   message: 'Values must equal.'
 };
+
+kv.rules['cscNameRule'] = {
+		  validator: function (val, params) {
+			    var nameExp =new RegExp("[\\^`~!@#\\$%&\\*=\\+\\[\\]\\{\\}\\|;:\\', <>\\\\\\/?\"！￥【】：；“’？》《 ]+");
+	  	        if(nameExp.test(val)){
+	  	        	return false;
+	  	        }	
+	  	        return true;
+		  },
+		  message: '不能包含特殊字符'
+		};
+
+kv.rules['ip'] = {
+		  validator: function (val, params) {
+	  	        if(/^([1-9]|[1-9]\d|1\d\d|2[0-1]\d|22[0-3])(\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])){2}\.([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])$/.test(val)){
+	  	        	return true;
+	  	        }	
+	  	        return false;
+		  },
+		  message: 'IP格式不正确，正确格式如：192.168.1.1'
+		};
+
+kv.rules['portRange'] = {
+		  validator: function (val, params) {//params 为true时支持端口范围
+			      var portRegRange = /^[1-9]{1}[0-9]*:[1-9]{1}[0-9]*$/;
+	  	     	  var portReg = /^[1-9]{1}[0-9]*$/;
+	  	     	  if(portReg.test(val) &&　parseInt(val) <= 65535  && parseInt(val) > 0){
+	                  return true;
+	              }else if(params && portRegRange.test(val)){
+	              	var splitPort = val.split(":");
+	              	var start = parseInt(splitPort[0]);
+	              	var end = parseInt(splitPort[1]);
+	              	if(parseInt(splitPort[0]) <=parseInt(splitPort[1]) &&
+	              			0 < parseInt(splitPort[0]) && 65535 >= parseInt(splitPort[1])){
+	              		return true;
+	              	}
+	              }
+				return false;
+		  },
+		  message: '端口格式不正确，正确格式如：8080或8080:9000'
+		};
 
 kv.rules['notEqual'] = {
   validator: function (val, params) {

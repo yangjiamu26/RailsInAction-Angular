@@ -14,7 +14,10 @@ $(function(){
           });
         }
       }),
-      hosts:    Backbone.Collection.extend({url: 'api/hosts.json', parse:function(response){ return response.results }})
+      hosts:    Backbone.Collection.extend({url: 'api/hosts.json', parse:function(response){ return response.results }}),
+      
+      cloudPlatform:	Backbone.Model.extend({urlRoot: 'api/v5.0.0/cloudPlatforms'}),
+      cloudPlatforms:	Backbone.Collection.extend({url: 'api/v5.0.0/cloudPlatforms'})
     };
 
     var api = {};
@@ -23,6 +26,8 @@ $(function(){
     api.volumn  = new model.volumn();
     api.host    = new model.host();
     api.hosts   = new model.hosts();
+    api.cloudPlatform	= new model.cloudPlatform();
+    api.cloudPlatforms	= new model.cloudPlatforms();
 
     //window.model = model;
     window.api = api;
