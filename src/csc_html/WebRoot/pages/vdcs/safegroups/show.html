@@ -15,19 +15,16 @@
     <div class="tab-content">
       <div class="tab-pane active" id="baseInfo" role="tabpanel">
         <div class="wrapper-md">
-          <p><strong>安全组名称：</strong>安全组01</p>
-          <p><strong>所属VDC：</strong>VDC01</p>
-          <p><strong>所属VPC：</strong>VPC01</p>
-          <p><strong>描述：</strong>描述01</p>
+          <p><strong>安全组名称：</strong><span data-bind="text:sgVO().name"></span></p>
+          <p><strong>所属VDC：</strong><span data-bind="text:sgVO().vdcName"></span></p>
+          <p><strong>所属VPC：</strong><span data-bind="text:sgVO().vpcName"></span></p>
+          <p><strong>描述：</strong><span data-bind="text:sgVO().desc"></span></p>
         </div>
 
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
-        <a aria-controls="entry" data-toggle="tab" href="#entry" role="tab">入口规则</a>
-      </li>
-      <li role="presentation">
-        <a aria-controls="exit" data-toggle="tab" href="#exit" role="tab">出口规则</a>
+        <a aria-controls="entry" data-toggle="tab" href="#entry" role="tab">规则</a>
       </li>
       <li role="presentation">
         <a aria-controls="vm" data-toggle="tab" href="#vm" role="tab">云主机</a>
@@ -39,156 +36,172 @@
         <div class="panel panel-default">
           <div class="row wrapper">
             <div class="col-xs-8">
-              <a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/safegroups/addRule_entry.html')">添加</a>
+              <a class="btn btn-sm btn-primary"  data-bind="click:addSGRule">添加</a>
             </div>
             <div class="col-xs-3">
               <div class="input-group">
-                <span class="input-group-addon">协议</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">IP协议</option>
+                <span class="input-group-addon">方向</span>
+                <select class="form-control input-sm"  data-bind="value: searchSgRuleParam().direction">
+                  <option value="ingress">入口</option>
+                  <option value="egress">出口</option>
                 </select>
               </div>
             </div> 
             <div class="col-xs-1">
-                <button class="btn btn-sm btn-default" type="button">搜索</button>
+                <button class="btn btn-sm btn-default" type="button" data-bind="click:searchSgRule">搜索</button>
             </div>
           </div>        
           <div class="table-responsive">
-            <table class="table table-striped">
+             <table class="table table-striped" data-bind="with:sgRuleListTable">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>方向</th>
                   <th>协议</th>
                   <th>端口</th>
-                  <th>来源</th>
-                  <th>IP类型</th>
+                  <th>远端IP</th>
+                  <th>远端安全组</th>
+                  <th>以太网类型</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
+               <tr data-bind="visible: showNoData">
+			            <td colspan=11 class="aligncenter">
+			              This table has no data.
+			            </td>
+			    </tr>
+				<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td>1</td>
-                  <td>TCP</td>
-                  <td>546</td>
-                  <td>0.0.0.0/0</td>
-                  <td>IPv4</td>
+                  <td data-bind="text: $row.direction"></td>
+                  <td data-bind="text: $row.protocol"></td>
+                  <td data-bind="text: $row.portRangeMins"></td>
+                  <td data-bind="text: $row.remoteIpPrefix"></td>
+                  <td data-bind="text: $row.remoteGroupId"></td>
+                  <td data-bind="text: $row.etherType"></td>
                   <td>
-                    <a href="#" onclick="systemMsg.alert('确定删除吗？')">删除</a>
+                      <a data-bind="click:$root.delSgRule">删除</a>
                   </td>
                 </tr>
+                <!-- /ko -->	
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
-            <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
-              </li>
-              <li class="page">
-                <a>2</a>
-              </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
-              </li>
-            </ul>
-          </footer> 
+         <footer class="panel-footer" data-bind="with: sgRuleListTable, visible: sgRuleListTable.pages() > 1">
+		      <ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <!-- ko foreach: {data: (new Array(pages()))} -->
+		        <li data-bind="css: $parent.pageClass($index() + 1)">
+		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		        </li>
+		        <!-- /ko -->
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		      </ul>
+	    </footer>
         </div>
-                
+        
+              <div role="dialog" aria-hidden="true"   class="modal fade" data-bind="modal: { show: addSGRuleMode}">
+                <div class='modal-dialog' role='document'>
+				    <div class='modal-content'>
+				      <div class='modal-header'>
+				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加规则</h3>
+				      </div>
+				      <div class='modal-body form-horizontal'>
+				          <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            方向
+				          </label>
+				          <div class="col-xs-8">
+				            <select class="form-control"  data-bind="value:sgRuelVO().direction">
+				              <option value="ingress">入口</option>
+				              <option value="egress">出口</option>
+				            </select>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div>          
+				        </div>   
+				        <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            协议
+				          </label>
+				          <div class="col-xs-8">
+				            <select class="form-control" id="sProtocol" data-bind="value:sgRuelVO().protocol">
+				              <option value="">请选择</option>
+				              <option value="tcp">TCP</option>
+				              <option value="udp">UDP</option>
+				              <option value="icmp">ICMP</option>
+				              <option value="dns">DNS</option>
+				              <option value="http">HTTP</option>
+				              <option value="https">HTTPS</option>
+				              <option value="OTHER">其他</option>
+				            </select>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div>          
+				        </div>      
+				        <div class="form-group" id="field-port" style="display:none">
+				          <label class="col-xs-3 control-label">
+				            端口/端口范围
+				          </label>
+				          <div class="col-xs-8">
+				            <input class="form-control" type="text" data-bind="value:sgRuelVO().portRange"/>
+				            <span class="text-info">端口为1~65535的整数，如输入范围，格式为1:65535</span>
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div>          
+				        </div> 
+				        <div class="form-group" id="field-protocolNum" style="display:none">
+				          <label class="col-xs-3 control-label">
+				     IP协议
+				          </label>
+				          <div class="col-xs-8">
+				            <input class="form-control" type="text" data-bind="value:sgRuelVO().ipProtocolNum" />
+				            <span class="text-info">0~255的整数，或-1做通配符</span>
+				          </div>
+				        </div>  
+				        <div class="form-group">
+				          <label class="col-xs-3 control-label">
+				            来源
+				          </label>
+				          <div class="col-xs-8">
+				            <div class="radio">
+				              <label>
+				                <input type="radio" name="remoteRadio" value="IP" checked>
+				                IP段 <input class="form-control inline w-lg v-middle m-l-md" type="text" data-bind="value:sgRuelVO().remoteIpPrefix"/>
+				              </label>
+				            </div>
+				            <div class="radio">
+				              <label>
+				                <input type="radio" name="remoteRadio"  value="SecretGroup">
+				                安全组
+				                <select class="form-control inline w-lg v-middle m-l-xs" data-bind="options:sgList,optionsText:'name',optionsValue:'uuid',value: sgRuelVO().remoteGroupId">
+				                </select>                
+				              </label>
+				            </div>          
+				          </div>
+				          <div class="col-xs-1">
+				            <span class="text-danger inline m-l-n m-t-sm">*</span>
+				          </div>          
+				        </div>              
+				      </div>
+				      <div class='modal-footer' style="text-align: center">
+				        <input type="button" name="commit" value="确定" data-bind="click:confimAddRule" class="btn btn-default btn-info" />
+				        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+				      </div>
+				    </div>
+				  </div>
+                </div>
       </div>
-      <div class="tab-pane" id="exit" role="tabpanel">
-
-        <div class="panel panel-default">
-          <div class="row wrapper">
-            <div class="col-xs-8">
-              <a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/safegroups/addRule_exit.html')">添加</a>
-            </div>
-            <div class="col-xs-3">
-              <div class="input-group">
-                <span class="input-group-addon">协议</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">IP协议</option>
-                </select>
-              </div> 
-            </div>
-            <div class="col-xs-1">
-                <button class="btn btn-sm btn-default" type="button">搜索</button>
-            </div>
-          </div>        
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>协议</th>
-                  <th>端口</th>
-                  <th>目的地</th>
-                  <th>IP类型</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>TCP</td>
-                  <td>546</td>
-                  <td>0.0.0.0/0</td>
-                  <td>IPv4</td>
-                  <td>
-                    <a href="#" onclick="systemMsg.alert('确定删除吗？')">删除</a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <footer class="panel-footer">
-            <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
-              </li>
-              <li class="page">
-                <a>2</a>
-              </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
-              </li>
-            </ul>
-          </footer> 
-        </div>
-      </div>
+      
+      
+     
       <div class="tab-pane" id="vm" role="tabpanel">
-
         <div class="panel panel-default">
           <div class="row wrapper">
             <div class="col-xs-8">
@@ -263,8 +276,136 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
+  var scripts = ["api/vpc/secretGroup.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
+	  
+	var sgUuid = args.sgUuid;
+	$.SECRETGROUP.getSecretGroups({uuid:sgUuid},function(data){
+		  if(data.results && data.results.length > 0){
+			    var sgObj = data.results[0];
+			    function sgInInfoViewModel(){
+			    	var self = this;
+			    	
+			    	self.sgList = ko.observableArray();
+			    	$.SECRETGROUP.getSecretGroups({vpcUuid:sgObj.vpcUuid},function(data){
+			    		 if(data &&  data.results){
+			    			self.sgList(data.results)
+			    		 }
+			    	});
+			    	
+		    		self.sgVO = ko.validatedObservable(sgObj);
+		    		self.sgRuleListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/secretGroupRules', perPage: 1});
+		    		self.searchSgRuleParam = ko.observable({
+		    			direction: ""
+	        	    })
+	        	    
+		       	    self.searchSgRule = function(){
+		       	      self.sgRuleListTable.params(this.searchSgRuleParam());
+		       	    }
+		    		
+		    	    self.sgRuelVO =  ko.validatedObservable({
+	    			     "direction":ko.observable().extend({required: true}),
+	    			     "protocol":ko.observable().extend({required: true}),
+						 "portRange":ko.observable().extend({required: {onlyIf: function(){return true}}}),
+						 "remoteIpPrefix":ko.observable(),
+						 "remoteGroupId":ko.observable(),
+						 "ipProtocolNum":ko.observable()
+						});
+		    	    
+		    	    
+		    	    self.sgRuelVO().protocol.subscribe(function(val){
+		    	    	// 根据协议显示隐藏相关字段
+	    	    	     switch(val){
+		    	    	     case 'tcp':
+		    	    	    	$('#field-port').show(); 
+		    	    	        $('#field-icmp, #field-protocolNum').hide(); 
+		    	    	     	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return true}} }) 
+		    	    	        break;
+		    	    	     case 'udp':$('#field-port').show(); $('#field-icmp, #field-protocolNum').hide(); break;
+		    	      	     case 'dns': $('#field-port, #field-icmp, #field-protocolNum').hide(); break;
+		    	      	     case 'http': $('#field-port, #field-icmp, #field-protocolNum').hide(); break;
+		    	      	     case 'https': 
+		    	      	    	$('#field-port, #field-icmp, #field-protocolNum').hide();
+		    	      	    	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}}})
+		    	      	     	break;
+		    	    	     case 'icmp': $('#field-icmp').show(); $('#field-port, #field-protocolNum').hide(); break;
+		    	    	     case 'other': $('#field-protocolNum').show(); $('#field-port, #field-icmp').hide(); break;
+	    	    	     }
+		    	    })
+		    	    
+		    	    self.addSGRuleMode = ko.observable(false);
+		    		self.addSGRule = function(){
+		    			self.sgRuelVO.fromJSON({"direction":"",
+							 "protocol":"",
+							 "portRange":"",
+							 "remoteIpPrefix":"",
+							 "remoteGroupId":"",
+							 "ipProtocolNum":""
+							});
+		    			self.addSGRuleMode(true)	
+		    		}
+		    		
+		    		
+		    		self.confimAddRule = function(){
+		    			console.log(self.sgRuelVO.toJSON())
+		    			ko.validation.group(self.sgRuelVO).showAllMessages();
+		    			alert(333)
+    	    	        if(self.sgRuelVO.isValid()){
+    	    	        	alert(111)
+    	    	        	/* var sgJson = self.sgRuelVO.toJSON();
+   			    			var  param = {};
+   			    			param.etherType = "IPv4";
+   			    			param.direction = sgJson.direction;
+   			    			if("other" != sgJson.protocol){
+   			    				param.protocol = sgJson.ipProtocolNum;
+   			    			}
+   			    			
+   			    			param.protocol = sgJson.protocol;
+   			    			var portRange = sgJson.portRange;
+   			    			if(portRange){
+   			    				var prSplist = portRange.split(":");
+   			    				param.portRangeMin = prSplist[0];
+   					    		param.portRangeMax = prSplist[1];
+   			    			}
+   			    			
+   			    			var remoteType = $("input[name='remoteRadio']:checked").val();
+   			    		 
+   			    			if(remoteType == "IP"){
+   			    				param.remoteIpPrefix = sgJson.remoteIpPrefix;
+   			    			}else{
+   			    				param.remoteGroupId = sgJson.remoteGroupId;
+   			    			}
+   			    			
+   			    			$.SECRETGROUP.addSecretGroupRule(sgUuid,param,function(data){
+   			    				self.sgRuleListTable.refreshData();
+   			    				self.addSGRuleMode(false);
+   			    			});  */
+    	    	        } 
+    	    	     
+		    		}
+		    		
+		    		
+		    		
+		    		self.delSgRule = function(rowObj){
+		    			confirm("确定删除安全组规则？",function(arg){
+		    				$.SECRETGROUP.delSecretGroupRules(sgUuid,rowObj.uuid,function(data){
+		    					  self.sgRuleListTable.refreshData();
+		    					  alert("删除安全组规则成功！")
+		           			});
+		    			 });
+		    		}
+		    		
+		    		
+		    	   
+		    		
+			    }
+			    
+			   ko.applyBindings(new sgInInfoViewModel(), $("#page-content")[0]);
+		  }
+		
+	})
+    
+
+    
 });
 </script>
