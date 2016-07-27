@@ -9,18 +9,18 @@
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
-        <a aria-controls="VPC" data-toggle="tab" href="#baseInfo" role="tab">基本信息</a>
+        <a aria-controls="VPC" data-toggle="tab" href="#secretGroupInfo" role="tab">基本信息</a>
       </li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="baseInfo" role="tabpanel">
-        <div class="wrapper-md">
+      <div class="tab-pane active" id="secretGroupInfo" role="tabpanel">
+        <div class="wrapper-md" id="secretGroupInfoSummary">
           <p><strong>安全组名称：</strong><span data-bind="text:sgVO().name"></span></p>
           <p><strong>所属VDC：</strong><span data-bind="text:sgVO().vdcName"></span></p>
           <p><strong>所属VPC：</strong><span data-bind="text:sgVO().vpcName"></span></p>
           <p><strong>描述：</strong><span data-bind="text:sgVO().desc"></span></p>
         </div>
-
+    
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
@@ -218,7 +218,7 @@
             </div>
           </div>        
           <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table table-striped" data-bind="with:sgRelVmListTable">
               <thead>
                 <tr>
                   <th>云主机名称</th>
@@ -227,42 +227,36 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+			            <td colspan=11 class="aligncenter">
+			              This table has no data.
+			            </td>
+			    </tr>
+				<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td>vm1</td>
-                  <td><span class="label label-success">正常</span></td>
-                  <td>10.10.111.222</td>
+                  <td data-bind="text: $row.name"></td>
+                  <td data-bind="text: $row.state"></td>
+                  <td data-bind="text: $row.ip"></td>
                 </tr>
+                 <!-- /ko -->	
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
-            <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
-              </li>
-              <li class="page">
-                <a>2</a>
-              </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
-              </li>
-            </ul>
-          </footer> 
+          <footer class="panel-footer" data-bind="with: sgRelVmListTable, visible: sgRelVmListTable.pages() > 1">
+		      <ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <!-- ko foreach: {data: (new Array(pages()))} -->
+		        <li data-bind="css: $parent.pageClass($index() + 1)">
+		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		        </li>
+		        <!-- /ko -->
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		      </ul>
+	     </footer>
         </div>
       </div>      
     </div>
@@ -280,10 +274,20 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  
 	var sgUuid = args.sgUuid;
+	   
+
+	
 	$.SECRETGROUP.getSecretGroups({uuid:sgUuid},function(data){
 		  if(data.results && data.results.length > 0){
 			    var sgObj = data.results[0];
+			    
 			    function sgInInfoViewModel(){
+			    	var self = this;
+		    		self.sgVO = ko.validatedObservable(sgObj);
+			    }
+			    ko.applyBindings(new sgInInfoViewModel(), $("#page-content #secretGroupInfoSummary")[0]);
+			    
+			    function sgRuleViewModel(){
 			    	var self = this;
 			    	
 			    	self.sgList = ko.observableArray();
@@ -347,9 +351,8 @@
 		    		
 		    		
 		    		self.confimAddRule = function(){
-		    			console.log(self.sgRuelVO.toJSON())
+		    			//console.log(self.sgRuelVO.toJSON())
 		    			ko.validation.group(self.sgRuelVO).showAllMessages();
-		    			alert(333)
     	    	        if(self.sgRuelVO.isValid()){
     	    	        	alert(111)
     	    	        	/* var sgJson = self.sgRuelVO.toJSON();
@@ -384,7 +387,6 @@
     	    	     
 		    		}
 		    		
-		    		
 		    		self.delSgRule = function(rowObj){
 		    			confirm("确定删除安全组规则？",function(arg){
 		    				$.SECRETGROUP.delSecretGroupRules(sgUuid,rowObj.uuid,function(data){
@@ -393,12 +395,16 @@
 		           			});
 		    			 });
 		    		}
-		    	   
-		    		
 			    }
-			    
-			   ko.applyBindings(new sgInInfoViewModel(), $("#page-content")[0]);
+			   ko.applyBindings(new sgRuleViewModel(), $("#page-content .tab-pane")[1]);
 		  }
+		  
+		  
+		    function sgRelVmViewModel(){
+		    	var self = this;
+		    	self.sgRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/vms', perPage: 1});
+		    }
+		    ko.applyBindings(new sgRelVmViewModel(), $("#page-content .tab-pane")[2]);
 		
 	})
     

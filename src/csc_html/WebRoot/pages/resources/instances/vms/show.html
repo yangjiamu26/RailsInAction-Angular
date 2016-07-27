@@ -316,19 +316,23 @@
             </tbody>
           </table>
         </div>
-        <footer class='panel-footer'>
+        <footer class="panel-footer" data-bind="with: task_table visible: task_table.pages() > 1">
           <ul class="pagination">
-            <li class="page active">
-              <a href="#pages/javascript:void(0)">1</a></li>
-            <li class="page">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">2</a></li>
-            <li class="next">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">下页 &rsaquo;</a></li>
-            <li class="last">
-              <a href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">末页 &raquo;</a></li>
+            <li data-bind="css: leftPagerClass, click: prevPage">
+              <a href="#">&laquo;</a>
+            </li>
+            <!-- ko foreach: {data: (new Array(pages()))} -->
+            <li data-bind="css: $parent.pageClass($index() + 1)">
+              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+            </li>
+            <!-- /ko -->
+            <li data-bind="css: rightPagerClass, click: nextPage">
+              <a href="#">&raquo;</a>
+            </li>
           </ul>
         </footer>
       </div>
+      
     </div>
   </div>
 </div>
@@ -644,6 +648,7 @@
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	var vmUuid = args.vmUuid;
+	vmUuid = "1";
     function ViewModel(){
       var self = this;
     	
@@ -672,17 +677,20 @@
       };
       
       //获取云主机摘要
-      this.firewallVO = ko.validatedObservable();
+      this.vmVO = ko.validatedObservable({});
+      
       csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
-		  if(data){
-			  self.firewallVO(data);
+		  if(data.results){
+			  self.vmVO(data.results);
 		  }
 	  });
       
-      
-      
       //获取调度任务列表
-      
+      /* var task_param = {};
+      task_param.targetId = vmUuid;
+      task_param.targetType = "VM";
+      this.task_table.params(task_param); */
+      this.task_table = new DataTable([], {path: 'api/v5.0.0/tasks'});
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
