@@ -105,7 +105,7 @@
             </th>
             <th>名称</th>
             <th>所属数据中心</th>
-            <th>虚拟化类型</th>
+            <th>云管理平台类型</th>
             <th>IP</th>
             <th>端口</th>
             <th>资源域</th>
@@ -117,7 +117,7 @@
         </thead>
         <tbody>
           <tr data-bind="visible: showNoData">
-            <td colspan=5 class="aligncenter">
+            <td colspan=11 class="aligncenter">
               This table has no data.
             </td>
           </tr>
@@ -133,17 +133,17 @@
             </td>
             <td>
               <a href="#pages/resources/partitions/platforms/1" data-bind="text:name">CNWare</a></td>
-            <td data-bind="text:datacenter">xxx</td>
-            <td data-bind="text:perform">xxx</td>
+            <td data-bind="text:$root.dataCenterName">xxx</td>
+            <td data-bind="text:type">xxx</td>
             <td data-bind="text:ip">192.168.1.100</td>
             <td data-bind="text:port">8080</td>
-            <td data-bind="text:resourceDomain"></td>
+            <td data-bind="text:domain"></td>
             <td>
-              <span class="label label-success" data-bind="if:state == 0">正常</span>
-              <span class="label label-danger" data-bind="if:state == 1">异常</span>
+              <span class="label label-success" data-bind="if:state == '正常'">正常</span>
+              <span class="label label-danger" data-bind="if:state == '异常'">异常</span>
             </td>
-            <td data-bind="text:creatTime"></td>
-            <td data-bind="text:remark"></td>
+            <td data-bind="text:createTime"></td>
+            <td data-bind="text:description"></td>
             <td><a href="#" data-bind="click:$root.edit">修改</a> | <a href="#">删除</a></td>
           </tr>
           <!-- /ko -->
@@ -189,18 +189,19 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">数据中心</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control" value="数据中心1" disabled>
+            <input type="text" class="form-control" data-bind="value:$root.dataCenterName" value="数据中心1" disabled>
+            <input type="text" class="form-control" data-bind="value:$root.dataCenterUUID" value="1" disabled>
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>          
         </div>
         <div class="form-group">
-          <label class="col-xs-3 control-label">虚拟化类型</label>
+          <label class="col-xs-3 control-label">云管理平台类型</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:perform">
-              <option value="1">1</option>
-              <option value="2">2</option>
+            <select class="form-control" data-bind="value:type">
+              <option value="OpenStack">OpenStack</option>
+              <option value="CNware">CNware</option>
             </select>
           </div>
         </div>
@@ -225,7 +226,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">用户名</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:createdUser">
+            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:username">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -282,7 +283,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">描述</label>
           <div class="col-xs-8">
-            <textarea class="form-control" cols="30" rows="3" data-bind="value:remark"></textarea>
+            <textarea class="form-control" cols="30" rows="3" data-bind="value:description"></textarea>
           </div>
         </div>
       </div>
@@ -298,25 +299,35 @@
 <script type="text/javascript">
   var scripts = [null,"assets/lib/highcharts/highstock.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-
+  console.log(args)
+  
 
    function ViewModel(){
       this.isEdit = ko.observable(false);
-      this.currentVO = ko.observable({});
+      //this.currentVO = ko.observable({});
+      this.currentVO = ko.validatedObservable({});
+      
+      
       var self = this;
+      
+      //从url中拿到参数设置
+      self.dataCenterName = args.datacenterName;
+      self.dataCenterUUID = args.datacenterId;
 
+      //点击接入按钮时，初始化数据
       this.add = function(){
         this.currentVO({
           id: null,
-          name:'',
-          datacenter:'',
-          perform:'',
-          ip:'',
-          port:'',
-          createdUser:'',
-          password:'',
-          resourceDomain:'',
-          remark:''
+          name	:	ko.observable('').extend({ required: true, maxLength: 32 }),
+          //dataCenterName:'',//这里不需要提交
+          dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
+          type	:	ko.observable('').extend({ required: true }),
+          ip	:	ko.observable('').extend({ required: true }),
+          port	:	ko.observable().extend({ required: true}),
+          username	:	ko.observable('').extend({ required: true }),
+          password	:	ko.observable('').extend({ required: true }),
+          domain:{},
+          description:''
         });
         self.isEdit(true);
       };
@@ -328,8 +339,45 @@
       };
 
       this.ok = function(){
+    	  
+     	console.log(this.currentVO());
+     	
         if(this.currentVO().id == null){
-          systemMsg.alert("你创建了一个资源属性");
+          //systemMsg.alert("你创建了一个资源属性");
+          console.log(this.currentVO.toJSON());         
+          console.log(this.currentVO.isValid()); 
+          
+          //验证通过
+          //if(this.currentVO.isValid()){
+       	  if(this.currentVO.errors().length === 0) {
+        	//保存
+              api.cloudPlatforms.create(this.currentVO.toJSON(),{
+                success: function(data){
+                  console.log("\n-------新建记录-------\n");
+                  console.log("create success");
+                  console.log(data);
+                  //关闭modal
+                  self.isEdit(false);
+                  if(data.attributes.uuid){
+                	  alert("接入成功！")
+                  }
+                  
+               },
+                error: function(){
+                  console.log("\n-------新建记录-------\n");
+                  console.log("create error");
+               }
+             });
+        	  
+          }else{
+        	  //显示错误提示
+        	  this.currentVO.errors.showAllMessages();
+          }
+          
+          
+          
+          
+          
         }else{
           systemMsg.alert("你修改了一个资源属性");
         };
@@ -343,7 +391,8 @@
         this.table.params(this.searchParam());
       };
 
-      this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
+      //this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
+      this.table = new DataTable([], {path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID});
     }
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);
 

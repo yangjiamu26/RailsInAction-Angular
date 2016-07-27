@@ -11,7 +11,6 @@
     <div class="row wrapper">
       <div class="col-xs-8">
         <button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
-        <button class="btn btn-sm btn-default" onclick="systemMsg.alert('确定删除吗？')">删除</button>
       </div>
       <div class="col-xs-3">
         <div class="input-group">
@@ -61,7 +60,7 @@
                 </label>
               </div>                     
             </td>
-            <td><a href="#pages/resources/partitions/1" data-bind="text:name"></a></td>
+            <td><a href="#pages/resources/partitions/partition_detail" data-bind="text:name"></a></td>
             <td data-bind="text:resourcePoolNum==null?0:resourcePoolNum"></td>
             <td data-bind="text:datacenterName"></td>
             <td data-bind="text:cloudplatformName"></td>
@@ -69,7 +68,7 @@
             </td>
             <td data-bind="text:name"></td>
             <td data-bind="text:createTime"></td>
-            <td><a data-bind="click:$root.edit">修改</a> | <a href="#">删除</a></td>
+            <td><a data-bind="click:$root.edit">修改</a> | <a href="#" data-bind="click:$root.delAz">删除</a></td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -114,7 +113,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">数据中心</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:datacenter">
+            <select class="form-control" data-bind="value:datacenterUuid, options: $root.dcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_dcs}">
               <option value="1">1</option>
               <option value="2">2</option>
             </select>
@@ -126,7 +125,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">云管理平台</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:perform">
+            <select class="form-control" data-bind="value:cloudplatformUuid, options: $root.cloudPlatforms, optionsText: 'name', optionsValue: 'uuid'">
               <option value="1">1</option>
               <option value="2">2</option>
             </select>
@@ -135,21 +134,24 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">虚拟化类型</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:perform">
+            <select class="form-control" data-bind="value:virtualPlatform, options: $root.virtualPlatforms, optionsText: 'name', optionsValue: 'name'">
+              <!-- 
               <option value="1">1</option>
               <option value="2">2</option>
+               -->
             </select>
           </div>
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">是否独占</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:single">
+            <select class="form-control" data-bind="value:isPrivate">
               <option value="1">是</option>
               <option value="0">否</option>
             </select>
           </div>
         </div>
+        <!-- 
         <div class="form-group">
           <label class="col-xs-3 control-label">资源池</label>
           <div class="col-xs-8">
@@ -187,12 +189,14 @@
                     <td>200</td>
                   </tr>
                 </tbody>
+                
               </table>
             </div>
           </div>
         </div>
+         -->
         <div class="form-group">
-          <label class="col-xs-3 control-label">描述</label>
+          <label class="col-xs-3 control-label" data-bind="value:description">描述</label>
           <div class="col-xs-8">
             <textarea class="form-control" cols="30" rows="3"></textarea>
           </div>
@@ -213,33 +217,101 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
    function ViewModel(){
       this.isEdit = ko.observable(false);
-      this.currentVO = ko.observable({});
       var self = this;
-
+      
+      var CurrentVO = function(){
+        return ko.validatedObservable({
+            "name": ko.observable().extend({required:true})
+        });
+      };
+      this.currentVO = new CurrentVO();
+	  
+      //数据中心，下拉列表
+      this.dcs = ko.observableArray([]);
+      //可用分区，下拉列表
+      this.cloudPlatforms = ko.observableArray([]);
+      //虚拟化类型
+      this.virtualPlatforms = ko.observableArray([]);
+      this.loadDcs = function(){
+        $.ajax("api/v5.0.0/datacenters").done(function(data){
+          self.dcs(data.results);
+          var dcsDef = {name:"全部",uuid:''};
+  		  var cloudPlatformDef = {name:"全部",uuid:''}
+  		  self.dcs.unshift(dcsDef);
+  		  self.cloudPlatforms.unshift(cloudPlatformDef);
+        });
+      };
+      
+      this.loadCloudPlatforms = function(dcId){
+        $.ajax("api/v5.0.0/cloudPlatforms?dataCenterUUID=" + dcId).done(function(data){
+          self.cloudPlatforms(data.results);
+          var cloudPlatformDef = {name:"全部",uuid:0};
+          self.cloudPlatforms.unshift(cloudPlatformDef);
+        });
+      };
+      
+      this.loadVirtualPlatforms = function(){
+		self.virtualPlatforms.unshift({name:"winserver",cloudPlatform:'winserver'});
+		self.virtualPlatforms.unshift({name:"powerVM",cloudPlatform:'powerVM'});
+      };
+      
+      this.loadDcs();
+      this.loadVirtualPlatforms();
+      
+      this.onchange_dcs = function(){
+    	  var dcId = self.currentVO.toJSON().datacenterUuid;
+    	  self.loadCloudPlatforms(dcId);
+      }
+      
+      //console.log(this.dcs.toJSON());
+      
       this.add = function(){
-        this.currentVO({
+        this.currentVO.fromJSON({
           id: null,
           name:'',
-          poolNum:'',
-          datacenter:'',
-          perform:'',
-          single:''
+          datacenterUuid:'',
+          cloudplatformUuid:'',
+          virtualPlatform:'',
+          isPrivate:'',
+          description:''
         });
         self.isEdit(true);
       };
 
       this.edit = function(object, event){
         console.log(object)
-        self.currentVO(object);
+        self.currentVO.fromJSON(object);
         self.isEdit(true);        
       };
+      
+      this.delAz = function(rowObj){
+  		var azName = rowObj.name;
+  		var azUuid = rowObj.uuid;
+  		confirm("确定删除AZ["+azName+"]？",function(arg){
+  			csc.rest.del('api/v5.0.0/datacenters/'+azUuid, function(data){
+  				alert("删除AZ：["+azName+"]成功！");
+  		 		self.table.refreshData();
+  		    });
+  		 });
+  	  }
 
       this.ok = function(){
-        if(this.currentVO().id == null){
-          systemMsg.alert("你创建了一个资源属性");
-        }else{
-          systemMsg.alert("你修改了一个资源属性");
-        };
+    	ko.validation.group(self.currentVO).showAllMessages();
+      	var azUuid = self.currentVO.toJSON().uuid;
+      	
+      	if(self.currentVO.isValid()){
+	   		if(!azUuid){
+	   			csc.rest.post('api/v5.0.0/azs', this.currentVO.toJSON(), function(){
+	   	            self.isEdit(false);
+	   	            self.table.refreshData();
+	   			});
+	   		}else{
+	   			csc.rest.put('api/v5.0.0/azs/'+azUuid, this.currentVO.toJSON(), function(){
+	   	            self.isEdit(false);
+	   	            self.table.refreshData();
+	   			});
+	   		}
+        }
       };
 
       this.searchParam = ko.observable({

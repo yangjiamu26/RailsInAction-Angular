@@ -23,16 +23,7 @@
             <div class="input-group">
               <span class="input-group-addon">流程类型</span>
               <!-- , options: $root.catelogs, optionsText: 'name', optionsValue: 'id' -->
-              <select class="form-control input-sm" data-bind="value: searchModelParam().processType">
-              	<option value="">--请选择--</option>
-              	<option value="RESOURCE_APPLY">资源申请</option>
-              	<option value="RESOURCE_CHANGE">资源变更</option>
-              	<option value="RESOURCE_RECYCLE">资源回收</option>
-              	<option value="RESOURCE_DELETE">资源删除</option>
-              	<option value="VALIDTIME_CHANGE">有效时间变更</option>
-              	<option value="VDC_APPLY">VDC申请</option>
-              	<option value="VDC_CHANGE">VDC变更</option>
-              	<option value="CUSTOM">自定义</option>
+              <select class="form-control input-sm" data-bind="value: searchModelParam().processType, options: $root.processTypes, optionsText: 'name', optionsValue: 'id'">
               </select>
             </div>					
 					</div>
@@ -241,16 +232,7 @@
 					<div class="col-xs-3">
             <div class="input-group">
               <span class="input-group-addon">流程类型</span>
-              <select class="form-control input-sm" data-bind="value: searchProcessDefParam().processType">
-              	<option value="">--请选择--</option>
-              	<option value="RESOURCE_APPLY">资源申请</option>
-              	<option value="RESOURCE_CHANGE">资源变更</option>
-              	<option value="RESOURCE_RECYCLE">资源回收</option>
-              	<option value="RESOURCE_DELETE">资源删除</option>
-              	<option value="VALIDTIME_CHANGE">有效时间变更</option>
-              	<option value="VDC_APPLY">VDC申请</option>
-              	<option value="VDC_CHANGE">VDC变更</option>
-              	<option value="CUSTOM">自定义</option>
+              <select class="form-control input-sm" data-bind="value: searchProcessDefParam().processType, options: $root.processTypes, optionsText: 'name', optionsValue: 'id'">
               </select>
             </div>					
 					</div>
@@ -443,14 +425,6 @@
 	      
 	      this.publish = function(object, event){
 	    	confirm('确定发布模型？', function(){
-	    		console.log(object);
-	    		//console.log(object.id);return;
-		        //self.modelVO(object);
-		        //this.modelVO = ko.observable(this.modelVO.toJSON());
-	    		//console.log(self.modelVO.toJSON());return;
-	    		/* var param = {"modelId":object.id};
-	    		console.log(JSON.stringify(param)); */
-	    		//return;
 		    	csc.rest.post('api/v5.0.0/workflows/deployments',object,function(data){
 	        		alert('发布成功！');
 		          	self.table.refreshData();
@@ -495,13 +469,13 @@
 	      };
 	      this.loadProducts();
 	
-	      /* this.catelogs = ko.observableArray();
-	      this.loadCatelogs = function(){
-	        $.ajax("workflows_catelogs.json").done(function(data){
-	          self.catelogs(data);
+	      this.processTypes = ko.observableArray();
+	      this.loadProcessTypes = function(){
+	        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
+	          self.processTypes(data.results);
 	        });
 	      }
-	      this.loadCatelogs(); */
+	      this.loadProcessTypes();
 	    }
 	
 	    ko.applyBindings(new ViewModel(), $('#page-content .tab-pane')[0]); 
@@ -568,6 +542,14 @@
 	      }
 	
 	      this.table = new DataTable([], {path: 'api/v5.0.0/workflows/process-definitions'});
+	      
+	      this.processTypes = ko.observableArray();
+	      this.loadProcessTypes = function(){
+	        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
+	          self.processTypes(data.results);
+	        });
+	      }
+	      this.loadProcessTypes();
 	
 	    }
 	

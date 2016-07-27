@@ -85,12 +85,8 @@
 															<td>windows/linux/aix</td>
 														</tr>
 														<tr>
-															<th>虚拟化平台类型：</th>
-															<td>Openstack/CNware</td>
-														</tr>
-														<tr>
-															<th>虚拟化：</th>
-															<td>KVM/powerVM</td>
+															<th>配额限制：</th>
+															<td>限制配额</td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
@@ -135,7 +131,7 @@
 												id="" class="form-control input-sm" data-bind="options:osTypeList,optionsText:'name',optionsValue:'value',value:searchParam().osType"></select>
 										</div>
 										<div class="input-group">
-											<span class="input-group-addon">CPU(核)</span> <select name=""
+											<span class="input-group-addon">CPU(个)</span> <select name=""
 												id="" class="form-control input-sm" data-bind="options:cpuList,optionsText:'name',optionsValue:'value',value:searchParam().cpu"></select>
 										</div>
 										<div class="input-group">
@@ -158,15 +154,15 @@
 															<td class="v-middle text-lg">VM</td>
 														</tr>
 														<tr>
-															<th>虚拟化：</th>
-															<td>KVM/powerVM</td>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
 														</tr>
 														<tr>
 															<th>操作系统类型：</th>
 															<td>windows/linux/aix</td>
 														</tr>
 														<tr>
-															<th>CPU(核)：</th>
+															<th>CPU(个)：</th>
 															<td>2</td>
 														</tr>
 														<tr>
@@ -224,6 +220,10 @@
 															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
 														</tr>
 														<tr>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
+														</tr>
+														<tr>
 															<th>硬盘类型：</th>
 															<td>SSD</td>
 														</tr>
@@ -278,6 +278,10 @@
 															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
 														</tr>
 														<tr>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
+														</tr>
+														<tr>
 															<th>是否收费：</th>
 															<td>是</td>
 														</tr>
@@ -325,6 +329,10 @@
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
 															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+														</tr>
+														<tr>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
@@ -376,6 +384,10 @@
 															<td class="v-middle text-lg"><span data-bind="text:name"></span></td>
 														</tr>
 														<tr>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
+														</tr>
+														<tr>
 															<th>是否收费：</th>
 															<td>是</td>
 														</tr>
@@ -425,6 +437,10 @@
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
 															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+														</tr>
+														<tr>
+															<th>可用分区：</th>
+															<td>分区1/分区2</td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
@@ -594,26 +610,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    //添加到购物车操作
 		this.addToCart = function(){
 			//console.log(this.model_LB.toJSON());
-			if(self.productType()=='6'){
-				if(this.model_LB.isValid()){
-				 	//console.log(this.model_LB.toJSON());
-				 	csc.rest.post('api/v5.0.0/cart',this.model_LB.toJSON(),function(data){
-				 		systemMsg.alert('添加到购物车成功！');
-				 		self.isAdd_LB(false);
-				    });
-				}
-			}else if(self.productType()=='7'){
-				if(this.model_SSH.isValid()){
-				 	//console.log(this.model_SSH.toJSON());
-				 	csc.rest.post('api/v5.0.0/cart',this.model_SSH.toJSON(),function(data){
-				 		systemMsg.alert('添加到购物车成功！');
-				 		self.isAdd_SSH(false);
-				    });
-				}
-			}else if(self.productType()=='3'){
+			if(self.productType()=='3'){
 				if(this.model_Vdisk.isValid()){
-					 console.log(this.model_Vdisk.toJSON());
-					 return;
 				 	 csc.rest.post('api/v5.0.0/cart',this.model_Vdisk.toJSON(),function(data){
 				 		systemMsg.alert('添加到购物车成功！');
 				 		self.isAdd_Vdisk(false);
@@ -633,27 +631,33 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				 		self.isAdd_PublicNetwork(false);
 				    }); 
 				}
-			}
-			
-		}
-		//添加到购物车操作
-		this.addToOrder = function(){
-			console.log(self.productType());
-			if(self.productType()=='6'){
+			}else if(self.productType()=='6'){
 				if(this.model_LB.isValid()){
 				 	//console.log(this.model_LB.toJSON());
-				 	csc.rest.post('api/v5.0.0/orders',this.model_LB.toJSON(),function(data){
-				 		systemMsg.alert('成功提交订单！');
+				 	csc.rest.post('api/v5.0.0/cart',this.model_LB.toJSON(),function(data){
+				 		systemMsg.alert('添加到购物车成功！');
 				 		self.isAdd_LB(false);
 				    });
 				}
 			}else if(self.productType()=='7'){
 				if(this.model_SSH.isValid()){
 				 	//console.log(this.model_SSH.toJSON());
-				 	csc.rest.post('api/v5.0.0/orders',this.model_SSH.toJSON(),function(data){
-				 		systemMsg.alert('成功提交订单！');
+				 	csc.rest.post('api/v5.0.0/cart',this.model_SSH.toJSON(),function(data){
+				 		systemMsg.alert('添加到购物车成功！');
 				 		self.isAdd_SSH(false);
 				    });
+				}
+			}
+			
+		}
+		//添加到购物车操作
+		this.addToOrder = function(){
+			if(self.productType()=='1'){
+				if(this.model_VDC.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',this.model_VDC.toJSON(),function(data){
+				 		systemMsg.alert('成功提交订单！');
+				 		self.isAdd_VDC(false);
+				    }); 
 				}
 			}else if(self.productType()=='2'){
 				if(this.model_VM.isValid()){
@@ -683,12 +687,21 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				 		self.isAdd_PublicNetwork(false);
 				    }); 
 				}
-			}else if(self.productType()=='1'){
-				if(this.model_VDC.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_VDC.toJSON(),function(data){
+			}else if(self.productType()=='6'){
+				if(this.model_LB.isValid()){
+				 	//console.log(this.model_LB.toJSON());
+				 	csc.rest.post('api/v5.0.0/orders',this.model_LB.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
-				 		self.isAdd_VDC(false);
-				    }); 
+				 		self.isAdd_LB(false);
+				    });
+				}
+			}else if(self.productType()=='7'){
+				if(this.model_SSH.isValid()){
+				 	//console.log(this.model_SSH.toJSON());
+				 	csc.rest.post('api/v5.0.0/orders',this.model_SSH.toJSON(),function(data){
+				 		systemMsg.alert('成功提交订单！');
+				 		self.isAdd_SSH(false);
+				    });
 				}
 			}
 		}
@@ -777,6 +790,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        	self.vdcList(data);
 	        });
 	        self.num_vdisk(0);
+	        self.num_vdisk(1);
 	    }
 	    this.num_vdisk = ko.observable().extend({max:20});
 	    
@@ -1041,6 +1055,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        	self.vdcList(data);
 	        });
 	    	self.num_ObjectStorage(0);
+	    	self.num_ObjectStorage(1);
 	    	//self.loadCatelogs();
 	    }
 	    this.num_ObjectStorage = ko.observable().extend({max:20});
@@ -1080,6 +1095,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        	self.vdcList(data);
 	        });
 	    	self.num_PublicNetwork(0);
+	    	self.num_PublicNetwork(1);
 	    }
 	    this.num_PublicNetwork = ko.observable().extend({max:20});
 	    
