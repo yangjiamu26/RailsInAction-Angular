@@ -48,28 +48,21 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   var taskId = "";
-  var isLast = "";
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  taskId = args.taskId;
-	  isLast = args.isLast;
-	  if(isLast){
+	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+   		var activity = data.taskActivity[0];
+   		
+   		if(activity.outgoings!=''){
+		  var outgoings = activity.outgoings;
+		  var firstNode;
+		  if(outgoings.length>0){
+			  firstNode = outgoings[0].id;
+		  }
 		  
-	  }else{
-		  return;
-		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-    		var activity = data.taskActivity[0];
-    		
-    		if(activity.outgoings!=''){
-			  var outgoings = activity.outgoings;
-			  var firstNode;
-			  if(outgoings.length>0){
-				  firstNode = outgoings[0].id;
-			  }
-			  
-			  loadUsers(taskId,firstNode);
-			}
-	      },function(){alert('获取任务失败！')});
-	  }
+		  loadUsers(taskId,firstNode);
+		}
+      },function(){alert('获取任务失败！')});
   });
   
   function loadUsers(taskId,activityId){
@@ -79,10 +72,13 @@
   }
   
   function submitNext(){
-	  var a = $("input:radio:checked").val();
-	  console.log(a);
+	  var userId = $("input:radio:checked").val();
 	  saveComment(taskId,function(){
-		  
+		var databody = {"userId":userId,"action":"designated"};
+		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+		  alert("审核成功！");
+		  location.href = "#pages/workflows/tasks?type=work";
+		},function(){alert("操作失败！")});
 	  });
   }
   

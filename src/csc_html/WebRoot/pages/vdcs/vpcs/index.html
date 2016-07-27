@@ -116,7 +116,7 @@
 				            所属VDC
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: vpcVO().vdcUuid, enable: vpcVO().uuid==null">
+				            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: vpcVO().vdcUuid, enable: vpcVO().uuid==null">
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -128,7 +128,7 @@
 				            可用分区
 				          </label>
 				          <div class="col-sm-8">
-				            <select class="form-control"  data-bind="options:azList,optionsText:'azName',optionsValue:'azUuid',value: vpcVO().azUuid, enable: vpcVO().uuid==null" >
+				            <select class="form-control"  data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value: vpcVO().azUuid, enable: vpcVO().uuid==null" >
 				            </select>
 				          </div>
 				          <div class="col-sm-1">
@@ -240,7 +240,7 @@
 					            所属VDC
 					          </label>
 					          <div class="col-xs-8">
-					            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: routerVO().vdcUuid, enable: routerVO().uuid==null">
+					            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: routerVO().vdcUuid, enable: routerVO().uuid==null">
 					            </select>
 					          </div>
 					          <div class="col-xs-1">
@@ -252,7 +252,7 @@
 					            所属VPC
 					          </label>
 					          <div class="col-xs-8">
-					            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: routerVO().vpcUuid, enable: routerVO().uuid==null">
+					            <select class="form-control" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value: routerVO().vpcUuid, enable: routerVO().uuid==null">
 					            </select>
 					          </div>
 					          <div class="col-xs-1">
@@ -505,7 +505,7 @@
 				            所属VDC
 				          </label>
 				          <div class="col-xs-8">
-				            <select class="form-control" data-bind="options:vdcList,optionsText:'vdcName',optionsValue:'vdcUuid',value: secretGroupVO().vdcUuid, enable: secretGroupVO().uuid==null">
+				            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: secretGroupVO().vdcUuid, enable: secretGroupVO().uuid==null">
 				            </select>
 				          </div>
 				          <div class="col-xs-1">
@@ -517,7 +517,7 @@
 				            所属VPC
 				          </label>
 				          <div class="col-xs-8">
-				            <select class="form-control" data-bind="options:vpcList,optionsText:'vpcName',optionsValue:'vpcUuid',value: secretGroupVO().vpcUuid, enable: secretGroupVO().uuid==null">
+				            <select class="form-control" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value: secretGroupVO().vpcUuid, enable: secretGroupVO().uuid==null">
 				            </select>
 				          </div>
 				          <div class="col-xs-1">
@@ -560,29 +560,44 @@
     		self.vdcList = ko.observableArray();
     		self.azList = ko.observableArray();
     		this.vpcVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true}),
+    			     "name":ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
 					 "vdcUuid":ko.observable().extend({required: true}),
 					 "azUuid":ko.observable().extend({required: true})
 					});
     		
     		this.createVpcModal = ko.observable(false);
+    		var subscriptionVdc;
     		this.createVpc = function(){
-    			//TODO 查询其他模块的接口
-    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.azList([{"azUuid": "f6c595dd-fb09-4144-a783-2da3ceb277b8","azName": "华南区"},{"azUuid": "550E8400-E29B-11D4-A716-4466554400043 ","azName": "华北区"}])
+    			self.vdcList([]);
+    			self.azList([]);
     			self.vpcVO.fromJSON({"name":"",
-					 "vdcUuid":"",
-					 "azUuid": "",
-					 "uuid":null
-					});
+   				 "vdcUuid":"",
+   				 "azUuid": "",
+   				 "uuid":null
+   				});
+    			subscriptionVdc = self.vpcVO().vdcUuid.subscribe(function(val){
+    				self.azList([]);
+	    	    	$.VDC.getVdcAzs(val,{},function(data){
+		   				 if(data && data.results){
+		   					 self.azList(data.results);
+		   				 }
+		   			});
+	    	    })
+	    	    
+	    	    $.VDC.getVDCs({},function(data){
+    				 if(data && data.results){
+    					 self.vdcList(data.results);
+    				 }
+    			});
+    			
     			self.createVpcModal(true)	
     		}
     		
     		
     		this.modifyVpc = function(rowObj, event){
-    			//TODO 查询其他模块的接口
-    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.azList([{"azUuid": "f6c595dd-fb09-4144-a783-2da3ceb277b8","azName": "华南区"},{"azUuid": "550E8400-E29B-11D4-A716-4466554400043 ","azName": "华北区"}])
+    			subscriptionVdc && subscriptionVdc.dispose();
+                self.vdcList([{"uuid": rowObj.vdcUuid,"name": rowObj.vdcName}]);
+    			self.azList([{"uuid": rowObj.azUuid,"name": rowObj.azName}]);
     			self.vpcVO.fromJSON(rowObj);
     			self.createVpcModal(true)	
     		}
@@ -651,27 +666,46 @@
 					});
     		
     		self.createRouterModal = ko.observable(false);
+       		var subscriptionVdc;//subscription.dispose();
     		self.createRouter = function(){
+    			self.vdcList([]);
+    			self.vpcList([]);
     			//TODO 查询其他模块的接口
-    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			//self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
+    			//self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
     			self.routerVO.fromJSON({"name":"",
 					 "vdcUuid":"",
 					 "vpcUuid": "",
 					 "uuid":null
 					});
+    			
+    			subscriptionVdc = self.routerVO().vdcUuid.subscribe(function(val){
+    				   self.vpcList([]);
+    	    	    	$.VPC.getVpcs({vdcUuid:val},function(data){
+    		   				 if(data && data.results){
+    		   					 self.vpcList(data.results);
+    		   				 }
+    		   			});
+    	    	    })
+    	    	    
+    			$.VDC.getVDCs({},function(data){
+    				 if(data && data.results){
+    					 self.vdcList(data.results);
+    				 }
+    			});
+    			
+    			
    			    self.createRouterModal(true)	
     		}
     		
     		
     		self.modifyRouter = function(rowObj, event){
-    			//TODO 查询其他模块的接口
-                self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			subscriptionVdc && subscriptionVdc.dispose();
+                self.vdcList([{"uuid": rowObj.vdcUuid,"name": rowObj.vdcName}]);
+    			self.vpcList([{"uuid": rowObj.vpcUuid,"name": rowObj.vpcName}]);
     			self.routerVO.fromJSON(rowObj);
     			self.createRouterModal(true)	
     		}
-    		
       		
     		self.routerSubmit = function(){
     		    var routerUuid = self.routerVO.toJSON().uuid;
@@ -745,8 +779,14 @@
     			self.vdcList([]);
     			self.vpcList([]);
     			self.routerList([]);
-    			
+    			self.firewallVO.fromJSON({"name":"",
+					 "vdcUuid":"",
+					 "vpcUuid": "",
+					 "routerUuid":"",
+					 "uuid":null
+					});
     			subscriptionVdc = self.firewallVO().vdcUuid.subscribe(function(val){
+    				    self.vpcList([]);
     	    	    	$.VPC.getVpcs({vdcUuid:val},function(data){
     		   				 if(data && data.results){
     		   					 self.vpcList(data.results);
@@ -755,6 +795,7 @@
     	    	    })
     	    	    
     	    	subscriptionVpc =  self.firewallVO().vpcUuid.subscribe(function(val){
+    	    		    self.routerList([]);
     	    	    	$.ROUTER.getRouters({vpcUuid:val},function(data){
     		   				 if(data && data.results){
     		   					 self.routerList(data.results);
@@ -767,12 +808,7 @@
     					 self.vdcList(data.results);
     				 }
     			});
-    			self.firewallVO.fromJSON({"name":"",
-					 "vdcUuid":"",
-					 "vpcUuid": "",
-					 "routerUuid":"",
-					 "uuid":null
-					});
+    			
    			    self.createFirewallModal(true)	
     		}
     		

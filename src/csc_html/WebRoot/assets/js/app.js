@@ -104,3 +104,14 @@ function systemMessage(){
 var systemMsg = new systemMessage();
 window.alert = systemMsg.alert;
 window.confirm = systemMsg.confirm;
+
+function changeUrlWithParam(params){
+	if(!params) return;
+	var thisUrl = window.location.href;
+	var newUrl = window.location.href.substring(0,thisUrl.lastIndexOf("?"));
+	var paramsStr = [];
+	for(para in params){
+		paramsStr.push(para + "=" + params[para]);
+	}
+	window.history.replaceState(null,null,newUrl + "?" + paramsStr.join("&"));
+}
