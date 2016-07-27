@@ -44,7 +44,7 @@
             <td data-bind="text:vpNum"></td>
             <td data-bind="text:azNum"></td>
             <td data-bind="text:createTime"></td>
-            <td><a href="#" data-bind="click:$root.edit">修改</a> | <a href="#">删除</a></td>
+            <td><a href="#" data-bind="click:$root.edit">修改</a> | <a href="#" data-bind="click:$root.delDataCenter">删除</a></td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -107,33 +107,63 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
       this.isEdit = ko.observable(false);
-      this.currentVO = ko.observable({});
       var self = this;
+      
+      var CurrentVO = function(){
+        return ko.validatedObservable({
+            "name": ko.observable().extend({required:true})
+        });
+      };
+      
+      this.currentVO = new CurrentVO();
 
       this.add = function(){
-        this.currentVO({
+        this.currentVO.fromJSON({
           id: null,
           uuid:'',
           name:'',
           description:''
         });
         self.isEdit(true);
-
       };
 
       this.edit = function(object, event){
         console.log(object)
-        self.currentVO(object);
+        self.currentVO.fromJSON(object);
         self.isEdit(true);        
       };
+      
+   	  this.delDataCenter = function(rowObj){
+		var dcName = rowObj.name;
+		var datacenterUuid = rowObj.uuid;
+		confirm("确定删除数据中心["+dcName+"]？",function(arg){
+			csc.rest.del('api/v5.0.0/datacenters/'+datacenterUuid, function(data){
+				alert("删除数据中心：["+dcName+"]成功！");
+		 		self.table.refreshData();
+		    });
+		 });
+	  }
 
       this.ok = function(){
-        if(this.currentVO().id == null){
-          systemMsg.alert("你创建了一个资源属性");
-        }else{
-          systemMsg.alert("你修改了一个资源属性");
-        };
+    	//console.log(this.currentVO.toJSON());
+    	ko.validation.group(self.currentVO).showAllMessages();
+    	var datacenterUuid = self.currentVO.toJSON().uuid;
+    	
+    	if(self.currentVO.isValid()){
+    		if(!datacenterUuid){
+    			csc.rest.post('api/v5.0.0/datacenters', this.currentVO.toJSON(), function(){
+	   	            self.isEdit(false);
+	   	            self.table.refreshData();
+    			});
+    		}else{
+    			csc.rest.put('api/v5.0.0/datacenters/'+datacenterUuid, this.currentVO.toJSON(), function(){
+	   	            self.isEdit(false);
+	   	            self.table.refreshData();
+    			});
+    		}
+        }
       };
+      
 
       this.searchParam = ko.observable({
         name: ""
