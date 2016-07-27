@@ -21,14 +21,14 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <input type="radio" />
+                                    <input type="radio" checked="checked" value="kermit" name="userId"/>
                                 </td>
                                 <td>系统管理员</td>
                                 <td>admin</td>
                             </tr>
                             <tr>
                                 <td>
-                                    <input type="radio" />
+                                    <input type="radio" value="wujie" name="userId"/>
                                 </td>
                                 <td>张三</td>
                                 <td>shangsan</td>
@@ -38,9 +38,48 @@
                 </div>
             </div>
             <div class='modal-footer'>
-                <button name="button"  class="btn btn-default btn btn-default" data-dismiss="modal">确定</button>
-                <button name="button"  class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+                <button name="button"  class="btn btn-default" data-dismiss="modal" onclick="submitNext()">确定</button>
+                <button name="button"  class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
 </form>
+
+<script type="text/javascript">
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  var taskId = "";
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  taskId = args.taskId;
+	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+   		var activity = data.taskActivity[0];
+   		
+   		if(activity.outgoings!=''){
+		  var outgoings = activity.outgoings;
+		  var firstNode;
+		  if(outgoings.length>0){
+			  firstNode = outgoings[0].id;
+		  }
+		  
+		  loadUsers(taskId,firstNode);
+		}
+      },function(){alert('获取任务失败！')});
+  });
+  
+  function loadUsers(taskId,activityId){
+	csc.rest.get('api/v5.0.0/workflows/tasks/'+taskId+'/activity/outgings/'+activityId+'/identitylinks',function(data){
+  		console.log(data);
+  	},function(){alert('获取用户失败！')});
+  }
+  
+  function submitNext(){
+	  var userId = $("input:radio:checked").val();
+	  saveComment(taskId,function(){
+		var databody = {"userId":userId,"action":"designated"};
+		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+		  alert("审核成功！");
+		  location.href = "#pages/workflows/tasks?type=work";
+		},function(){alert("操作失败！")});
+	  });
+  }
+  
+</script>

@@ -8,6 +8,10 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请云主机服务</h3>
       </div>
       <div class='modal-body form-horizontal row'>
+        <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+          <a class="btn btn-default pull-right">批量申请</a>
+        </div>
+        
         <div class="panel panel-default no-height" style="margin:0;border:none">
           <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step1(!step1()),css:{'glyphicon-chevron-up': step1(), 'glyphicon-chevron-down': !step1()}"></span></div>
           <div class="panel-body" data-bind="visible: step1">
@@ -184,7 +188,7 @@
           <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step2(!step2()),css:{'glyphicon-chevron-up': step2(), 'glyphicon-chevron-down': !step2()}"></span></div>
           <div class="panel-body" data-bind="visible: step2">
             <div style="margin:0;">
-              <a class="btn btn-info btn-sm pull-right">添加硬盘</a>
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addVdisk">添加硬盘</a>
               <div class="clearfix" style="height:10px;clear:both;"></div>
               <div class="panel panel-default table-responsive no-height">
                 <table class="table table-striped">
@@ -210,11 +214,13 @@
           </div>
         </div>
 
+
+
         <div class="panel panel-default no-height" style="margin:0;border:none">
           <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step3(!step3()),css:{'glyphicon-chevron-up': step3(), 'glyphicon-chevron-down': !step3()}"></span></div>
           <div class="panel-body" data-bind="visible: step3">
             <div style="margin:0;">
-              <a class="btn btn-info btn-sm pull-right">添加软件</a>
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addSoftware">添加软件</a>
               <div class="clearfix" style="height:10px;clear:both;"></div>
               <div class="panel panel-default table-responsive no-height">
                 <table class="table table-striped">
@@ -254,7 +260,7 @@
           <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step4(!step4()),css:{'glyphicon-chevron-up': step4(), 'glyphicon-chevron-down': !step4()}"></span></div>
           <div class="panel-body" data-bind="visible: step4">
             <div style="margin:0;">
-              <a class="btn btn-info btn-sm pull-right">添加分区</a>
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addPartition">添加分区</a>
               <div class="clearfix" style="height:10px;clear:both;"></div>
               <div class="panel panel-default table-responsive no-height">
                 <table class="table table-striped">
@@ -312,7 +318,7 @@
       </div>
     </div>
   </div>
-</div>
+
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
@@ -336,12 +342,150 @@
     );
 
     function viewModel(){
+      var self = this;
+
       this.step1 = ko.observable(false);
       this.step2 = ko.observable(true);
       this.step3 = ko.observable(true);
       this.step4 = ko.observable(true);
       this.step5 = ko.observable(true);
+
+      this.isAdd_Vdisk = ko.observable(false);
+      this.addVdisk = function(){
+        this.isAdd_Vdisk(true);
+      }
+      this.addVdiskToList = function(){
+        this.isAdd_Vdisk(false);
+      }
+
+      this.isAdd_Software = ko.observable(false);
+      this.addSoftware = function(){
+        this.isAdd_Software(true);
+      }
+      this.addSoftwareToList = function(){
+        this.isAdd_Software(false);
+      }
+
+      this.isAdd_Partition = ko.observable(false);
+      this.addPartition = function(){
+        this.isAdd_Partition(true);
+      }
+      this.addPartitionToList = function(){
+        this.isAdd_Partition(false);
+      }
+
+      
     }
     ko.applyBindings(new viewModel, $('#Service_apply_modal2_single')[0]);
   });
 </script>
+
+  <!-- 添加云硬盘 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Vdisk }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择云硬盘</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>云硬盘名称<i style="color:red">*</i></th>
+                <th>类型<i style="color:red">*</i></th>
+                <th>是否收费<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>类型</td>
+                  <td>是/否</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addVdiskToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加云硬盘 -->
+  <!-- 添加软件 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Software }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择软件</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>软件名称<i style="color:red">*</i></th>
+                <th>软件类型<i style="color:red">*</i></th>
+                <th>软件版本<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>类型</td>
+                  <td>版本</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addSoftwareToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加软件 -->
+  <!-- 添加分区 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Partition }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择分区</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>分区名称<i style="color:red">*</i></th>
+                <th>分区大小<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>大小</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addPartitionToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加分区 -->
+
+
+</div>

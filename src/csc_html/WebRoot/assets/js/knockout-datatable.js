@@ -43,7 +43,7 @@
         serverSidePagination: {
           enabled: true,
           path: options.path,
-          loader: function(row){
+          loader: options.loader || function(row){
             return row;
           }
         }
@@ -69,7 +69,7 @@
       });      
       this.initObservables();
       if ((serverSideOpts = this.options.serverSidePagination) && serverSideOpts.enabled) {
-        if (!(serverSideOpts.path && serverSideOpts.loader)) {
+    	if (!(serverSideOpts.path && serverSideOpts.loader)) {
           throw new Error("`path` or `loader` missing from `serverSidePagination` object");
         }
         this.options.paginationPath = serverSideOpts.path;
@@ -90,7 +90,7 @@
       this.params = ko.observableArray([]);
       return this.rows = ko.observableArray([]);
     };
-
+    //客户端分页
     DataTable.prototype.initWithClientSidePagination = function(rows) {
       var _defaultMatch;
       this.filtering = ko.observable(false);
@@ -350,7 +350,7 @@
         };
       })(this);
     };
-
+    //服务器端分页
     DataTable.prototype.initWithServerSidePagination = function() {
       var _gatherData, _getDataFromServer;
       _getDataFromServer = (function(_this) {

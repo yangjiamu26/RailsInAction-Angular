@@ -980,19 +980,37 @@ kv.rules['cscNameRule'] = {
 		};
 
 kv.rules['ip'] = {
-		  validator: function (val, params) {
+		  validator: function (val, params) {//params为true时支持cidr校验
+			    this.message = 'IP格式不正确，正确格式如：192.168.1.1'
+			    var cidr = false;
+			    if(typeof(params) == "object"){
+			    	cidr = params.cidr;
+			    }else{
+			    	cidr = params;
+			    }
+			    	
+                if(cidr){
+                	this.message = 'IP格式不正确，正确格式如：192.168.1.1或192.168.1.1/24'
+                }
 	  	        if(/^([1-9]|[1-9]\d|1\d\d|2[0-1]\d|22[0-3])(\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])){2}\.([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])$/.test(val)){
 	  	        	return true;
-	  	        }	
+	  	        }else if(cidr &&  /^([1-9]|[1-9]\d|1\d\d|2[0-1]\d|22[0-3])(\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])){2}\.([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\/([0-2][0-9]{0,1}|3[0-2])$/.test(val)){
+	  	        	return true;
+	  	        }else if(params &&  params.supportSpecial){//特殊处理
+	  	        	return val == "0.0.0.0/0";
+	  	        }
 	  	        return false;
-		  },
-		  message: 'IP格式不正确，正确格式如：192.168.1.1'
+		  }
 		};
 
 kv.rules['portRange'] = {
 		  validator: function (val, params) {//params 为true时支持端口范围
 			      var portRegRange = /^[1-9]{1}[0-9]*:[1-9]{1}[0-9]*$/;
 	  	     	  var portReg = /^[1-9]{1}[0-9]*$/;
+	  	      	  this.message ='端口格式不正确，正确格式如：8080';
+	  	     	  if(params){
+	                   this.message ='端口格式不正确，正确格式如：8080或8080:9000';
+	              }
 	  	     	  if(portReg.test(val) &&　parseInt(val) <= 65535  && parseInt(val) > 0){
 	                  return true;
 	              }else if(params && portRegRange.test(val)){
@@ -1005,8 +1023,7 @@ kv.rules['portRange'] = {
 	              	}
 	              }
 				return false;
-		  },
-		  message: '端口格式不正确，正确格式如：8080或8080:9000'
+		  }
 		};
 
 kv.rules['notEqual'] = {

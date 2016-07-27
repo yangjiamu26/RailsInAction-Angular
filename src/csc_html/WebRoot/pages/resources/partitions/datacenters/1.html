@@ -79,7 +79,7 @@
     <div class="row wrapper">
       <div class="col-xs-8">
         <button class="btn btn-sm btn-primary" data-bind="click: add">接入</button>
-        <button class="btn btn-sm btn-default">删除</button>
+        <!-- <button class="btn btn-sm btn-default">删除</button> -->
       </div>
       <div class="col-xs-3">
         <div class="input-group">
@@ -98,7 +98,7 @@
             <th>
                 <div class="checkbox">
                   <label class="i-checks">
-                    <input type="checkbox" value="">
+                    <input type="checkbox" value="" data-bind="checked: isSelectedAll">
                     <i></i>
                   </label>
                 </div>                   
@@ -126,7 +126,7 @@
             <td>
                 <div class="checkbox">
                   <label class="i-checks">
-                    <input type="checkbox" value="">
+                    <input type="checkbox" value="" data-bind="checkedValue: $data, checked: $parent.chosenItems">
                     <i></i>
                   </label>
                 </div>                   
@@ -144,7 +144,7 @@
             </td>
             <td data-bind="text:createTime"></td>
             <td data-bind="text:description"></td>
-            <td><a href="#" data-bind="click:$root.edit">修改</a> | <a href="#">删除</a></td>
+            <td><a href="#" data-bind="click:$root.edit">修改</a> | <a href="#" data-bind="click:$root.delete">删除</a></td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -190,7 +190,7 @@
           <label class="col-xs-3 control-label">数据中心</label>
           <div class="col-xs-8">
             <input type="text" class="form-control" data-bind="value:$root.dataCenterName" value="数据中心1" disabled>
-            <input type="text" class="form-control" data-bind="value:$root.dataCenterId" value="1" disabled>
+            <!-- <input type="text" class="form-control" data-bind="value:$root.dataCenterUUID" value="1" disabled> -->
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -199,7 +199,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">云管理平台类型</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:type">
+            <select class="form-control" data-bind="value:type,attr:{disabled:id}">
               <option value="OpenStack">OpenStack</option>
               <option value="CNware">CNware</option>
             </select>
@@ -208,7 +208,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">IP</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:ip">
+            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:ip,attr:{disabled:id}">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -217,7 +217,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">端口</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:port">
+            <input type="text" class="form-control" placeholder="请输入名称" data-bind="value:port,attr:{disabled:id}">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -297,223 +297,278 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null,"assets/lib/highcharts/highstock.js"];
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-  console.log(args)
-  
+var scripts = [null,"assets/lib/highcharts/highstock.js"];
+$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	//console.log(args);
 
-   function ViewModel(){
-      this.isEdit = ko.observable(false);
-      //this.currentVO = ko.observable({});
-      this.currentVO = ko.validatedObservable({});
-      
-      
-      var self = this;
-      
-      //从url中拿到参数设置
-      self.dataCenterName = args.datacenterName;
-      self.dataCenterUUID = args.datacenterId;
 
-      //点击接入按钮时，初始化数据
-      this.add = function(){
-        this.currentVO({
-          id: null,
-          name	:	ko.observable('').extend({ required: true, maxLength: 32 }),
-          //dataCenterName:'',//这里不需要提交
-          dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
-          type	:	ko.observable('').extend({ required: true }),
-          ip	:	ko.observable('').extend({ required: true }),
-          port	:	ko.observable().extend({ required: true}),
-          username	:	ko.observable('').extend({ required: true }),
-          password	:	ko.observable('').extend({ required: true }),
-          domain:{},
-          description:''
-        });
-        self.isEdit(true);
-      };
+ function ViewModel(){
+    this.isEdit = ko.observable(false);
+    this.currentVO = ko.validatedObservable({});
 
-      this.edit = function(object, event){
-        console.log(object)
-        self.currentVO(object);
-        self.isEdit(true);        
-      };
-
-      this.ok = function(){
-        if(this.currentVO().id == null){
-          //systemMsg.alert("你创建了一个资源属性");
-          console.log(this.currentVO.toJSON());         
-          console.log(this.currentVO.isValid()); 
-          
-          //验证通过
-          //if(this.currentVO.isValid()){
-       	  if(this.currentVO.errors().length === 0) {
-        	//保存
-              api.cloudPlatforms.create(this.currentVO.toJSON(),{
-                success: function(data){
-                  console.log("\n-------新建记录-------\n");
-                  console.log("create success");
-                  console.log(data);
-                  //关闭modal
-                  self.isEdit(false);
-                  if(data.attributes.uuid){
-                	  alert("接入成功！")
-                  }
-                  
-               },
-                error: function(){
-                  console.log("\n-------新建记录-------\n");
-                  console.log("create error");
-               }
-             });
-        	  
-          }else{
-        	  //显示错误提示
-        	  this.currentVO.errors.showAllMessages();
-          }
-          
-          
-          
-          
-          
-        }else{
-          systemMsg.alert("你修改了一个资源属性");
-        };
-      };
-
-      this.searchParam = ko.observable({
-        name: ""
-      });
-
-      this.search = function(){
-        this.table.params(this.searchParam());
-      };
-
-      this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
-      //this.table = new DataTable([], {path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterId});
-    }
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
-
-    //可用分区占比图
-    $('#partitions_chart').highcharts({
-        chart: {
-            marginTop: 0,
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false,
-            backgroundColor: "none"
-        },
-        title: {
-            text: ''
-        },
-        credits:{
-          enabled: false,
-          text : ""
-        }, 
-        legend:{
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-          borderColor:"none",
-          labelFormat: '{name}：<b>{y}</b> 个',
-          itemMarginTop: 10,
-          itemStyle: {
-            
-            fontWeight: 'normal',
-            fontSize:'12px'
-          },          
-        },
-        plotOptions: {
-            pie: {
-                innerSize: '40%',
-                borderWidth:0,
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: false
-                },
-                showInLegend: true
-            }
-        },
-        series: [{
-            type: 'pie',
-            name: '云管理平台',
-            data: [{
-                  name: 'VMware',
-                  y: 40,
-                  color:"#4791d2"
-              },
-              {
-                  name: 'KVM',
-                  y: 28,
-                  color:"#5bd544"
-              }
-          ]
-        }]
-    });
+    var self = this;
     
-    // 虚拟机状态占比图
-    $('#vm_status_chart').highcharts({
-        chart: {
-            marginTop: 0,
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false,
-            backgroundColor: "none"
-        },
-        title: {
-            text: ''
-        },
-        credits:{
-          enabled: false,
-          text : ""
-        }, 
-        legend:{
-          layout: 'vertical',
-          align: 'right',
-          verticalAlign: 'middle',
-          borderColor:"none",
-          labelFormat: '{name}：<b>{y}</b> 台',
-          itemMarginTop: 10,
-          itemStyle: {
-            
-            fontWeight: 'normal',
-            fontSize:'12px'
-          },          
-        },
-        plotOptions: {
-            pie: {
-                innerSize: '40%',
-                borderWidth:0,
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: false
-                },
-                showInLegend: true
+    //从url中拿到参数设置
+    self.dataCenterName = args.datacenterName;
+    self.dataCenterUUID = args.datacenterId;
+
+	    //点击接入按钮时，初始化数据
+	this.add = function(){
+		
+		//console.log(this.table.chosenItems());
+		//return;
+	      this.currentVO({
+	        id: null,
+	        name	:	ko.observable('').extend({ required: true, maxLength: 32 }),
+	        dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
+	        type	:	ko.observable('').extend({ required: true }),
+	        ip	:	ko.observable('').extend({ required: true }),
+	        port	:	ko.observable().extend({ required: true}),
+	        username	:	ko.observable('').extend({ required: true }),
+	        password	:	ko.observable('').extend({ required: true }),
+	        domain:{},
+	        description:''
+	      });
+	      self.isEdit(true);
+	    };
+
+    this.edit = function(object, event){
+      //console.log(object)
+      self.currentVO({
+    	  	id: object.uuid,//这个会加到put的路径
+    	  	uuid: object.uuid,//uuid，保存的时候会有这个
+	        name	:	ko.observable(object.name).extend({ required: true, maxLength: 32 }),
+	        dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
+	        type	:	ko.observable(object.type).extend({ required: true }),
+	        ip	:	ko.observable(object.ip).extend({ required: true }),
+	        port	:	ko.observable(object.port).extend({ required: true}),
+	        username	:	ko.observable(object.username).extend({ required: true }),
+	        password	:	ko.observable(object.password).extend({ required: true }),
+	        domain:{},
+	        description	:	object.description
+      });
+      self.isEdit(true);        
+    };
+    
+    this.delete = function(object, event){
+        //console.log(object)
+        confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){        	
+        	/*csc.rest.del("api/v5.0.0/cloudPlatforms/"+object.uuid,function(){       	  
+	      	  	console.log("\n-------删除记录-------\n");
+		            console.log("destroy success");
+		            //刷新列表
+		            self.table.refreshData();
+	      	  }); */	
+	         api.cloudPlatform.set({"id":object.uuid}).destroy({
+		            success: function(){
+		            	console.log("destroy success");
+						alert("删除成功！");
+						self.table.refreshData();//刷新列表     
+		          	},
+			        error: function(){
+			            console.log("destroy error");
+			        }
+		     });
+        	
+        	
+        });//end confirm    	  
+
+      };
+
+    this.ok = function(){ 	  
+   		//console.log(this.currentVO());  	
+   		//接入
+      	if(this.currentVO().id == null){
+        	//systemMsg.alert("你创建了一个资源属性");
+        	console.log(this.currentVO.toJSON());         
+        	console.log(this.currentVO.isValid()); 
+        
+        	//验证通过
+     	  	if(this.currentVO.errors().length === 0) {
+      			//保存
+            	api.cloudPlatforms.create(this.currentVO.toJSON(),{
+              		success: function(data){
+                		console.log("\n-------新建记录成功-------\n");
+                		console.log(data);
+                		self.isEdit(false);//关闭modal
+                		if(data.attributes.uuid){
+              				alert("接入成功！")               	  
+    	            		self.table.refreshData();//刷新列表                	
+                		}
+                
+             		},
+              		error: function(){
+                		console.log("\n-------新建记录失败-------\n");
+             		}
+           		});
+      	  
+	        }else{
+	      	  //显示错误提示
+	      	  this.currentVO.errors.showAllMessages();
+	        }
+        
+
+      //修改
+      }else{
+        //systemMsg.alert("你修改了一个资源属性");        
+        	//验证通过
+     	  	if(this.currentVO.errors().length === 0) {     	  		
+     	  		api.cloudPlatform.save(this.currentVO.toJSON(),{
+     		      	success: function(){
+     		        	console.log("\n-------更新记录成功-------\n");
+     		        	alert("修改成功")
+     		        	self.table.refreshData();//刷新列表    	        	
+     	        		self.isEdit(false);//关闭modal
+     		      	},
+     		      	error: function(){
+     		        	console.log("\n-------更新记录失败-------\n");
+     		      	}
+     	    	});
+     	  		
+     	  	}else{
+     	  	 //显示错误提示
+  	      	  this.currentVO.errors.showAllMessages();    	  		
+     	  	}
+
+      }
+      
+    };
+
+    this.searchParam = ko.observable({
+      name: ""
+    });
+
+    this.search = function(){
+      this.table.params(this.searchParam());
+    };
+
+    //this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
+    this.table = new DataTable([], {path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID});
+  };
+  
+  ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+
+  //可用分区占比图
+  $('#partitions_chart').highcharts({
+      chart: {
+          marginTop: 0,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      title: {
+          text: ''
+      },
+      credits:{
+        enabled: false,
+        text : ""
+      }, 
+      legend:{
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle',
+        borderColor:"none",
+        labelFormat: '{name}：<b>{y}</b> 个',
+        itemMarginTop: 10,
+        itemStyle: {
+          
+          fontWeight: 'normal',
+          fontSize:'12px'
+        },          
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '40%',
+              borderWidth:0,
+              allowPointSelect: true,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: false
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: '云管理平台',
+          data: [{
+                name: 'VMware',
+                y: 40,
+                color:"#4791d2"
+            },
+            {
+                name: 'KVM',
+                y: 28,
+                color:"#5bd544"
             }
-        },
-        series: [{
-            type: 'pie',
-            name: '状态',
-            data: [{
-                  name: '运行中',
-                  y: 55,
-                  color:"#4791d2"
-              },
-              {
-                  name: '已关机',
-                  y: 10,
-                  color:"#ffd800"
-              },
-              {
-                  name: '其他',
-                  y: 13,
-                  color:"#5bd544"
-              }
-          ]
-        }]
-    });    
-
-
+        ]
+      }]
   });
+  
+  // 虚拟机状态占比图
+  $('#vm_status_chart').highcharts({
+      chart: {
+          marginTop: 0,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      title: {
+          text: ''
+      },
+      credits:{
+        enabled: false,
+        text : ""
+      }, 
+      legend:{
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle',
+        borderColor:"none",
+        labelFormat: '{name}：<b>{y}</b> 台',
+        itemMarginTop: 10,
+        itemStyle: {
+          
+          fontWeight: 'normal',
+          fontSize:'12px'
+        },          
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '40%',
+              borderWidth:0,
+              allowPointSelect: true,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: false
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: '状态',
+          data: [{
+                name: '运行中',
+                y: 55,
+                color:"#4791d2"
+            },
+            {
+                name: '已关机',
+                y: 10,
+                color:"#ffd800"
+            },
+            {
+                name: '其他',
+                y: 13,
+                color:"#5bd544"
+            }
+        ]
+      }]
+  });    
+
+
+});
 </script>

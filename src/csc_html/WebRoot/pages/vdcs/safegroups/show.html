@@ -9,18 +9,18 @@
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
-        <a aria-controls="VPC" data-toggle="tab" href="#baseInfo" role="tab">基本信息</a>
+        <a aria-controls="VPC" data-toggle="tab" href="#secretGroupInfo" role="tab">基本信息</a>
       </li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="baseInfo" role="tabpanel">
-        <div class="wrapper-md">
+      <div class="tab-pane active" id="secretGroupInfo" role="tabpanel">
+        <div class="wrapper-md" id="secretGroupInfoSummary">
           <p><strong>安全组名称：</strong><span data-bind="text:sgVO().name"></span></p>
           <p><strong>所属VDC：</strong><span data-bind="text:sgVO().vdcName"></span></p>
           <p><strong>所属VPC：</strong><span data-bind="text:sgVO().vpcName"></span></p>
           <p><strong>描述：</strong><span data-bind="text:sgVO().desc"></span></p>
         </div>
-
+    
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
@@ -205,20 +205,20 @@
         <div class="panel panel-default">
           <div class="row wrapper">
             <div class="col-xs-8">
-              <a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/safegroups/addRule_vm.html')">添加</a>
+              <a class="btn btn-sm btn-primary"  data-bind="click:addSgVm">添加</a>
             </div>
             <div class="col-xs-3">
                 <div class="input-group">
                    <span class="input-group-addon">云主机名称</span>
-                   <input type="text" value="" class="form-control input-sm">
+                   <input type="text" value="" class="form-control input-sm" data-bind="value:searchSgVmParam().name">
                 </div>        
             </div> 
             <div class="col-xs-1">
-                <button class="btn btn-sm btn-default" type="button">搜索</button>
+                <button class="btn btn-sm btn-default" type="button" data-bind="click:searchSgVm">搜索</button>
             </div>
           </div>        
           <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table table-striped" data-bind="with:sgRelVmListTable">
               <thead>
                 <tr>
                   <th>云主机名称</th>
@@ -227,43 +227,123 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+			            <td colspan=11 class="aligncenter">
+			              This table has no data.
+			            </td>
+			    </tr>
+				<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td>vm1</td>
-                  <td><span class="label label-success">正常</span></td>
-                  <td>10.10.111.222</td>
+                  <td data-bind="text: $row.name"></td>
+                  <td data-bind="text: $row.state"></td>
+                  <td data-bind="text: $row.ip"></td>
                 </tr>
+                 <!-- /ko -->	
               </tbody>
             </table>
           </div>
-          <footer class="panel-footer">
-            <ul class="pagination">
-              <li class="page active">
-                <a href="#pages/javascript:void(0)">1</a>
-              </li>
-              <li class="page">
-                <a>2</a>
-              </li>
-              <li class="page">
-                <a>3</a>
-              </li>
-              <li class="page">
-                <a>4</a>
-              </li>
-              <li class="page">
-                <a >5</a>
-              </li>
-              <li class="page gap disabled">
-                <a href="#pages/javascript:void(0)">…</a>
-              </li>
-              <li class="next">
-                <a>下页 ›</a>
-              </li>
-              <li class="last">
-                <a>末页 »</a>
-              </li>
-            </ul>
-          </footer> 
+          <footer class="panel-footer" data-bind="with: sgRelVmListTable, visible: sgRelVmListTable.pages() > 1">
+		      <ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <!-- ko foreach: {data: (new Array(pages()))} -->
+		        <li data-bind="css: $parent.pageClass($index() + 1)">
+		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		        </li>
+		        <!-- /ko -->
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		      </ul>
+	     </footer>
         </div>
+        
+      	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addSecretGroupVmModel }">  
+         <div class='modal-dialog' role='document'>
+		    <div class='modal-content'>
+		      <div class='modal-header'>
+		        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加云主机</h3>
+		      </div>
+		      <div class='modal-body'>
+		          <div class="row wrapper">
+		            <div class="col-xs-8">
+		                <div class="input-group">
+		                   <span class="input-group-addon">云主机名称</span>
+		                   <input type="text" value="" class="form-control input-sm" data-bind="value:searchAddSgVmNameParam().name">
+		                </div>        
+		            </div> 
+		            <div class="col-xs-1">
+		                <button class="btn btn-sm btn-default" type="button" data-bind="click:searchAddSgVmName" >搜索</button>
+		            </div>
+		          </div>        
+		          <div class="table-responsive">
+		            <table class="table table-striped" data-bind="with:sgAddRelVmListTable">
+		              <thead>
+		                <tr>
+		                  <th>
+		                    <div class="checkbox">
+		                      <label class="i-checks">
+		                        <input type="checkbox"   data-bind="checked: isSelectedAll">
+		                        <i></i>
+		                      </label>
+		                    </div>                    
+		                  </th>                
+		                  <th>云主机名称</th>
+		                  <th>状态</th>
+		                  <th>IP地址</th>
+		                </tr>
+		              </thead>
+		              <tbody  >
+		                <tr data-bind="visible: showNoData">
+				            <td colspan=11 class="aligncenter">
+				              This table has no data.
+				            </td>
+					    </tr>
+						<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+		                <tr>
+		                  <td>
+		                    <div class="checkbox">
+		                      <label class="i-checks">
+		                        <input type="checkbox" value=""  data-bind="checkedValue: $data, checked: $parent.chosenItems" >
+		                        <i></i>
+		                      </label>
+		                    </div>                    
+		                  </td>
+		                  <td data-bind="text: $row.name"></td>
+		                  <td data-bind="text: $row.state"></td>
+		                  <td data-bind="text: $row.ip"></td>
+		                </tr>
+		                <!-- /ko -->	
+		              </tbody>
+		            </table>
+		          </div>
+		              <footer class="panel-footer" data-bind="with: sgAddRelVmListTable, visible: sgAddRelVmListTable.pages() > 1">
+					      <ul class="pagination">
+					        <li data-bind="css: leftPagerClass, click: prevPage">
+					          <a href="#">&laquo;</a>
+					        </li>
+					        <!-- ko foreach: {data: (new Array(pages()))} -->
+					        <li data-bind="css: $parent.pageClass($index() + 1)">
+					          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+					        </li>
+					        <!-- /ko -->
+					        <li data-bind="css: rightPagerClass, click: nextPage">
+					          <a href="#">&raquo;</a>
+					        </li>
+					      </ul>
+			       </footer>
+		      </div>
+		      <div class='modal-footer' style="text-align: center">
+		        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVm2Sg" class="btn btn-default btn-info" />
+		        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+		      </div>
+		    </div>
+		  </div>
+        </div>
+        
+        
+        
       </div>      
     </div>
   </div>
@@ -280,10 +360,20 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  
 	var sgUuid = args.sgUuid;
+	   
+
+	
 	$.SECRETGROUP.getSecretGroups({uuid:sgUuid},function(data){
 		  if(data.results && data.results.length > 0){
 			    var sgObj = data.results[0];
+			    
 			    function sgInInfoViewModel(){
+			    	var self = this;
+		    		self.sgVO = ko.validatedObservable(sgObj);
+			    }
+			    ko.applyBindings(new sgInInfoViewModel(), $("#page-content #secretGroupInfoSummary")[0]);
+			    
+			    function sgRuleViewModel(){
 			    	var self = this;
 			    	
 			    	self.sgList = ko.observableArray();
@@ -347,9 +437,8 @@
 		    		
 		    		
 		    		self.confimAddRule = function(){
-		    			console.log(self.sgRuelVO.toJSON())
+		    			//console.log(self.sgRuelVO.toJSON())
 		    			ko.validation.group(self.sgRuelVO).showAllMessages();
-		    			alert(333)
     	    	        if(self.sgRuelVO.isValid()){
     	    	        	alert(111)
     	    	        	/* var sgJson = self.sgRuelVO.toJSON();
@@ -384,8 +473,6 @@
     	    	     
 		    		}
 		    		
-		    		
-		    		
 		    		self.delSgRule = function(rowObj){
 		    			confirm("确定删除安全组规则？",function(arg){
 		    				$.SECRETGROUP.delSecretGroupRules(sgUuid,rowObj.uuid,function(data){
@@ -394,14 +481,48 @@
 		           			});
 		    			 });
 		    		}
-		    		
-		    		
-		    	   
-		    		
 			    }
-			    
-			   ko.applyBindings(new sgInInfoViewModel(), $("#page-content")[0]);
+			   ko.applyBindings(new sgRuleViewModel(), $("#page-content .tab-pane")[1]);
 		  }
+		  
+		  
+		    function sgRelVmViewModel(){
+		    	var self = this;
+		    	self.sgRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/vms', perPage: 1});
+		    	
+		    	self.searchSgVmParam = ko.observable({
+        	        name: ""
+        	     })
+        	    
+       	        self.searchSgVm = function(){
+       	            self.sgRelVmListTable.params(this.searchSgVmParam());
+       	        }
+		    	
+		    	self.sgAddRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/canAddVms', perPage: 2});
+		    	self.searchAddSgVmNameParam = ko.observable({
+        	        name: ""
+        	     })
+        	    self.searchAddSgVmName = function(){
+       	            self.sgAddRelVmListTable.params(this.searchAddSgVmNameParam());
+       	        }
+		    	
+		    	self.addSecretGroupVmModel = ko.observable(false);
+		    	
+		    	self.addSgVm = function(){
+		    		self.sgAddRelVmListTable.refreshData();
+				    self.addSecretGroupVmModel(true)	
+		    	}
+		    	
+		    	self.checkAllVm = ko.observable(true),
+		    	
+		    	self.confirmAddVm2Sg = function(){
+		    		 var platformIds =  _.pluck(this.sgAddRelVmListTable.chosenItems(), "platformId") 
+		    		 console.log(platformIds)
+		    		 self.addSecretGroupVmModel(false)	
+		    	}
+		    	
+		    }
+		    ko.applyBindings(new sgRelVmViewModel(), $("#page-content .tab-pane")[2]);
 		
 	})
     

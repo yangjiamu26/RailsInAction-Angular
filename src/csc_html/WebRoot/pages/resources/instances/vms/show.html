@@ -40,16 +40,31 @@
                 <div class='panel-heading'>基本信息</div>
                 <div class="table-responsive">
                   <table class="table table-properties">
-                    <tr><th>云主机名称</th><td>云主机-0-0</td></tr>
-                    <tr><th>所属可用分区</th><td>可用分区1</td></tr>
-                    <tr><th>所属VDC</th><td>test123</td></tr>
-                    <tr><th>所属VPC</th><td>vvvv</td></tr>
-                    <tr><th>业务系统</th><td>OA系统</td></tr>
-                    <tr><th>云主机状态</th><td><span class="label label-success">运行中</span></td></tr>
-                    <tr><th>操作系统</th><td>Microsoft Windows Server 2003</td></tr>
-                    <tr><th>IP地址</th><td>192.168.1.1</td></tr>
-                    <tr><th>所属物理机</th><td>主机001</td></tr>
-                    <tr><th>创建人</th><td>系统管理员</td></tr>
+                    <tr><th>云主机名称</th><td data-bind="text:vmVO().name"></td></tr>
+                    <tr><th>所属可用分区</th><td data-bind="text:vmVO().azName"></td></tr>
+                    <tr><th>所属VDC</th><td data-bind="text:vmVO().vdcName"></td></tr>
+                    <tr><th>所属VPC</th><td data-bind="text:vmVO().vpcName"></td></tr>
+                    <tr><th>业务系统</th><td data-bind="text:vmVO().vappName"></td></tr>
+                    <tr><th>云主机状态</th>
+                    	<td>
+                    						<span class="label label-success" data-bind="if: vmVO().state == 'ACTIVE'">运行中</span>
+							                <span class="label label-danger" data-bind="if: vmVO().state == 'SHUTOFF'">已关机</span>
+							                <span class="label label-info" data-bind="if: vmVO().state == 'ACTIVE'">已挂起</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_OFF'">正在关机</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_ON'">正在启动</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING'">正在重启</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING_HARD'">正在强制重启</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'SUSPENDING'">正在挂起</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'RESUMING'">正在恢复</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'DELETING'">正在删除</span>
+							                <span class="label label-warning" data-bind="if: vmVO().state == 'RESIZING'">正在调整</span>
+                    	</td>
+                    </tr>
+                    <tr><th>操作系统</th><td data-bind="text:vmVO().os"></td></tr>
+                    <tr><th>IP地址</th><td data-bind="text:vmVO().ip"></td></tr>
+                    <tr><th>所属物理机</th><td data-bind="text:vmVO().hostName"></td></tr>
+                    <tr><th>创建人</th><td data-bind="text:vmVO().userName"></td></tr>
+                    <tr><th>UUID</th><td></td></tr>
                   </table>
                 </div>
               </div>
@@ -58,16 +73,16 @@
               <div class="panel panel-default">
                 <div class='panel-heading'>资源配置</div>
                 <table class="table table-properties">
-                  <tr><th>CPU（个）</th><td>1</td></tr>
-                  <tr><th>内存（GB）</th><td>20</td></tr>
-                  <tr><th>存储（GB）</th><td>100</td></tr>
+                  <tr><th>CPU（个）</th><td data-bind="text:vmVO().vcpu"></td></tr>
+                  <tr><th>内存（MB）</th><td data-bind="text:vmVO().memory"></td></tr>
+                  <tr><th>存储（GB）</th><td data-bind="text:vmVO().storage"></td></tr>
                 </table>
               </div>
               <div class="panel panel-default">
                 <div class='panel-heading'>资源使用率</div>
                 <table class="table table-properties">
-                  <tr><th>CPU使用率</th><td>0.00%</td></tr>
-                  <tr><th>内存使用率</th><td>0.00%</td></tr>
+                  <tr><th>CPU使用率</th><td data-bind="text:vmVO().cpuUsedPer"></td></tr>
+                  <tr><th>内存使用率</th><td data-bind="text:vmVO().memoryUsedPer"></td></tr>
                 </table>
               </div>              
             </div>
@@ -76,11 +91,14 @@
                 <div class='panel-heading'>服务信息</div>
                 <div class="table-responsive">
                   <table class="table table-properties">
-                    <tr><th>UUID</th><td>xxxxxxx</td></tr>
-                    <tr><th>服务状态</th><td><span class="label label-success">正常</span></td></tr>
-                    <tr><th>创建时间</th><td>2016-04-01 15:21:58</td></tr>
-                    <tr><th>生效时间</th><td>2016-04-01 15:21:58</td></tr>
-                    <tr><th>失效时间</th><td>2016-04-01 15:21:58</td></tr>
+                    <tr><th>服务状态</th>
+                    	<td>
+                    		<span class="label label-success">正常</span>
+                    		<span class="label label-success">已过期</span>
+                    	</td>
+                    </tr>
+                    <tr><th>生效时间</th><td data-bind="text:vmVO().effectiveDate"></td></tr>
+                    <tr><th>失效时间</th><td data-bind="text:vmVO().expiryDate"></td></tr>
                   </table>
                 </div>
               </div>
@@ -255,8 +273,9 @@
 
         </div>
       </div>
+      
       <div class='tab-pane' id='instance_vm_tasks' role='tabpanel'>
-        <div class='table-responsive'>
+        <div class='table-responsive' data-bind="with: task_table">
           <table class='table table-striped'>
             <thead>
               <tr>
@@ -270,35 +289,50 @@
                 </tr>
             </thead>
             <tbody>
+	            <tr data-bind="visible: showNoData">
+	              <td colspan=14 class="aligncenter">
+	                This table has no data.
+	              </td>
+	            </tr>
+              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
               <tr>
-                <td>xxx</td>
-                <td>虚拟机备份</td>
+                <td data-bind="text: taskId"></td>
+                <td data-bind="text: taskName"></td>
                 <td>
                   <div class="progress progress-xs">
-                      <div class="progress-bar progress-bar-info" data-toggle="tooltip" data-original-title="50%" style="width: 50%"></div>
+                      <div data-bind="attr: {data-original-title: $row.progress+'%',style: 'width:'+$row.progress+'%'}" class="progress-bar progress-bar-info" data-toggle="tooltip"></div>
                   </div>                
                 </td>
-                <td><span class="label label-success">成功</span></td>
-                <td>admin</td>
-                <td>2016-06-30 17:32:32</td>
-                <td>2016-06-30 17:32:52</td>
+                <td>
+                	<span class="label label-success" data-bind="if: state == 'completed'">成功</span>
+                	<span class="label label-warning" data-bind="if: state == 'active'">进行中</span>
+                	<span class="label label-danger" data-bind="if: state == 'completedAndError'">失败</span>
+                </td>
+                <td data-bind="text: user"></td>
+                <td data-bind="text: executeDate"></td>
+                <td data-bind="text: endDate"></td>
               </tr>
+              <!-- /ko -->
             </tbody>
           </table>
         </div>
-        <footer class='panel-footer'>
+        <footer class="panel-footer" data-bind="with: task_table, visible: task_table.pages() > 1">
           <ul class="pagination">
-            <li class="page active">
-              <a href="#pages/javascript:void(0)">1</a></li>
-            <li class="page">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">2</a></li>
-            <li class="next">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">下页 &rsaquo;</a></li>
-            <li class="last">
-              <a href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">末页 &raquo;</a></li>
+            <li data-bind="css: leftPagerClass, click: prevPage">
+              <a href="#">&laquo;</a>
+            </li>
+            <!-- ko foreach: {data: (new Array(pages()))} -->
+            <li data-bind="css: $parent.pageClass($index() + 1)">
+              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+            </li>
+            <!-- /ko -->
+            <li data-bind="css: rightPagerClass, click: nextPage">
+              <a href="#">&raquo;</a>
+            </li>
           </ul>
         </footer>
       </div>
+      
     </div>
   </div>
 </div>
@@ -613,7 +647,10 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	var vmUuid = args.vmUuid;
     function ViewModel(){
+      var self = this;
+    	
       this.isConfig = ko.observable(false);
       this.isInstall = ko.observable(false);
       this.isInstallVM = ko.observable(false);
@@ -637,6 +674,25 @@
       this.update = function(){
         this.isUpdate(true);
       };
+      
+      //获取云主机摘要
+      this.vmVO = ko.validatedObservable({});
+      
+      csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
+		  if(data.results){
+			  self.vmVO(data.results);
+			  
+		  }
+	  });
+      
+      //获取调度任务列表
+      
+      this.task_table = new DataTable([], {path: 'api/v5.0.0/tasks'});
+      this.searchParam = ko.observable({
+          targetId:vmUuid,
+          targetType:"VM"
+        })
+      this.task_table.params(this.searchParam());
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  

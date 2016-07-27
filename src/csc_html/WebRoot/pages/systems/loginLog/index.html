@@ -1,0 +1,164 @@
+<div class="bg-light lter b-b wrapper-sm">
+  <ol class="breadcrumb">
+    <li>当前位置：</li>
+    <li>系统</li>
+    <li class="active">登录日志</li>
+  </ol>
+</div>
+<div class='wrapper-md'>
+
+
+    <div class="panel panel-default">
+	<!-- 搜索DIV -->
+      <div class="row wrapper">
+        <div class="col-xs-3">
+            <div class="input-group">
+               <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+               <input type="text" value="" class="form-control input-sm" id="login_datarange" data-bind="value: searchParam().timeRange">
+            </div>        
+        </div>
+        <div class="col-xs-2">
+            <div class="input-group">
+               <span class="input-group-addon">账号</span>
+               <input type="text" value="" class="form-control input-sm"  placeholder="账号" data-bind="value: searchParam().account">
+            </div>       
+        </div>          
+        <div class="col-xs-2">
+            <div class="input-group">
+               <span class="input-group-addon">用户名</span>
+               <input type="text" value="" class="form-control input-sm" placeholder="用户名" data-bind="value: searchParam().name">
+            </div>        
+        </div>
+        <div class="col-xs-3">
+            <div class="input-group">
+               <span class="input-group-addon">登录IP</span>
+               <input type="text" value="" class="form-control input-sm" placeholder="登录IP" data-bind="value: searchParam().ip">
+            </div>        
+        </div>
+        <div class="col-xs-2">
+            <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+            <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
+        </div>
+
+      </div>  
+	<!-- 数据列表DIV -->
+      <div class="table-responsive" data-bind="with: table">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>账号</th>
+              <th>用户名</th>
+              <th>登录时间</th>
+              <th>登录IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-bind="visible: showNoData">
+              <td colspan=4 class="aligncenter">
+               	 暂无数据
+              </td>
+            </tr>
+            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+            <tr>
+              <td data-bind="text: $row.account"></td>
+              <td data-bind="text: $row.userName_"></td>
+              <td data-bind="text: $row.loginTime"></td>
+              <td data-bind="text: $row.ip"></td>
+            </tr>
+            <!-- /ko -->
+          </tbody>
+        </table>
+      </div>
+     <!-- 分页DIV --> 
+      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+        <ul class="pagination">
+          <li data-bind="css: leftPagerClass, click: prevPage">
+            <a href="#">&laquo;</a>
+          </li>
+          <!-- ko foreach: {data: (new Array(pages()))} -->
+          <li data-bind="css: $parent.pageClass($index() + 1)">
+            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+          </li>
+          <!-- /ko -->
+          <li data-bind="css: rightPagerClass, click: nextPage">
+            <a href="#">&raquo;</a>
+          </li>
+        </ul>
+      </footer>
+    </div>
+
+
+</div>
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = ["api/systems/log/loginLog.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+
+    // daterange             
+    $('#login_datarange').val(moment().subtract('days', 29).format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD'))
+    .daterangepicker({
+        startDate: moment().subtract('days', 29),
+        endDate: moment(),
+        format:'YYYY-MM-DD',
+        separator:'至',
+        locale:{
+          applyLabel: '确认',
+          cancelLabel: '取消',
+          fromLabel: '开始日期',
+          toLabel: '结束日期',
+          weekLabel: '周',
+          customRangeLabel: '自定义范围',                            
+          daysOfWeek:["日","一","二","三","四","五","六"],
+          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+        },
+        ranges: {
+         '当天': [moment(), moment()],
+         '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
+         '近7天': [moment().subtract('days', 6), moment()],
+         '近30天': [moment().subtract('days', 29), moment()],
+         '当月': [moment().startOf('month'), moment().endOf('month')],
+         '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        }
+      }
+    ); 
+
+    function LogViewModel(){
+      var self = this;
+    	
+      self.searchParam = ko.observable({
+        timeRange: "",
+        account:"",
+        name: "",
+        ip:''
+      })
+
+      self.reset = function(){
+    	  self.searchParam({
+          timeRange: "",
+          account:"",
+          name: "",
+          ip:''
+        })
+      }
+      self.search = function(){
+    	  var p = self.searchParam();
+    	  
+    	  self.table.params();
+      }
+      
+      self.table = new DataTable({
+          perPage: 10,
+          path: 'api/v5.0.0/loginLogs',
+          loader: function(result){
+              result.userName_ = "超级管理员"; 
+              return result;
+          }
+        })
+      
+    }
+
+    ko.applyBindings(new LogViewModel(), $('#page-content')[0]);
+
+  });
+</script>
