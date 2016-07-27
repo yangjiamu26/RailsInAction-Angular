@@ -67,7 +67,8 @@ KISBPM.URL = {
     },
     //获取用户
     getUsers: function(params) {
-    	return CscRest.getBaseUrl("pc.sys.getUsers",params);
+    	return ACTIVITI.CONFIG.contextRoot+"csc/api/v5.0.0/workflows/tasks/identitylinks";
+    	//return CscRest.getBaseUrl("pc.sys.getUsers",params);
     },
     //获取组织
     getOrgs: function() {

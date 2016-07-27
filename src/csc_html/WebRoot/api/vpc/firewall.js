@@ -55,6 +55,23 @@
 				csc.rest.del('api/v5.0.0/firewalls/'+fwUuid+'/firewallRules/'+uuid,function(data){
 					 callback(data)
    		        })
+			},
+			/**
+			 * 修改防火墙规则
+			 */
+			modifyFirewallRule:function(fwUuid,uuid,param,callback,errorCallback){
+				 csc.rest.put('api/v5.0.0/firewalls/'+fwUuid+'/firewallRules/'+uuid,param,function(data){
+				     callback(data);
+    		    });
+			},
+			/**
+			 * 查询防火墙规则
+			 */
+			getFirewallRules:function(fwUuid,param,callback,errorCallback){
+				 var param = csc.util.httpQueryParamConvert(param);
+				 csc.rest.get('api/v5.0.0/firewalls/'+fwUuid+'/firewallRules?'+param,function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

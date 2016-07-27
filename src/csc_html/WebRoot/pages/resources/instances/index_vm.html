@@ -67,8 +67,9 @@
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr> 
-              <td>
-                <a href="#pages/resources/instances/vms/1" data-bind="text:name"></a></td>
+                <td>
+               	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid}"></a>
+               	</td>
                 <td>
 	                <span class="label label-success" data-bind="if: state == 'ACTIVE'">运行中</span>
 	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF'">已关机</span>
@@ -439,7 +440,7 @@
     	//系统当前登录用户标识
       var userUuid = "";
     	//当前用户所辖VDC列表（包括VDC对应的可用分区信息）
-      var vdcList = [];
+      var vdcList = {};
     	
       var self = this;
 
@@ -489,7 +490,7 @@
       })
 	  //控制台
       this.console = function(object, event){
-    	  csc.rest.get('api/v5.0.0/vms/'+object.uuid+'/vmConsole',{},function(data){
+    	  csc.rest.get('api/v5.0.0/vms/'+object.uuid+'/vmConsole',function(data){
     		  if(data.consoleUrl){
     			  var consoleUrl = data.consoleUrl;
         		  //模拟点击
@@ -575,14 +576,14 @@
       this.searchParam = ko.observable({
         partition: '',
         status: '',
-        vdc: ko.observable(''),
+        vdc: '',
         name: ''
       })
       this.reset = function(){
         this.searchParam({
           partition: '',
           status: '',
-          vdc: ko.observable(""),
+          vdc: '',
           name: ''
         })
         this.table.params({});
@@ -595,43 +596,35 @@
  
       //获取可用分区数据
       this.partitions = ko.observableArray([]);
-      this.loadPartitions = function(azData){
-    	  self.partitions(azData);
+      this.loadPartitions = function(azList){
+    	  self.partitions(azList);
       }
       
-      var list_vdcs = {};
       //获取VDC数据
       this.vdcs = ko.observableArray([]);
       this.loadVdcs = function(){
     	  csc.rest.get('api/v5.0.0/vdcs?userUuid='+userUuid,function(data){
-    		var vdcDef = {name:"全部",uuid:0};
-    		var vdcDef2 = {name:"全部2",uuid:1};
-    		var zsDef = {name:"ALL",uuid:0}
-    		var zsDef2 = {name:"ALL2",uuid:1};
-    		var vdcList = [];
-    		var zsList = [];
-    		vdcList.unshift(vdcDef);
-    		vdcList.unshift(vdcDef2);
-    		zsList.unshift(zsDef);
-    		zsList.unshift(zsDef2);
-    		
-    		list_vdcs.vdc = vdcList;
-    		list_vdcs.az = zsList;
-    		
-            self.vdcs(list_vdcs.vdc);
-            //self.loadPartitions(list_vdcs.az);
+    		  if(data.results){
+    			  vdcList = data.results;
+    			  self.vdcs(vdcList);
+    		  }
     	  });
       }
       
       this.loadVdcs();
       //选择不同VDC后，可用分区下拉框要跟着改变
       this.onchange_vdcs = function(){
-    	   self.loadPartitions(list_vdcs.az);
+    	  var vdcUuid = this.searchParam.vdc();
+    	  for(var i=0;i<vdcList.length;i++){
+    		  if(vdcList[i].uuid == vdcUuid){
+    			  self.loadPartitions(vdcList[i].azs);
+    			  break;
+    		  }
+    	  }
       }
 
       
       
-      /*--------------------------------------创建start---------------------------------------*/
       //初始化
       this.isAddvm = ko.observable(false);
       this.currentVO = ko.validatedObservable({
@@ -681,7 +674,13 @@
       
       //VDC->可用分区
       this.onchange_add_vdcs = function(){
-    	  self.add_partitions(vdcList);
+    	  var vdcUuid = self.currentVO().vdc();
+    	  for(var i=0;i<vdcList.length;i++){
+    		  if(vdcList[i].uuid == vdcUuid){
+    			  self.add_partitions(vdcList[i].azs);
+    			  break;
+    		  }
+    	  }
       }
       
       //可用分区
@@ -689,13 +688,11 @@
       
       //可用分区->镜像+SSH
       this.onchange_add_partitions = function(){
-    	  var azUuid = this.currentVO().partition();
-    	  var param = {};
-    	  param.azUuid = azUuid;
-    	  csc.rest.get('api/v5.0.0/images',param,function(data){
+    	  var azUuid = self.currentVO().partition();
+    	  csc.rest.get('api/v5.0.0/images?azUuid='+azUuid,function(data){
     		  self.add_images(data.results);
     	  });
-    	  csc.rest.get('api/v5.0.0/sshKey',param,function(data){
+    	  csc.rest.get('api/v5.0.0/sshKey?azUuid='+azUuid,function(data){
     		  self.add_sshKeys(data.results);
     	  });
       }
@@ -707,9 +704,7 @@
       this.add_vpcs = ko.observableArray([]);
       this.add_vpcs_def = function(){
     	  var vdcUuid = this.currentVO().vdc();
-    	  var param = {};
-    	  param.vdcUuid = vdcUuid;
-    	  csc.rest.get('api/v5.0.0/vpcs',param,function(data){
+    	  csc.rest.get('api/v5.0.0/vpcs?vdcUuid='+vdcUuid,function(data){
     		  self.add_vpcs(data.results);
     	  });
       }
@@ -718,10 +713,7 @@
       //VPC->网络
       this.onchange_add_vpcs = function(){
     	  var vdcUuid = this.currentVO().vpc();
-    	  var param = {};
-    	  param.vpcUuid = vpcUuid;
-    	  param.type = 'INNER';
-    	  csc.rest.get('api/v5.0.0/vpcNetworks',param,function(data){
+    	  csc.rest.get('api/v5.0.0/vpcNetworks?type=INNER&vpcUuid='+vpcUuid,function(data){
     		  self.add_networks(data.results);
     	  });
       }
@@ -756,16 +748,6 @@
 			  });
 	      }
       }
-      
-      /*--------------------------------------创建end---------------------------------------*/
-      
-      /*--------------------------------------调整资源start---------------------------------------*/
-      /*--------------------------------------调整资源end---------------------------------------*/
-      
-      
-      
-      
-      
       
       
       
