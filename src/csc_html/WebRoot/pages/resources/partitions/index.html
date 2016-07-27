@@ -134,7 +134,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">虚拟化类型</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:virtualPlatform, options: $root.virtualPlatforms, optionsText: 'name', optionsValue: 'name'">
+            <select class="form-control" data-bind="value:virtualHypervisor, options: $root.virtualHypervisors, optionsText: 'name', optionsValue: 'name'">
               <!-- 
               <option value="1">1</option>
               <option value="2">2</option>
@@ -196,9 +196,9 @@
         </div>
          -->
         <div class="form-group">
-          <label class="col-xs-3 control-label" data-bind="value:description">描述</label>
+          <label class="col-xs-3 control-label">描述</label>
           <div class="col-xs-8">
-            <textarea class="form-control" cols="30" rows="3"></textarea>
+            <textarea class="form-control" cols="30" rows="3" data-bind="value:description"></textarea>
           </div>
         </div>
       </div>
@@ -231,7 +231,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       //可用分区，下拉列表
       this.cloudPlatforms = ko.observableArray([]);
       //虚拟化类型
-      this.virtualPlatforms = ko.observableArray([]);
+      this.virtualHypervisors = ko.observableArray([]);
       this.loadDcs = function(){
         $.ajax("api/v5.0.0/datacenters").done(function(data){
           self.dcs(data.results);
@@ -250,13 +250,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         });
       };
       
-      this.loadVirtualPlatforms = function(){
-		self.virtualPlatforms.unshift({name:"winserver",cloudPlatform:'winserver'});
-		self.virtualPlatforms.unshift({name:"powerVM",cloudPlatform:'powerVM'});
+      this.loadVirtualHypervisors = function(){
+		self.virtualHypervisors.unshift({name:"winserver",cloudPlatform:'winserver'});
+		self.virtualHypervisors.unshift({name:"powerVM",cloudPlatform:'powerVM'});
       };
       
       this.loadDcs();
-      this.loadVirtualPlatforms();
+      this.loadVirtualHypervisors();
       
       this.onchange_dcs = function(){
     	  var dcId = self.currentVO.toJSON().datacenterUuid;
@@ -271,7 +271,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
           name:'',
           datacenterUuid:'',
           cloudplatformUuid:'',
-          virtualPlatform:'',
+          virtualHypervisor:'',
           isPrivate:'',
           description:''
         });
@@ -288,7 +288,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		var azName = rowObj.name;
   		var azUuid = rowObj.uuid;
   		confirm("确定删除AZ["+azName+"]？",function(arg){
-  			csc.rest.del('api/v5.0.0/datacenters/'+azUuid, function(data){
+  			csc.rest.del('api/v5.0.0/azs/'+azUuid, function(data){
   				alert("删除AZ：["+azName+"]成功！");
   		 		self.table.refreshData();
   		    });
