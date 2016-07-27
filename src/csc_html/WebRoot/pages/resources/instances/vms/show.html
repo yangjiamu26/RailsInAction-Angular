@@ -74,7 +74,7 @@
                 <div class='panel-heading'>资源配置</div>
                 <table class="table table-properties">
                   <tr><th>CPU（个）</th><td data-bind="text:vmVO().vcpu"></td></tr>
-                  <tr><th>内存（GB）</th><td data-bind="text:vmVO().memory"></td></tr>
+                  <tr><th>内存（MB）</th><td data-bind="text:vmVO().memory"></td></tr>
                   <tr><th>存储（GB）</th><td data-bind="text:vmVO().storage"></td></tr>
                 </table>
               </div>
@@ -316,7 +316,7 @@
             </tbody>
           </table>
         </div>
-        <footer class="panel-footer" data-bind="with: task_table visible: task_table.pages() > 1">
+        <footer class="panel-footer" data-bind="with: task_table, visible: task_table.pages() > 1">
           <ul class="pagination">
             <li data-bind="css: leftPagerClass, click: prevPage">
               <a href="#">&laquo;</a>
@@ -648,7 +648,6 @@
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	var vmUuid = args.vmUuid;
-	vmUuid = "1";
     function ViewModel(){
       var self = this;
     	
@@ -682,15 +681,18 @@
       csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
 		  if(data.results){
 			  self.vmVO(data.results);
+			  
 		  }
 	  });
       
       //获取调度任务列表
-      /* var task_param = {};
-      task_param.targetId = vmUuid;
-      task_param.targetType = "VM";
-      this.task_table.params(task_param); */
+      
       this.task_table = new DataTable([], {path: 'api/v5.0.0/tasks'});
+      this.searchParam = ko.observable({
+          targetId:vmUuid,
+          targetType:"VM"
+        })
+      this.task_table.params(this.searchParam());
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
