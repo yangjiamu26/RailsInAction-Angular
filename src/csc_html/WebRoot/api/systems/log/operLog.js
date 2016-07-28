@@ -1,5 +1,9 @@
 !function($) {
 	$.OPERLOG = {
+		_stateViews : {
+			"failed" 	: "<span class='label label-danger'>失败</span>",
+			"success"	: "<span class='label label-success'>成功</span>"
+		},
 		/**
 		 * 获取操作日志列表
 		 * 

@@ -7,6 +7,7 @@
 </div>
 <div class='wrapper-md'>
   <div class="panel panel-default">
+  	<!-- 搜索栏 -->
     <div class="row wrapper">
       <div class="col-xs-3">
           <div class="input-group">
@@ -17,7 +18,7 @@
       <div class="col-xs-2">
         <div class="input-group">
           <span class="input-group-addon">类型</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().catelog">
+          <select class="form-control input-sm" data-bind="value: searchParam().type">
             <option value="1">全部</option>
             <option value="2">订单管理</option>
             <option value="3">产品管理</option>
@@ -33,7 +34,7 @@
       <div class="col-xs-3">
           <div class="input-group">
              <span class="input-group-addon">操作对象</span>
-             <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().objectName">
+             <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().targetName">
           </div>        
       </div>
       <div class="col-xs-2">
@@ -42,8 +43,8 @@
       </div>
 
     </div>  
-
-    <div class="table-responsive" data-bind="with: table">
+	<!-- 操作日志列表 -->
+    <div class="table-responsive" data-bind="with: operLogTable">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -60,25 +61,25 @@
         <tbody>
           <tr data-bind="visible: showNoData">
             <td colspan=8 class="aligncenter">
-              This table has no data.
+             	 暂无数据
             </td>
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td><a data-bind="click: $root.detail">1</a></td>
-            <td>审核订单</td>
-            <td>订单管理</td>
-            <td>OD201042216003008</td>
-            <td><span class="label label-success">成功</span><span class="label label-danger">失败</span></td>
-            <td>系统管理员</td>
-            <td>10.10.212.15</td>
-            <td>2016-6-27 10:29:00</td>
+            <td><a data-bind="click: $root.detail, text: $row.id"></a></td><!-- 操作日志ID -->
+            <td data-bind="text: $row.type"></td><!-- 操作任务 -->
+            <td data-bind="text: $row.targetType"></td><!-- 目标类型 -->
+            <td data-bind="text: $row.targetName"></td><!-- 操作对象 -->
+            <td data-bind="html: $row.state_"></td><!-- 任务状态 -->
+            <td data-bind="text: $row.userName"></td><!-- 操作人 -->
+            <td data-bind="text: $row.ip"></td><!-- 操作人IP -->
+            <td data-bind="text: $row.createTime"></td><!-- 操作时间 -->
           </tr>
           <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+    <footer class="panel-footer" data-bind="with: operLogTable, visible: operLogTable.pages() > 1">
       <ul class="pagination">
         <li data-bind="css: leftPagerClass, click: prevPage">
           <a href="#">&laquo;</a>
@@ -95,53 +96,67 @@
     </footer>
   </div>
 </div>
-
+<!-- 操作日志详情 -->
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDetail }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>日志信息</h3></div>
-      <div class='modal-body form-horizontal' data-bind="with: currentVO">
+      <div class='modal-body form-horizontal'>
         <table class="table">
           <tbody>
             <tr>
               <td>日志编号：</td>
-              <td data-bind="text: field1">27</td>
+              <td data-bind="text: $root.currentVO().id">27</td>
               <td>操作任务：</td>
-              <td data-bind="text: field2">修改用户密码</td>
+              <td data-bind="text: $root.currentVO().type">修改用户密码</td>
               <td>类型：</td>
-              <td data-bind="text: field3">用户</td>
+              <td data-bind="text: $root.currentVO().targetType">用户</td>
             </tr>
             <tr>
               <td>操作时间：</td>
-              <td data-bind="text: field4">20160518 11:16</td>
+              <td data-bind="text: $root.currentVO().createTime">20160518 11:16</td>
               <td>操作人：</td>
-              <td data-bind="text: field5">audit</td>
+              <td data-bind="text: $root.currentVO().userName">audit</td>
               <td>操作人IP：</td>
-              <td data-bind="text: field6">10.101.15.217</td>
+              <td data-bind="text: $root.currentVO().ip">10.101.15.217</td>
             </tr>
             <tr>
               <td>操作状态：</td>
-              <td data-bind="text: field7">成功</td>
+              <td data-bind="html: $root.currentVO().state_">成功</td>
               <td>操作对象：</td>
-              <td data-bind="text: field8">角色</td>
+              <td data-bind="text: $root.currentVO().targetName">角色</td>
               <td></td>
               <td></td>
             </tr>
           </tbody>
         </table>
         <h3>日志详情</h3>
-        <p class="m-l" data-bind="text: field9">详情信息..................</p>
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>请求地址：</td>
+              <td data-bind="text: $root.currentVO().reqUrl"></td>
+            </tr>
+            <tr>
+              <td>请求参数：</td>
+              <td data-bind="text: $root.currentVO().reqParams"></td>
+            </tr>
+            <tr>
+              <td>请求BODY：</td>
+              <td data-bind="text: $root.currentVO().reqBody"></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div class='modal-footer'>
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button></div>
     </div>
   </div>
-</form>
-
+</div>
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  var scripts = ["api/systems/log/operLog.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
     // daterange             
@@ -172,51 +187,57 @@
       }
     ); 
 
-    function ViewModel(){
+    function OperLogViewModel(){
+    	var self = this;
+    	self.currentVO = ko.observable({
+    		id:"",
+    		type:"",
+    		targetType:"",
+    		targetName:"",
+    		createTime:"",
+    		userName:"",
+    		state_:"",
+    		reqUrl:"",
+    		reqParams:"",
+    		reqBody:""
+    	});
 
-      this.currentVO = ko.observable({
-        "field1": "",
-        "field2": "",
-        "field3": "",
-        "field4": "",
-        "field5": "",
-        "field6": "",
-        "field7": "",
-        "field8": "",
-        "field9": ""
-      });
-
-      this.isDetail = ko.observable(false);
-      var self = this;
-      this.detail = function(object, event){
-        self.isDetail(true);
-        $.ajax("pages/systems/operations/detail.json").done(function(data){
-          self.currentVO(data);
-        })
-      }
+    	self.isDetail = ko.observable(false);
       
-      this.searchParam = ko.observable({
-        daterange: "",
-        catelog: "",
-        userName: "",
-        objectName: ""
-      })
-      this.reset = function(){
-        this.searchParam({
-          daterange: "",
-          catelog: "",
-          userName: "",
-          objectName: ""
-        })
-        this.table.params({})
-      };
-      this.search = function(){
-        this.table.params(this.searchParam());
-      }
-      this.table = new DataTable([], {path: 'pages/systems/operations/index.json'});
+    	self.detail = function(object, event){
+	        self.isDetail(true);
+	        self.currentVO(object);
+	    }
+      
+    	self.searchParam = ko.observable({
+	        daterange: "",
+	        catelog: "",
+	        userName: "",
+	        targetName: ""
+      	})
+      	self.reset = function(){
+	        this.searchParam({
+	        	daterange: "",
+		        catelog: "",
+		        userName: "",
+		        targetName: ""
+	        })
+	        this.table.params({})
+	    };
+	    self.search = function(){
+	    	self.operLogTable.params(this.searchParam());
+      	}
+	    self.operLogTable = new DataTable({
+	        perPage: 10,
+	        path: 'api/v5.0.0/operLogs',
+	        loader: function(result){
+	      	  	result.state_ = $.OPERLOG._stateViews[result.state];
+	            return result;
+	        }
+      	});
     }
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+    ko.applyBindings(new OperLogViewModel(), $('#page-content')[0]);  
 
 
 
