@@ -79,15 +79,15 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg" ><span data-bind="text:name"></span></td>
+															<td class="v-middle text-lg" ><span data-bind="text:serviceName"></span></td>
 														</tr>
 														<tr>
 															<th>支持操作系统：</th>
-															<td></td>
+															<td data-bind="text:osType"></td>
 														</tr>
 														<tr>
 															<th>配额限制：</th>
-															<td data-bind="text:isLimit"></td>
+															<td data-bind="text:isLimitDesc"></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
@@ -689,18 +689,20 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				}
 			}
 			
-		}
+		}	       
+	    
 		//添加到购物车操作
 		this.addToOrder = function(){
 			if(self.productType()=='1'){
-				console.log(self.model_VDC.toJSON());
 				var osTypeVdc="";
 				for(var i=0;i<self.model_VDC().vdcCartInfo().osTypesSelelct().length;i++){
 					osTypeVdc +=self.model_VDC().vdcCartInfo().osTypesSelelct()[i]+',';
 				}
 				osTypeVdc=osTypeVdc.substring(0,osTypeVdc.length-1);
 				self.model_VDC().vdcCartInfo().osTypes(osTypeVdc);
+				
 				if(self.model_VDC.isValid()){
+					console.log(self.model_VDC.toJSON());
 				 	 csc.rest.post('api/v5.0.0/order-apply/vdcs',self.model_VDC.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_VDC(false);
@@ -886,7 +888,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					billRuleUuid: ko.observable(""),
 					applyTime:ko.observable(""),
 					applyType:ko.observable("3"),
-					remark:ko.observable(""),
 					azList:ko.observableArray([]),
 					vmList:ko.observableArray([])
 	    		})
@@ -1189,9 +1190,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  //################## 对象存储 end ##################
 	  
 	  //################## 公网IP start ##################
-	    this.isAdd_PublicNetwork = ko.observable(false);
+	    this.isAdd_PublicNetworkSingle = ko.observable(false);
+	    this.isAdd_PublicNetworkMore = ko.observable(false);
 	    this.add_PublicNetwork = function(){
-	    	self.isAdd_PublicNetwork(true);
+	    	self.isAdd_PublicNetworkSingle(true);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
 	        	self.vdcList(data);
 	        });
@@ -1236,7 +1238,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  //################## VDC start ##################
 	    this.isAdd_VDC = ko.observable(false);
 	    this.add_VDC = function(obj){
-	    	console.log(obj.serviceUuid);
+	    	initVdc();
+	    	var serviceUuid = obj.serviceUuid;
+	    	self.model_VDC().vdcCartInfo().serviceUuid(serviceUuid);
 	        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){//需修改为服务UUID作为参数传递
 	        	console.log(data);
 		    	self.isAdd_VDC(true);
@@ -1244,25 +1248,32 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		    	console.log(data.serviceVDC.osType);
 		    	var osType = data.serviceVDC.osType;
 		    	var isLimit = data.serviceVDC.isLimit;
+		    	
+		    	if(data.charge==1){
+		    		self.model_VDC().vdcCartInfo().charge("NO");
+		    	}else{
+		    		self.model_VDC().vdcCartInfo().charge("YES");
+		    	}
 		    	if(isLimit=="no"){
 		    		self.model_VDC().vdcCartInfo().quota("-1");
 		    	}else{
 		    		self.model_VDC().vdcCartInfo().quota("1");
+		 	    	self.model_VDC().vdcCartInfo().cpu(data.serviceVDC.maxCpu);
+		 	    	self.model_VDC().vdcCartInfo().memory(data.serviceVDC.maxMemory);
+		 	    	self.model_VDC().vdcCartInfo().storage(data.serviceVDC.maxStorager);
+		 	    	self.model_VDC().vdcCartInfo().vpcNum(data.serviceVDC.maxVPC);
+		 	    	self.model_VDC().vdcCartInfo().vm(data.serviceVDC.maxVmNum);
+		 	    	self.model_VDC().vdcCartInfo().disk(data.serviceVDC.maxDiskNum);
+		 	    	self.model_VDC().vdcCartInfo().publicIp(data.serviceVDC.maxIpNum);
+		 	    	self.model_VDC().vdcCartInfo().router(data.serviceVDC.maxRouterNum);
+		 	    	self.model_VDC().vdcCartInfo().fireWall(data.serviceVDC.maxFireWallNum);
+		 	    	self.model_VDC().vdcCartInfo().secretKey(data.serviceVDC.maxSSHNum);
+		 	    	self.model_VDC().vdcCartInfo().objectStorage(data.serviceVDC.maxObjStorageNum);
+		 	    	self.model_VDC().vdcCartInfo().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
 		    	}
 		    	
 		    	self.osTypeArray(getArrayByOsType(osType));
-//	 	    	self.model_VDC().vdcCartInfo().cpu(data.serviceVDC.maxCpu);
-//	 	    	self.model_VDC().vdcCartInfo().memory(data.serviceVDC.maxMemory);
-//	 	    	self.model_VDC().vdcCartInfo().storage(data.serviceVDC.maxStorager);
-//	 	    	self.model_VDC().vdcCartInfo().vpcNum(data.serviceVDC.maxVPC);
-//	 	    	self.model_VDC().vdcCartInfo().vm(data.serviceVDC.maxVmNum);
-//	 	    	self.model_VDC().vdcCartInfo().disk(data.serviceVDC.maxDiskNum);
-//	 	    	self.model_VDC().vdcCartInfo().publicIp(data.serviceVDC.maxIpNum);
-//	 	    	self.model_VDC().vdcCartInfo().router(data.serviceVDC.maxRouterNum);
-//	 	    	self.model_VDC().vdcCartInfo().fireWall(data.serviceVDC.maxFireWallNum);
-//	 	    	self.model_VDC().vdcCartInfo().secretKey(data.serviceVDC.maxSSHNum);
-//	 	    	self.model_VDC().vdcCartInfo().objectStorage(data.serviceVDC.maxObjStorageNum);
-//	 	    	self.model_VDC().vdcCartInfo().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
+
 	        });	    	
 	    }
 	  	
@@ -1271,30 +1282,37 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  		return a;
 	  	}
 	  	
-	    this.model_VDC = ko.validatedObservable({
-	    	vdcCartInfo:ko.observable({
-				name: ko.observable(""),
-				osTypes : ko.observable(""),
-				osTypesSelelct:ko.observableArray([]),
-				quota:ko.observable("-1"),
-				cpu: ko.observable(""),
-				memory:ko.observable(""),
-				storage: ko.observable(""),
-				vm: ko.observable(""),
-				disk: ko.observable(""),
-				objectStorage: ko.observable(""),
-				vpcNum:ko.observable(""),
-				router: ko.observable(""),
-				fireWall: ko.observable(""),
-				publicIp: ko.observable(""),
-				loadBalancer: ko.observable(""),
-				secretKey: ko.observable(""),
-				billRuleUuid: ko.observable(""),
-				applyType: ko.observable("1"),
-				applyNum: ko.observable(""),
-				applyTime: ko.observable("2016-07-18 20:02:22")                                  
-	    	})
-	    });
+	  	this.model_VDC = ko.validatedObservable();
+	  	function initVdc(){
+	  		self.model_VDC = ko.validatedObservable({
+		    	vdcCartInfo:ko.observable({
+		    		serviceUuid:ko.observable(""),
+					name: ko.observable(""),
+					charge:ko.observable(""),
+					osTypes : ko.observable(""),
+					osTypesSelelct:ko.observableArray([]),
+					quota:ko.observable("-1"),
+					cpu: ko.observable(""),
+					memory:ko.observable(""),
+					storage: ko.observable(""),
+					vm: ko.observable(""),
+					disk: ko.observable(""),
+					objectStorage: ko.observable(""),
+					vpcNum:ko.observable(""),
+					router: ko.observable(""),
+					fireWall: ko.observable(""),
+					publicIp: ko.observable(""),
+					loadBalancer: ko.observable(""),
+					secretKey: ko.observable(""),
+					remark:ko.observable(""),
+					billRuleUuid: ko.observable(""),
+					applyType: ko.observable("1"),
+					applyNum: ko.observable(""),
+					applyTime: ko.observable("")                                  
+		    	})
+		    });
+	  	}
+	    
 	    //this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 	    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 	  //################## VDC end ##################
@@ -2045,9 +2063,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- 对象存储 -->
-<!-- 公网IP -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetwork }">
+<!-- 对象存储多个 -->
+
+<!-- 公网IP多个 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetworkMore }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2119,7 +2138,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- 公网IP -->
+<!-- 公网IP多个 -->
 <!-- VDC -->
 <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VDC }">
   <div class='modal-dialog modal-lg'>
@@ -2143,19 +2162,23 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                 </label>
               </div>
             </div>
-        </div>
+        </div>     
         <div class="form-group">
         	<label class="col-sm-3 control-label">配额限制：</label>
-        	<div class="radio disabled">
-				<label class="form-inline"> 
+        	<div class="col-xs-4 form-inline">
+        	<div class="form-inline"> 
+        	<div class="radio"> 
+        		<label class="form-inline"> 
 					<input type="radio" class="form-control" style="top: 2px;" value="1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">限制
 				</label>
-				<label class="form-inline"> 
+			</div> 
+        	<div class="radio"> 
+        		<label class="form-inline"> 
 					<input type="radio" class="form-control" style="top: 2px;" value="-1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">不限制
-				</label>	
+				</label>
+			</div>			
 			</div>
-        	
-        	<div></div>
+			</div>
         </div>
         <div data-bind="visible:model_VDC().vdcCartInfo().quota()=='1'">
 	        <div class="form-group col-sm-4" >
@@ -2256,7 +2279,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        </div>
         </div>
         <div class="clearfix"></div>
-        
+        <div class="form-group">
+          <label class="col-sm-3 control-label">备注：</label>
+          <div class="col-sm-8">
+            <textarea class="form-control" cols="30" rows="5" data-bind="value:model_VDC().vdcCartInfo().remark"></textarea>
+          </div>
+        </div>
+          <div class="clearfix"></div>
         <div class="form-group">
           <label class="col-sm-3 control-label">申请时长：</label>
 			<div class="col-sm-8">
@@ -2274,12 +2303,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			<div class="radio disabled">
 				<label class="form-inline"> 
 					<input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: model_VDC().vdcCartInfo().applyType,name:vdcRadio"> 
-					<input type="text" style="width: 206px" class="form-control applyDateFormat">
+					<input type="text" style="width: 206px" class="form-control applyDateFormat" data-bind="value:model_VDC().vdcCartInfo().applyTime">
 				</label>
 			</div>
 			</div>
         </div>
-        <div class="form-group">
+        <div class="form-group" data-bind="visible:model_VDC().vdcCartInfo().charge()=='YES'">
           <div>
             <label class="col-sm-3 control-label">套餐：</label>
             <div class="col-sm-2">

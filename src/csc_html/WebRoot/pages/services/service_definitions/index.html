@@ -51,7 +51,7 @@
 									<div class="row wrapper">
 										<div class="col-xs-1">
 											<a class="btn btn-sm btn-primary"
-												onclick="showModal('pages/services/service_definitions/addService.html')">创建服务</a>
+												onclick="showModal('pages/services/service_definitions/addService_pankl.html')">创建服务</a>
 										</div>
 										<div class="col-xs-3">
 											<div class="input-group">
@@ -70,7 +70,7 @@
 											<div class="input-group">
 												<span class="input-group-addon">所属产品</span> 
 												<select class="form-control input-sm"
-													data-bind="value: searchParam().product, options: $root.types, optionsText: 'name', optionsValue: 'uuid'">
+													data-bind="value: searchParam().product, options:productList,optionsText:'name',optionsValue:'codeName', optionsCaption: '全部'">
 													<option value="">全部</option>
 												</select>
 											</div>
@@ -84,7 +84,7 @@
 											</div>
 										</div>
 										<div class="col-xs-2">
-											<button class="btn btn-sm" type="button">重置</button>
+											<button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
 											<button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
 										</div>
 									</div>
@@ -209,6 +209,7 @@
 
     $(document).ready(function(){
     	loadTree();
+    	loadProduct();
     });
     
     function loadTree(){
@@ -216,7 +217,14 @@
             $.fn.zTree.init($("#serverDefinitionsTree"), setting, data);
         });
     }
-  //目录树end
+  	//目录树end
+  
+  	//初始化产品列表下拉框
+    function loadProduct(){
+    	csc.rest.get('api/v5.0.0/products',function(data){    		
+    		viewModel.productList(data);
+        });
+    }
             
     function ViewModel(){
       //服务目录start
@@ -353,6 +361,14 @@
           product: "",
           serviceName: ""
       })
+      //重置
+      this.reset = function(){
+			this.searchParam({
+				state: "",
+				product: "",
+				serviceName: ""
+			})
+      }
       //搜搜查询
       this.search = function(dirUuid){    	  
     	  if(typeof(dirUuid) != "object"){
@@ -361,7 +377,9 @@
           this.table.params(this.searchParam());
       }
       //列表数据
-      this.table = new DataTable([], {path: 'api/v5.0.0/service'});                  
+      this.table = new DataTable([], {path: 'api/v5.0.0/service'});      
+      //产品列表
+      this.productList = ko.observableArray();
     }
     var viewModel = new ViewModel();
     ko.applyBindings(viewModel, $('#page-content')[0]);
