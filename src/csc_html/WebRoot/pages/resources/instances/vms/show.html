@@ -23,15 +23,17 @@
           <div class="row wrapper">
             <div class="col-xs-9 m-b-xs">
               <a class="btn btn-sm btn-default" href="#pages/resources/instances/index"><i class="fa fa-arrow-left"></i> 返回</a>
-              <button class="btn btn-sm btn-default">开/关机</button>
-              <button class="btn btn-sm btn-default">重启</button>
-              <button class="btn btn-sm btn-default">强制重启</button>
-              <button class="btn btn-sm btn-default">控制台</button>
-              <button class="btn btn-sm btn-default">挂起/恢复</button>
-              <button class="btn btn-sm btn-default">调整资源</button>
-              <button class="btn btn-sm btn-default">有效时间变更</button>
-              <button class="btn btn-sm btn-default">终止</button>
-              <button class="btn btn-sm btn-default">删除</button>
+              <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF'"><button class="btn btn-sm btn-default" >开机</button></a>
+              <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-default" >关机</button></a>
+              <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-default" >重启</button></a>
+              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-default" >强制重启</button></a>
+              <a data-bind="click: $root.console"><button class="btn btn-sm btn-default" >控制台</button></a>
+              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-default" >挂起</button></a>
+              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED'"><button class="btn btn-sm btn-default" >恢复</button></a>
+              <a data-bind="click: $root.vmAdjustment"><button class="btn btn-sm btn-default" >调整资源</button></a>
+              <a><button class="btn btn-sm btn-default">有效时间变更</button></a>
+              <a><button class="btn btn-sm btn-default">终止</button></a>
+              <a data-bind="click: $root.removeOne"><button class="btn btn-sm btn-default" >删除</button></a>
             </div>
           </div> 
           <div class="row wrapper">
@@ -40,16 +42,31 @@
                 <div class='panel-heading'>基本信息</div>
                 <div class="table-responsive">
                   <table class="table table-properties">
-                    <tr><th>云主机名称</th><td>云主机-0-0</td></tr>
-                    <tr><th>所属可用分区</th><td>可用分区1</td></tr>
-                    <tr><th>所属VDC</th><td>test123</td></tr>
-                    <tr><th>所属VPC</th><td>vvvv</td></tr>
-                    <tr><th>业务系统</th><td>OA系统</td></tr>
-                    <tr><th>云主机状态</th><td><span class="label label-success">运行中</span></td></tr>
-                    <tr><th>操作系统</th><td>Microsoft Windows Server 2003</td></tr>
-                    <tr><th>IP地址</th><td>192.168.1.1</td></tr>
-                    <tr><th>所属物理机</th><td>主机001</td></tr>
-                    <tr><th>创建人</th><td>系统管理员</td></tr>
+                    <tr><th>云主机名称</th><td data-bind="text:vmVO().name"></td></tr>
+                    <tr><th>所属可用分区</th><td data-bind="text:vmVO().azName"></td></tr>
+                    <tr><th>所属VDC</th><td data-bind="text:vmVO().vdcName"></td></tr>
+                    <tr><th>所属VPC</th><td data-bind="text:vmVO().vpcName"></td></tr>
+                    <tr><th>业务系统</th><td data-bind="text:vmVO().vappName"></td></tr>
+                    <tr><th>云主机状态</th>
+                    	<td>
+                    		<span class="label label-success" data-bind="if: vmVO().state == 'ACTIVE'">运行中</span>
+							<span class="label label-danger" data-bind="if: vmVO().state == 'SHUTOFF'">已关机</span>
+							<span class="label label-info" data-bind="if: vmVO().state == 'SUSPENDED'">已挂起</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_OFF'">正在关机</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_ON'">正在启动</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING'">正在重启</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING_HARD'">正在强制重启</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'SUSPENDING'">正在挂起</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'RESUMING'">正在恢复</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'DELETING'">正在删除</span>
+							<span class="label label-warning" data-bind="if: vmVO().state == 'RESIZING'">正在调整</span>
+                    	</td>
+                    </tr>
+                    <tr><th>操作系统</th><td data-bind="text:vmVO().os"></td></tr>
+                    <tr><th>IP地址</th><td data-bind="text:vmVO().ip"></td></tr>
+                    <tr><th>所属物理机</th><td data-bind="text:vmVO().hostName"></td></tr>
+                    <tr><th>创建人</th><td data-bind="text:vmVO().userName"></td></tr>
+                    <tr><th>UUID</th><td></td></tr>
                   </table>
                 </div>
               </div>
@@ -58,16 +75,16 @@
               <div class="panel panel-default">
                 <div class='panel-heading'>资源配置</div>
                 <table class="table table-properties">
-                  <tr><th>CPU（个）</th><td>1</td></tr>
-                  <tr><th>内存（GB）</th><td>20</td></tr>
-                  <tr><th>存储（GB）</th><td>100</td></tr>
+                  <tr><th>CPU（个）</th><td data-bind="text:vmVO().vcpu"></td></tr>
+                  <tr><th>内存（MB）</th><td data-bind="text:vmVO().memory"></td></tr>
+                  <tr><th>存储（GB）</th><td data-bind="text:vmVO().storage"></td></tr>
                 </table>
               </div>
               <div class="panel panel-default">
                 <div class='panel-heading'>资源使用率</div>
                 <table class="table table-properties">
-                  <tr><th>CPU使用率</th><td>0.00%</td></tr>
-                  <tr><th>内存使用率</th><td>0.00%</td></tr>
+                  <tr><th>CPU使用率</th><td data-bind="text:vmVO().cpuUsedPer"></td></tr>
+                  <tr><th>内存使用率</th><td data-bind="text:vmVO().memoryUsedPer"></td></tr>
                 </table>
               </div>              
             </div>
@@ -76,11 +93,14 @@
                 <div class='panel-heading'>服务信息</div>
                 <div class="table-responsive">
                   <table class="table table-properties">
-                    <tr><th>UUID</th><td>xxxxxxx</td></tr>
-                    <tr><th>服务状态</th><td><span class="label label-success">正常</span></td></tr>
-                    <tr><th>创建时间</th><td>2016-04-01 15:21:58</td></tr>
-                    <tr><th>生效时间</th><td>2016-04-01 15:21:58</td></tr>
-                    <tr><th>失效时间</th><td>2016-04-01 15:21:58</td></tr>
+                    <tr><th>服务状态</th>
+                    	<td>
+                    		<span class="label label-success" data-bind="if: vmVO().isValidate == true">正常</span>
+                    		<span class="label label-danger" data-bind="ifnot: vmVO().isValidate == true">已过期</span>
+                    	</td>
+                    </tr>
+                    <tr><th>生效时间</th><td data-bind="text:vmVO().effectiveDate"></td></tr>
+                    <tr><th>失效时间</th><td data-bind="text:vmVO().expiryDate"></td></tr>
                   </table>
                 </div>
               </div>
@@ -255,8 +275,9 @@
 
         </div>
       </div>
+      
       <div class='tab-pane' id='instance_vm_tasks' role='tabpanel'>
-        <div class='table-responsive'>
+        <div class='table-responsive' data-bind="with: task_table">
           <table class='table table-striped'>
             <thead>
               <tr>
@@ -270,40 +291,55 @@
                 </tr>
             </thead>
             <tbody>
+	            <tr data-bind="visible: showNoData">
+	              <td colspan=14 class="aligncenter">
+	                This table has no data.
+	              </td>
+	            </tr>
+              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
               <tr>
-                <td>xxx</td>
-                <td>虚拟机备份</td>
-                <td>
-                  <div class="progress progress-xs">
-                      <div class="progress-bar progress-bar-info" data-toggle="tooltip" data-original-title="50%" style="width: 50%"></div>
-                  </div>                
+                <td data-bind="text: taskId"></td>
+                <td data-bind="text: taskName"></td>
+                <td data-bind="text: progress">
+                 <!--  <div class="progress progress-xs">
+                      <div class="progress-bar progress-bar-info" data-toggle="tooltip" data-bind="attr: { 'width': $row.progress+'%', 'data-original-title': $row.progress+'%'}"></div>
+                  </div>  -->     
                 </td>
-                <td><span class="label label-success">成功</span></td>
-                <td>admin</td>
-                <td>2016-06-30 17:32:32</td>
-                <td>2016-06-30 17:32:52</td>
+                <td>
+                	<span class="label label-success" data-bind="if: $row.state == 'completed'">成功</span>
+                	<span class="label label-warning" data-bind="if: $row.state == 'active'">进行中</span>
+                	<span class="label label-danger" data-bind="if: $row.state == 'completedAndError'">失败</span>
+                </td>
+                <td data-bind="text: user"></td>
+                <td data-bind="text: executeTime"></td>
+                <td data-bind="text: endTime"></td>
               </tr>
+              <!-- /ko -->
             </tbody>
           </table>
         </div>
-        <footer class='panel-footer'>
+        <footer class="panel-footer" data-bind="with: task_table, visible: task_table.pages() > 1">
           <ul class="pagination">
-            <li class="page active">
-              <a href="#pages/javascript:void(0)">1</a></li>
-            <li class="page">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">2</a></li>
-            <li class="next">
-              <a rel="next" href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">下页 &rsaquo;</a></li>
-            <li class="last">
-              <a href="#pages/http://localhost/instance_vms/1?locale=zh-CN&amp;page_instance_scripts=2">末页 &raquo;</a></li>
+            <li data-bind="css: leftPagerClass, click: prevPage">
+              <a href="#">&laquo;</a>
+            </li>
+            <!-- ko foreach: {data: (new Array(pages()))} -->
+            <li data-bind="css: $parent.pageClass($index() + 1)">
+              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+            </li>
+            <!-- /ko -->
+            <li data-bind="css: rightPagerClass, click: nextPage">
+              <a href="#">&raquo;</a>
+            </li>
           </ul>
         </footer>
       </div>
+      
     </div>
   </div>
 </div>
 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isConfig }">
+<div role="dialog" aria-hidden="true" id="alarmModal" class="modal fade" data-bind="modal: { show: isConfig }">
   <div class='modal-dialog modal-md'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -316,7 +352,7 @@
         <div class="text-dark">
             <div class="checkbox inline">
               <label class="i-checks">
-                <input type="checkbox" value="">
+                <input type="checkbox" value="cpu_util" name="checkbox" id="cpu_util" onclick="cpuCheckboxClick(this);">
                 <i></i>
               </label>
             </div>
@@ -326,14 +362,14 @@
            当CPU使用率超过
            <div class="inline v-middle">
              <div class="input-group w-xs">
-                 <input type="text" value="50" class="form-control input-sm" disabled="disabled">
+                 <input type="text" value="50" class="form-control input-sm" disabled="disabled" id="cpu_util_threshold">
                  <span class="input-group-addon">%</span>
               </div>
            </div>
           ，且持续时间超过
           <div class="inline v-middle">
               <div class="input-group w-xs">
-                 <input type="text" value="5" class="form-control input-sm" disabled="disabled">
+                 <input type="text" value="5" class="form-control input-sm" disabled="disabled" id="cpu_util_period">
                  <span class="input-group-addon">分钟</span>
               </div>
           </div>，触发告警     
@@ -342,50 +378,24 @@
         <div class="text-dark">
             <div class="checkbox inline">
               <label class="i-checks">
-                <input type="checkbox" value="">
+                <input type="checkbox" value="memory.resident" name="checkbox" id="memory_resident" onclick="cpuCheckboxClick(this);">
                 <i></i>
               </label>
             </div>
-            启用网络使用速率告警       
+            启用内存使用速告警       
         </div>
         <div class="m-t m-l-lg text-primary">
-           当网络使用率超过
+           当内存使用率超过
            <div class="inline v-middle">
              <div class="input-group w-xs">
-                 <input type="text" value="50" class="form-control input-sm" disabled="disabled">
-                 <span class="input-group-addon">kbps</span>
+                 <input type="text" value="50" class="form-control input-sm" disabled="disabled" id="memory_resident_threshold">
+                 <span class="input-group-addon">%</span>
               </div>
            </div>
           ，且持续时间超过
           <div class="inline v-middle">
               <div class="input-group w-xs">
-                 <input type="text" value="1" class="form-control input-sm" disabled="disabled">
-                 <span class="input-group-addon">分钟</span>
-              </div>
-          </div>，触发告警     
-        </div>
-
-        <div class="text-dark">
-            <div class="checkbox inline">
-              <label class="i-checks">
-                <input type="checkbox" value="">
-                <i></i>
-              </label>
-            </div>
-            启用磁盘使用速率告警       
-        </div>
-        <div class="m-t m-l-lg text-primary">
-           当磁盘使用率超过
-           <div class="inline v-middle">
-             <div class="input-group w-xs">
-                 <input type="text" value="1000" class="form-control input-sm" disabled="disabled">
-                 <span class="input-group-addon">KB/s</span>
-              </div>
-           </div>
-          ，且持续时间超过
-          <div class="inline v-middle">
-              <div class="input-group w-xs">
-                 <input type="text" value="1" class="form-control input-sm" disabled="disabled">
+                 <input type="text" value="1" class="form-control input-sm" disabled="disabled" id="memory_resident_period">
                  <span class="input-group-addon">分钟</span>
               </div>
           </div>，触发告警     
@@ -404,7 +414,7 @@
 
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn-info"  onclick="confirmBtn();">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
@@ -609,15 +619,50 @@
   </div>
 </div>
 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isVmAdjustment }">
+	<div class='modal-dialog modal-md'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>调整资源</h3>
+			</div>
+			<div class='modal-body form-horizontal row'>
+				<div class="form-group">
+                  <label class="col-sm-3 control-label">VCPU数：</label>
+                  <div class="col-sm-8">
+                    <input type="email" class="form-control" data-bind="value: adjustmentVO().vcpu">
+                  </div>
+                </div>
+				<div class="form-group">
+	                  <label class="col-sm-3 control-label">内存(GB)：</label>
+	                  <div class="col-sm-8">
+	                    <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
+	                  </div>
+				</div>
+			</div>
+			<div class='modal-footer' style="text-align:center;">
+	                <a class="btn btn-default btn-info" data-bind="click: adjust">确定</a>
+	                <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+			</div>
+		</div>
+	</div>
+</div>
+        
+        
+<div id="resource_instance_show_vm_console" style="display:none;"></div> 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	var vmUuid = args.vmUuid;
+	var vmId = args.vmId;
     function ViewModel(){
+      var self = this;
+    	
       this.isConfig = ko.observable(false);
       this.isInstall = ko.observable(false);
       this.isInstallVM = ko.observable(false);
       this.isUpdate = ko.observable(false);
+      this.isVmAdjustment = ko.observable(false);
 
       this.install = function(){
         this.isInstall(true);
@@ -637,6 +682,134 @@
       this.update = function(){
         this.isUpdate(true);
       };
+      
+      //获取云主机摘要
+      this.vmVO = ko.validatedObservable({});
+      
+      csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
+		  if(data){
+			  self.vmVO(data);
+		  }
+	  });
+      
+      //获取调度任务列表
+      
+      this.task_table = new DataTable([], {path: 'api/v5.0.0/tasks'});
+      this.searchParam = ko.observable({
+          targetId:vmId,
+          targetType:"VM"
+        })
+      this.task_table.params(this.searchParam());
+      
+      //--------------------------------操作开始---------------------------------
+      //控制台
+      this.console = function(){
+    	  csc.rest.get('api/v5.0.0/vms/'+self.vmVO().uuid+'/vmConsole',function(data){
+    		  if(data.consoleUrl){
+    			  var consoleUrl = data.consoleUrl;
+        		  //模拟点击
+        		  $("#resource_instance_show_vm_console").html("<a id='resource_instance_show_vm_console_a' href='"+consoleUrl+"' target='_blank'></a>");
+          		  $("#resource_instance_show_vm_console_a")[0].click();
+    		  }
+		  });
+      }
+      //启动
+      this.startOne = function(){
+    		systemMsg.confirm("确定要启动云主机 "+self.vmVO().name+"？",function(){
+    			var startPutBody = {"operationType":"START"};
+      			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('启动云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+      		});
+      }
+      //关闭
+      this.shutoffOne = function(){
+    	  systemMsg.confirm("确定要关闭云主机 "+self.vmVO().name+"？",function(){
+  			var startPutBody = {"operationType":"STOP"};
+    			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('关闭云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      //重启
+      this.restartOne = function(){
+    	  systemMsg.confirm("确定要重启云主机 "+self.vmVO().name+"？",function(){
+  			var startPutBody = {"operationType":"RESTART"};
+    			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      //强制重启
+      this.restartForceOne = function(){
+    	  systemMsg.confirm("确定要强制重启云主机 "+self.vmVO().name+"？",function(){
+  			var startPutBody = {"operationType":"FORCERESTART"};
+    			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('强制重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      //挂起
+      this.suspend = function(){
+    	  systemMsg.confirm("确定要挂起云主机 "+self.vmVO().name+"？",function(){
+  			var startPutBody = {"operationType":"SUSPEND"};
+    			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('挂起云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      //恢复（从挂起状态）
+      this.resume = function(){
+    	  systemMsg.confirm("确定要恢复云主机 "+self.vmVO().name+"？",function(){
+  			var startPutBody = {"operationType":"RESUME"};
+    			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
+			 		systemMsg.alert('恢复云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      //删除
+      this.removeOne = function(){
+    	  systemMsg.confirm("确定要删除云主机 "+self.vmVO().name+"？",function(){
+    			csc.rest.del('api/v5.0.0/vms/'+self.vmVO().uuid,function(data){
+			 		systemMsg.alert('删除云主机请求成功，调度任务ID：'+data.taskId+'！');
+			    });
+    		});
+      }
+      
+      //终止（服务实例）
+      this.pause = function(){
+
+      }
+      
+      //--------------------------------操作结束---------------------------------
+      
+      //------------------------------------------调整配置开始------------------------------
+      this.adjustmentVO = ko.validatedObservable({
+    	  vcpu: ko.observable(),
+    	  memory: ko.observable(),
+    	  vmUuid: ko.observable()
+      });
+      
+      this.vmAdjustment = function(){
+          self.isVmAdjustment(true);
+          self.adjustmentVO().vcpu(self.vmVO().vcpu);
+          self.adjustmentVO().memory(self.vmVO().memory);
+          self.adjustmentVO().vmUuid(self.vmVO().uuid);
+      };
+      
+      //调整资源
+      this.adjust = function(){
+    	  var putBody = {};
+    	  putBody.operationType = "RESIZE";
+    	  putBody.vcpu = self.adjustmentVO().vcpu();
+    	  putBody.memory = self.adjustmentVO().memory();
+    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
+		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
+		 		self.isVmAdjustment(false);
+		  });
+      }
+      //------------------------------------------调整配置结束------------------------------
+      
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
@@ -792,6 +965,75 @@
         }        
         ]
     });
-
+	
+	
   });
+  // 存放指标数据;
+  var jsonArray = new Array();
+  var meter ;
+  // 指标选中事件;
+  function cpuCheckboxClick(obj){
+     meter = $(obj).attr('id');
+    if($('#'+meter).prop("checked")){
+      $("#"+meter+"_threshold").removeAttr("disabled");
+      $("#"+meter+"_period").removeAttr("disabled");
+    }else{
+      $("#"+meter+"_threshold").attr("disabled","disabled");
+      $("#"+meter+"_period").attr("disabled","disabled");
+    }
+  };
+
+   //弹出窗弹出后执行回调方法，对弹出窗里面的内容进行初始化操作;
+  $("#alarmModal").on("shown.bs.modal", function(){
+    var vmUuid ="20160728"; // 指定云主机对应数据库id;此处测试默认1; 
+  $.ajax("api/v5.0.0/vms/"+vmUuid+"/configAlarm").done(function(data){
+      $.each(data,function(id,obj){
+        $("input:checkbox[name='checkbox']").each(function(){
+          if(obj.meter==$(this).attr('value') && obj.enable=='true'){
+            $(this).attr("checked","checked");  // checkbox选中;
+            meter = $(this).attr('id'); // 指标名称;
+            $("#"+meter+"_threshold").removeAttr("disabled");
+            $("#"+meter+"_period").removeAttr("disabled");
+          $("#"+meter+"_threshold").val(obj.threshold);
+          $("#"+meter+"_period").val(obj.period);
+          };
+        });
+      });
+    });
+  });
+  
+  // 确定按钮;
+  function confirmBtn() {
+    jsonArray = [];
+    $("input:checkbox[name='checkbox']:checked").each(function() {
+      meter = $(this).attr('id');  // 指标;
+      var obj = {
+        "meter"     : $(this).attr('value'),
+        "threshold" : $("#" + meter + "_threshold").val(),
+        "period"    : $("#" + meter + "_period").val(),
+        "enable"    : true
+      };
+      jsonArray.push(obj);
+    });
+    if(jsonArray.length!=0){// 异步提交信息;
+      var vmUUID ="20160728";
+        $.ajax({
+        type: 'PUT',
+        url: "api/v5.0.0/vms/"+vmUUID+"/configAlarm",
+        data: JSON.stringify(jsonArray),
+        dataType:'json',
+        success: function(data){
+          console.log(data);
+          systemMsg.alert("配置成功!");
+        // 关闭模态框窗口;
+        },
+        error: function(){
+          systemMsg.alert("配置时发生内部错误");
+        }
+      });
+    }else{
+      // 数组为空，提示重新选择;
+      systemMsg.alert("请配置告警信息");
+    }
+  }
 </script>

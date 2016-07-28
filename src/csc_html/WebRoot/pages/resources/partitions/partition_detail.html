@@ -264,15 +264,17 @@
 
         </div>
       </div>
-      <!-- 物理主机 -->
+      <!-- 物理主机Tab -->
       <div class='tab-pane' id='partition_hosts' role='tabpanel'>
         <div class='panel panel-default'>
-          <div id='resource_hosts'>
+        	<!-- 物理主机列表页面 -->
+          <div id='resource_hosts' data-bind="visible: !isShowDetail()">
+          	<!-- 搜索栏 -->
             <div class="row wrapper">
               <div class="col-xs-9">
-                <div class="input-group w-sm" data-bind="visible: false">
+                <div class="input-group w-sm" data-bind="visible: isCNware">
                   <span class="input-group-addon">状态</span>
-                  <select class="form-control input-sm">
+                  <select class="form-control input-sm" data-bind="value: searchParam().state">
                     <option value="0">运行中</option>
                     <option value="1">状态2</option>
                     <option value="2">状态3</option>
@@ -282,13 +284,14 @@
               </div>
               <div class="col-xs-3">
                 <div class="input-group">
-                  <input type="text" class="input-sm form-control" placeholder="请输入名称"  data-bind="value: searchParam().name">
+                  <input type="text" class="input-sm form-control" placeholder="请输入名称"  data-bind="value: searchParam().hostNameLike">
                   <span class="input-group-btn">
-                    <button class="btn btn-sm btn-default" type="button" data-bind="click: isCNware">搜索</button>
+                    <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
                   </span>
                 </div>
               </div>
-            </div>           
+            </div> 
+            <!-- 物理主机列表 -->          
             <div class='table-responsive'  data-bind="with: hostsTable">
               <table class='table table-striped table-hover'>
                 <thead>
@@ -296,8 +299,8 @@
                     <th>主机名称</th>
                     <th>IP地址</th>
                     <th>可用分区</th>
-                    <th data-bind="visible: false">状态</th>
-                    <th data-bind="visible: false">资源池</th>
+                    <th data-bind="visible: $root.isCNware">状态</th>
+                    <th data-bind="visible: $root.isCNware">资源池</th>
                     <th>cpu</th>
                     <th>内存</th>
                     <th>存储</th>
@@ -306,22 +309,22 @@
                 </thead>
                 <tbody>
                   <tr data-bind="visible: showNoData">
-		              <td colspan=4 class="aligncenter">
+		              <td colspan=7 class="aligncenter">
 		               	 暂无数据
 		              </td>
 		          </tr>
 		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
                     <td>
-                      <a href="#" onclick="$('#resource_host_detail').show().siblings().hide();"><span data-bind="text: $row.hostName"></span></a>
+                      <a href="#" data-bind="click: $root.showDetailFun"><span data-bind="text: $row.hostName"></span></a>
                     </td>
                     <td data-bind="text: $row.ip"></td>
                     <td data-bind="text: $row.cloudPlatform"></td>
                     <td data-bind="visible: false"><span class="label label-success" data-bind="text: $row.state">运行中</span></td>
                     <td data-bind="visible: false"></td>
-                    <td data-bind="text: $row.totalLogicalCpu">8颗</td>
-                    <td data-bind="text: $row.totalMemory">32GB</td>
-                    <td data-bind="text: $row.totalStorage">1024GB</td>
+                    <td data-bind="text: $row.totalLogicalCpu_"></td>
+                    <td data-bind="text: $row.totalMemory_"></td>
+                    <td data-bind="text: $row.totalStorage_"></td>
                     <td>
                       <a href="#" data-bind="visible: false">进入维护模式</a><!-- | -->
                       <div class="btn-group" data-bind="visible: false">
@@ -341,6 +344,7 @@
                 </tbody>
               </table>
             </div>
+            <!-- 物理主机分页控件 -->
             <footer class="panel-footer" data-bind="with: hostsTable, visible: hostsTable.pages() > 1">
 		        <ul class="pagination">
 		          <li data-bind="css: leftPagerClass, click: prevPage">
@@ -357,10 +361,10 @@
 		        </ul>
 		   </footer>
           </div>
-          <!-- 物理主机详情 -->
-          <div id="resource_host_detail" style="display: none">
+          <!-- 物理主机详情页面 -->
+          <div id="resource_host_detail"  data-bind="visible: isShowDetail()" >
             <div class="wrapper">
-              <button class="btn btn-sm btn-default" onclick="$('#resource_hosts').show().siblings().hide();"><i class="fa fa-arrow-left"></i> 返回</button>              
+              <button class="btn btn-sm btn-default" data-bind="click: $root.showDetailFun"><i class="fa fa-arrow-left"></i> 返回</button>              
             </div>        
             <div class="row wrapper">
               <div class="col-xs-3">
@@ -369,14 +373,13 @@
                   <div class="panel-body">
                     <table class="table table-properties">
                         <tbody>
-                          <tr><th>资源区/WHVS</th><td>Openstackserve01</td></tr>
-                          <tr><th>所属VDC</th><td>VDC1</td></tr>
-                          <tr><th>名称</th><td>Server01</td></tr>
+                          <tr><th>所属资源池</th><td data-bind="text: hostVo().resourcePoolName">resourcePoolName</td></tr>
+                          <!-- <tr><th>所属VDC</th><td>VDC1</td></tr> -->
+                          <tr><th>名称</th><td data-bind="text: hostVo().hostName"></td></tr>
                           <tr><th>虚拟机数</th><td>100台</td></tr>
-                          <tr><th>状态</th><td><span class="label label-success">运行中</span></td></tr>
-                          <tr><th>主机IP</th><td>192.168.1.1</td></tr>
-                          <tr><th>运行时长</th><td>1天20小时50分钟25秒</td></tr>
-                          <tr><th>维护模式</th><td>否</td></tr>
+                          <tr><th>状态</th><td data-bind="html: hostVo().state_"></td></tr>
+                          <tr><th>主机IP</th><td data-bind="text: hostVo().ip"></td></tr>
+                          <tr><th>运行时长</th><td data-bind="text: hostVo().runningTime"></td></tr>
                       </tbody>
                       </table>
                   </div>
@@ -388,12 +391,24 @@
                   <div class="panel-body">
                     <table class="table table-properties">
                         <tbody>
-                          <tr><th>CPU主频</th><td>2500MHz</td></tr>
-                          <tr><th>CPU型号</th><td>Inter(R) Xeon(R)</td></tr>
-                          <tr><th>供应商</th><td>GenuineIntel</td></tr>
-                          <tr><th>CPU颗数</th><td>2</td></tr>
-                          <tr><th>CPU逻辑单元数</th><td>2</td></tr>
-                          <tr><th>运行VCPU个数</th><td>2</td></tr>
+                          <tr>
+                          	<th>CPU主频</th><td data-bind="text: hostVo().totalCpu"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU型号</th><td data-bind="text: hostVo().model"></td>
+                          </tr>
+                          <tr>
+                          	<th>供应商</th><td data-bind="text: hostVo().vendor"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU颗数</th><td data-bind="text: hostVo().cpuNum"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU逻辑单元数</th><td data-bind="text: hostVo().totalLogicalCpu"></td>
+                          </tr>
+                          <tr>
+                          	<th>运行VCPU个数</th><td data-bind="text: hostVo().usedVcpu"></td>
+                          </tr>
                       </tbody>
                       </table>
                   </div>
@@ -1141,9 +1156,9 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
+  var scripts = ["api/resource/hosts/host.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-
+	  var azUuid = "461b37d4-4b37-45d2-82b0-10b057da255d";//args.azUuid;
 
     $('#resource_business_cutover_date').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
           {
@@ -1184,36 +1199,65 @@
           }
         );
     
-    //物理主机列表
-    
-    
-    
+    //物理主机ViewModel
     function HostListViewModel(){
     	var self = this;
+    	//是否显示详情页面    	
+    	self.isShowDetail = ko.observable(false);
     	
+    	//物理主机对象
+    	self.hostVo = ko.observable({});
+    	
+    	//显示物理主机详情页面
+    	self.showDetailFun = function(hostObj){
+    		self.isShowDetail(!self.isShowDetail());
+    		if(self.isShowDetail){
+    			self.hostVo(hostObj);
+    		}
+    		
+    	}
+    	//定义搜索参数
         self.searchParam = ko.observable({
+        	azUuid: azUuid,
           	state: "",
-          	name: ""
+          	hostNameLike: ""
         });
         
+    	//是否CNware云管理平台
         self.isCNware = function(){
-        	alert(self.searchParam().name);
-        };
+        	if("OpenStack"){
+        		return false;
+        	}
+        }();
+        
+        //alert(self.isCNware);
         
         self.hostsTable = new DataTable([], {
             perPage: 10,
-            path: 'api/v5.0.0/hosts',
+            path: 'api/v5.0.0/hosts?azUuid=' + azUuid,
             loader: function(result){
             	result.totalLogicalCpu_ = result.totalLogicalCpu + "颗";
+            	result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
+            	result.totalStorage_ = result.totalStorage + "GB";
             	
-            		
+            	if(!self.isCNware){
+            		result.resourcePoolName = "-";
+            		result.runningTime = "-";
+            		result.state_ = "-";
+          	  	}else{
+          	  		result.state_ = $.HOST._stateViews[result.state];
+          	  		result.state_= csc.util.isNull(result.state_)?"-":result.state_;
+          	  	}
+            	
                 return result;
             }
         });
-        
+        //搜索操作
         self.search = function(){
         	  var p = self.searchParam();
-        	  
+        	  if(!self.isCNware){
+        		  delete p.state;
+        	  }
         	  self.hostsTable.params(p);
         };
         

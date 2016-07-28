@@ -1,6 +1,7 @@
 <style>
   .ztree.release li a.curSelectedNode{background:none;color: #82939E;}
   .ztree.release li a:hover{border-color:#fff;background-color:#fff;}
+  .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9{padding-left:5px;padding-right:5px;}
 </style>
 <div class="app-content-full">
 	<div class="bg-light lter b-b wrapper-sm">
@@ -78,23 +79,23 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg" ></td>
+															<td class="v-middle text-lg" ><span data-bind="text:serviceName"></span></td>
 														</tr>
 														<tr>
 															<th>支持操作系统：</th>
-															<td>windows/linux/aix</td>
+															<td data-bind="text:osType"></td>
 														</tr>
 														<tr>
 															<th>配额限制：</th>
-															<td>限制配额</td>
+															<td data-bind="text:isLimitDesc"></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
-															<td>是</td>
+															<td data-bind="text:isFee"></td>
 														</tr>
 														<tr>
 															<th>服务介绍：</th>
-															<td>服务介绍文字。。</td>
+															<td data-bind="text:serviceDesc"></td>
 														</tr>
 													</tbody>
 												</table>
@@ -500,7 +501,33 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                "assets/lib/moment/moment.js",
                "assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    
+	  function changeDateFormat(){
+    	$('.applyDateFormat').val(moment().format('YYYY/MM/DD')).daterangepicker(
+    	   	      {
+    	   	        format:'YYYY/MM/DD',
+    	   	        startDate: moment(),
+    	   	        singleDatePicker:true,
+    	   	        endDate: moment(),
+    	   	        separator:'至',
+    	   	        locale:{
+    	   	          applyLabel: '确认',
+    	   	          cancelLabel: '取消',
+    	   	          fromLabel: '开始日期',
+    	   	          toLabel: '结束日期',
+    	   	          weekLabel: '周',
+    	   	          customRangeLabel: '自定义范围',                            
+    	   	          daysOfWeek:["日","一","二","三","四","五","六"],
+    	   	          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+    	   	        }
+    	   	      }
+    	   	    );		  
+	  }
+	  
+    $(".applyModeShow").on("shown.bs.modal",function(){
+    	changeDateFormat();
+    })
+   
+	  
     if(args.type){
     	//如果是普通用户清除产品列表
     	$("#productListBox").remove();
@@ -560,7 +587,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        });	        
 	    };
 	    
-	    this.azChangeGetVm = function(obj){
+	    this.azChangeGetVm = function(obj){	
 	    	var _self = this;
 	        csc.rest.get("api/v5.0.0/cart/getVmList/"+obj.vdcUuid()+"/"+obj.azUuid(), function(data){
 	        	_self.vmList(data);
@@ -580,6 +607,17 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        csc.rest.get("api/v5.0.0/cart/getNetworkList/1/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
 	        	_self.networkList(data);
 	        });
+	    }
+	    
+	    this.vmChangeGetDate = function(obj){
+	    	var _self = this;
+  			var vmItem = _.findWhere(_self.vmList(), {uuid: _self.mountVmUuid()});
+			if (typeof(vmItem) == "undefined") { 
+				_self.applyTime("");
+			}else{
+				_self.applyTime(vmItem.expiryDate);
+			}
+	    	
 	    }
 
 	    var billRoles = [{name:'按天',value:'1'},{name:'按月',value:'2'},{name:'按季度',value:'3'},{name:'按年',value:'4'}];
@@ -611,17 +649,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		this.addToCart = function(){
 			//console.log(this.model_LB.toJSON());
 			if(self.productType()=='3'){
-				if(this.model_Vdisk.isValid()){
-				 	 csc.rest.post('api/v5.0.0/cart',this.model_Vdisk.toJSON(),function(data){
+				if(self.model_Vdisk.isValid()){
+				 	 csc.rest.post('api/v5.0.0/cart',self.model_Vdisk.toJSON(),function(data){
 				 		systemMsg.alert('添加到购物车成功！');
-				 		self.isAdd_Vdisk(false);
+				 		self.isAdd_VdiskSingle(false);
+				 		self.isAdd_VdiskMore(false);
 				    }); 
 				}
 			}else if(self.productType()=='4'){
-				if(this.model_ObjectStorage.isValid()){
-				 	 csc.rest.post('api/v5.0.0/cart',this.model_ObjectStorage.toJSON(),function(data){
+				if(self.model_ObjectStorage.isValid()){
+				 	 csc.rest.post('api/v5.0.0/cart',self.model_ObjectStorage.toJSON(),function(data){
 				 		systemMsg.alert('添加到购物车成功！');
-				 		self.isAdd_ObjectStorage(false);
+				 		self.isAdd_ObjectStorageSingle(false);
+				 		self.isAdd_ObjectStorageMore(false);
 				    }); 
 				}
 			}else if(self.productType()=='5'){
@@ -649,12 +689,21 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				}
 			}
 			
-		}
+		}	       
+	    
 		//添加到购物车操作
 		this.addToOrder = function(){
 			if(self.productType()=='1'){
-				if(this.model_VDC.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_VDC.toJSON(),function(data){
+				var osTypeVdc="";
+				for(var i=0;i<self.model_VDC().vdcCartInfo().osTypesSelelct().length;i++){
+					osTypeVdc +=self.model_VDC().vdcCartInfo().osTypesSelelct()[i]+',';
+				}
+				osTypeVdc=osTypeVdc.substring(0,osTypeVdc.length-1);
+				self.model_VDC().vdcCartInfo().osTypes(osTypeVdc);
+				
+				if(self.model_VDC.isValid()){
+					console.log(self.model_VDC.toJSON());
+				 	 csc.rest.post('api/v5.0.0/order-apply/vdcs',self.model_VDC.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_VDC(false);
 				    }); 
@@ -667,17 +716,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				    }); 
 				}
 			}else if(self.productType()=='3'){
-				if(this.model_Vdisk.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_Vdisk.toJSON(),function(data){
+				if(self.model_Vdisk.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',self.model_Vdisk.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
-				 		self.isAdd_Vdisk(false);
+				 		self.isAdd_VdiskSingle(false);
+				 		self.isAdd_VdiskMore(false);
 				    }); 
 				}
 			}else if(self.productType()=='4'){
-				if(this.model_ObjectStorage.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_ObjectStorage.toJSON(),function(data){
+				if(self.model_ObjectStorage.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',self.model_ObjectStorage.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
-				 		self.isAdd_ObjectStorage(false);
+				 		self.isAdd_ObjectStorageSingle(false);
+				 		self.isAdd_ObjectStorageMore(false);
 				    }); 
 				}
 			}else if(self.productType()=='5'){
@@ -783,15 +834,37 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    //################## SSH密钥 end ##################
 	    
 	    //################## 云硬盘 start ##################
-	    this.isAdd_Vdisk = ko.observable(false);
+	    this.isAdd_VdiskSingle = ko.observable(false);
+	    this.isAdd_VdiskMore = ko.observable(false);
 	    this.add_Vdisk = function(){
-	    	self.isAdd_Vdisk(true);
+	    	self.isAdd_VdiskSingle(true);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
 	        	self.vdcList(data);
 	        });
 	        self.num_vdisk(0);
 	        self.num_vdisk(1);
 	    }
+	    
+	    this.changeList_Vdisk = function(){
+	    	self.isAdd_VdiskSingle(false);
+	    	self.isAdd_VdiskMore(true);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	        self.num_vdisk(0);
+	        self.num_vdisk(1);	    	
+	    }
+	    
+	    this.changeSingle_Vdisk = function(){
+	    	self.isAdd_VdiskSingle(true);
+	    	self.isAdd_VdiskMore(false);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	        self.num_vdisk(0);
+	        self.num_vdisk(1);	    	
+	    }
+	    
 	    this.num_vdisk = ko.observable().extend({max:20});
 	    
 	    this.model_Vdisk = ko.validatedObservable({
@@ -799,6 +872,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    });
 	    
 	    this.num_vdisk.subscribe(function(){
+	    	if(!self.num_vdisk.isValid()){
+	    		return;
+	    	}
 	    	self.model_Vdisk().vdiskCartInfo([]);
 	    	var num = self.num_vdisk();
         	for(var i=0; i<num; i++){
@@ -808,7 +884,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					size: ko.observable(""),
 					azUuid:ko.observable(""),
 					mountVmUuid: ko.observable(""),
+					remark:ko.observable(""),
 					billRuleUuid: ko.observable(""),
+					applyTime:ko.observable(""),
+					applyType:ko.observable("3"),
 					azList:ko.observableArray([]),
 					vmList:ko.observableArray([])
 	    		})
@@ -1048,9 +1127,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	   
 	    
 	    //################## 对象存储 start ##################
-	    this.isAdd_ObjectStorage = ko.observable(false);
+	    this.isAdd_ObjectStorageMore = ko.observable(false);
+	    this.isAdd_ObjectStorageSingle = ko.observable(false);
 	    this.add_ObjectStorage = function(){
-	    	self.isAdd_ObjectStorage(true);
+	    	self.isAdd_ObjectStorageSingle(true);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
 	        	self.vdcList(data);
 	        });
@@ -1064,7 +1144,30 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	objectStorageCartInfo: ko.observableArray([])
 	    });
 	    
+	    this.changeList_ObjectStorage = function(){
+	    	self.isAdd_ObjectStorageSingle(false);
+	    	self.isAdd_ObjectStorageMore(true);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_ObjectStorage(0);
+	    	self.num_ObjectStorage(1);	    	
+	    }
+	    
+	    this.changeSingle_ObjectStorageMore = function(){
+	    	self.isAdd_ObjectStorageSingle(true);
+	    	self.isAdd_ObjectStorageMore(false);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_ObjectStorage(0);
+	    	self.num_ObjectStorage(1);	    	
+	    }
+	    
 	    this.num_ObjectStorage.subscribe(function(){
+	    	if(!self.num_ObjectStorage.isValid()){
+	    		return;
+	    	}
 	    	self.model_ObjectStorage().objectStorageCartInfo([]);
 	    	var num = self.num_ObjectStorage();
 	    	for(var i=0; i<num; i++){
@@ -1072,25 +1175,25 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    			name: ko.observable("").extend({required:true}),
 					vdcUuid: ko.observable(""),
 					azUuid: ko.observable(""),
-					size: ko.observable("1"),
-					mountVmUuid: ko.observable(""),
+					size: ko.observable(""),
 					billRuleUuid: ko.observable(""),
 					applyType: ko.observable("1"),
 					applyNum: ko.observable(""),
-					applyTime: ko.observable("2016-07-18 20:02:22"),
+					applyTime: ko.observable(""),
+					remark:ko.observable(""),
 					azList:ko.observableArray([])
 	    		})
 	    	}	    
-	    	
-	    	
+	    	changeDateFormat();
 	    });
 	    this.table_ObjectStorage = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	  //################## 对象存储 end ##################
 	  
 	  //################## 公网IP start ##################
-	    this.isAdd_PublicNetwork = ko.observable(false);
+	    this.isAdd_PublicNetworkSingle = ko.observable(false);
+	    this.isAdd_PublicNetworkMore = ko.observable(false);
 	    this.add_PublicNetwork = function(){
-	    	self.isAdd_PublicNetwork(true);
+	    	self.isAdd_PublicNetworkSingle(true);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
 	        	self.vdcList(data);
 	        });
@@ -1104,6 +1207,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    });
 	    
 	    this.num_PublicNetwork.subscribe(function(){
+	    	if(!self.num_PublicNetwork.isValid()){
+	    		return;
+	    	}
 	    	self.model_PublicNetwork().publicNetworkCartInfo([]);
 	    	var num = self.num_PublicNetwork();
 	    	for(var i=0; i<num; i++){
@@ -1116,7 +1222,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					billRuleUuid: ko.observable(""),
 					applyType: ko.observable("1"),
 					applyNum: ko.observable(""),
-					applyTime: ko.observable("2016-07-18 20:02:22"),
+					applyTime: ko.observable(""),
 					azList:ko.observableArray([]),
 					vpcList:ko.observableArray([]),
 					networkList:ko.observableArray([])
@@ -1128,75 +1234,95 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	  //################## 公网IP end ##################
 	  
+	    this.osTypeArray = ko.observableArray([]);
 	  //################## VDC start ##################
 	    this.isAdd_VDC = ko.observable(false);
-	    this.add_VDC = function(){
-	    	self.isAdd_VDC(true);
-	    	self.productType(1);
+	    this.add_VDC = function(obj){
+	    	initVdc();
+	    	var serviceUuid = obj.serviceUuid;
+	    	self.model_VDC().vdcCartInfo().serviceUuid(serviceUuid);
+	        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){//需修改为服务UUID作为参数传递
+	        	console.log(data);
+		    	self.isAdd_VDC(true);
+		    	self.productType(1);
+		    	console.log(data.serviceVDC.osType);
+		    	var osType = data.serviceVDC.osType;
+		    	var isLimit = data.serviceVDC.isLimit;
+		    	
+		    	if(data.charge==1){
+		    		self.model_VDC().vdcCartInfo().charge("NO");
+		    	}else{
+		    		self.model_VDC().vdcCartInfo().charge("YES");
+		    	}
+		    	if(isLimit=="no"){
+		    		self.model_VDC().vdcCartInfo().quota("-1");
+		    	}else{
+		    		self.model_VDC().vdcCartInfo().quota("1");
+		 	    	self.model_VDC().vdcCartInfo().cpu(data.serviceVDC.maxCpu);
+		 	    	self.model_VDC().vdcCartInfo().memory(data.serviceVDC.maxMemory);
+		 	    	self.model_VDC().vdcCartInfo().storage(data.serviceVDC.maxStorager);
+		 	    	self.model_VDC().vdcCartInfo().vpcNum(data.serviceVDC.maxVPC);
+		 	    	self.model_VDC().vdcCartInfo().vm(data.serviceVDC.maxVmNum);
+		 	    	self.model_VDC().vdcCartInfo().disk(data.serviceVDC.maxDiskNum);
+		 	    	self.model_VDC().vdcCartInfo().publicIp(data.serviceVDC.maxIpNum);
+		 	    	self.model_VDC().vdcCartInfo().router(data.serviceVDC.maxRouterNum);
+		 	    	self.model_VDC().vdcCartInfo().fireWall(data.serviceVDC.maxFireWallNum);
+		 	    	self.model_VDC().vdcCartInfo().secretKey(data.serviceVDC.maxSSHNum);
+		 	    	self.model_VDC().vdcCartInfo().objectStorage(data.serviceVDC.maxObjStorageNum);
+		 	    	self.model_VDC().vdcCartInfo().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
+		    	}
+		    	
+		    	self.osTypeArray(getArrayByOsType(osType));
+
+	        });	    	
 	    }
-	  
-	   	
-	    this.model_VDC = ko.validatedObservable({
-	    	vdcCartInfo:ko.observable({
-				name: ko.observable("111"),
-				osTypes : ko.observableArray(["windows","aix","linux"]),
-				cpu: ko.observable("6"),
-				memory:ko.observable("1"),
-				storage: ko.observable("2"),
-				vm: ko.observable("3"),
-				disk: ko.observable("4"),
-				objectStorage: ko.observable("5"),
-				vpcNum:ko.observable("7"),
-				router: ko.observable("6"),
-				fireWall: ko.observable("7"),
-				publicIp: ko.observable("8"),
-				loadBalancer: ko.observable("9"),
-				secretKey: ko.observable("10"),
-				billRuleUuid: ko.observable(""),
-				applyType: ko.observable("1"),
-				applyNum: ko.observable(""),
-				applyTime: ko.observable("2016-07-18 20:02:22")                                  
-	    	})
-	    });
-	   /* this.num_PublicNetwork.subscribe(function(){
-	    	self.model_PublicNetwork().publicNetworkCartInfo([]);
-    		self.model_PublicNetwork().publicNetworkCartInfo.push({
-    			name: ko.observable("").extend({required:true}),
-				vdcUuid: ko.observable(""),
-				vpcUuid: ko.observable(""),
-				workip: ko.observable(""),
-				billRuleUuid: ko.observable(""),
-				applyType: ko.observable("1"),
-				applyNum: ko.observable(""),
-				applyTime: ko.observable("2016-07-18 20:02:22")
-    		})
-	    });
-	    this.model_VDC = ko.validatedObservable({
-	    	name: ko.observable("").extend({required:true}),
-			osTypes: ko.observable(""),
-			cpu: ko.observable("6"),
-			memory: ko.observable("1"),
-			storage: ko.observable("2"),
-			vm: ko.observable("3"),
-			disk: ko.observable("4"),
-			objectStorage: ko.observable("5"),
-			vpcNum:ko.observable("7"),
-			router: ko.observable("6"),
-			fireWall: ko.observable("7"),
-			publicIp: ko.observable("8"),
-			loadBalancer: ko.observable("9"),
-			secretKey: ko.observable("10"),
-			billRuleUuid: ko.observable(""),
-			applyType: ko.observable("1"),
-			applyNum: ko.observable(""),
-			applyTime: ko.observable("2016-07-18 20:02:22")
-	    });*/
-	    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+	  	
+	  	function getArrayByOsType(type){
+	  		var a = type.split(',');
+	  		return a;
+	  	}
+	  	
+	  	this.model_VDC = ko.validatedObservable();
+	  	function initVdc(){
+	  		self.model_VDC = ko.validatedObservable({
+		    	vdcCartInfo:ko.observable({
+		    		serviceUuid:ko.observable(""),
+					name: ko.observable(""),
+					charge:ko.observable(""),
+					osTypes : ko.observable(""),
+					osTypesSelelct:ko.observableArray([]),
+					quota:ko.observable("-1"),
+					cpu: ko.observable(""),
+					memory:ko.observable(""),
+					storage: ko.observable(""),
+					vm: ko.observable(""),
+					disk: ko.observable(""),
+					objectStorage: ko.observable(""),
+					vpcNum:ko.observable(""),
+					router: ko.observable(""),
+					fireWall: ko.observable(""),
+					publicIp: ko.observable(""),
+					loadBalancer: ko.observable(""),
+					secretKey: ko.observable(""),
+					remark:ko.observable(""),
+					billRuleUuid: ko.observable(""),
+					applyType: ko.observable("1"),
+					applyNum: ko.observable(""),
+					applyTime: ko.observable("")                                  
+		    	})
+		    });
+	  	}
+	    
+	    //this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
+	    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 	  //################## VDC end ##################
     }
     
 
 	ko.applyBindings(new ViewModel, $('#page-content')[0]); 
+	
+	
+
   });
   
 </script>
@@ -1337,14 +1463,104 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
   </div>
 </div>
 <!-- SSH密钥 end -->
-<!-- 云硬盘 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Vdisk }">
+<!-- 云硬盘单个 -->
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_VdiskSingle }">
+  <div class='modal-dialog modal-lg' data-bind="foreach: model_Vdisk().vdiskCartInfo">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请云硬盘服务</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_Vdisk">批量申请</a>
+        </div>
+        
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">云硬盘名称：</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control w" data-bind="value: name">
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">存储大小(GB)：</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control w" data-bind="value: size">
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">所属VDC：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">可用分区：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVm},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">挂载云主机：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm"  data-bind="options:vmList,optionsText:'resourceName',optionsValue:'uuid',value:mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">备注：</label>
+              <div class="col-sm-8">
+                <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">申请时长：</label>
+              <label class="col-xs-2 control-label">有效期至 </label>
+              <div class="col-xs-6"><input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}"></div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">套餐：</label>
+              <div class="col-sm-3">
+				   <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+              </div>
+              <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+            </div>
+
+          </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-info" data-bind="click: $root.addToCart">添加到购物车</a>
+        <a class="btn btn-success" data-dismiss="modal" data-bind="click: $root.addToOrder">提交订单</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 云硬盘单个 -->
+<!-- 云硬盘多个 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VdiskMore }">
   <div class='modal-dialog modal-lg' role='document'>
     <div class='modal-content'>
       <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请云硬盘</h3>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请云硬盘服务</h3>
       </div>
       <div class='modal-body form-horizontal'>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_Vdisk">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -1360,6 +1576,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>所属VDC<i style="color:red">*</i></th>
               <th>可用分区<i style="color:red">*</i></th>
               <th>挂载云主机</th>
+              <th>申请时长</th>
               <th>套餐</th>
               <th>收费标准</th>
             </thead>
@@ -1372,16 +1589,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						data-bind="value: size">
 					</td>
 					<td>
-					<select class="form-control input-sm" id="vdiskVdc" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}"></select>
+					    <select class="form-control input-sm" id="vdiskVdc" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}"></select>
 					</td>
 					<td>
-					<select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVm},optionsCaption:'请选择'"></select>
+					    <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVm},optionsCaption:'请选择'"></select>
 					</td>
 					<td>
-					<select class="form-control input-sm"  data-bind="options:vmList,optionsText:'resourceName',optionsValue:'uuid',value:mountVmUuid,optionsCaption:'请选择'"></select>
+					    <select class="form-control input-sm"  data-bind="options:vmList,optionsText:'resourceName',optionsValue:'uuid',value:mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'"></select>
 					</td>
 					<td>
-					<select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+						<input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}">
+					</td>
+					<td>
+					    <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
 					</td>
 					<td>0.5元/小时</td>
 				</tr>
@@ -1398,7 +1618,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- 云硬盘 -->
+<!-- 云硬盘多个 -->
 
 <!-- 云主机 -->
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VM }">
@@ -1670,14 +1890,116 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	</div>
 </div>
 <!-- 云主机 -->
-<!-- 对象存储 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_ObjectStorage }">
+<!-- 对象存储单个 -->
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageSingle }">
+  <div class='modal-dialog modal-lg' data-bind="foreach: model_ObjectStorage().objectStorageCartInfo">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请对象存储服务</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+          <a class="btn btn-default pull-right" data-bind="click: $root.changeList_ObjectStorage">批量申请</a>
+        </div>
+        
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">对象存储名称：</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control w" data-bind="value: name">
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">存储大小(GB)：</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control w" data-bind="value: size">
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">所属VDC：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">可用分区：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">备注：</label>
+              <div class="col-sm-8">
+                <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">申请时长：</label>
+              <div class="col-sm-8">
+                <div class="radio">
+                  <label class="form-inline">
+                    <input type="radio" value="1" data-bind="checked: applyType,name:objectSingle" > 永久
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="form-inline">
+                  	<input type="radio" class="form-control" style="top:2px;" value="2" data-bind="checked: applyType,name:objectSingle" > 
+                    <select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="form-inline">
+                    <input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: objectSingle"> 
+                    <span class="">有效期至 </span>
+                    <input type="text" style="width:126px" data-bind="value:applyTime" class="form-control applyDateFormat">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">套餐：</label>
+              <div class="col-sm-3">
+				 <select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+              </div>
+              <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+            </div>
+
+          </div>
+          
+
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-info" data-bind="click: $root.addToCart">添加到购物车</a>
+        <a class="btn btn-success" data-dismiss="modal" data-bind="click: $root.addToOrder">提交订单</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 对象存储单个 -->
+<!-- 对象存储多个 -->
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageMore }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请对象存储</h3>
       </div>
       <div class='modal-body form-horizontal'>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_ObjectStorageMore">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -1701,8 +2023,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                     <td><span data-bind="text: ($index()+1)"></span></td>
 					<td><input type="text" class="form-control input-sm" data-bind="value: name"></td>
 					<td><input type="text" class="form-control input-sm" data-bind="value: size"></td>
-					<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange}"></select></td>
-					<td><select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid"></select></td>
+					<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select></td>
+					<td><select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,optionsCaption:'请选择'"></select></td>
 					<td>
 						<div class="radio">
 							<label class="form-inline"> <input type="radio"
@@ -1720,7 +2042,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							<label class="form-inline"> <input type="radio"
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
-								style="width: 206px" class="form-control"
+								style="width: 206px" class="form-control applyDateFormat"
 								id="applyServiceBalancingBox_daterange'+i+'">
 							</label>
 						</div>
@@ -1741,9 +2063,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- 对象存储 -->
-<!-- 公网IP -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetwork }">
+<!-- 对象存储多个 -->
+
+<!-- 公网IP多个 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetworkMore }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -1815,9 +2138,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- 公网IP -->
+<!-- 公网IP多个 -->
 <!-- VDC -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VDC }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VDC }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -1832,122 +2155,137 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
         </div>
         <div class="form-group">
           <label class="col-sm-3 control-label">支持操作系统：</label>
-            <div class="col-sm-8 form-inline">
+            <div class="col-sm-8 form-inline" data-bind="foreach:osTypeArray">
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" value="windows" data-bind="checked: model_VDC().vdcCartInfo().osTypes"> windows
-                </label>
-              </div>
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" value="linux" data-bind="checked: model_VDC().vdcCartInfo().osTypes"> linux
-                </label>
-              </div>
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" value="aix" data-bind="checked: model_VDC().vdcCartInfo().osTypes"> aix
+                  <input type="checkbox" data-bind="checked: $parent.model_VDC().vdcCartInfo().osTypesSelelct,value:$data"><span data-bind="text:$data"></span>
                 </label>
               </div>
             </div>
+        </div>     
+        <div class="form-group">
+        	<label class="col-sm-3 control-label">配额限制：</label>
+        	<div class="col-xs-4 form-inline">
+        	<div class="form-inline"> 
+        	<div class="radio"> 
+        		<label class="form-inline"> 
+					<input type="radio" class="form-control" style="top: 2px;" value="1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">限制
+				</label>
+			</div> 
+        	<div class="radio"> 
+        		<label class="form-inline"> 
+					<input type="radio" class="form-control" style="top: 2px;" value="-1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">不限制
+				</label>
+			</div>			
+			</div>
+			</div>
         </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">CPU配额(个)：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().cpu">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">内存配额(G)：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().memory">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">存储配额(G)：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().storage">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">云主机最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vm">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">云硬盘最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().disk">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">对象存储最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().objectStorage">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">VPC最大可创建数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vpcNum">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">路由器最大可创建数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().router">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">防火墙最大可创建数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().fireWall">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">公网IP最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().publicIp">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">负载均衡器最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().loadBalancer">
-            </div>
-          </div>
-        </div>
-        <div class="form-group col-sm-4">
-          <div >
-            <label class="col-xs-8 control-label">SSH密钥最大申请数：</label>
-            <div class="col-xs-4">
-              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().secretKey">
-            </div>
-          </div>
+        <div data-bind="visible:model_VDC().vdcCartInfo().quota()=='1'">
+	        <div class="form-group col-sm-4" >
+	          <div >
+	            <label class="col-xs-8 control-label">CPU配额(个)：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().cpu,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">内存配额(G)：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().memory,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">存储配额(G)：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().storage,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">云主机最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vm,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">云硬盘最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().disk,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">对象存储最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().objectStorage,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">VPC最大可创建数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vpcNum,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">路由器最大可创建数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().router,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">防火墙最大可创建数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().fireWall,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">公网IP最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().publicIp,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">负载均衡器最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().loadBalancer,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
+	        <div class="form-group col-sm-4">
+	          <div >
+	            <label class="col-xs-8 control-label">SSH密钥最大申请数：</label>
+	            <div class="col-xs-4">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().secretKey,attr:{disabled:true}">
+	            </div>
+	          </div>
+	        </div>
         </div>
         <div class="clearfix"></div>
-        
+        <div class="form-group">
+          <label class="col-sm-3 control-label">备注：</label>
+          <div class="col-sm-8">
+            <textarea class="form-control" cols="30" rows="5" data-bind="value:model_VDC().vdcCartInfo().remark"></textarea>
+          </div>
+        </div>
+          <div class="clearfix"></div>
         <div class="form-group">
           <label class="col-sm-3 control-label">申请时长：</label>
 			<div class="col-sm-8">
@@ -1965,13 +2303,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			<div class="radio disabled">
 				<label class="form-inline"> 
 					<input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: model_VDC().vdcCartInfo().applyType,name:vdcRadio"> 
-					<input type="text" style="width: 206px" class="form-control">
+					<input type="text" style="width: 206px" class="form-control applyDateFormat" data-bind="value:model_VDC().vdcCartInfo().applyTime">
 				</label>
 			</div>
 			</div>
         </div>
-        <div class="form-group">
-          <div >
+        <div class="form-group" data-bind="visible:model_VDC().vdcCartInfo().charge()=='YES'">
+          <div>
             <label class="col-sm-3 control-label">套餐：</label>
             <div class="col-sm-2">
 				<select class="form-control"  data-bind="options:billRoleList,optionsText:'name',optionsValue:'value',value:model_VDC().vdcCartInfo().billRuleUuid"></select>
