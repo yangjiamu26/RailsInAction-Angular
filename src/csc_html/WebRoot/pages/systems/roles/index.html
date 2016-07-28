@@ -9,7 +9,7 @@
   <div class="panel panel-default">
     <div class="row wrapper">
       <div class="col-xs-8">
-        <button class="btn btn-sm btn-primary" data-bind="click: add">创建</button>
+        <button class="btn btn-sm btn-primary" data-bind="click: showAddPage">创建</button>
       </div>
       <div class="col-xs-3">
         <div class="input-group">
@@ -21,14 +21,14 @@
         <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>        
     </div>
-    <div class="table-responsive" data-bind="with: table">
+    <div class="table-responsive" data-bind="with: roleTable">
       <table class="table table-striped">
         <thead>
           <tr>
             <th>ID</th>
             <th>角色名称</th>
             <th>角色说明</th>
-            <th>创建用户</th>
+           <!--  <th>创建用户</th> -->
             <th>创建时间</th>
             <th>操作</th></tr>
         </thead>
@@ -40,18 +40,19 @@
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td>1</td>
-            <td>测试</td>
-            <td>自定义角色</td>
-            <td>范冰冰</td>
-            <td>2016-06-21 19:05:58</td>
-            <td><a href="#pages/systems/roles/users">用户</a> | <a href="#pages/systems/roles/authorization" >权限</a> | <a data-bind="click: $root.edit">修改</a> | <a data-bind="click: $root.remove">删除</a></td>
+            <td data-bind="text: $row.roleId"></td>
+            <td data-bind="text: $row.name"></td>
+            <td data-bind="text: $row.desc"></td>
+            <!-- <td>范冰冰</td> -->
+            <td data-bind="text: $row.createTime"></td>
+            <td><a href="#pages/systems/roles/users">用户</a> | <a href="#pages/systems/roles/authorization" >权限</a> | <a data-bind="click: $root.showEditPage">修改</a> | <a data-bind="click: $root.remove">删除</a></td>
           </tr>
           <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+    <!-- 分页 -->
+    <footer class="panel-footer" data-bind="with: roleTable, visible: roleTable.pages() > 1">
       <ul class="pagination">
         <li data-bind="css: leftPagerClass, click: prevPage">
           <a href="#">&laquo;</a>
@@ -69,20 +70,20 @@
   </div>      
 </div>
 
-
+<!-- 新增修改页面 -->
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
   <div class='modal-dialog'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title' data-bind="ifnot: currentVO().id">新增角色</h3>
-        <h3 class='modal-title' data-bind="if: currentVO().id">修改角色</h3>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().uuid">新增角色</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().uuid">修改角色</h3>
       </div>
       <div class='modal-body form-horizontal row'>
         <div class="form-group">
           <label class="col-xs-3 control-label">角色名称</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control">
+            <input type="text" class="form-control" data-bind="value: currentVO().name">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -91,13 +92,13 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">角色说明</label>
           <div class="col-xs-8">
-            <textarea name="" id="" cols="30" rows="4" class="form-control"></textarea>
+            <textarea name="" id="" cols="30" rows="4" class="form-control" data-bind="value: currentVO().desc"></textarea>
           </div>
         </div>
         
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn-info" data-bind="click: okBtnFun">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
@@ -106,50 +107,113 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    function ViewModel(){
-      this.isAdd = ko.observable(false);
 
-      this.currentVO = ko.observable({});
+	var scripts = [ null, "api/systems/role/role.js" ]
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
-      var self = this;
-      this.add = function(){
-        this.currentVO({
-          id: null
-        });
+		function RoleViewModel() {
+			var self = this;
+			self.isAdd = ko.observable(false);
 
-        self.isAdd(true);
-      }
-      
-      this.edit = function(object, event){
-        console.log(object)
-        self.currentVO(object);
-        
-        self.isAdd(true);        
-      }
-      this.save = function(){
-        console.log(this.currentVO())
-        this.isAdd(false);
-        this.table.refreshData();
-      }
+			self.currentVO = ko.observable({});
+			self.oldVO = ko.observable({});
 
-      this.remove = function(){
-        console.log(this.table.chosenItems())
-        this.table.refreshData();
-      }
+			//显示添加页面
+			self.showAddPage = function() {
+				self.currentVO({
+					uuid : "",
+					name : "",
+					desc : ""
+				});
+				self.isAdd(true);
+			}
+			//创建角色
+			self.createRole = function(currentVO) {
+				params = {
+					name : currentVO.name,
+					desc : currentVO.desc
+				};
+				$.ROLE.createRole(params, function(data) {
+					self.isAdd(false);
+					self.roleTable.refreshData();
+					alert("创建角色成功！");
+				});
+			}
+			//显示编辑角色页面
+			self.showEditPage = function(object, event) {
+				self.oldVO({
+					name: object.name,
+					desc: object.desc
+				});
+				self.currentVO(object);
+				
+				self.isAdd(true);
+			}
+			//判断角色是否已修改
+			self.isChanged = function(o1, o2){
+				if(o1.name == o2.name.trim() && o1.desc == o2.desc.trim()){
+					return false;
+				}else{
+					return true;
+				}
+			}
+			//修改角色信息
+			self.editRole = function(currentVO) {
+				if(self.isChanged(self.oldVO(), currentVO)){
+					params = {
+							name : currentVO.name.trim(),
+							desc : currentVO.desc.trim()
+						};
+						$.ROLE.updateRole(currentVO.uuid, params, function(data) {
+							self.isAdd(false);
+							self.roleTable.refreshData();
+							alert("修改角色成功！");
+						});
+				}else{
+					self.isAdd(false);
+				}
+			}
 
-      this.searchParam = ko.observable({
-        name: ""
-      })
-      this.search = function(){
-        this.table.params(this.searchParam());
-      }
+			//确定按钮
+			self.okBtnFun = function(object) {
+				//如果id为空，则新增
+				if (csc.util.isNull(self.currentVO().uuid)) {
+					self.createRole(self.currentVO());
+					//修改
+				} else {
+					self.editRole(self.currentVO());
+				}
 
-      this.table = new DataTable([], {path: 'pages/systems/roles/index.json'});
-    }
+			}
+			//删除角色
+			self.remove = function(roleObj) {
+				var name = roleObj.name;
+    			confirm("确定删除角色[" + name + "]？", function(arg){
+    				$.ROLE.delRole(roleObj.uuid, function(data){
+    					  self.roleTable.refreshData();
+    					  alert("删除角色["+name+"]成功！")
+           			});
+    			 });
+			}
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+			self.searchParam = ko.observable({
+				name : ""
+			})
+			self.search = function() {
+				self.roleTable.params(self.searchParam());
+			}
 
-  });
+			self.roleTable = new DataTable({
+				perPage : 10,
+				path : 'api/v5.0.0/roles',
+				loader : function(result) {
+
+					return result;
+				}
+			});
+		}
+
+		ko.applyBindings(new RoleViewModel(), $('#page-content')[0]);
+
+	});
 </script>

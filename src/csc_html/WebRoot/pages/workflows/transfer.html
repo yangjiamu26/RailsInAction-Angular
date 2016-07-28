@@ -5,11 +5,10 @@
                 <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <h3 class='modal-title'>转交下一步</h3>
+                <h3 class='modal-title'>转发任务</h3>
             </div>
             <div class='modal-body'>
                 <div class="form-horizontal">
-                    <h5>下一节点：配额审批</h5>
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -38,48 +37,17 @@
                 </div>
             </div>
             <div class='modal-footer'>
-                <button name="button"  class="btn btn-info" data-dismiss="modal" onclick="submitNext()">确定</button>
+                <button name="button"  class="btn btn-info" data-dismiss="modal">确定</button>
                 <button name="button"  class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
 </form>
 
+<!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
-  var taskId = "";
+  var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	  taskId = args.taskId;
-	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-   		var activity = data.taskActivity[0];
-   		
-   		if(activity.outgoings!=''){
-		  var outgoings = activity.outgoings;
-		  var firstNode;
-		  if(outgoings.length>0){
-			  firstNode = outgoings[0].id;
-		  }
-		  
-		  loadUsers(taskId,firstNode);
-		}
-      },function(){alert('获取任务失败！')});
+    //inline scripts related to this page
   });
-  
-  function loadUsers(taskId,activityId){
-	csc.rest.get('api/v5.0.0/workflows/tasks/'+taskId+'/activity/outgings/'+activityId+'/identitylinks',function(data){
-  		console.log(data);
-  	},function(){/* alert('获取用户失败！') */});
-  }
-  
-  function submitNext(){
-	  var userId = $("input:radio:checked").val();
-	  saveComment(taskId,function(){
-		var databody = {"userId":userId,"action":"designated"};
-		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
-		  alert("审核成功！");
-		  location.href = "#pages/workflows/tasks1?type=work";
-		},function(){alert("操作失败！")});
-	  });
-  }
-  
 </script>

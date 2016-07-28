@@ -40,13 +40,14 @@
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务名称：</label>
                 <div class="col-xs-7">
-                  <input type="text" class="form-control" placeholder="请输入名称">
+                  <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name">
                 </div>
               </div>
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务目录：</label>
                 <div class="col-xs-7">
-                  <input type="text" id="selectDir" class="form-control" placeholder="请选择服务目录"><input type="hidden" id="dirUuid" />
+                  <input type="text" id="selectDir" class="form-control" placeholder="请选择服务目录" data-bind="value: serviceVO().dirName">
+                  <input type="hidden" id="dirUuid" data-bind="value: serviceVO().dirUUID" />
                 </div>
               </div>
               <div id="dirContent"
@@ -58,7 +59,7 @@
               <div class="form-group">
                 <label class="col-xs-3 control-label">产品：</label>
                 <div class="col-xs-7">
-                  <select class="form-control" data-bind="value: selected_product, event:{'change':changeValue}">
+                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
                     <option value="vdc">VDC</option>
                     <option value="vm">云主机</option>
                     <option value="ssh">SSH密钥</option>
@@ -73,8 +74,8 @@
                 <label class="col-xs-3 control-label">服务图标：</label>
                 <div class="col-xs-7">
                   <div class="service-img-box" data-bind="click: changeImg">
-                    <img src="" alt="" width="60" height="60">
-                    <a>更改图标</a>
+                    <img src="" alt="" width="60" height="60" >
+                    <a data-bind="value: serviceVO().imageUrl">更改图标</a>
                   </div>
                 </div>
               </div>
@@ -104,7 +105,7 @@
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务介绍：</label>
                 <div class="col-xs-7">
-                  <textarea class="form-control" cols="30" rows="3"></textarea>
+                  <textarea class="form-control" cols="30" rows="3" data-bind="value: serviceVO().desc"></textarea>
                 </div>
               </div>
               <div class="form-group">
@@ -112,19 +113,22 @@
                 <div class="col-xs-7">
                   <div class="radio">
                     <label class="form-inline">
-                      <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked> 永久
+                      <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked data-bind="checked: serviceVO().validTimeType"> 永久
                     </label>
                   </div>
                   <div class="radio">
                     <label class="form-inline">
-                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="option2"> 
-                      <select class="form-control"><option value="1">1</option><option value="1">2</option></select> 个月
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType"> 
+                      <select class="form-control" data-bind="value: serviceVO().validTimeNum">
+                      <option value="1">1</option>
+                      <option value="1">2</option>
+                      </select> 个月
                     </label>
                   </div>
                   <div class="radio disabled">
                     <label class="form-inline">
-                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="option3">
-                      <input type="text" style="width:206px" class="form-control" id="addServer_daterange">
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: serviceVO().validTimeType">
+                      <input type="text" style="width:206px" class="form-control" id="addServer_daterange" data-bind="value: serviceVO().rangeTime">
                     </label>
                   </div>
                 </div>
@@ -387,24 +391,17 @@
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 全选
+                      <input type="checkbox" value="" > 全选
                     </label>
                   </div>
-                  <div class="checkbox">
+                  <!-- ko foreach: osList -->
+                  <div class="checkbox" data-bind="">
                     <label>
-                      <input type="checkbox" value=""> windows
+                      <input type="checkbox" data-bind="value: value,checked: $root.serviceVO().serviceVDC.osTypeList"> <span data-bind="text:value"></span>
                     </label>
                   </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> linux
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> aix
-                    </label>
-                  </div>
+                  <!-- /ko -->
+
                 </div>
               </div>
               <div class="form-group">
@@ -429,7 +426,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大CPU(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxCpu">
                     </div>
                   </div>
                 </div>
@@ -437,7 +434,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大云主机数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVmNum">
                     </div>
                   </div>
                 </div>
@@ -445,7 +442,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大内存(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxMemory">
                     </div>
                   </div>
                 </div>
@@ -453,7 +450,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大云硬盘数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxDiskNum">
                     </div>
                   </div>
                 </div>
@@ -461,7 +458,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大存储(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxStorager">
                     </div>
                   </div>
                 </div>
@@ -469,7 +466,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大公网IP数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxIpNum">
                     </div>
                   </div>
                 </div>
@@ -477,7 +474,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大VPC(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVPC">
                     </div>
                   </div>
                 </div>
@@ -485,7 +482,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大路由器数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxRouterNum">
                     </div>
                   </div>
                 </div>
@@ -493,7 +490,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大对象存储(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxObjStorageNum">
                     </div>
                   </div>
                 </div>
@@ -501,7 +498,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大防火墙数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxFireWallNum">
                     </div>
                   </div>
                 </div>
@@ -509,7 +506,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大SSH密钥数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSSHNum">
                     </div>
                   </div>
                 </div>
@@ -517,7 +514,7 @@
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大负载均衡数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" >
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum">
                     </div>
                   </div>
                 </div>
@@ -686,42 +683,38 @@
                 <div class="col-xs-9 form-inline">
                   <div class="radio">
                     <label>
-                      <input type="radio" name="optionsRadios2" id="optionsRadios21" value="option1" checked> 是
+                      <input type="radio" name="optionsRadios2" id="optionsRadios21" value="0" checked data-bind="checked: isFee"> 是
                     </label>
                   </div>
                   <div class="radio">
                     <label>
-                      <input type="radio" name="optionsRadios2" id="optionsRadios22" value="option2" checked> 否
+                      <input type="radio" name="optionsRadios2" id="optionsRadios22" value="1" checked data-bind="checked: isFee"> 否
                     </label>
                   </div>
                 </div>
               </div>
-              <div class="form-group">
+              <div class="form-group" data-bind="visible:isFee()=='0'">
                 <label class="col-xs-2 control-label">包含套餐：</label>
                 <div class="col-xs-9">
                   <div class="form-inline">
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" value=""> 按天
-                      </label>
-                    </div>
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" value=""> 按月
-                      </label>
-                    </div>
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" value=""> 按季度
-                      </label>
-                    </div>
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" value=""> 按年
-                      </label>
-                    </div>
-                  </div>
-                  <div class="panel panel-default jifei-panel">
+					<div class="checkbox">
+						<label> <input type="checkbox" value="DAY" data-bind="checked: feePackage"> 按天
+						</label>
+					</div>
+					<div class="checkbox">
+						<label> <input type="checkbox" value="MONTH" data-bind="checked: feePackage"> 按月
+						</label>
+					</div>
+					<div class="checkbox">
+						<label> <input type="checkbox" value="QUARTER" data-bind="checked: feePackage"> 按季度
+						</label>
+					</div>
+					<div class="checkbox">
+						<label> <input type="checkbox" value="YEAR" data-bind="checked: feePackage"> 按年
+						</label>
+					</div>
+				  </div>
+                  <div class="panel panel-default jifei-panel"  data-bind="visible: feePackage().indexOf('DAY') != -1">
                     <div class="panel-heading jifei-heading"><h4>按天</h4><a class="btn btn-sm btn-info jifei-btn">添加计费规则</a></div>
                     <table class="table table-striped">
                       <thead>
@@ -748,7 +741,7 @@
                       </tbody>
                     </table>
                   </div>
-                  <div class="panel panel-default jifei-panel">
+                  <div class="panel panel-default jifei-panel" data-bind="visible: feePackage().indexOf('MONTH') != -1">
                     <div class="panel-heading jifei-heading"><h4>按月</h4><a class="btn btn-sm btn-info jifei-btn">添加计费规则</a></div>
                     <table class="table table-striped">
                       <thead>
@@ -775,7 +768,40 @@
                       </tbody>
                     </table>
                   </div>
-                  <div class="panel panel-default jifei-panel">
+                  <div class="panel panel-default jifei-panel" data-bind="visible: feePackage().indexOf('QUARTER') != -1">
+						<div class="panel-heading jifei-heading">
+							<h4>按季度</h4>
+							<a class="btn btn-sm btn-info jifei-btn">添加计费规则</a>
+						</div>
+						<table class="table table-striped">
+							<thead>
+								<th>计费因子</th>
+								<th>计费规则</th>
+								<th>操作</th>
+							</thead>
+							<tbody>
+								<tr>
+									<td>CPU</td>
+									<td>JF-CPU-001</td>
+									<td><a class="btn btn-xs btn-default"
+										onclick="confirm('确定删除吗？')">删除</a></td>
+								</tr>
+								<tr>
+									<td>内存</td>
+									<td>JF-Memory-001</td>
+									<td><a class="btn btn-xs btn-default"
+										onclick="confirm('确定删除吗？')">删除</a></td>
+								</tr>
+								<tr>
+									<td>存储</td>
+									<td>JF-Stroge-001</td>
+									<td><a class="btn btn-xs btn-default"
+										onclick="confirm('确定删除吗？')">删除</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+                  <div class="panel panel-default jifei-panel" data-bind="visible: feePackage().indexOf('YEAR') != -1">
                     <div class="panel-heading jifei-heading"><h4>按年</h4><a class="btn btn-sm btn-info jifei-btn">添加计费规则</a></div>
                     <table class="table table-striped">
                       <thead>
@@ -826,7 +852,7 @@
       <div class='modal-footer' style="text-align:center;">
         <a class="btn btn-default btn-info service-step-btn-pre" style="display:none;">上一步</a>
         <a class="btn btn-default btn-info service-step-btn-next">下一步</a>
-        <a class="btn btn-default btn-info service-step-btn-save" style="display:none;">保存</a>
+        <a class="btn btn-default btn-info service-step-btn-save" style="display:none;" data-bind="click: saveService">保存</a>
         <a class="btn btn-default btn-success service-step-btn-saveAndRelease" style="display:none;">保存并发布</a>
         <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
       </div>
@@ -876,7 +902,7 @@
     
 
     var product = 'vm';
-    var viewModel = function(){
+    function ViewModel(){
       var self = this;
 
       this.isChangeImg = ko.observable(false);
@@ -905,14 +931,61 @@
       this.addIpToList = function(){
         this.isAdd_Ip(false);
       }
+      
+      //服务信息
+	  this.serviceVO = ko.validatedObservable({
+		 name : ko.observable().extend({required : true}),
+		 dirName : ko.observable(),
+		 dirUUID : ko.observable(),
+		 productId : this.selected_product,
+		 imageUrl : ko.observable(),
+		 desc : ko.observable(),
+		 validTimeType : ko.observable("1").extend({required : true}),
+		 validTimeNum : ko.observable(),
+		 rangeTime : ko.observable(),
+		 serviceVDC : {
+			 isLimit : this.showItems,
+			 osTypeList : ko.observableArray(),
+			 maxCpu : ko.observable(),
+			 maxVmNum : ko.observable(),
+			 maxMemory : ko.observable(),
+			 maxDiskNum : ko.observable(),
+			 maxStorager : ko.observable(),
+			 maxIpNum : ko.observable(),
+			 maxVPC : ko.observable(),
+			 maxRouterNum : ko.observable(),
+			 maxObjStorageNum : ko.observable(),
+			 maxFireWallNum : ko.observable(),
+			 maxSSHNum : ko.observable(),
+			 maxLoadBalanceNum : ko.observable()
+		 }
+	 })
+      //保存方法
+	  this.saveService = function(){    	  
+		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
+			  hideModal();
+              alert('创建成功！');                     
+          });
+	  }
+	  //是否计费
+	  this.isFee = ko.observable("1");      
+      //套餐费用
+      this.feePackage = ko.observableArray();
+      //产品列表
+      this.productList = ko.observableArray();
+      //操作系统类型
+      this.osList = ko.observableArray();
+                  
     }
-    ko.applyBindings(new viewModel, $('#service_definitions_addService')[0]);
+    service_model = new ViewModel();
+    ko.applyBindings(service_model, $('#service_definitions_addService')[0]);
+    
 
 
-    $('#addServer_daterange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+    $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker(
       {
-        format:'YYYY/MM/DD',
-        startDate: moment().subtract('days', 29),
+        format:'YYYY-MM-DD',
+        startDate: moment().subtract( 29, 'days'),
         endDate: moment(),
         separator:'至',
         locale:{
@@ -927,7 +1000,7 @@
         }
       }
     );
-    
+    //服务目录下拉框树start
     $("#selectDir").click(function(){
     	var cityObj = $("#selectDir");
         var cityOffset = $("#selectDir").offset();
@@ -950,7 +1023,7 @@
             hideMenu2();
         }
     }
-    <!--
+  //服务目录下拉框树end
     var setting = {
       check: {
         enable: true
@@ -986,16 +1059,22 @@
       }
     ];
     var setting1 = {
+    		view:{
+    	        showIcon:false,
+    	        showLine:false
+    	    },
             callback : {
-                //beforeClick: beforeClick,
                 onClick : function(srcEvent, treeId, node, clickFlag) {
                     $("#selectDir").val(node.name);
                     $("#dirUuid").val(node.uuid);
+                    //给model的服务目录传值
+                    service_model.serviceVO().dirUUID(node.uuid);
                     hideMenu2();
                     srcEvent.preventDefault();
                 }
             }
         };
+    //服务目录树
     function loadServiceTree(){
        csc.rest.get('api/v5.0.0/service/directory',function(data){
            $.fn.zTree.init($("#dirTree"), setting1, data);
@@ -1007,9 +1086,22 @@
     }
 
     $(document).ready(function(){
-      buildTree();   
+      	buildTree();
+      	loadProduct();
+      	loadVdcOsType();
     });
-    
+    //初始化产品列表下拉框
+    function loadProduct(){
+    	csc.rest.get('api/v5.0.0/products',function(data){    		
+    		service_model.productList(data);
+        });
+    }
+    //初始化操作系统类型下拉框
+    function loadVdcOsType(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=vdc&configCodeName=osType',function(data){      		
+      		service_model.osList(data);
+          });
+      }
     
     //-->
   });
