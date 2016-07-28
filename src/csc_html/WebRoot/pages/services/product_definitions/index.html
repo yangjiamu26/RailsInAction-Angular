@@ -1,3 +1,6 @@
+<style>
+.form-item-block .checkbox, .form-item-block .radio{display:block;}
+</style>
 <div class="app-content-full">
   <div class="bg-light lter b-b wrapper-sm">
     <ol class="breadcrumb">
@@ -19,17 +22,11 @@
             <div class="cell-inner">
               <div class='table-responsive'>
                 <table class='table table-striped table-hover left-list'>
-
-                               
-                  <tbody data-bind="foreach: products">
-                  
-                    <tr data-bind="css: {'active': $root.currentProduct().name==name}">
-						<td><a data-bind="text: name, click: $root.setCurrent"></a></td>
-					</tr> 
+                	<tbody data-bind="foreach: products">
+                    	<tr data-bind="css: {'active': $root.currentProduct().name==name}">
+							<td><a data-bind="text: name, click: $root.setCurrent"></a></td>
+						</tr> 
 			     </tbody>
-                  
-                  
-                  
                 </table>
               </div>
             </div>
@@ -51,7 +48,8 @@
 						<a class="btn btn-primary btn-sm form-edit">修改</a><a style="display:none;" class="btn btn-success btn-sm form-save">保存</a>
 						<div class="row">
 							<div class="col-xs-6" style="margin-top:10px;">
-								<label>产品名称：</label><span class="value-span">VDC</span><span class="input-span" style="display:none;"><input type="text" value="VDC"><i style="color:red">*</i></span>
+								<label>产品名称：</label><span class="value-span" data-bind="text:currentProduct().name"></span>
+								<span class="input-span" style="display:none;"><input type="text" data-bind="value: currentProduct().name"><i style="color:red">*</i></span>
 							</div>
 							<div class="col-xs-6">
 								<div class="img-box" style="width:100px;text-align:center">
@@ -61,34 +59,32 @@
 							</div>
 						</div>
 						<div>
-							<p><label>产品配置项：</label><span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" onclick="showModal('pages/services/product_definitions/addSetting.html')"></span></p>
-							<div class="panel panel-default">
+							<p><label>产品配置项：</label><span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" data-bind="click: addConfig"></span></p>
+							<div class="panel panel-default" data-bind="with: configsTable">
 								<table class="table table-striped">
 									<thead>
-										<th>配置项名称</th>
-										<th>是否必填</th>
-										<th>操作</th>
+										<tr>
+											<th>配置项名称</th>
+											<th>是否必填</th>
+											<th>操作</th>
+										</tr>
 									</thead>
 									<tbody>
-										<tr><td>操作系统类型</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<!-- <tr><td>虚拟化</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>云管理平台</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>CPU配额</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>内存配额（G）</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>存储配额（G）</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>虚拟机个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>路由器个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>防火墙个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>SSH密钥个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>对象存储个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr>
-										<tr><td>公网IP个数</td><td>是</td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addSetting.html')">修改</a></td></tr> -->
+										<tr data-bind="visible: showNoData">
+							           		<td colspan="3" class="aligncenter">
+							              		This table has no data.
+							           		</td>
+							            </tr>
+							            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+							            	<tr><td data-bind="text:name"></td><td data-bind="text:requiredDesc"></td><td><a onclick="showModal('pages/services/product_definitions/addSetting.html')">查看</a> | <a data-bind="click: $root.editConfig">修改</a></td></tr>
+							            <!-- /ko -->
 									</tbody>
 								</table>
 							</div>
 						</div>
 						<div>
-							<p><label>产品配置项关系：</label><span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" onclick="showModal('pages/services/product_definitions/addRelation.html')"></span></p>
-							<div class="panel panel-default">
+							<p><label>产品配置项关系：</label><span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" data-bind="click: addConfigRelation"></span></p>
+							<div class="panel panel-default" data-bind="with: configRelationsTable">
 								<table class="table table-striped">
 									<thead>
 										<th>配置项名称</th>
@@ -97,8 +93,9 @@
 										<th>操作</th>
 									</thead>
 									<tbody>
-										<tr><td>云管理平台</td><td>一对多</td><td>虚拟化</td><td><a onclick="showModal('pages/services/product_definitions/addRelation.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addRelation.html')">修改</a></td></tr>
-										<tr><td>操作系统类型</td><td>一对多</td><td>虚拟化</td><td><a onclick="showModal('pages/services/product_definitions/addRelation.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addRelation.html')">修改</a></td></tr>
+										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+							            	<tr><td data-bind="text:sourceName"></td><td data-bind="text:relationTypeDesc"></td><td data-bind="text:targetName"></td><td><a onclick="showModal('pages/services/product_definitions/addRelation.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addRelation.html')">修改</a></td></tr>
+							            <!-- /ko -->
 									</tbody>
 								</table>
 							</div>
@@ -460,6 +457,183 @@
     </div>
 </div>
 
+<!-- 配置项列表  -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddConfig }">
+	<div class="simple_form form-horizontal">
+	  <div class='modal-dialog modal-lg' style="width:600px;">
+	    <div class='modal-content'>
+	      <div class='modal-header'>
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增产品配置项</h3>
+	      </div>
+	      <div class='modal-body form-horizontal row'>
+	        <div class="form-group">
+	          <label class="col-xs-3 control-label">配置项名称</label>
+	          <div class="col-xs-8">
+	            <input type="email" class="form-control" placeholder="请输入名称" data-bind="value: currentConfig().name">
+	          </div>
+	          <div class="col-xs-1">
+	            <span class="text-danger inline m-l-n m-t-sm">*</span>
+	          </div>           
+	        </div>
+	        <div class="form-group">
+	          <label class="col-xs-3 control-label">是否必填</label>
+	          <div class="col-xs-8">
+	            <select class="form-control" data-bind="value: currentConfig().required">
+	              <option value="1">是</option>
+	              <option value="0">否</option>
+	            </select>
+	          </div>
+	          <div class="col-xs-1">
+	            <span class="text-danger inline m-l-n m-t-sm">*</span>
+	          </div>           
+	        </div>
+	        <div class="form-group">
+	          <label class="col-xs-3 control-label">配置项规则</label>
+	          <div class="col-xs-8">
+	            <select class="form-control" data-bind="value: currentConfig().regulation">
+	              <option value="0">枚举选择</option>
+	              <option value="1">单项选择</option>
+	            </select>
+	          </div>
+	          <div class="col-xs-1">
+	            <span class="text-danger inline m-l-n m-t-sm">*</span>
+	          </div>           
+	        </div>
+	        <div class="form-group">
+	          <label class="col-xs-3 control-label">配置项可用值</label>
+	          <div class="col-xs-8">
+	            <textarea class="form-control" cols="30" rows="3" data-bind="value: currentConfig().values"></textarea>
+	          </div>
+	          <div class="col-xs-1">
+	            <span class="text-danger inline m-l-n m-t-sm">*</span>
+	          </div>           
+	        </div>
+	      	
+	      </div>
+	      <div class='modal-footer' style="text-align:center;">
+	        <a class="btn btn-default btn-info" data-bind="click: saveConfig">确定</a>
+	        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</div>
+
+<!-- 配置项关系列表  -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddConfigRelation }">
+	<div class="simple_form form-horizontal">
+	  <div class='modal-dialog modal-lg' style="width:640px;">
+	    <div class='modal-content'>
+	      <div class='modal-header'>
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增产品配置项关系</h3>
+	      </div>
+	      <div class='modal-body row'>
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">配置项名称</span>
+	            <select class="form-control input-sm">
+	              <option value="">CPU（核）</option>
+	            </select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">关系</span>
+	            <select class="form-control input-sm">
+	              <option value="N">一对多</option>
+	              <option value="1">一对一</option>
+	            </select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">配置项名称</span>
+	            <select class="form-control input-sm">
+	              <option value="">内存（G）</option>
+	            </select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-6 form-item-block">
+	          <label class="control-label">CPU（核）</label>
+	          <div style="border:1px solid #eee;padding:10px;">
+	            <div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked=""> 1
+	              </label>
+	            </div>
+	            <div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> 2
+	              </label>
+	            </div>
+	            <div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> 4
+	              </label>
+	            </div>
+	            <div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> 8
+	              </label>
+	            </div>
+	            <div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> 16
+	              </label>
+	            </div>
+	          </div>
+	        </div>
+	        <div class="col-xs-6 form-item-block">
+	          <label class="control-label">内存（G）</label>
+	          <div style="border:1px solid #eee;padding:10px;">
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 1
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 2
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 4
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 8
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 16
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 32
+	              </label>
+	            </div>
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox"> 64
+	              </label>
+	            </div>
+	          </div>
+	        </div>
+	      	
+	      </div>
+	      <div class='modal-footer' style="text-align:center;">
+	        <a class="btn btn-default btn-info">确定</a>
+	        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</div>
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
@@ -489,29 +663,138 @@
     
     
     
-    
+    //产品基本信息模型
     function ViewModel_Products() {
         var self = this;
+        this.isAddConfig = ko.observable(false);
+        this.isAddConfigRelation = ko.observable(false);
         
+        //产品基本
         this.products = ko.observableArray([]);
         this.currentProduct = ko.observable({
         	name: ""
-        })
+        });
+        
+        
+        //配置项
+        this.currentConfig = ko.validatedObservable({
+        	//productId : ko.observable(),
+        	//uuid : ko.observable(),
+        	name : ko.observable().extend({required: true}),
+        	required : ko.observable().extend({required: true}),
+        	regulation : ko.observable().extend({required: true}),
+        	values : ko.observable().extend({required: true})
+        });
+        
+        this.configsTable = new DataTable([], {path: 'api/v5.0.0/products/configs'});
+        this.searchConfigsParam = this.currentConfig;
+        this.searchConfigs = function(){
+        	self.configsTable.params(self.searchConfigsParam.toJSON());
+      	}
+        
+        this.addConfig = function(){
+    		self.isAddConfig(true);
+    		self.currentConfig.fromJSON({
+    			productId : self.currentProduct().uuid,
+            	uuid : null,
+            	name : '',
+            	required : '',
+            	regulation : '',
+            	values : ''
+      		});
+  		}
+        
+        this.saveConfig = function(){
+			ko.validation.group(this.currentConfig).showAllMessages();
+	        if(self.currentConfig.isValid()){
+	        	if(self.currentConfig().uuid){
+	        		debugger;
+	        		csc.rest.put('api/v5.0.0/products/'+ self.currentConfig().productId +'/configs/'+self.currentConfig().uuid,self.currentConfig.toJSON(),function(data){
+				 		self.isAddConfig(false);
+			        	self.configsTable.refreshData();
+				 		alert('修改配置项成功！');
+				    }); 
+	        	}else{
+	        		csc.rest.post('api/v5.0.0/products/'+ self.currentConfig().productId +'/configs',self.currentConfig.toJSON(),function(data){
+				 		self.isAddConfig(false);
+			        	self.configsTable.refreshData();
+				 		alert('添加配置项成功！');
+				    }); 
+	        	}
+	        }
+  		}
+        
+      	//修改
+      	this.editConfig = function(object, event){
+        	self.currentConfig.fromJSON(object);
+        	console.log(self.currentConfig.toJSON());
+        	self.isAddConfig(true); 
+      	}
+        
+        
+        //配置项关联关系
+        this.currentConfigRelations = ko.observable({
+        	productId: ""
+        });
+        this.configRelationsTable = new DataTable([], {path: 'api/v5.0.0/products/configRelations'});
+        this.searchConfigRelationsParam = this.currentConfigRelations;
+        this.searchConfigRelations = function(){
+        	self.configRelationsTable.params(self.searchConfigRelationsParam());
+      	}
+        
+        this.sourceConfigList = ko.observableArray([]);
+        this.addConfigRelation = function(){
+    		self.isAddConfigRelation(true);
+    		csc.rest.get('api/v5.0.0/products/configsAndRelations',function(data){
+        		self.sourceConfigList = data["sourceConfigList"];
+      		});
+  		}
+        
         this.loadProducts = function() {
         	csc.rest.get('api/v5.0.0/products',function(data){
         		self.products(data);
-        		self.currentProduct(data[0])
+        		self.currentProduct(data[0]);
+        		self.currentConfig().productId = data[0].uuid;
+        		self.currentConfigRelations().productId = data[0].uuid;
+
+    	      	self.searchConfigs();
+    	      	self.searchConfigRelations();
       		});
         }
-        this.setCurrent = function(object, event){
+        
+        //左侧产品列表点击事件
+        this.setCurrent = function(object, event) {
         	self.currentProduct(object);
-        	console.log(object)
+        	self.currentConfig().productId = object.uuid;
+        	self.currentConfigRelations().productId = object.uuid;
+        	
+        	self.searchConfigs();
+        	self.searchConfigRelations();
         }
         
         this.loadProducts();
-      }
+   	}
+    
+    //产品配置项信息模型
+    /* function ViewModel_ProductConfigs() {
+        var self = this;
+        
+        this.productConfigs = ko.observableArray([]);
+        this.currentProductConfigs = ko.observable({
+        	uuid: ""
+        });
+        this.loadProductConfigs = function() {
+        	csc.rest.get('api/v5.0.0/products',function(data){
+        		self.productConfigs(data);
+        		self.currentProductConfigs(data[0])
+      		});
+        }
+        this.setCurrent = function(object, event) {
+        	self.currentProduct(object);
+        }
+   	} */
 
     ko.applyBindings(new ViewModel_Products(), $('#page-content')[0]);
-
+    //ko.applyBindings(new ViewModel_ProductConfigs(), $('#page-content')[1]);
   });
 </script>

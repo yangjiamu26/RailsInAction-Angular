@@ -239,15 +239,20 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		  //var cloudPlatformDef = {name:"全部",uuid:''}
   		  //self.dcs.unshift(dcsDef);
   		  //self.cloudPlatforms.unshift(cloudPlatformDef);
+          self.onchange_dcs();
         });
       };
       
-      this.loadCloudPlatforms = function(dcId){
-        $.ajax("api/v5.0.0/cloudPlatforms?isFilterHasAz=true&dataCenterUUID=" + dcId).done(function(data){
-          self.cloudPlatforms(data.results);
-          //var cloudPlatformDef = {name:"全部",uuid:0};
-          //self.cloudPlatforms.unshift(cloudPlatformDef);
-        });
+      this.loadCloudPlatforms = function(dcId, isFilterHasAz){
+    	if(isFilterHasAz){
+    		$.ajax("api/v5.0.0/cloudPlatforms?isFilterHasAz=true&dataCenterUUID=" + dcId).done(function(data){
+    	          self.cloudPlatforms(data.results);
+    	        });    		
+    	}else{
+    		$.ajax("api/v5.0.0/cloudPlatforms?dataCenterUUID=" + dcId).done(function(data){
+    	          self.cloudPlatforms(data.results);
+    	        });
+    	}
       };
       
       this.loadVirtualHypervisors = function(){
@@ -255,12 +260,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		self.virtualHypervisors.unshift({name:"powerVM",cloudPlatform:'powerVM'});
       };
       
-      this.loadDcs();
       this.loadVirtualHypervisors();
       
       this.onchange_dcs = function(){
     	  var dcId = self.currentVO.toJSON().datacenterUuid;
-    	  self.loadCloudPlatforms(dcId);
+    	  self.loadCloudPlatforms(dcId, true);
       }
       
       //console.log(this.dcs.toJSON());
@@ -275,11 +279,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
           isPrivate:'',
           description:''
         });
+        self.loadDcs();
         self.isEdit(true);
       };
 
       this.edit = function(object, event){
         console.log(object)
+        self.loadDcs();
         self.currentVO.fromJSON(object);
         self.isEdit(true);        
       };

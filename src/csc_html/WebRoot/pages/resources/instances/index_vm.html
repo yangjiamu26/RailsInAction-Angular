@@ -3,17 +3,20 @@
     <div class="row">
       <div class="col-xs-1">
         <button class="btn btn-sm btn-primary" data-bind="click: addvm">创建</button>
+        
+         <button class="btn btn-sm btn-primary" data-bind="click: vmAdjustment">调整资源</button>
+        
       </div>            
       <div class="col-xs-3">
         <div class="input-group">
           <span class="input-group-addon">所属可用分区</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
+          <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
         </div>      
       </div>  
       <div class="col-xs-2">
         <div class="input-group">
           <span class="input-group-addon">状态</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().status">
+          <select class="form-control input-sm" data-bind="value: searchParam().state">
             <option value="">全部</option>
             <option value="ACTIVE">运行中</option>
             <option value="SHUTOFF">已关机</option>
@@ -24,7 +27,7 @@
       <div class="col-xs-2">
         <div class="input-group">
           <span class="input-group-addon">所属VDC</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
+          <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
         </div>      
       </div>       
       <div class="col-xs-2">
@@ -101,14 +104,21 @@
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
                       <li>
                         <a>有效时间变更</a>
-                        <a data-bind="click: $root.startOne,if: state == 'SHUTOFF'">开机</a>
+                       <!--  <a data-bind="click: $root.startOne,if: state == 'SHUTOFF'">开机</a>
                         <a data-bind="click: $root.shutoffOne,if: state == 'ACTIVE'">关机</a>
                         <a data-bind="click: $root.restartOne,if: state == 'ACTIVE'">重启</a>
                         <a data-bind="click: $root.restartForceOne,if: state == 'ACTIVE'">强制重启</a>
                         <a data-bind="click: $root.suspend,if: state == 'ACTIVE'">挂起</a>
-                        <a data-bind="click: $root.resume,if: state == 'SUSPENDED'">恢复</a>
+                        <a data-bind="click: $root.resume,if: state == 'SUSPENDED'">恢复</a> -->
+                        <a data-bind="click: $root.startOne">开机</a>
+                        <a data-bind="click: $root.shutoffOne">关机</a>
+                        <a data-bind="click: $root.restartOne">重启</a>
+                        <a data-bind="click: $root.restartForceOne">强制重启</a>
+                        <a data-bind="click: $root.suspend">挂起</a>
+                        <a data-bind="click: $root.resume">恢复</a>
                         <a>终止</a>
-                        <a data-bind="click: $root.removeOne,if: state == 'SHUTOFF' || state == 'ACTIVE'">删除</a>
+                        <!-- <a data-bind="click: $root.removeOne,if: state == 'SHUTOFF' || state == 'ACTIVE'">删除</a> -->
+                        <a data-bind="click: $root.removeOne">删除</a>
                       </li>
                     </ul>
                   </div>                     
@@ -412,18 +422,18 @@
                 <div class="form-group">
                   <label class="col-sm-3 control-label">VCPU数：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" placeholder="6">
+                    <input type="email" class="form-control" placeholder="6" data-bind="value: adjustmentVO().vcpu">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-3 control-label">内存(GB)：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" placeholder="4">
+                    <input type="email" class="form-control" placeholder="4" data-bind="value: adjustmentVO().memory">
                   </div>
                 </div>
               </div>
               <div class='modal-footer' style="text-align:center;">
-                <a class="btn btn-default btn-info">确定</a>
+                <a class="btn btn-default btn-info" data-bind="click: adjust">确定</a>
                 <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
               </div>
             </div>
@@ -438,17 +448,13 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_VM(){
     	//系统当前登录用户标识
-      var userUuid = "";
+      var account = "1";
     	//当前用户所辖VDC列表（包括VDC对应的可用分区信息）
       var vdcList = {};
     	
       var self = this;
 
       this.isVmAdjustment = ko.observable(false);
-
-      this.vmAdjustment = function(){
-        self.isVmAdjustment(true);
-      };
 
       this.isAddvm = ko.observable(false);
 
@@ -502,8 +508,8 @@
       //启动
       this.startOne = function(object, event){
     		systemMsg.confirm("确定要启动云主机 "+object.name+"？",function(){
-    			var startPutBody = {"operationType":"SATRT"};
-      			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			var startPutBody = {"operationType":"START"};
+      			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('启动云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -513,7 +519,7 @@
       this.stopOne = function(object, event){
     	  systemMsg.confirm("确定要关闭云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"STOP"};
-    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('关闭云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -523,7 +529,7 @@
       this.restartOne = function(object, event){
     	  systemMsg.confirm("确定要重启云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"RESTART"};
-    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('重启云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -533,7 +539,7 @@
       this.restartForceOne = function(object, event){
     	  systemMsg.confirm("确定要强制重启云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"FORCERESTART"};
-    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('强制重启云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -547,7 +553,7 @@
       this.suspend = function(object, event){
     	  systemMsg.confirm("确定要挂起云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"SUSPEND"};
-    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('挂起云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -557,7 +563,7 @@
       this.resume = function(object, event){
     	  systemMsg.confirm("确定要恢复云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"RESUME"};
-    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody.toJSON(),function(data){
+    			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
 			 		systemMsg.alert('恢复云主机请求成功，调度任务ID：'+data.taskId+'！');
 			 		self.table.refreshData();
 			    });
@@ -572,18 +578,18 @@
 			    });
     		});
       }
-
+      
       this.searchParam = ko.observable({
-        partition: '',
-        status: '',
-        vdc: '',
+        azUuid: '',
+        state: '',
+        vdcUuid: '',
         name: ''
       })
       this.reset = function(){
         this.searchParam({
-          partition: '',
-          status: '',
-          vdc: '',
+          azUuid: '',
+          state: '',
+          vdcUuid: '',
           name: ''
         })
         this.table.params({});
@@ -603,9 +609,11 @@
       //获取VDC数据
       this.vdcs = ko.observableArray([]);
       this.loadVdcs = function(){
-    	  csc.rest.get('api/v5.0.0/vdcs?userUuid='+userUuid,function(data){
+    	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
     		  if(data.results){
     			  vdcList = data.results;
+    			  //为备选列表添加一个名为"全部"的选项
+    			  self.reBandai();
     			  self.vdcs(vdcList);
     		  }
     	  });
@@ -614,16 +622,51 @@
       this.loadVdcs();
       //选择不同VDC后，可用分区下拉框要跟着改变
       this.onchange_vdcs = function(){
-    	  var vdcUuid = this.searchParam.vdc();
+    	  var vdcUuid = this.searchParam.vdcUuid();
     	  for(var i=0;i<vdcList.length;i++){
     		  if(vdcList[i].uuid == vdcUuid){
     			  self.loadPartitions(vdcList[i].azs);
+    		      self.table.params(self.searchParam());
     			  break;
     		  }
     	  }
       }
-
       
+      /* "Well briefly, Sir, I am the Permanent Under Secretary of State, 
+      known as the Permanent Secretary. 
+      Woolley here is your Principal Private Secretary, 
+      I too have a Principal Private Secretary and he is the Principal Private Secretary to the Permanent Secretary. 
+      Directly responsible to me are 10 Deputy Secretaries, 
+      87 Under Secretaries and 219 Assistant Secretaries. 
+      Directly responsible to the Principal Private Secretary are plain Private Secretaries, 
+      and the Prime Minister will be appointing 2 Parliamentary Under Secretaries and you will be appointing your own Parliamentary Private Secretary." */
+      this.reBandai = function(){
+		  var vdcUuids = "";
+		  var azs = [];
+    	  for(var i=0;i<vdcList.length;i++){
+			  if(i == (vdcList.length-1)){
+				  vdcUuids = vdcUuids + vdcList[i].uuid;
+			  }else{
+				  vdcUuids = vdcUuids + vdcList[i].uuid + ",";
+			  }
+			  azs.push(vdcList[i].azs);
+			  var azList = vdcList[i].azs;
+			  var azUuids = "";
+			  for(var j=0;j<azList.length;j++){
+				  if(j == (azList.length-1)){
+					  azUuids = azUuids + azList[i].uuid;
+				  }else{
+					  azUuids = azUuids + azList[i].uuid + ",";
+				  }
+			  }
+			  var azDef = {"name":"全部","uuid":azUuids};
+			  azList.unshift(azDef);
+    	  }
+    	  var vdcDef = {"name":"全部","uuid":vdcUuids,"azs":azs};
+		  vdcList.unshift(vdcDef);
+      }
+
+      //------------------------------------------创建开始------------------------------
       
       //初始化
       this.isAddvm = ko.observable(false);
@@ -748,9 +791,35 @@
 			  });
 	      }
       }
+      //------------------------------------------创建结束------------------------------
       
+      //------------------------------------------调整配置开始------------------------------
+      this.adjustmentVO = ko.validatedObservable({
+    	  vcpu: ko.observable(),
+    	  memory: ko.observable(),
+    	  vmUuid: ''
+      });
       
+      this.vmAdjustment = function(object, event){
+          self.isVmAdjustment(true);
+          self.adjustmentVO.vcpu(object.vcpu);
+          self.adjustmentVO.memory(object.memory);
+          self.adjustmentVO.vmUuid(object.uuid);
+      };
       
+      //调整资源
+      this.adjust = function(){
+    	  var putBody = {};
+    	  putBody.operationType = "RESIZE";
+    	  putBody.vcpu = self.adjustmentVO.vcpu();
+    	  putBody.vcpu = self.adjustmentVO.memory();
+    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO.vmUuid(),putBody,function(data){
+		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
+		 		self.isVmAdjustment(false);
+		 		self.table.refreshData();
+		  });
+      }
+      //------------------------------------------调整配置结束------------------------------
       
     }
     ko.applyBindings(new ViewModel_VM(), $('#partition_vms')[0]);
