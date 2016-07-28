@@ -18,7 +18,7 @@
           <div class="input-group">
             <span class="input-group-addon" >规则状态</span>
             <select class="form-control" data-bind="value: searchParam().state">
-              <option value=""></option>
+              <option value="">全部</option>
               <option value="enable">启用</option>
               <option value="disable">停用</option>
               <option value="initial">未启用</option>
@@ -29,10 +29,10 @@
           <div class="input-group">
             <span class="input-group-addon">计费周期</span>
             <select class="form-control" data-bind="value: searchParam().cycle">
-              <option value=""></option>
+              <option value="">全部</option>
               <option value="DAY">天</option>
               <option value="MONTH">月</option>
-              <option value="QUARTER">季度</option>
+              <option value="QUARTER">季</option>
               <option value="YEAR">年</option>
             </select>
           </div>       
@@ -147,8 +147,8 @@
       <div class='modal-header'>
         
       <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title' data-bind="ifnot: currentVO().id">新增计费规则</h3>
-        <h3 class='modal-title' data-bind="if: currentVO().id">修改计费规则</h3>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().uuid">新增计费规则</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().uuid">修改计费规则</h3>
       </div>
       <div class='modal-body form-horizontal'>
         <div class="tab-content" data-bind="with: currentVO">
@@ -161,7 +161,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">计费属性</label>
             <div class="col-xs-8">
-              <select class="form-control" data-bind="value: attrType">
+              <select class="form-control" data-bind="value: attrType,attr:{disabled:uuid}">
                 <option value="CPU">CPU</option>
                 <option value="MEMORY">内存</option>
                 <option value="DISK">云硬盘（存储）</option>
@@ -198,7 +198,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">计费周期</label>
             <div class="col-xs-8">
-              <select class="form-control" data-bind="value: cycle, options: $root.cycles, optionsText: 'name', optionsValue: 'id'"></select>
+              <select class="form-control" data-bind="value: cycle,attr:{disabled:uuid}, options: $root.cycles, optionsText: 'name', optionsValue: 'id'"></select>
             </div>
           </div>
           <div class="form-group">
@@ -231,12 +231,14 @@
       });
 
       this.cycles = ko.observableArray();
+      //this.disabledValue = ko.observable(false);
 
       this.isAdd = ko.observable(false);
        //设置默认属性值
 
       var CurrentVO = function(){
         return ko.validatedObservable({
+        	uuid: ko.observable(),
             name: ko.observable('').extend({required:true}),
             attrType: ko.observable('CPU').extend({required:true}),
             attrValue: ko.observable('1').extend({required:true, max: 100}),
@@ -245,7 +247,7 @@
             priceUnit: ko.observable('RMB').extend({required:true})
         });
       };
-
+	
       this.currentVO = new CurrentVO();;
 
       var self = this;
@@ -277,11 +279,7 @@
       this.attrUnit = ko.observable(attrUnits.CPU);
       this.add = function(){
 
-        self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季度', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
-        // self.currentVO.fromJSON({
-        //  // "name": "计费规则",
-  
-        // })
+        self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
         self.currentVO = new CurrentVO();
         self.currentVO().attrType.subscribe(function(){
           console.log(self.currentVO().attrType())
@@ -299,30 +297,36 @@
             self.attrUnit(attrUnits.OBJECT_STORAGE)
           if(self.currentVO().attrType() == 'VDC')
             self.attrUnit(attrUnits.VDC)
-        })
+        });
         self.isAdd(true);
 
         
-      }
+      };
       
       this.edit = function(object, event){
-        //console.log(object)
-        self.currentVO(object);
-        
-        self.isAdd(true);
+    	  self.currentVO(object);
+    	  self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
+          self.isAdd(true);
 
       }
       this.save = function(){
        console.log(this.currentVO.toJSON());
-
-        ko.validation.group(this.currentVO).showAllMessages();
-        
+       ko.validation.group(this.currentVO).showAllMessages();   
         if(this.currentVO.isValid()){
-          csc.rest.post('api/v5.0.0/billing/rules', this.currentVO.toJSON(), function(){
+        	var uuid=this.currentVO.toJSON().uuid;
+        	console.log(uuid+"dd");
+        if(uuid){//修改
+        	csc.rest.put('api/v5.0.0/billing/rules/'+uuid,this.currentVO.toJSON(), function(){
             self.isAdd(false);
             self.table.refreshData();
           })
+        }else{//新增
+        	 csc.rest.post('api/v5.0.0/billing/rules', this.currentVO.toJSON(), function(){
+              self.isAdd(false);
+              self.table.refreshData();
+        })
         }
+      }
       }
 
       this.remove = function(){
@@ -363,7 +367,6 @@
         this.table.params({});
       }
        this.search = function(){
-         //console.log("exporddddddddt")
         this.table.params(this.searchParam());
       }
 

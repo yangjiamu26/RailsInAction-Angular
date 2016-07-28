@@ -176,7 +176,7 @@
 						     	<button class="btn btn-sm btn-primary" data-bind="click: function(data, event){ $root.configAdd('billing') }">报表定义</button>
 								<a class="btn btn-sm btn-default" data-bind="visible: $root.configVO().checkToShowExport, attr: {href: exportURL}">导出</a>  
 						  </div>
-						  <div class="col-xs-3">
+						  <div class="col-xs-3" style="width: 225px;">
 						      <div class="input-group">
 						         <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
 						         <input type="text" value="" class="form-control input-sm" id="biling_daterange">
@@ -185,15 +185,21 @@
 						  <div class="col-xs-2">
 						    <div class="input-group">
 						      <span class="input-group-addon">产品类型</span>
-						      <select class="form-control input-sm" data-bind="options:typeList,optionsText:'text',optionsValue:'value',value:searchParam().type">
+						      <select class="form-control input-sm" data-bind="options:typeList,optionsText:'text',optionsValue:'value',value:searchParam().resourceType">
 						      </select>
 						    </div>      
 						  </div>
-						  <div class="col-xs-2">
+						  <div class="col-xs-3" style="width: 250px;">
+							      <div class="input-group">
+							         <span class="input-group-addon">所属可用分区</span>
+						         	 <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().azName">
+							      </div>      
+							  </div>
+						  <div class="col-xs-2" style="width: 150px;">
 							  <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
 							  <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
 						  </div>				
-						  <div class="col-xs-2" data-bind="visible: configVO().checkConditonsSelected().length>0">
+						  <div class="col-xs-2" style="width: 90px;" data-bind="visible: configVO().checkConditonsSelected().length>0">
 							  <a class="inline senior-search-btn" onclick="$('#senior_billing').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
 						  </div>
 						</div>
@@ -204,17 +210,17 @@
 							         <span class="input-group-addon">服务名称</span>
 							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().serviceName">
 							      </div>      
-							  </div>					  
+							  </div>
 							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('vdcName')>-1">
 							      <div class="input-group">
 							         <span class="input-group-addon">所属VDC</span>
 							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().vdcName">
 							      </div>        
 							  </div>
-							  <div class="col-xs-2" data-bind="visible: configVO().checkConditonsSelected().indexOf('user')>-1">
+							  <div class="col-xs-2" data-bind="visible: configVO().checkConditonsSelected().indexOf('userName')>-1">
 							      <div class="input-group">
-							         <span class="input-group-addon">用户</span>
-							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().user">
+							         <span class="input-group-addon">申请人</span>
+							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().userName">
 							      </div>        
 							  </div>
 							</div>
@@ -812,12 +818,14 @@
         
       	this.searchParam = ko.observable({
       		vdcName: "",
-      		type: "",
+      		resourceType: "",
       		serviceName: "",
       		user: "",
       		virtualType: "",
       		partitionName: "",
+      		azName: "",
       		name: "",
+      		userName: "",
       		ip: "",
       		status: ""
       	});
@@ -837,17 +845,19 @@
                 return results1;
               })()).join('&')
               console.log(url);
-          	this.exportURL("api/v5.0.0/reports/export?code=vdc&"+url);
+          	this.exportURL("api/v5.0.0/reports/export?code="+name+"&"+url);
         };
 		this.reset = function(){
 			this.searchParam({
 				vdcName: "",
-	      		type: "",
+	      		resourceType: "",
 	      		serviceName: "",
 	      		user: "",
 	      		virtualType: "",
 	      		partitionName: "",
+	      		azName: "",
 	      		name: "",
+	      		userName: "",
 	      		ip: "",
 	      		status: ""
 			})
@@ -989,9 +999,10 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(name == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','vdcName','user']);
-      					self.configVO().checkConditonsSelected(['serviceName','vdcName','user']);
-          				self.configVO().fields_selected_ids(['serviceName','type','billing','user','vdcName']);
+      					self.configVO().conditions_selected_ids(['serviceName','vdcName','userName']);
+      					self.configVO().checkConditonsSelected(['serviceName','vdcName','userName']);
+          				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','azName','userName',
+          				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
       				}else if(name == 'host'){
       					self.configVO().conditions_selected_ids(['partitionName','name','ip']);
       					self.configVO().checkConditonsSelected(['partitionName','name','ip']);
@@ -1040,8 +1051,9 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(report == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','vdcName','user']);
-          				self.configVO().fields_selected_ids(['serviceName','type','billing','user','vdcName']);
+      					self.configVO().conditions_selected_ids(['serviceName','vdcName','userName']);
+          				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','azName','userName',
+          				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
       				}else if(report == 'host'){
       					self.configVO().conditions_selected_ids(['partitionName','name','ip']);
           				self.configVO().fields_selected_ids(['name','ip','partitionName','virtualType','vmNum','status',
@@ -1091,15 +1103,21 @@
     		'api/v5.0.0/reports/fee',
     		[
 		    	{id: 'serviceName', name: '服务名称'},
-		    	{id: 'vdcName', name: '所属VDC'},
-		    	{id: 'user', name: '用户'}
+		    	{id: 'vdcName', name: 'VDC名称'},
+		    	{id: 'userName', name: '申请人'}
 			],
 			[
+				{id: 'uuid', name: '计费清单ID'},
 				{id: 'serviceName', name: '服务名称'},
-				{id: 'type', name: '产品类型'},
-				{id: 'billing', name: '费用(元)'},
-				{id: 'user', name: '用户'},
-				{id: 'vdcName', name: '所属VDC'}
+				{id: 'resourceType', name: '产品类型'},
+				{id: 'vdcName', name: '所属VDC'},
+				{id: 'azName', name: '所属可用分区'},
+				{id: 'userName', name: '服务申请人'},
+				{id: 'finishedTime', name: '服务开通时间'},
+				{id: 'timestamp', name: '计费结算日期'},
+				{id: 'cycle', name: '计费周期'},
+				{id: 'fee', name: '当前计费金额(元)'},
+				{id: 'totalFee', name: '计费总金额(元)'}
 	  		],
 	  		'billing');
     ko.applyBindings(feeViewModel, $('#page-content .tab-pane')[1]); 
