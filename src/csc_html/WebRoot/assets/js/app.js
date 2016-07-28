@@ -11,6 +11,9 @@ function showModal(url,callBack){
 		if(callBack) callBack();
 	});
 };
+function hideModal(){
+	$("#ajax_modal_0").modal('hide');
+};
 function showModalSec(url,callBack){
 	var modal = $("#ajax_modal_1");
 	modal.html("").load(url,function(data){
@@ -18,12 +21,18 @@ function showModalSec(url,callBack){
 		if(callBack) callBack();
 	});
 };
+function hideModalSec(){
+	$("#ajax_modal_1").modal('hide');
+};
 function showModalThir(url,callBack){
 	var modal = $("#ajax_modal_2");
 	modal.html("").load(url,function(data){
 		modal.modal('show');
 		if(callBack) callBack();
 	});
+};
+function hideModalThir(){
+	$("#ajax_modal_2").modal('hide');
 };
 
 if ($(".modal-draggable").length > 0) {
