@@ -105,9 +105,10 @@ var systemMsg = new systemMessage();
 window.alert = systemMsg.alert;
 window.confirm = systemMsg.confirm;
 
+
+//无刷新页面修改url后面的参数,params是一个js对象
 function changeUrlWithParam(params){
 	if(!params) return;
-	var thisUrl = window.location.href;
 	var newUrl = window.location.href.substring(0,thisUrl.lastIndexOf("?"));
 	var paramsStr = [];
 	for(para in params){
