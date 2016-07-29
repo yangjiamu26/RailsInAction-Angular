@@ -419,7 +419,7 @@
                   <div class="col-xs-4">
                     <h3>CPU</h3>
                     <h5>总量：<span data-bind="text: hostVo().totalCpu_"></span></h5>
-                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 50,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
+                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' data-bind="attr: {'ui-options': hostVo().usedVcpuUiOpts}">
                       <div>
                         <span class='text-success h4'  data-bind="text: hostVo().usedVcpuRate_"></span></div>
                     </div>
@@ -433,7 +433,7 @@
                   <div class="col-xs-4">
                     <h3>內存</h3>
                     <h5>总量：<span data-bind="text: hostVo().totalMemory_"></span></h5>
-                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#fad733',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
+                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart'  data-bind="attr: {'ui-options': hostVo().usedMemoryUiOpts}">
                       <div>
                         <span class='text-warning h4' data-bind="text: hostVo().usedMemoryRate_"></span></div>
                     </div>
@@ -447,7 +447,7 @@
                   <div class="col-xs-4">
                     <h3>本地存储</h3>
                     <h5>总量：<span data-bind="text: hostVo().totalStorage_"></span></h5>
-                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#f05050',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
+                    <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' data-bind="attr: {'ui-options': hostVo().usedStorageUiOpts}">
                       <div>
                         <span class='text-danger h4' data-bind="text: hostVo().usedStorageRate_"></span></div>
                     </div>
@@ -464,14 +464,17 @@
                   <div class="row">
                     <div class="col-xs-12">
                       <div>
-                        <span class="pull-right h4 text-danger">99.67%</span>
+                        <span class="pull-right h4 text-danger" data-bind="text: hostVo().vmUsedMemoryRate_"></span>
                         <span class="h4">虚拟机内存使用比率</span>
                       </div>
                       <div class="progress progress-xxs m-t-sm">
-                        <div class="progress-bar progress-bar-danger" style="width: 99.67%;">
+                        <div class="progress-bar" data-bind="style: {width: hostVo().vmUsedMemoryRate_}, css: hostVo().vmUsedMemoryClass">
                         </div>
                       </div>
-                      <div class="text-primary-lt"><span class="text-base text-dark">总量：31.97GB</span> 已用：31.87GB 未用：0.10GB</div>
+                      <div class="text-primary-lt">
+                      <span class="text-base text-dark">总量：<span data-bind="text: hostVo().totalMemory_"></span></span> 
+                      		已用：<span data-bind="text: hostVo().vmUsedMemory_"></span>
+                      		未用：<span data-bind="text: hostVo().availMemory_"></span></div>
                     </div>
                   </div>
                 </div> 
@@ -1269,7 +1272,11 @@
     	self.isShowDetail = ko.observable(false);
     	
     	//物理主机对象
-    	self.hostVo = ko.observable({});
+    	self.hostVo = ko.observable({
+    		usedVcpuUiOpts: 0,
+    		usedMemoryUiOpts: 0,
+    		usedStorageUiOpts: 0
+    	});
     	
     	//显示物理主机详情页面
     	self.showDetailFun = function(hostObj){
@@ -1317,21 +1324,42 @@
 	        		result.availCpu_ = result.availCpu + "MHz";
 	        		result.totalCpu_ = result.totalCpu + "MHz";
           	  	}
+            	var pieOptsPreffix = "{percent: ";
+            	var pieOptsSuffix = " ,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}";
             	//CPU资源统计
             	result.usedVcpuRate = (result.usedCpu/result.totalCpu * 100.0).toFixed(2);
         		result.usedVcpuRate_ = result.usedVcpuRate + "%";
+        		result.usedVcpuUiOpts = pieOptsPreffix + result.usedVcpuRate + pieOptsSuffix;
+        		
         		//内存资源统计
         		result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
         		result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
         		result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
         		result.usedMemoryRate = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
         		result.usedMemoryRate_ = result.usedMemoryRate + "%";
+        		result.usedMemoryUiOpts = pieOptsPreffix + result.usedMemoryRate + pieOptsSuffix;
         		//存储资源统计
             	result.totalStorage_ = result.totalStorage + "GB";
             	result.usedStorage_  = result.usedStorage + "GB";
             	result.availStorage_ = result.availStorage + "GB";
             	result.usedStorageRate = (result.usedStorage/result.totalStorage * 100.0).toFixed(2);
         		result.usedStorageRate_ = result.usedStorageRate + "%";
+        		result.usedStorageUiOpts = pieOptsPreffix + result.usedStorageRate + pieOptsSuffix;
+        		//vm已使用内存
+        		//hostUsedMemory为主机消耗的内存（已使用内存 - vm使用内存）
+        		result.vmUsedMemory_ = (result.vmUsedMemory/1024).toFixed(2) + "GB";
+        		result.hostUsedMemory = (result.usedMemory - result.vmUsedMemory/1024).toFixed(2);
+        		result.hostUsedMemory_ = result.hostUsedMemory + "GB";
+        		result.vmUsedMemoryRate = (result.vmUsedMemory/result.totalMemory * 100.0).toFixed(2);
+        		result.vmUsedMemoryRate_ = result.vmUsedMemoryRate + "%";
+        		//vm已使用内存bar的样式
+        		if(result.vmUsedStorageRate < 50){
+        			result.vmUsedMemoryRateSytle = "progress-bar-success";
+        		}else if(result.vmUsedStorageRate < 80){
+        			result.vmUsedMemoryRateSytle = "progress-bar-info";
+        		}else{
+        			result.vmUsedMemoryRateSytle = "progress-bar-danger";
+        		}
         		
                 return result;
             }
