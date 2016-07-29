@@ -454,6 +454,7 @@
             }
             total = response.total, results = response.results;
             _this.numFilteredRows(total);
+            if(results)
             return _this.pagedRows(results.map(_this.options.resultHandlerFn));
           });
         };

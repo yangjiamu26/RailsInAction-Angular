@@ -160,19 +160,19 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             <!-- 资源管理 -->
             <div id="titleBar1" class='panel-heading text-base'>资源管理</div>
             <div class='panel-body'>
-              <div class='row text-center welcome-resource-manger'>
+              <div class='row text-center welcome-resource-manger' data-bind='with:resourceStatistics'>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-business"></div>
                     <div class="manger-title">业务系统</div>
-                    <div class='h2 m-b-sm'>4</div>
+                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("yewu")?yewu:0'>4</div>
                   </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-vm"></div>
                     <div class="manger-title">云主机</div>
-                    <div class='h2 m-b-sm'>13</div></div>
+                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("yunzhu")?yunzhu:0'>13</div></div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
@@ -333,8 +333,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             </div>
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'250px'}">
                   <table class="table table-properties">
-                      <tbody>
-                          <tr>
+                      <tbody data-bind="foreach:orderList">
+                          <!-- <tr>
                               <td width="10%"><span class='label text-base bg-info pos-rlt m-r'><i class='arrow right arrow-info'></i>等待审核</span></td>
                               <td>D201601011230</td>
                               <td>服务实例名称一</td>
@@ -358,6 +358,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                               <td><span class='label text-base bg-info pos-rlt m-r'><i class='arrow right arrow-info'></i>等待审核</span></td>
                               <td>D201601011230</td>
                               <td>服务实例名称一</td>
+                          </tr> -->
+                          <tr>
+                              <td width="10%"><span class='label text-base pos-rlt m-r' data-bind="css:$root.orderStateCss(state),text:$root.orderState(state)"></span></td>
+                              <td data-bind="text:code"></td>
+                              <td data-bind="text:resourceNames"></td>
                           </tr>
                       </tbody>
                   </table>
@@ -370,8 +375,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
               <span class="text-base">最新通知</span>
               <a href="#pages/systems/notices/index" class="pull-right" >更多</a>
             </div>
-            <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'310px'}">
-              <div class='media'>
+            <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'310px'}" data-bind="foreach:noticeList">
+              <!-- <div class='media'>
                 <div class='media-body'>
                   <div class='pull-right text-right text-muted'>
                     <strong>12:18</strong>
@@ -412,8 +417,20 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                   <div class='block m-t-sm'>云主机在2016-09-09将会过期.云主机在2016-09-09将会过期.云主机在2016-09-09将会过期.</div>
                 </div>
               </div>
-              <div class='line'></div>
-
+              <div class='line'></div> -->
+			  <div class='media'>
+                <div class='media-body'>
+                  <div class='pull-right text-right text-muted'>
+                    <strong>12:18</strong>
+                    <br>
+                    <small class='label bg-light m-l-sm' data-bind="text:date"></small>
+                  </div>
+                  <span class='label bg-light pull-left' data-bind="text:status"></span>
+                  <a class="w-xl text-ellipsis" href='#' data-bind="css:$root.noticeClass(title),text:title">
+                  </a>
+                  <div class='block m-t-sm' data-bind="text:content"></div>
+                </div>
+              </div>
             </div>
           </div>
         </td>
@@ -450,52 +467,54 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             </div>
             <div class='panel-body'>
               <div class="panel-right-link">
-                <select class="pull-right">
+                <!-- <select class="pull-right">
                   <option selected="selected">数据中心总览</option>
                   <option>数据中心一</option>
                   <option>数据中心二</option>
-                </select>
+                </select> -->
+                <select class="pull-right" data-bind="options: dcList,optionsText:'name',optionsValue:'uuid',value:selectedDc, optionsCaption:'数据中心总览',event:{change:$root.loadDCStatistics}">
+              	</select>
               </div>
-              <div class="welcome-dataCenter">
+              <div class="welcome-dataCenter" data-bind="with:dcStatistics">
                   <div class="resource-vm">
                     <div>虚拟机</div>
-                    <div><strong>2</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('vmNum')?vmNum:0"></strong></div>
                   </div>
                   <div class="resource-partition">
                     <div>可用分区</div>
-                    <div><strong>5</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('azNum')?azNum:0"></strong></div>
                   </div>
                   <div class="resource-storageNum">
                     <div>存储池</div>
-                    <div><strong>12</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('resourcePoolNum')?resourcePoolNum:0"></strong></div>
                   </div>
                   <div class="resource-pool">
                     <div>资源池</div>
-                    <div><strong>2</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('storagePoolNum')?storagePoolNum:0"></strong></div>
                   </div>
                   <div class="resource-image">
                     <div>镜像</div>
-                    <div><strong>21</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('imageNum')?imageNum:0"></strong></div>
                   </div>
                   <div class="resource-host">
                     <div>物理机</div>
-                    <div><strong>80</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('hostNum')?hostNum:0"></strong></div>
                   </div>
                   <div class="resource-ip">
                     <div>网络</div>
-                    <div><strong>28</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('networkNum')?networkNum:0"></strong></div>
                   </div>
                   <div class="resource-storageVolumen">
                     <div>存储</div>
-                    <div><strong>500GB</strong></div>
+                    <div><strong data-bind="text:(hasOwnProperty('storageNum')?storageNum:0)+'TB'"></strong></div>
                   </div>
                   <div class="resource-memory">
                     <div>内存</div>
-                    <div><strong>200G</strong></div>
+                    <div><strong data-bind="text:(hasOwnProperty('memorySize')?memorySize:0)+'GB'"></strong></div>
                   </div>
                   <div class="resource-cpu">
                     <div>CPU逻辑单元</div>
-                    <div><strong>2</strong></div>
+                    <div><strong data-bind="text:hasOwnProperty('cpuNum')?cpuNum:0"></strong></div>
                   </div>
               </div>
 
@@ -1276,5 +1295,131 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   new Drag("titleBar8", "dragDiv8");
   new Drag("titleBar9", "dragDiv9");
 
+
+  function ViewModel(){
+	  var self = this;
+      this.noticeList = ko.observableArray([]);
+      
+      //加载通知列表
+      this.loadNoticeList = function(){
+         $.ajax("api/v5.0.0/homepage/notice").done(function(data){
+           self.noticeList(data);
+         });
+      };
+      
+      //不同通知类型显示不同颜色
+      this.noticeClass = function(title){
+         if(title=="通知1")
+        	 return "text-info";
+         else if(title=="通知2")
+        	 return "text-success";
+         else if(title=="通知3")
+        	 return "text-danger";
+      };
+      
+      this.dcList = ko.observableArray([]);
+      //加载数据中心列表
+      this.loadDcList = function(){
+         $.ajax("api/v5.0.0/homepage/datacenter").done(function(data){
+           self.dcList(data);
+         });
+      }
+      
+      //默认没有选中
+      this.selectedDc = ko.observable("");
+      
+      var dcStatisticsInfo = function(){
+    	  this.azNum = ko.observable("");
+    	  this.azNumCnware = ko.observable("");
+    	  this.azNumOpenstack = ko.observable("");
+    	  this.vmNum = ko.observable("");
+    	  this.vmNumAlive = ko.observable("");
+    	  this.vmNumStopped = ko.observable("");
+    	  this.vmNumOther = ko.observable("");
+    	  this.resourcePoolNum = ko.observable("");
+    	  this.hostNum = ko.observable("");
+    	  this.storageNum = ko.observable("");
+    	  this.networkNum = ko.observable("");
+    	  this.imageNum = ko.observable("");
+    	  this.cpuNum = ko.observable("");
+    	  this.memorySize = ko.observable("");
+    	  this.storageSize = ko.observable("");
+    	  this.storagePoolNum = ko.observable("");
+      }
+      
+      this.dcStatistics = ko.observable(new dcStatisticsInfo());
+      //加载数据中心统计信息
+      this.loadDCStatistics = function(obj){
+    	  var url = "api/v5.0.0/homepage/datacenter";
+    	  if(self.selectedDc()){
+    		  url += ("/"+self.selectedDc());
+    	  }else{
+    		  url += ("/-1");
+    	  }
+    	  $.ajax(url).done(function(data){
+          	  self.dcStatistics(data);
+          });
+      }
+      
+      var resourceInfo = function(){
+    	  this.yewu = ko.observable("");
+    	  this.yunzhu = ko.observable("");
+    	  this.yunying = ko.observable("");
+    	  this.luyou = ko.observable("");
+    	  this.anquan = ko.observable("");
+    	  this.gongwang = ko.observable("");
+    	  this.fuzai = ko.observable("");
+    	  this.fanghuo = ko.observable("");
+    	  this.miyao = ko.observable("");
+    	  this.duixiang = ko.observable("");
+      }
+      this.resourceStatistics = ko.observable(new resourceInfo());
+      //加载资源管理统计信息
+      this.loadResourceStatistics = function(){
+    	  var url = "api/v5.0.0/homepage/resource";
+    	  $.ajax(url).done(function(data){
+          	  self.resourceStatistics(data);
+          });
+      }
+      
+      this.orderList = ko.observableArray([]);
+      
+      //加载通知列表
+      this.loadOrderList = function(){
+         $.ajax("api/v5.0.0/homepage/order?firstResult=1&maxResult=5").done(function(data){
+           self.orderList(data);
+         });
+      };
+      
+      //翻译步骤
+      this.orderState = function(state){
+    	  switch(state){
+    	  case 'UNSUBMIT':
+    		  return "未提交";
+    	  case 'DOING':
+    		  return "审批中";
+    	  case 'FINISHED':
+    		  return "审批完成";
+    	  }
+      };
+      //步骤不同颜色不同
+      this.orderStateCss = function(state){
+    	  switch(state){
+    	  case 'UNSUBMIT':
+    		  return "bg-danger";
+    	  case 'DOING':
+    		  return "bg-info";
+    	  case 'FINISHED':
+    		  return "bg-success";
+    	  }
+      };
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel,$('#page-content')[0]);
+  viewModel.loadNoticeList();
+  viewModel.loadDcList();
+  viewModel.loadDCStatistics();
+  viewModel.loadResourceStatistics();
+  viewModel.loadOrderList();
 });
 </script>

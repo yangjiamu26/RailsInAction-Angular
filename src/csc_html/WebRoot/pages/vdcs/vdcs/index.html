@@ -147,7 +147,7 @@
                         </div>
                       </div>
                       
-  	                <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: modifyVdcQuotaModel }" >  
+  	                <div role="dialog" aria-hidden="true" class="modal fade"    data-bind="modal: { show: modifyVdcQuotaModel,backdrop: 'static' }" >  
                        <div class='modal-dialog' role='document'>
 					    <div class='modal-content'>
 					      <div class='modal-header'>
@@ -346,7 +346,7 @@
 					                  <th>虚拟化类型</th>
 					                  <th>可用分区</th>
 					                </thead>
-					                <tbody>
+					                <tbody  id="availableAzListTableId">
 					                  <tr>
 					                    <td>
 					                      <div class="checkbox">
@@ -365,8 +365,8 @@
 					              </div>
 					            </div>
 					            <div class="col-xs-2">
-					              <button class="btn btn-block btn-default" style="margin-top:150px">&gt;&gt;</button>
-					              <button class="btn btn-block btn-default">&lt;&lt;</button>
+					              <button class="btn btn-block btn-default" id="addAz2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+					              <button class="btn btn-block btn-default" id="removeAz2PreAddList" >&lt;&lt;</button>
 					            </div>
 					            <div class="col-xs-5">
 					              <p>已选择：</p>
@@ -385,20 +385,7 @@
 					                  <th>虚拟化类型</th>
 					                  <th>可用分区</th>
 					                </thead>
-					                <tbody>
-					                  <tr>
-					                    <td>
-					                      <div class="checkbox">
-					                        <label class="i-checks">
-					                          <input type="checkbox" value="">
-					                          <i></i>
-					                        </label>
-					                      </div> 
-					                    </td>
-					                    <td>wincenter</td>
-					                    <td>WinServer</td>
-					                    <td>zone1</td>
-					                  </tr>
+					                <tbody id="preAddAzListTableId">
 					                </tbody>
 					              </table>
 					              </div>
@@ -734,8 +721,11 @@
 				self.isPreConfigQuota = ko.observable(false);
 				$("#no_limit_radio").bind("click",function(){
 					confirm('确定把VDC配额由限制改为不限制吗？',function(){
-						
-						
+						var quotaParam = {
+	    	        			"limitQuota":false,
+	    	        	 }   
+						$.VDC.updateQuota(self.selectVdcVO().uuid,quotaParam,function(data){
+	    	        	});
 					},function(){
 						self.isLimit(1)
 						$("#limit_radio").prop("checked","checked");
@@ -759,7 +749,32 @@
 				
 				/****添加AZ*****/
 				self.addVdcAZModel = ko.observable(false);
+				$("#addAz2PreAddList").bind("click",function(data){
+					
+					alert(1)
+					
+				})
+				
+				$("#removeAz2PreAddList").bind("click",function(data){
+					alert(2)
+					
+				})
+				
 				self.addVdcAZ = function(){
+					$("#availableAzListTableId").html("");
+					$("#preAddAzListTableId").html("");
+					$.VDC.getAvailableToVdc({},function(data){
+						  var tableBody = "";
+						  if(data && data.results){
+							  var azList = data.results;
+							  for(var i=0;i<azList.length;i++){
+								  var az = azList[i];
+								  tableBody = "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" /><i></i></label></div></td>";
+								  tableBody +="<td>"+az.cloudPlatform+"</td><td>"+az.virtualHypervisor+"</td><td>"+az.name+"</td></tr>";
+							  } 
+						  }
+						  $("#availableAzListTableId").html(tableBody);
+					});
 					self.addVdcAZModel(true);
 				}
 				/****添加AZ******/
@@ -787,13 +802,11 @@
 	    			  $("#VDCLeftMenu").on("click","tr",function(){
 	    		    	  $(this).addClass('active').siblings().removeClass('active');
 	    		    	  var vdcUuid = $(this).attr("vdcUuid")
-	    		    	  console.log(vdcUuid)
-	    		    	  for(var i=0;i<vdcList.length;i++){
-	    		    		  if(vdcUuid == vdcList[i].uuid){
-	    		    			  setVDCSummaryInfo(vdcList[i])
-	    		    			  break;
+	    		    	  $.VDC.getVDCs({uuid:vdcUuid},function(data){
+	    		    		  if(data && data.results && data.results.length >0){
+	    		    			  setVDCSummaryInfo(data.results[0])
 	    		    		  }
-	    		    	  }
+	    		    	  })
 	    		      }) 
 	    		      
 	    		      
@@ -862,7 +875,7 @@
 	    		
 	    		self.createVdcMode = ko.observable(false);
 	    		self.vdcVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true,maxLength:32,cscNameRule:true}),
+    			     "name":ko.observable("").extend({required: true,maxLength:32,cscNameRule:true}),
 					 "desc":ko.observable().extend({maxLength:256})
 				});
 	    		
@@ -878,7 +891,11 @@
 	    		self.confirmCreateVdc = function(){
 	    			  var param =  self.vdcVO.toJSON();
 	    			   $.VDC.createVDC(param,function(data){
-	    				   self.vdcListTable.refreshData();
+	    				   //self.vdcListTable.refreshData();
+	    				   console.log(data)
+	    				   var tableBody = "<tr vdcUuid='"+data.uuid+"'  ><td><a>"+data.name+"</a</td></tr>";
+ 			               //self.vdcListTable(tableBody);
+ 			               console.log(self.vdcListTable(self.vdcListTable()+tableBody))
 	    				   self.createVdcMode(false)
 	    			   });
 	    		}
