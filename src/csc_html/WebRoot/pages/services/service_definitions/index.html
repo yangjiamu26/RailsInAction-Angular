@@ -1,6 +1,16 @@
 <link href="assets/lib/zTree/css/ibos/ibos.css" rel="stylesheet"
 	type="text/css" />
 
+<style>
+  .service-img-box{position:relative;width:60px;height:60px;}
+  .service-img-box a{font-size:12px;text-align:center;position:absolute;bottom:0;width:100%;color:#fff;height:16px;line-height:16px;background:rgba(0,0,0,.2)}
+  .ztree.release li a.curSelectedNode{background:none;color: #82939E;}
+  .ztree.release li a:hover{border-color:#fff;background-color:#fff;}
+  .jifei-heading{overflow:hidden;height:60px;}
+  .jifei-btn{position:relative;right:0;top:-34px;float:right;}
+  .jifei-panel{margin:0;margin-top:20px;}
+</style>
+
 <div class="app-content-full">
 	<div class="bg-light lter b-b wrapper-sm">
 		<ol class="breadcrumb">
@@ -50,8 +60,8 @@
 								<div class="panel panel-default">
 									<div class="row wrapper">
 										<div class="col-xs-1">
-											<a class="btn btn-sm btn-primary"
-												onclick="showModal('pages/services/service_definitions/addService_pankl.html')">创建服务</a>
+											<a class="btn btn-sm btn-primary"  data-bind="click: createService" >创建服务</a>
+												<!-- -->
 										</div>
 										<div class="col-xs-3">
 											<div class="input-group">
@@ -113,7 +123,7 @@
 													<td data-bind="text: $row.createUserName"></td>
 													<td data-bind="text: $row.effectTime"></td>
 													<td><a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.release">发布&nbsp;&nbsp;</a> 
-													 <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService.html')">修改&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService_pkl.html')">修改&nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 0,click: $root.deleteService">删除 &nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 1,click: $root.offline">下线&nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 2,click: $root.destory">销毁 </a>													
@@ -186,11 +196,42 @@
 		</div>
 	</div>
 </div>
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', null]
+var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js', 
+               "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js",
+               "assets/lib/bootstrap-daterangepicker/date.js", null];               
+	//弹窗服务目录下拉框树start
+	function selectDirClick(){ 	
+		var cityObj = $("#selectDir");
+	    var cityOffset = $("#selectDir").offset();
+	    cityOffset.left = 207;
+	    $("#dirContent").addClass("csc_menuTree").css({
+	        left : cityOffset.left + "px",
+	        top : cityObj.top + "px"
+	    }).slideDown("fast");
+	    $("#body").bind("mousedown", onBodyDown2);
+	}
+	
+	function hideMenu2() {
+	    $("#dirContent").fadeOut("fast");
+	    $("body").unbind("mousedown", onBodyDown2);
+	}
+	function onBodyDown2(event) {
+	    if (!(event.target.id == "dirUuid"
+	            || event.target.id == "dirContent" || $(event.target)
+	            .parents("#dirContent").length > 0)) {
+	        hideMenu2();
+	    }
+	}
+	//弹窗服务目录下拉框树end
+
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
+	    
+	var product = 'vm';  	
+        
     var dirUuid = 0;//目录UUID
     //目录树start
     var setting = {
@@ -206,14 +247,9 @@
         }
       }
     };    
-
-    $(document).ready(function(){
-    	loadTree();
-    	loadProduct();
-    });
     
     function loadTree(){
-    	csc.rest.get('api/v5.0.0/service/directory',function(data){
+    	csc.rest.get('api/v5.0.0/service/directory',function(data){    		
             $.fn.zTree.init($("#serverDefinitionsTree"), setting, data);
         });
     }
@@ -224,15 +260,95 @@
     	csc.rest.get('api/v5.0.0/products',function(data){    		
     		viewModel.productList(data);
         });
+    }    
+
+
+    var setting2 = {
+      check: {
+        enable: true
+      },
+      view:{
+        showIcon:false,
+        showLine:false
+      }
+    };
+
+    var zNodes =[
+      { name:"全选", open:true,
+        children: [
+          {
+            name:"Openstack",
+            open:true,
+            children: [
+              { name:"分区1"},
+              { name:"分区2"},
+              { name:"分区3"}
+            ]
+          },
+          {
+            name:"CNware",
+            open:true,
+            children: [
+              { name:"分区4"},
+              { name:"分区5"},
+              { name:"分区6"}
+            ]
+          }
+        ]
+      }
+    ];
+    var setting1 = {
+    		view:{
+    	        showIcon:false,
+    	        showLine:false
+    	    },
+            callback : {
+                onClick : function(srcEvent, treeId, node, clickFlag) {
+                    $("#selectDir").val(node.name);
+                    $("#dirUuid").val(node.uuid);
+                    //给model的服务目录传值
+                    viewModel.serviceVO().dirUUID(node.uuid);
+                    hideMenu2();
+                    srcEvent.preventDefault();
+                }
+            }
+        };
+    
+    
+    //服务目录树
+    function loadServiceTree(){
+       csc.rest.get('api/v5.0.0/service/directory',function(data){    	
+           $.fn.zTree.init($("#dirTree"), setting1, data);
+       });
     }
-            
+    //发布范围
+    function buildTree1(){
+      $.fn.zTree.init($("#serviceModalTree"), setting2, zNodes);
+      
+    }
+
+    //初始化操作系统类型下拉框
+    function loadVdcOsType(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=vdc&configCodeName=osType',function(data){      		
+      		viewModel.osList(data);
+          });
+      }
+    
+    $(document).ready(function(){
+    	loadTree();		    //服务目录树
+    	buildTree1();		//发布范围数据
+        loadProduct();	   //获取产品下拉框数据
+        loadVdcOsType();  //获取VDC操作系统数据
+        //loadServiceTree();//加载弹窗的服务目录树
+    });         	
+  	
     function ViewModel(){
       //服务目录start
       var self = this;
       this.isAdd = ko.observable(false);
 
       this.directoryVO = ko.validatedObservable({    	  
-          name: ko.observable().extend({required: true}),          
+          name: ko.observable("").extend({required: true}),          
           parentName: ko.observable("服务目录")
       });            
       //新增           
@@ -369,19 +485,1097 @@
 				serviceName: ""
 			})
       }
-      //搜搜查询
+      //搜索查询
       this.search = function(dirUuid){    	  
     	  if(typeof(dirUuid) != "object"){
     	     this.searchParam().dirUUID = dirUuid;
     	  }
           this.table.params(this.searchParam());
       }
-      //列表数据
+      //服务信息列表数据
       this.table = new DataTable([], {path: 'api/v5.0.0/service'});      
       //产品列表
-      this.productList = ko.observableArray();
+      this.productList = ko.observableArray();            
+      
+      
+      //创建服务弹窗
+      this.isCreateService = ko.observable(false);
+      this.createService = function(){    	      	   
+    	  this.isCreateService(true);
+    	  loadServiceTree();
+    	  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker(
+  		      {
+  		        format:'YYYY-MM-DD',
+  		        startDate: moment().subtract( 29, 'days'),
+  		        endDate: Date.today().addDays(1),
+  		        minDate: Date.today(),
+  		        separator:'至'
+  		      }
+  		    );
+      }  
+      //上一步  下一步 start
+      this.step = ko.observable(1);
+          
+      this.nextStep = function(){
+    	  
+    	  this.step(this.step()+1);
+      }
+      this.prevStep = function(){
+    	  this.step(this.step()-1);
+      }
+      //上一步  下一步 end
+      
+		//修改图标start
+        this.isChangeImg = ko.observable(false);
+        this.changeImg = function(){
+          this.isChangeImg(true);
+        }
+        this.setImg = function(){
+          this.isChangeImg(false);
+        }
+        //修改图标end
+        
+        //选择产品start
+        this.selected_product = ko.observable();
+        this.selected_product(product);
+        this.showItems = ko.observable('no');
+     	 
+        this.changeValue = function(viewModel, event){
+          if(viewModel.selected_product()=='vdc'){
+          }else{
+            buildTree1(); 
+          }
+        }
+        //选择产品end
+  	    //添加IP start
+        this.isAdd_Ip = ko.observable(false);
+        this.addIp = function(){
+          this.isAdd_Ip(true);
+        }
+        this.addIpToList = function(){
+          this.isAdd_Ip(false);
+        }
+        //添加IP  end
+        //添加计费规则start
+        function Package(type,value){
+      	  this.type = ko.observable(type);
+      	  this.value = ko.observable(value);
+      	  this.feeList = ko.observableArray();
+        }
+        this.packages = ko.observableArray([
+      		  new Package("按天","DAY"),
+      		  new Package("按月","MONTH"),
+      		  new Package("按季度","QUARTER"),
+      		  new Package("按年","YEAR")
+        ]);
+        this.packages_chosen = ko.observableArray()
+        this.package_current = null;
+        
+        this.isAdd_Fee = ko.observable(false);
+        //费用规则列表
+        this.feeList = new DataTable([], {path: "api/v5.0.0/billing/rules"});
+        
+        this.addFeeDay = function(package,event){    	  
+      	  self.package_current = package;
+      	  self.feeList.params({
+      		  attrType: self.selected_product(),
+      		  cycle: package.value()
+      	  })
+     	  self.isAdd_Fee(true);              
+        }
+        this.addFeeToList = function(){
+      	  this.package_current.feeList(this.feeList.chosenItems());
+      	  self.isAdd_Fee(false);
+        }
+        //添加计费规则end
+        //服务信息
+  	   this.serviceVO = ko.validatedObservable({
+  		 name : ko.observable().extend({required : true}),
+  		 dirName : ko.observable(),
+  		 dirUUID : ko.observable(),
+  		 productId : this.selected_product,
+  		 imageUrl : ko.observable(),
+  		 desc : ko.observable(),
+  		 validTimeType : ko.observable("1").extend({required : true}),
+  		 validTimeNum : ko.observable(),
+  		 rangeTime : ko.observable(),
+  		 charge : ko.observable(),
+  		 serviceVDC : {
+  			 isLimit : this.showItems,
+  			 osTypeList : ko.observableArray(),
+  			 maxCpu : ko.observable(),
+  			 maxVmNum : ko.observable(),
+  			 maxMemory : ko.observable(),
+  			 maxDiskNum : ko.observable(),
+  			 maxStorager : ko.observable(),
+  			 maxIpNum : ko.observable(),
+  			 maxVPC : ko.observable(),
+  			 maxRouterNum : ko.observable(),
+  			 maxObjStorageNum : ko.observable(),
+  			 maxFireWallNum : ko.observable(),
+  			 maxSSHNum : ko.observable(),
+  			 maxLoadBalanceNum : ko.observable()
+  		 },
+  		 chargeType : ko.observable(),
+  		 rules : ko.observable(),
+  		 serviceVm : {
+  			 virtualName: ko.observable().extend({required : true}),
+  			 azUuid: ko.observableArray(),
+  			 osType: ko.observableArray(),
+  			 osTypeList : ko.observableArray(),
+  			 osVersion: ko.observableArray(),
+  			 cpu: ko.observableArray(),
+  			 memory: ko.observableArray()
+  		 }
+  	   })
+  	 
+  	   //是否计费
+  	   this.isFee = ko.observable("1");   
+  	   //获取套餐值
+  	   function getPackages(obj){   	  
+      	  var feeType = "";
+      	  for(var i = 0;i < obj.length;i++){
+      		  feeType += obj[i].value()+",";
+      	  }
+      	  if(feeType != ""){
+      		  feeType = feeType.substring(0,feeType.length-1);
+      	  }
+      	  return feeType;
+        }
+  	   	//获取计费规则以“，”分隔
+	  	 function getRules(obj){   	  
+	     	  var rule = "";	     	  
+	     	  for(var i = 0;i < obj.length;i++){
+	     		  var feeList = obj[i].feeList();
+	     		  if(feeList.length > 0){
+	     			  for(var j = 0; j < feeList.length; j++){
+	     				 rule += feeList[j].uuid+",";
+	     			  }
+	     		  }	     		 
+	     	  }
+	     	  if(rule != ""){
+	     		 rule = rule.substring(0,rule.length-1);
+	     	  }
+	     	  return rule;
+	       }
+        //保存方法
+  	    this.saveService = function(){    	  
+  		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));
+  		  this.serviceVO().charge(this.isFee());
+  		  this.serviceVO().rules(getRules(this.packages_chosen()));
+  		  
+  		  if(this.selected_product()=='vdc'){
+  			this.serviceVO().serviceVm = null;
+  	      }else if(this.selected_product()=='vm'){
+  	    	  this.serviceVO().serviceVDC = null;
+  	      }
+
+  		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
+  				self.table.refreshData();
+  				self.isCreateService(false);
+                alert('创建成功！');
+            });
+  	    }
+  	     
+        //产品列表
+        this.productList = ko.observableArray();
+        //操作系统类型
+        this.osList = ko.observableArray();
+        
+        /*  云主机start*/
+        //虚拟化类型选择事件
+        this.changeVirtualValue = function(viewModel, event){
+      	  
+           if(viewModel.selected_product()=='vm'){
+          	 csc.rest.get('api/v5.0.0/azs?virtualPlatform='+this.serviceVO().serviceVm.virtualName(),function(data){
+     			 	 debugger
+               });
+           }else{
+              
+           }
+         }
+        //添加操作系统版本start
+       // this.packages = ko.observableArray();
+        this.osType_chosen = ko.observableArray()
+        this.osType_current = null;
+        
+        this.isAdd_osType = ko.observable(false);
+
+		this.osVersionList = new DataTable([], {path: "api/v5.0.0/billing/rules"});
+        
+        this.addOsType = function(package,event){        	
+      	  self.osType_current = package;
+      	  self.osVersionList.params({
+      		  /* attrType: self.selected_product(),
+      		  cycle: package.value() */
+      	  })
+     	  self.isAdd_osType(true);              
+        }
+        this.addOsVersionToList = function(){
+      	  this.osType_chosen(this.osVersionList.chosenItems());
+      	  this.isAdd_osType(false);
+        }
+        //添加操作系统版本end        
+		
+        
+        /*云主机 end*/
+        
     }
+    
     var viewModel = new ViewModel();
     ko.applyBindings(viewModel, $('#page-content')[0]);
   });
 </script>
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isCreateService }">
+<!-- <div class="simple_form form-horizontal" id="service_definitions_addService" data-bind="modal: { show: isCreateService }"> -->
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建服务</h3>
+      </div>
+      <div class='modal-body no-padder'>
+        <ul class="nav nav-tabs service-step-select">
+          <li data-bind="css: {'active': step()==1}">
+            <a >1基本信息</a>
+          </li>
+          <li data-bind="css: {'active': step()==2}">
+            <a >2服务资源</a>
+          </li>
+          <li data-bind="css: {'active': step()==3}">
+            <a >3服务计费</a>
+          </li>
+          <!-- ko if: selected_product()!='vdc' -->
+          <li data-bind="css: {'active': step()==4}">
+            <a >4发布范围</a>
+          </li>
+          <!-- /ko -->
+        </ul>
+        <div class="tab-content service-step-box m-t">
+          <div class="tab-pane" data-bind="css: {'active': step()==1}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务名称：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务目录：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" placeholder="请选择服务目录" data-bind="value: serviceVO().dirName" id="selectDir" onclick="selectDirClick(event)">
+                  <input type="hidden" id="dirUuid" data-bind="value: serviceVO().dirUUID" />
+                </div>
+              </div>
+              <div id="dirContent"
+                style="display: none; position: absolute; z-index: 10000; background-color: white; border-left: 1px #DDDDDD solid; border-bottom: 1px #DDDDDD solid; border-right: 1px #DDDDDD solid; width: 420px; height: 198px; overflow: scroll;">
+	            <div style="width:700px">
+	                <ul id="dirTree" class="ztree" style="z-index: 1000;"></ul>
+	            </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">产品：</label>
+                <div class="col-xs-7">
+                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
+                    <option value="vdc">VDC</option>
+                    <option value="vm">云主机</option>
+                    <option value="ssh">SSH密钥</option>
+                    <option value="vdisk">云硬盘</option>
+                    <option value="ip">公网IP</option>
+                    <option value="balancing">负载均衡器</option>
+                    <option value="storage">对象存储</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务图标：</label>
+                <div class="col-xs-7">
+                  <div class="service-img-box" data-bind="click: changeImg">
+                    <img src="" alt="" width="60" height="60" >
+                    <a data-bind="value: serviceVO().imageUrl">更改图标</a>
+                  </div>
+                </div>
+              </div>              
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务介绍：</label>
+                <div class="col-xs-7">
+                  <textarea class="form-control" cols="30" rows="3" data-bind="value: serviceVO().desc"></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">有效期：</label>
+                <div class="col-xs-7">
+                  <div class="radio">
+                    <label class="form-inline">
+                      <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked data-bind="checked: serviceVO().validTimeType"> 永久
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label class="form-inline">
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType"> 
+                      <select class="form-control" data-bind="value: serviceVO().validTimeNum">
+                      <option value="1">1</option>
+                      <option value="1">2</option>
+                      </select> 个月
+                    </label>
+                  </div>
+                  <div class="radio disabled">
+                    <label class="form-inline">
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: serviceVO().validTimeType">
+                      <input type="text" style="width:206px" class="form-control" id="addServer_daterange" data-bind="value: serviceVO().rangeTime">
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" data-bind="css: {'active': step()==2}">
+            <!-- 云主机 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='vm'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">虚拟化：</label>
+                <div class="col-xs-9">
+                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: serviceVO().serviceVm.virtualName,event:{'change':changeVirtualValue}">
+                    <option value="">KVM</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">操作系统类型：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 全选
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> windows
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> linux
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> aix
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">操作系统版本：</label>                
+                <div class="col-xs-9">
+                  <div class="panel panel-default" style="margin:0;padding-bottom:10px">
+                    <table class="table table-striped">
+                      <thead>
+                        <th>虚拟化</th>
+                        <th>操作系统类型</th>
+                        <th>操作系统版本</th>
+                        <th>关联镜象</th>
+                        <th>操作</th>
+                      </thead>
+                      <tbody data-bind="foreach: osType_chosen">
+                        <tr>
+                          <td data-bind="text: attrType">KVM</td>
+                          <td data-bind="text: cycle">windows</td>
+                          <td data-bind="text: name">windows server 2008 64bit</td>
+                          <td data-bind="text: state">windows2008</td>
+                          <td><a class="btn btn-xs btn-default" onclick="confirm('确定删除吗？')">删除</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <a class="btn btn-sm btn-success" style="margin-left: 10px;" data-bind="click: addOsType">添加</a>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">CPU(核)：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 全选
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 1
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 2
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 4
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 8
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 16
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 32
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">内存：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 全选
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 1
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 2
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 4
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 8
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 16
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 32
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value=""> 64
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 云主机 end -->
+            <!-- SSH密钥 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='ssh'">
+              
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SSH密钥 end -->
+            <!-- 云硬盘 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='vdisk'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">硬盘类型：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="option1" checked=""> SSD
+                      </label>
+                    </div>
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="option1" checked=""> HHD
+                      </label>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 云硬盘 end -->
+            <!-- VDC start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='vdc'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">支持操作系统：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" value="" > 全选
+                    </label>
+                  </div>
+                  <!-- ko foreach: osList -->
+                  <div class="checkbox" data-bind="">
+                    <label>
+                      <input type="checkbox" data-bind="value: value,checked: $root.serviceVO().serviceVDC.osTypeList"> <span data-bind="text:value"></span>
+                    </label>
+                  </div>
+                  <!-- /ko -->
+
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">是否限制配额：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="form-inline">
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="yes" data-bind="checked: showItems"> 限制
+                      </label>
+                    </div>
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi2" value="no" checked="" data-bind="checked: showItems"> 不限制
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="padding-right:50px;" class="form-group row" data-bind="visible: showItems()=='yes'">
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大CPU(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxCpu">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大云主机数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVmNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大内存(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxMemory">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大云硬盘数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxDiskNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大存储(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxStorager">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大公网IP数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxIpNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大VPC(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVPC">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大路由器数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxRouterNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大对象存储(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxObjStorageNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大防火墙数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxFireWallNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大SSH密钥数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSSHNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大负载均衡数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum">
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <!-- VDC end -->
+            <!-- 公网IP start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='ip'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="padding:0 50px;">
+                <div class="panel panel-default">
+                  <div class="panel-heading clearfix">
+                    <strong>公网IP列表</strong>
+                    <a class="btn btn-default btn-xs pull-right" style="color:#666;" data-bind="click: addIp">添加</a>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>VPC名称</th>
+                          <th>网络名称</th>
+                          <th>IP资源</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>208</td>
+                          <td>网络1</td>
+                          <td>192.168.1.2~192.168.1.253</td>
+                          <td><a onclick="confirm('确定删除吗？')">删除</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+            
+            <!-- 公网IP end -->
+            <!-- 负载均衡 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='balancing'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 负载均衡 end -->
+            <!-- 对象存储 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='storage'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区1
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 可用分区2
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 对象存储 end -->
+          </div>
+
+          <div class="tab-pane" data-bind="css: {'active': step()==3}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">是否计费：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="radio">
+                    <label>
+                      <input type="radio" name="optionsRadios2" id="optionsRadios21" value="0" checked data-bind="checked: isFee"> 是
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label>
+                      <input type="radio" name="optionsRadios2" id="optionsRadios22" value="1" checked data-bind="checked: isFee"> 否
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" data-bind="visible:isFee()=='0'">
+                <label class="col-xs-2 control-label">包含套餐：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline" data-bind="foreach: packages">
+					<div class="checkbox">
+						<label> <input type="checkbox"  data-bind="value: $data, checked: $root.packages_chosen"><span data-bind="text: type"></span>
+						</label>
+					</div>
+				  </div>
+				  <div data-bind="foreach: packages_chosen">
+	                  <div class="panel panel-default jifei-panel">
+	                    <div class="panel-heading jifei-heading">
+	                    <h4 data-bind="text: type"></h4>
+	                    <a class="btn btn-sm btn-info jifei-btn" data-bind="click: $root.addFeeDay">添加计费规则</a></div>
+	                    <table class="table table-striped">
+	                      <thead>
+	                        <th>计费因子</th>
+	                        <th>计费规则</th>
+	                        <th>操作</th>
+	                      </thead>
+	                      <tbody data-bind="foreach: feeList">
+	                        <tr>
+	                          <td data-bind="text: attrType"></td>
+                              <td data-bind="text: name"></td>
+	                          <td><a class="btn btn-xs btn-default" onclick="confirm('确定删除吗？')">删除</a></td>
+	                        </tr>
+	                      </tbody>
+	                    </table>
+	                  </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>                      
+          </div>
+          
+          <div class="tab-pane" data-bind="if: selected_product()!='vdc',  css: {'active': step()==4}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">发布范围：</label>
+                <div class="col-xs-9">
+                  <div class="panel panel-default" style="margin:0;padding-bottom:10px">
+                    <div id="serviceModalTree" class="ztree release"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info service-step-btn-pre" data-bind="visible: step()>1, click: prevStep">上一步</a>
+        <a class="btn btn-default btn-info service-step-btn-next" data-bind="visible: (selected_product() !='vdc' && step()<4) || (selected_product() =='vdc' && step()<3), click: nextStep">下一步</a>        
+        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='vdc' &&  step()==3), click: saveService">保存</a>
+        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='vdc' &&  step()==3)">保存并发布</a>
+        <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 选择计费 -->
+<div role="dialog" aria-hidden="true" id="addFeeDialog" class="modal fade" data-bind="modal: { show: isAdd_Fee }">
+  <div class='modal-dialog modal-lg'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择计费</h3>
+      </div>
+      <div class='modal-body form-horizontal'>
+        <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: feeList">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>
+			      <div class="checkbox">
+			        <label class="i-checks">
+			          <input type="checkbox" data-bind="checked: isSelectedAll">
+			          <i></i>
+			        </label>
+			      </div>                    
+			    </th>  
+                <th>计费因子</th>
+                <th>计费规则</th>
+                <th>计费金额(元)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+              <tr>
+                <td>
+			      <div class="checkbox">
+			        <label class="i-checks">
+			          <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
+			          <i></i>
+			        </label>
+			      </div> 
+			    </td>
+                <td data-bind="text: attrType"></td>
+                <td data-bind="text: name"></td>
+                <td data-bind="text: price"></td>
+              </tr>
+              <!-- /ko -->
+            </tbody>
+          </table>
+        </div>        
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: addFeeToList">确定添加</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 添加操作系统版本 --> 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_osType }">
+   <div class='modal-dialog modal-lg'>
+     <div class='modal-content'>
+       <div class='modal-header'>
+         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加操作系统版本</h3>
+       </div>
+       <div class='modal-body form-horizontal'>
+         <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: osVersionList">
+           <table class="table table-striped">
+             <thead>
+               <tr>
+                 <th>
+			       <div class="checkbox">
+			         <label class="i-checks">
+			           <input type="checkbox" data-bind="checked: isSelectedAll">
+			           <i></i>
+			         </label>
+			       </div>                    
+			     </th>  
+                 <th>镜像名称</th>
+                 <th>操作系统类型</th>
+                 <th>操作系统版本</th>
+                 <th>可用分区</th>
+               </tr>
+             </thead>
+             <tbody>
+               <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+               <tr>
+                 <td>
+			       <div class="checkbox">
+			         <label class="i-checks">
+			           <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
+			           <i></i>
+			         </label>
+			       </div> 
+			     </td>
+                 <td data-bind="text: attrType"></td>
+                 <td data-bind="text: name"></td>
+                 <td data-bind="text: price"></td>
+                 <td data-bind="text: price"></td>
+               </tr>
+               <!-- /ko -->
+             </tbody>
+           </table>
+         </div>
+         
+       </div>
+       <div class='modal-footer' style="text-align:center;">
+         <a class="btn btn-default btn-info" data-bind="click: addOsVersionToList">确定添加</a>
+         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+       </div>
+     </div>
+   </div>
+ </div>
+ <!-- 选择网络 -->
+ <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Ip }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择网络</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" style="top:-2px;"></th>
+                  <th>VPC名称</th>
+                  <th>网络名称</th>
+                  <th>IP资源</th>
+                  <th>可用分区</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox" style="top:-2px;"></td>
+                  <td>208</td>
+                  <td>网络1</td>
+                  <td>192.168.1.2~192.168.1.253</td>
+                  <td>分区1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addIpToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 上传图片 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isChangeImg }">
+    <div class='modal-dialog'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传图片</h3>
+        </div>
+        <div class='modal-body row'>
+          <div class="col-xs-6">
+            <img src="" alt="" width="100%" height="150">
+          </div>
+          <div class="col-xs-6">
+            <p><a class="btn btn-success">上传图片</a></p>
+        <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
+          </div>
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: setImg">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
