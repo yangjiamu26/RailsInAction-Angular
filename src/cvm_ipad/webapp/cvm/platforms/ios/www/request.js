@@ -6,18 +6,12 @@ function RestServiceJs(newurl) {
   self.post = function(model, callback) {  
       $.ajax({  
           type: 'POST',  
-          url: self.myurl,
+          url: self.myurl,  
           data: JSON.stringify(model),
           processData: false,  
           contentType: 'application/json',
           success: callback,  
           error: function(req, status, ex) {
-             alert("readyState: " + req.readyState + "\n" +
-                "responseText: "+ req.responseText + "\n" +
-                "status: " + req.status + "\n" +
-                "text status: " + status + "\n" +
-                "error: " + ex);
-             
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -25,8 +19,8 @@ function RestServiceJs(newurl) {
             }
           },  
           timeout:60000  
-      });
-  };
+      });  
+  };  
    
   self.put= function(params, callback) {  
       $.ajax({  
