@@ -1,0 +1,262 @@
+<div class="bg-light lter b-b wrapper-sm">
+  <ol class="breadcrumb">
+    <li>当前位置：</li>
+    <li>工作</li>
+    <li><a href="#pages/workflows/tasks?type=work">我的工作</a></li>
+    <li class="active">任务办理</li>
+  </ol>
+</div>
+
+<div class="wrapper-md">
+  <div class="wrapper bg-white-only">
+    <div>
+      <div class="row">
+          <div class="col-xs-3">
+           <p><strong>任务ID：</strong><span id="taskId"></span></p>
+          </div>
+          <div class="col-xs-9">
+           <p id="taskName"><strong>流程节点：</strong></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-3">
+           <p id="processType"><strong>流程类型：</strong></p>
+          </div>
+          <div class="col-xs-9">
+           <p><strong>流程状态：</strong>审批中</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-3">
+           <p id="applier"><strong>申请人：</strong></p>
+          </div>
+          <div class="col-xs-9">
+           <p id="applyTime"><strong>申请日期：</strong></p>
+          </div>
+        </div>
+        <h4>申请信息</h4>
+        <p id="vdcName">VDC名称：</p>
+        <h4>申请的配额信息</h4>
+        <table class="table table-bordered">
+          <tbody>
+            <tr>
+              <td>CPU(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcCpuSize" /></td>
+              <td>内存(G)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcMemorySize" /></td>
+            </tr>
+            <tr>
+              <td>存储(G)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcStorageSize" /></td>
+              <td>对象存储(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcObjectStorageMaxNum" /></td>
+            </tr>
+            <tr>
+              <td>云硬盘(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcDiskMaxNum" /></td>
+              <td>SSH密钥(对)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcSshMaxNum" /></td>
+            </tr>
+            <tr>
+              <td>路由器(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcRouterMaxNum" /></td>
+              <td>公网IP(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcPublicIpMaxNum" /></td>
+            </tr>
+            <tr>
+              <td>负载均衡器(个)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcLoadBalanceMaxNum" /></td>
+              <td>防火墙(G)：</td>
+              <td><input class="form-control w-xxs input-sm" id="vdcFireWallMaxNum" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <h4>申请的可用分区信息</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>云管理平台</th>
+              <th>虚拟化类型</th>
+              <th>可用分区</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>wincenter1</td>
+              <td>winserver</td>
+              <td>zone1,zone,zone3</td>
+            </tr>
+            <tr>
+              <td>openstack</td>
+              <td>winserver</td>
+              <td>zone1,zone,zone3</td>
+            </tr>
+          </tbody>
+        </table>
+        <h4>申请的网络信息:</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th><input type="checkbox" /></th>
+              <th>外部网络/IP池</th>
+              <th>网络类型</th>
+              <th>云管理平台</th>
+              <th>可用分区</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>网络名称1</td>
+              <td>数据中心网络</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>网络名称2</td>
+              <td>数据中心网络</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <h4>审批意见:</h4>
+        <textarea id="commentMsg" class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>
+		<input id="commentId" type="hidden">
+		<hr />
+	      <div>
+	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" onclick="save()">保存数据</button>
+	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
+	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal">转发</button>
+	        <button name="button" id="btn_task_complete" class="btn btn-default btn btn-default" onclick="next()">转交下一步</button>
+	        <a  class="btn btn-default btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks1?type=work">取消</a>
+	      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+  var isLast = false;
+  var isFirst = false;
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    if(!args.type){
+      $(".order-base-info").remove();
+    }else{
+      if(args.type == 'order')
+        $("#orderBaseInfoType").html('订单号');
+      else
+        $("#orderBaseInfoType").html('任务ID');
+    };
+    
+    if(args.taskId){
+    	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    		var info = data.taskInfo[0];
+    		var taskNode = data.taskActivity[0];
+    		console.log(taskNode);
+    		$("#taskId").append(info.id);
+    		$("#taskName").append(info.name);
+    		$("#processType").append(info.processTypeName);
+    		$("#applyTime").append(info.applyTime);
+    		
+    		var processInstanceId = info.processInstanceId;
+    		//判断是否有前面节点
+			if(taskNode.previousStartEvent){
+				isFirst = true;
+				$("#btn_task_fallback").hide();
+				$("#btn_task_delegate").hide();
+			}
+			
+			//判断是否最后一个节点
+			if(taskNode.nextEndEvent){
+				isLast = true;
+				$("#btn_task_complete").text("完成审核");
+				$("#btn_task_complete").attr("title","完成审核");
+			}
+			
+			get_task_comment(args.taskId);
+	    	//获取订单数据
+	    	csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
+	    		var vdcData = data.vdc;
+	    		var order = data.order;
+	    		$("#vdcName").append(vdcData.instanceName);
+	    		$("#applier").append(order.userName);
+	    		
+	    		$("#vdcCpuSize").val(vdcData.vdcCpuSize);
+	    		$("#vdcMemorySize").val(vdcData.vdcMemorySize);
+	    		$("#vdcStorageSize").val(vdcData.vdcStorageSize);
+	    		$("#vdcObjectStorageMaxNum").val(vdcData.vdcObjectStorageMaxNum);
+	    		$("#vdcDiskMaxNum").val(vdcData.vdcDiskMaxNum);
+	    		
+	    		$("#vdcRouterMaxNum").val(vdcData.vdcRouterMaxNum);
+	    		$("#vdcPublicIpMaxNum").val(vdcData.vdcPublicIpMaxNum);
+	    		$("#vdcLoadBalanceMaxNum").val(vdcData.vdcLoadBalanceMaxNum);
+	    		$("#vdcFireWallMaxNum").val(vdcData.vdcFireWallMaxNum);
+	    		$("#vdcSshMaxNum").val(vdcData.vdcSshMaxNum);
+	    	},function(){alert('获取VDC失败！')});
+	    },function(){alert('获取任务失败！')});
+    }
+    
+    $('#applyServiceVmBox_daterange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+          {
+            format:'YYYY/MM/DD',
+            startDate: moment().subtract('days', 29),
+            endDate: moment(),
+            separator:'至',
+            locale:{
+              applyLabel: '确认',
+              cancelLabel: '取消',
+              fromLabel: '开始日期',
+              toLabel: '结束日期',
+              weekLabel: '周',
+              customRangeLabel: '自定义范围',                            
+              daysOfWeek:["日","一","二","三","四","五","六"],
+              monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+            }
+          }
+        );
+  });
+  
+  function get_task_comment(taskId){
+  	csc.rest.get('api/v5.0.0/workflows/tasks/'+taskId+'/comments',function(data){
+  		$("#commentId").val(data.id);
+  		$("#commentMsg").val(data.message);
+  	},function(){alert('获取任务失败！')});
+  }
+  
+  function save(){
+  	var taskId = $("#taskId").text();
+  	saveComment(taskId,function(){alert('保存成功！');});
+  }
+  
+  function saveComment(taskId,callback){
+  	var message = $("#commentMsg").val();
+  	var id = $("#commentId").val();
+  	csc.rest.post('api/v5.0.0/workflows/tasks/'+taskId+'/comments?message='+message+'&id='+id,'',function(data){
+  		callback();
+	});
+  }
+  
+  function next(){
+	  var taskId = $("#taskId").text();
+	  if(isLast){
+		  saveComment(taskId,function(){
+			var databody = {"userId":"","action":"designated"};
+			csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+			  alert("审核成功！");
+			  location.href = "#pages/workflows/tasks1?type=work";
+			},function(){alert("操作失败！")});
+		  });
+	  }else{		  
+		  showModal("pages/workflows/next.html?taskId="+taskId);
+	  }
+  }
+  
+  function back(){
+	  var taskId = $("#taskId").text();
+	  showModal("pages/workflows/back.html?taskId="+taskId);
+  }
+  
+</script>

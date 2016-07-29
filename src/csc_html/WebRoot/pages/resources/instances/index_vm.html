@@ -3,9 +3,6 @@
     <div class="row">
       <div class="col-xs-1">
         <button class="btn btn-sm btn-primary" data-bind="click: addvm">创建</button>
-        
-         <button class="btn btn-sm btn-primary" data-bind="click: vmAdjustment">调整资源</button>
-        
       </div>            
       <div class="col-xs-3">
         <div class="input-group">
@@ -58,7 +55,7 @@
             <th>内存（MB）</th>
             <th>存储（GB）</th>                                  
             <th>IP地址</th>                                  
-            <th>操作系统</th>
+            <th>服务状态</th>
             <th>创建人</th>
             <th>操作</th>
           </thead>
@@ -71,12 +68,12 @@
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr> 
                 <td>
-               	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid}"></a>
+               	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid+'&vmId='+$row.id}"></a>
                	</td>
                 <td>
 	                <span class="label label-success" data-bind="if: state == 'ACTIVE'">运行中</span>
 	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF'">已关机</span>
-	                <span class="label label-info" data-bind="if: state == 'ACTIVE'">已挂起</span>
+	                <span class="label label-info" data-bind="if: state == 'SUSPENDED'">已挂起</span>
 	                <span class="label label-warning" data-bind="if: state == 'POWERING_OFF'">正在关机</span>
 	                <span class="label label-warning" data-bind="if: state == 'POWERING_ON'">正在启动</span>
 	                <span class="label label-warning" data-bind="if: state == 'REBOOTING'">正在重启</span>
@@ -94,7 +91,10 @@
                 <td data-bind="text: memory"></td>
                 <td data-bind="text: storage"></td>
                 <td data-bind="text: ip"></td>
-                <td data-bind="text: os"></td>
+                <td>
+                	<span class="label label-success" data-bind="if: isValidate == true">正常</span>
+	                <span class="label label-danger" data-bind="ifnot: isValidate == true">已过期</span>
+                </td>
                 <td data-bind="text: userName"></td>
                 <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.vmAdjustment">调整资源</a> |
                   <div class="btn-group">
@@ -422,13 +422,13 @@
                 <div class="form-group">
                   <label class="col-sm-3 control-label">VCPU数：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" placeholder="6" data-bind="value: adjustmentVO().vcpu">
+                    <input type="email" class="form-control" data-bind="value: adjustmentVO().vcpu">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-3 control-label">内存(GB)：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" placeholder="4" data-bind="value: adjustmentVO().memory">
+                    <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
                   </div>
                 </div>
               </div>
@@ -515,8 +515,8 @@
 			    });
       		});
       }
-      //关闭
-      this.stopOne = function(object, event){
+      //关机
+      this.shutoffOne = function(object, event){
     	  systemMsg.confirm("确定要关闭云主机 "+object.name+"？",function(){
   			var startPutBody = {"operationType":"STOP"};
     			csc.rest.put('api/v5.0.0/vms/'+object.uuid,startPutBody,function(data){
@@ -544,10 +544,6 @@
 			 		self.table.refreshData();
 			    });
     		});
-      }
-      //终止（服务实例）
-      this.pause = function(){
-
       }
       //挂起
       this.suspend = function(object, event){
@@ -577,6 +573,11 @@
 			 		self.table.refreshData();
 			    });
     		});
+      }
+      
+      //终止（服务实例）
+      this.pause = function(){
+
       }
       
       this.searchParam = ko.observable({
@@ -632,7 +633,8 @@
     	  }
       }
       
-      /* "Well briefly, Sir, I am the Permanent Under Secretary of State, 
+      /* 为VDC和可用分区下拉框添加"全部"备选项
+      "Well briefly, Sir, I am the Permanent Under Secretary of State, 
       known as the Permanent Secretary. 
       Woolley here is your Principal Private Secretary, 
       I too have a Principal Private Secretary and he is the Principal Private Secretary to the Permanent Secretary. 
@@ -797,23 +799,24 @@
       this.adjustmentVO = ko.validatedObservable({
     	  vcpu: ko.observable(),
     	  memory: ko.observable(),
-    	  vmUuid: ''
+    	  vmUuid: ko.observable()
       });
       
       this.vmAdjustment = function(object, event){
           self.isVmAdjustment(true);
-          self.adjustmentVO.vcpu(object.vcpu);
-          self.adjustmentVO.memory(object.memory);
-          self.adjustmentVO.vmUuid(object.uuid);
+          console.log(self.adjustmentVO());
+          self.adjustmentVO().vcpu(object.vcpu);
+          self.adjustmentVO().memory(object.memory);
+          self.adjustmentVO().vmUuid(object.uuid);
       };
       
       //调整资源
       this.adjust = function(){
     	  var putBody = {};
     	  putBody.operationType = "RESIZE";
-    	  putBody.vcpu = self.adjustmentVO.vcpu();
-    	  putBody.vcpu = self.adjustmentVO.memory();
-    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO.vmUuid(),putBody,function(data){
+    	  putBody.vcpu = self.adjustmentVO().vcpu();
+    	  putBody.memory = self.adjustmentVO().memory();
+    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
 		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
 		 		self.isVmAdjustment(false);
 		 		self.table.refreshData();

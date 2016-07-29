@@ -387,7 +387,8 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 		    var self = this;
 		    var countries = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
 		    this.applyList = ko.observableArray(countries);
-		    
+		    var sshIsMounts = [{name:'否',value:'NO'},{name: '是',value:'YES'}];
+		    this.sshIsMountList = ko.observableArray(sshIsMounts);
 		    //###########    列表、全选     ###############
 		    this.isSelectedAll = ko.pureComputed({
 		        read: function () {
@@ -613,28 +614,32 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
  		        });	        
  		    };
  		    
- 		    this.azChangeGetVm = function(obj){
- 		        csc.rest.get("api/v5.0.0/cart/getVmList/"+obj.vdiskCartInfo().vdcUuid+"/"+obj.vdiskCartInfo().azUuid, function(data){
- 		        	obj.vdiskCartInfo().vmList(data);
+ 		    this.azChangeGetVm = function(arg,data,event){
+ 		        csc.rest.get("api/v5.0.0/cart/getVmList/"+data[arg]().vdcUuid+"/"+data[arg]().azUuid, function(data){
+ 		        	data[arg]().vmList(data);
  		        });	    	
  		    }
  		    
- 		    this.azChangeGetVpc = function(obj){
- 		    	console.log(obj.publicNetworkCartInfo());
- 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+obj.publicNetworkCartInfo().vdcUuid+"/"+obj.publicNetworkCartInfo().azUuid, function(data){
- 		        	console.log(data);
- 		        	obj.publicNetworkCartInfo().vpcList(data);
+ 		    this.azChangeGetVpc = function(arg,data,event){
+ 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+data[arg].vdcUuid+"/"+data[arg].azUuid, function(data){
+ 		        	data[arg].vpcList(data);
  		        });
  		    }
  		   
  		   
- 		    this.vpcChange = function(obj){
- 		        csc.rest.get("api/v5.0.0/cart/getNetworkList/1/"+obj.publicNetworkCartInfo().vpcUuid, function(data){//需修改为服务UUID作为参数传递
- 		        	console.log(data);
- 		        	obj.publicNetworkCartInfo().networkList(data);
+ 		    this.vpcChange = function(arg,data,event){
+ 		        csc.rest.get("api/v5.0.0/cart/getNetworkList/1/"+data[arg].vpcUuid, function(data){//需修改为服务UUID作为参数传递
+ 		        	data[arg].networkList(data);
  		        });
  		    }
  		 	
+ 		   this.osTypeChangeGetOsVersion = function(arg,data,event){
+		        csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data[arg].azUuid+"/"+data[arg].osType, function(data){
+		        	data[arg].osVersionList(data);
+		        });
+		    }
+ 		   
+ 		    
  		 	this.vdiskCartInfo = ko.validatedObservable({
     			id:"",
     			name:"",
@@ -704,14 +709,51 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
        			azList:ko.observableArray([])
 		 	});
  		 	
+ 		 	
+ 		 	
  		 	this.vmCartInfo = ko.validatedObservable({
-    			id:"",
-    			name:"",
-    			workip:"",
-    			vdcUuid:"",
-    			vpdcUuid:"",
-    			applyTime:"",
-    			billRuleUuid:""	
+ 		 		id:ko.observable(""),
+    			vmName:ko.observable(""),
+    			vdcUuid:ko.observable(""),
+    			azUuid:ko.observable(""),
+    			applyTime:ko.observable(""),
+    			applyType:ko.observable(""),
+    			applyNum:ko.observable(""),
+    			applyText:ko.observable(""),
+    			remark:ko.observable(""),
+    			billRuleUuid:ko.observable(""),
+    			
+    			osType:ko.observable(""),
+    			osVersion:ko.observable(""),
+    			cpu:ko.observable(""),
+    			memory:ko.observable(""),
+    			storage:ko.observable(""),
+    			vpcUuid:ko.observable(""),
+    			vpcNetworkUuid:ko.observable(""),
+    			ip:ko.observable(""),
+    			account:ko.observable(""),
+    			password:ko.observable(""),
+    			repeatPassword:ko.observable(""),
+    			sshIsMount:ko.observable(""),
+    			
+    			//分区
+                partitions : ko.observableArray([]),
+                //硬盘
+                mountDisks : ko.observableArray([]),
+                
+                softwares : ko.observableArray([]),
+    			
+    			
+    			vdcList:ko.observableArray([]),
+       			azList:ko.observableArray([]),
+       			osTypeList:ko.observableArray([]),
+       			osVersionList:ko.observableArray([]),
+       			cpuList:ko.observableArray([]),
+       			memoryList:ko.observableArray([]),
+       			vpcList:ko.observableArray([]),
+       			networkList:ko.observableArray([])
+       			
+       			
 		 	});
  		 	this.queryElement = function(arg,object, event){
  	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
@@ -742,6 +784,8 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
  		 	this.isEdit_vm = ko.observable(false);
  		 	var editObject;
  		 	this.editElement = function(dis,arg,object, event){
+ 		 		self.vmCartInfo().mountDisks([]);
+ 		 		
  	 		 	csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
  	 	 		 	  if(arg=='vdiskCartInfo'){
 	 	 	 		        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
@@ -822,12 +866,76 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	 	 	 	 		            
 	 	 	 	 		        });
 	 	 	 		        });
-		 		      	  }
+		 		      }else if(arg=="vmCartInfo"){
+		 		    	  var serviceUuid=1;
+		 		    	  var vdcUuid=data.vdcUuid;
+		 		    	  var azUuid=data.azUuid;
+		 		    	  var vpcUuid=data.vpcUuid;
+		 		    	  var osType=1;
+		 		    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid+"&osType="+osType;
+		 		         
+		 		    	 csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){debugger
+		 		    		console.log(result.osTypeList);
+		 		    	    self.vmCartInfo().vdcList(result.vdcList);
+		 		    	    self.vmCartInfo().vpcList(result.vpcList);
+		 		    	    self.vmCartInfo().networkList(result.networkList);
+		 		    	    self.vmCartInfo().azList(result.azList);
+		 		    	    self.vmCartInfo().osTypeList(result.osTypeList);
+		 		    	    self.vmCartInfo().cpuList(result.cpuList);
+		 		    	    self.vmCartInfo().memoryList(result.memoryList);
+	 	 	 		 		
+		 		    	    
+		 		    	    
+		 		    	    self.vmCartInfo.fromJSON({
+		 		    	    	id:data.id,
+		 		    			vmName:data.vmName,
+		 		    			vdcUuid:data.vdcUuid,
+		 		    			azUuid:data.azUuid,
+		 		    			applyTime:data.applyTime,
+		 		    			applyType:data.applyType,
+		 		    			applyNum:data.applyNum,
+		 		    			applyText:data.applyText,
+		 		    			remark:data.remark,
+		 		    			billRuleUuid:data.billRuleUuid,
+		 		    			
+		 		    			osType:data.osType,
+		 		    			osVersion:data.osVersion,
+		 		    			cpu:data.cpu,
+		 		    			memory:data.memory,
+		 		    			storage:data.storage,
+		 		    			vpcUuid:data.vpcUuid,
+		 		    			vpcNetworkUuid:data.vpcNetworkUuid,
+		 		    			ip:data.ip,
+		 		    			account:data.account,
+		 		    			password:data.password,
+		 		    			repeatPassword:data.repeatPassword,
+		 		    			sshIsMount:data.sshIsMount
+		 		    	    });
+		 		    	    
+		 		    	    data.mountDisks.forEach(function(e){
+		 	 		 			var vo=new VO(e);
+		 	 		 			self.vmCartInfo().mountDisks.push(vo);
+		 	 		 		});
+		 		    	   
+		 		    	    
+		 		    	    //self.vmCartInfo().id = object.id();
+	 	  	 		 		self.isEdit_vm(true);
+	 	  	 		 		editObject = object;
+		 		    	 });
+	 		      	  }
  	 	 		 	  
+ 	 	 		 	
  	 	 		 	
  	 			    }); 	 		
  		 	}
- 		 		 	
+ 		 	
+ 		 	function VO(obj){       	
+            	for(var s in obj){
+            	   var v=obj[s];	
+                   this[s] = ko.observable(v);
+            	}
+            } 
+ 		 	
 	      	this.deleteElement = function(arg,object,event){
 	      		    var id;
 	      		    var name;
@@ -886,6 +994,8 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 	      			json = self.publicNetworkCartInfo.toJSON();
 	      		}else if(arg=="loadbalancerCartInfo"){
 	      			json = self.loadbalancerCartInfo.toJSON();
+	      		}else if(arg=="sshKeytCartInfo"){
+	      			json = self.sshKeytCartInfo.toJSON();
 	      		}
 	      		console.log(json)
 			 	csc.rest.put('api/v5.0.0/cart/update/'+arg,json,function(data){
@@ -928,9 +1038,60 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
 		      			editObject.vdcName(vdcItem.name);
 		      			editObject.azName(azItem.name);
 		      			self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
+		      		}else if(arg=="sshKeytCartInfo"){
+		      			self.isEdit_sshKeyt(false);
+		      			var vdcItem = _.findWhere(self.sshKeytCartInfo().vdcList(), {uuid: data.vdcUuid});
+		      			var azItem = _.findWhere(self.sshKeytCartInfo().azList(), {uuid: data.azUuid});
+		      			editObject.name(self.sshKeytCartInfo().name);
+		      			editObject.vdcName(vdcItem.name);
+		      			editObject.azName(azItem.name);
+		      			self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
 		      		}
 			    });
 	      	}
+	      	
+	      	
+	      	
+	      	
+	      	this.step1 = ko.observable(false);
+	        this.step2 = ko.observable(true);
+	        this.step3 = ko.observable(true);
+	        this.step4 = ko.observable(true);
+	        this.step5 = ko.observable(true);
+
+	        function MountDiskVO(){
+		    	this.name = ko.observable();
+			  	this.size = ko.observable();
+			  	this.type = ko.observable();
+			  	this.serviceUuid = ko.observable();
+		    }
+	        
+	        this.isAdd_Vdisk = ko.observable(false);
+	        this.addVdisk = function(){
+	        	self.vmCartInfo().mountDisks.push(new MountDiskVO);
+	        	
+	        	debugger;
+	            //this.isAdd_Vdisk(true);
+	        }
+	        this.addVdiskToList = function(){
+	          this.isAdd_Vdisk(false);
+	        }
+
+	        this.isAdd_Software = ko.observable(false);
+	        this.addSoftware = function(){
+	          this.isAdd_Software(true);
+	        }
+	        this.addSoftwareToList = function(){
+	          this.isAdd_Software(false);
+	        }
+
+	        this.isAdd_Partition = ko.observable(false);
+	        this.addPartition = function(){
+	          this.isAdd_Partition(true);
+	        }
+	        this.addPartitionToList = function(){
+	          this.isAdd_Partition(false);
+	        }
 	    }
 		ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]);
   });
@@ -1557,3 +1718,445 @@ var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-dateran
   </div>
 </div>
 <!-- ssh密钥 修改 -->  
+
+
+<!-- 云主机 修改 -->
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_vm}">
+  <div class='modal-dialog modal-lg'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机服务</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="panel panel-default no-height" style="margin:0;border:none">
+          <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step1(!step1()),css:{'glyphicon-chevron-up': step1(), 'glyphicon-chevron-down': !step1()}"></span></div>
+          <div class="panel-body" data-bind="visible: step1">
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">云主机名称：</label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control w" data-bind="value:vmCartInfo().vmName">
+                </div>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">所属VDC：</label>
+                <div class="col-sm-8">
+                  <select class="form-control w-xs" data-bind="options:vmCartInfo().vdcList,optionsText:'name',optionsValue:'uuid',value: vmCartInfo().vdcUuid,event:{change:function(data, event){ $root.vdcChange('vmCartInfo',data,event) }},optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">可用分区：</label>
+                <div class="col-sm-8">
+                  <select class="form-control w-xs" data-bind="options: vmCartInfo().azList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().azUuid,event:{changefunction(data, event){ $root.azChangeGetVpc('vmCartInfo',data,event)}},optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">操作系统类型：</label>
+                <div class="col-sm-8">
+                  <select class="form-control w-xs" data-bind="options: vmCartInfo().osTypeList,optionsText:$data,optionsValue:$data,value:vmCartInfo().osType,event:{changefunction(data, event){ $root.osTypeChangeGetOsVersion('vmCartInfo',data,event)}},optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">操作系统版本：</label>
+                <div class="col-sm-8">
+                  <select class="form-control w-xs" data-bind="options: vmCartInfo().osVersionList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().osVersion,optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-3">
+              <div class="row">
+                <label class="col-xs-5 control-label">CPU(个)：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs" data-bind="options: vmCartInfo().cpuList,optionsText:$data,optionsValue:$data,value:vmCartInfo().cpu,optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">内存(GB)：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs" data-bind="options: vmCartInfo().memoryList,optionsText:$data,optionsValue:$data,value:vmCartInfo().memory,optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">存储(GB)：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" data-bind="value: vmCartInfo().storage">
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-3">
+              <div class="row">
+                <label class="col-xs-5 control-label">VPC/IP池：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs" data-bind="options:vmCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">网络名称：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs" data-bind="options:vmCartInfo().networkList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().vpcNetworkUuid,optionsCaption:'请选择'"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">指定IP：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" data-bind="value: vmCartInfo().ip">
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-3">
+              <div class="row">
+                <label class="col-xs-5 control-label">主机账号：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control"  data-bind="value: vmCartInfo().account">
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">密码：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control"  data-bind="value: vmCartInfo().password">
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">重复密码：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control"  data-bind="value: vmCartInfo().repeatPassword">
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-3">
+              <div class="row">
+                <label class="col-xs-5 control-label">绑定密钥：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs" data-bind="options:sshIsMountList,optionsText:'name',optionsValue:'value',value:vmCartInfo().sshIsMount"></select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-4">
+              <div class="row">
+                <label class="col-xs-5 control-label">选择密钥：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs"><option value="">密钥1</option><option value="">密钥2</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="form-group col-md-5">
+              
+              
+               <div class="row">
+	              <label class="col-xs-5 control-label">申请时长：</label>
+	              <div class="col-sm-7">
+	                <div class="radio">
+	                  <label class="form-inline">
+	                    <input type="radio" name="optionsRadiosi"  value="1" data-bind="checked: vmCartInfo().applyType"> 永久
+	                  </label>
+	                </div>
+	                <div class="radio">
+	                  <label class="form-inline">
+	                    <input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="2"  data-bind="checked: vmCartInfo().applyType"> 
+	                    <select class="form-control" data-bind="options:applyList,optionsText:'name',optionsValue:'value',value: vmCartInfo().applyNum"></select> 个月
+	                  </label>
+	                </div>
+	                <div class="radio">
+	                  <label class="form-inline">
+	                    <input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="3"  data-bind="checked: vmCartInfo().applyType">
+	                    <span class="">有效期至 </span>
+	                    <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: vmCartInfo().applyTime">
+	                  </label>
+	                </div>
+	              </div>
+	            </div>
+              
+              
+              
+              
+            </div>
+            <div class="clearfix"></div>
+            <div class="form-group col-md-3">
+              <div class="row">
+                <label class="col-xs-5 control-label">套餐：</label>
+                <div class="col-xs-7">
+                  <select class="form-control w-xs">
+                    <option value="1">按天</option><option value="1">包月</option><option value="1">按季度</option><option value="1">包年</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <span class="control-label col-md-3 text-left" style="height:34px;">费用：100元/月</span>
+          </div>
+        </div>
+
+        <div class="panel panel-default no-height" style="margin:0;border:none">
+          <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step2(!step2()),css:{'glyphicon-chevron-up': step2(), 'glyphicon-chevron-down': !step2()}"></span></div>
+          <div class="panel-body" data-bind="visible: step2">
+            <div style="margin:0;">
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addVdisk">添加硬盘</a>
+              <div class="clearfix" style="height:10px;clear:both;"></div>
+              <div class="panel panel-default table-responsive no-height">
+                <table class="table table-striped">
+                  <thead>
+                    <th>序号</th>
+                    <th>云硬盘名称<i style="color:red">*</i></th>
+                    <th>存储大小</th>
+                    <th>所属服务</th>
+                    <th>申请时长</th>
+                    <th>套餐</th>
+                    <th>收费标准</th>
+                    <th>操作</th>
+                  </thead>
+                  <tbody data-bind="foreach:vmCartInfo().mountDisks">
+                    <tr>
+                        <td><span data-bind="text: ($index()+1)"></span></td>
+                        <td><input type="text" class="form-control" data-bind="value:name"/></td>
+                        <td><input type="text" class="form-control" data-bind="value:size"/></td>
+                        <td><input type="text" data-bind="value:size" disabled/><a class="btn btn-xs btn-default" data-bind="click:function(object, event){ $root.updateMountdisks($parent, object, event) }">选择</a> 
+                        </td>
+                        <td><input type="text" class="form-control" data-bind="value:name"/></td>
+                        <td><span data-bind="text:size"></span></td>
+                        <td><span data-bind="text:size"></span></td>
+                        <td>
+                            <a class="btn btn-xs btn-danger" data-bind="click:function(object, event){ $root.delMountdisks($parent, object, event) }">删除</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="panel panel-default no-height" style="margin:0;border:none">
+          <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step3(!step3()),css:{'glyphicon-chevron-up': step3(), 'glyphicon-chevron-down': !step3()}"></span></div>
+          <div class="panel-body" data-bind="visible: step3">
+            <div style="margin:0;">
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addSoftware">添加软件</a>
+              <div class="clearfix" style="height:10px;clear:both;"></div>
+              <div class="panel panel-default table-responsive no-height">
+                <table class="table table-striped">
+                  <thead>
+                    <th>软件名称</th>
+                    <th>软件分类</th>
+                    <th>软件类型</th>
+                    <th>软件版本</th>
+                    <th>静默安装属性</th>
+                    <th>操作</th>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>oracle 10g</td>
+                      <td>数据库</td>
+                      <td>oracle</td>
+                      <td>10G 企业版</td>
+                      <td><a class="btn btn-xs btn-default">查看</a> <a class="btn btn-xs btn-default">修改</a></td>
+                      <td><a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
+                    </tr>
+                    <tr>
+                      <td>oracle 10g</td>
+                      <td>数据库</td>
+                      <td>oracle</td>
+                      <td>10G 企业版</td>
+                      <td><a class="btn btn-xs btn-default">查看</a> <a class="btn btn-xs btn-default">修改</a></td>
+                      <td><a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default no-height" style="margin:0;border:none">
+          <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step4(!step4()),css:{'glyphicon-chevron-up': step4(), 'glyphicon-chevron-down': !step4()}"></span></div>
+          <div class="panel-body" data-bind="visible: step4">
+            <div style="margin:0;">
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: addPartition">添加分区</a>
+              <div class="clearfix" style="height:10px;clear:both;"></div>
+              <div class="panel panel-default table-responsive no-height">
+                <table class="table table-striped">
+                  <thead>
+                    <th>分区名称</th>
+                    <th>分区大小</th>
+                    <th>操作</th>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>NFS</td>
+                      <td>100G</td>
+                      <td><a class="btn btn-xs btn-default">修改</a> <a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
+                    </tr>
+                    <tr>
+                      <td>NFS</td>
+                      <td>100G</td>
+                      <td><a class="btn btn-xs btn-default">修改</a> <a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default no-height" style="margin:0;border:none">
+          <div class="panel-heading">高级选项 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step5(!step5()),css:{'glyphicon-chevron-up': step5(), 'glyphicon-chevron-down': !step5()}"></span></div>
+          <div class="panel-body" data-bind="visible: step5">
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">所属业务系统：</label>
+                <div class="col-sm-8">
+                  <select class="form-control w"><option value="">1</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="form-group col-md-6">
+              <div class="row">
+                <label class="col-sm-4 control-label">备注：</label>
+                <div class="col-sm-8">
+                <textarea class="form-control" cols="30" rows="5"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.confirmCommit('sshKeytCartInfo') }">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 云主机 修改 -->
+
+  <!-- 添加云硬盘 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Vdisk }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择云硬盘</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>云硬盘名称<i style="color:red">*</i></th>
+                <th>类型<i style="color:red">*</i></th>
+                <th>是否收费<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>类型</td>
+                  <td>是/否</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addVdiskToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加云硬盘 -->
+  <!-- 添加软件 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Software }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择软件</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>软件名称<i style="color:red">*</i></th>
+                <th>软件类型<i style="color:red">*</i></th>
+                <th>软件版本<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>类型</td>
+                  <td>版本</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addSoftwareToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加软件 -->
+  <!-- 添加分区 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_Partition }">
+    <div class='modal-dialog modal-lg' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择分区</h3>
+        </div>
+        <div class='modal-body form-horizontal'>
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+            <table class="table table-striped">
+              <thead>
+                <th></th>
+                <th>分区名称<i style="color:red">*</i></th>
+                <th>分区大小<i style="color:red">*</i></th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""></td>
+                  <td>名称</td>
+                  <td>大小</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: addPartitionToList">确定添加</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 添加分区 -->
+
+
