@@ -71,14 +71,16 @@
         this.cancelClass = 'btn-default';
 
         this.locale = {
-            format: 'MM/DD/YYYY',
-            separator: ' - ',
-            applyLabel: 'Apply',
-            cancelLabel: 'Cancel',
-            weekLabel: 'W',
-            customRangeLabel: 'Custom Range',
-            daysOfWeek: moment.weekdaysMin(),
-            monthNames: moment.monthsShort(),
+            format:'YYYY-MM-DD',
+              separator:'至',
+              applyLabel: '确认',
+              cancelLabel: '取消',
+              fromLabel: '开始日期',
+              toLabel: '结束日期',
+              weekLabel: '周',
+              customRangeLabel: '自定义范围',                            
+              daysOfWeek:["日","一","二","三","四","五","六"],
+              monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',],
             firstDay: moment.localeData().firstDayOfWeek()
         };
 
