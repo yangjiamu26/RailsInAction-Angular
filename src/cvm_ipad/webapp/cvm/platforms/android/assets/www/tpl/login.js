@@ -28,14 +28,9 @@ myApp.onPageInit("login", function(page) {
         myApp.alert('密码不能为空！');
         return;
       }
-      Storage.setItem("baseNet",this.network());
-      BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
-
       var self = this;
-      RestServiceJs(BASE_URL+"/user/login").post({
-        "account": this.username(),
-        "password": this.password()
-      },function(data){
+
+      function goLogin(data){
         data.password = self.password();
         Storage.setItem("userInfo",JSON.stringify(data));
         Storage.setItem("cacheTime",new Date().getTime());
@@ -50,7 +45,21 @@ myApp.onPageInit("login", function(page) {
         setTimeout(function(){
           $$("#assistive").show();
         },2000);
+      }
 
+      if(this.username()=="demo"&&this.password()=="demo"){
+        BASE_URL = "demoapi";
+        return goLogin({"name":"测试用户","account":"demo","password":"demo","flag":true,"token":"demo"})
+      }
+
+      Storage.setItem("baseNet",this.network());
+      BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
+      
+      RestServiceJs(BASE_URL+"/user/login").post({
+        "account": this.username(),
+        "password": this.password()
+      },function(data){
+        goLogin(data);
       });
     }
   }
