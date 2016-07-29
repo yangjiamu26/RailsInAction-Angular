@@ -23,8 +23,9 @@
 					<p><strong>所属VDC：</strong><span data-bind="text:vpcVO().vdcName"></span></p>
 					<p><strong>可用分区：</strong><span data-bind="text:vpcVO().azName"></span></p>
 					<p><strong>外部网络：</strong>
-						<button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/subnets/newforvpc.html')">添加</button>
-						<button class="btn btn-default btn-sm">移除</button>
+					    <span data-bind="text:vpcExtNetQuery().name"></span>
+						<button class="btn btn-default btn-sm" data-bind="click:addVpcExtNet,visible: shouldShowAddExt">添加</button>
+						<button class="btn btn-default btn-sm" data-bind="click:removeVpcExtNet,visible: shouldShowRemoveExt">移除</button>
 					</p>
           <p><strong>私有网络：</strong>
             <button class="btn btn-default btn-sm"  data-bind="click:createVpcNet" >创建</button>
@@ -90,6 +91,27 @@
 				        </li>
 				      </ul>
 				 </footer>
+			
+			<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVpcExtNetModal }">
+			  <div class='modal-dialog modal-lg' role='document'>
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加子网</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <div class="form-group string required">
+			          <span>网络名称：</span>
+			          <select class="form-control" style="display:inline-block;width:150px"  data-bind="options:vpcExtNetList,optionsText:'netWorkName',optionsValue:'netWorkUuid',value:vpcExtNetVO().vpcExtNetUuid"  id="netSelect">
+			          </select>
+			        </div>
+			        </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
 				 
 		   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createVpcNetModal }">
 			 <div class='modal-dialog' role='document' >
@@ -364,7 +386,7 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js"]
+	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js", "api/vdc/vdc.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		var vpcUuid = args.vpcUuid;
 		$.VPC.getVpcs({uuid:vpcUuid},function(data){
@@ -373,7 +395,31 @@
 					function vpcInfoViewModel(){
 			    		var self = this;
 			    		self.vpcVO = ko.validatedObservable(vpcObj);
-			    		self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks?vpcUuid='+vpcUuid, perPage: 1});
+			    		
+			    		self.vpcExtNetQuery = ko.observable({
+			    			"name":"",
+			    			 "uuid":""
+			    		});
+						self.shouldShowAddExt = ko.observable(false);
+						self.shouldShowRemoveExt = ko.observable(false);
+						
+			    		$.VPC.getVpcNet({vpcUuid:vpcUuid,type:"EXTERNAL"},function(data){
+			    			  if(data && data.results && data.results.length > 0){
+			    				  var vpcNet = data.results[0];
+			    				  self.vpcExtNetQuery(
+			    						  {
+			    							  "name":vpcNet.name,
+			    							  "uuid":vpcNet.uuid
+			    						  });
+			    				  self.shouldShowAddExt(false);
+			    				  self.shouldShowRemoveExt(true);
+			    			  }else{
+			    				  self.shouldShowAddExt(true);
+			    				  self.shouldShowRemoveExt(false);
+			    			  }
+			    		});
+			    		
+			    		self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks?type=INNER&vpcUuid='+vpcUuid, perPage: 1});
 			    		self.searchVpcNetParam = ko.observable({
 		        	        name: ""
 		        	    })
@@ -472,6 +518,62 @@
 			    			 });
 			    		}
 			    		
+			    		
+			    		/********ext network*******/
+			    		self.vpcExtNetVO = ko.validatedObservable({
+		    			        "vpcExtNetUuid":ko.observable().extend({required: true})
+							});
+			    		
+			    		self.vpcExtNetList = ko.observableArray();
+			    		self.addVpcExtNetModal = ko.observable(false);
+			    		this.addVpcExtNet = function(){
+			    			$.VDC.getVdcNetworks(vpcObj.vdcUuid,{},function(data){
+			    				console.log(data)
+			    				 if(data && data.results){
+			    					 self.vpcExtNetList(data.results);
+			    				 }
+			    			});
+			    			
+			    			self.addVpcExtNetModal(true)	
+			    		}
+			    		
+			    		self.removeVpcExtNet = function(){
+			    			var extName = self.vpcExtNetQuery().name;
+			    			var extUuid = self.vpcExtNetQuery().uuid;
+			    			confirm("确定移除外部网络["+extName+"]？",function(arg){
+			    				$.VPC.delVpcNet(extUuid,function(data){
+			    					 self.vpcExtNetQuery({
+		    							  "name":"",
+		    							  "uuid":""
+		    						  })
+			    					 self.shouldShowAddExt(true);
+									 self.shouldShowRemoveExt(false);
+			    					  alert("移除外部网络["+extName+"]成功！")
+			           			});
+			    			 });
+			    		}
+			    		
+			    		self.confirmAddVpcExtNet = function(){
+			    			var vpcExtNetUuid = self.vpcExtNetVO.toJSON().vpcExtNetUuid;
+			    			var param = {};
+		    	    	     param.vpcUuid = vpcObj.uuid;
+		    	    	     param.uuid = vpcExtNetUuid;
+		    	    	     param.type = "EXTERNAL";
+			    			$.VPC.createVpcNetwork(param,function(data){
+			    				console.log(data)
+			    				 if(data){
+			    					 self.vpcExtNetQuery({
+		    							  "name":data.name,
+		    							  "uuid":data.uuid
+		    						  })
+				    				 self.shouldShowAddExt(false);
+									 self.shouldShowRemoveExt(true);
+			    				 }
+			    				self.addVpcExtNetModal(false)	
+			    			});
+			    		}
+			    	
+			    		/************ext network******/
 					}
 					
 				    ko.applyBindings(new vpcInfoViewModel(), $("#page-content")[0]);

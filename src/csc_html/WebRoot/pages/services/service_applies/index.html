@@ -665,10 +665,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				    }); 
 				}
 			}else if(self.productType()=='5'){
-				if(this.model_PublicNetwork.isValid()){
-				 	 csc.rest.post('api/v5.0.0/cart',this.model_PublicNetwork.toJSON(),function(data){
+				if(self.model_PublicNetwork.isValid()){
+				 	 csc.rest.post('api/v5.0.0/cart',self.model_PublicNetwork.toJSON(),function(data){
 				 		systemMsg.alert('添加到购物车成功！');
-				 		self.isAdd_PublicNetwork(false);
+				 		self.isAdd_PublicNetworkSingle(false);
+				 		self.isAdd_PublicNetworkMore(false);
 				    }); 
 				}
 			}else if(self.productType()=='6'){
@@ -732,8 +733,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				    }); 
 				}
 			}else if(self.productType()=='5'){
-				if(this.model_PublicNetwork.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_PublicNetwork.toJSON(),function(data){
+				if(self.model_PublicNetwork.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',self.model_PublicNetwork.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_PublicNetwork(false);
 				    }); 
@@ -1154,7 +1155,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	self.num_ObjectStorage(1);	    	
 	    }
 	    
-	    this.changeSingle_ObjectStorageMore = function(){
+	    this.changeSingle_ObjectStorage = function(){
 	    	self.isAdd_ObjectStorageSingle(true);
 	    	self.isAdd_ObjectStorageMore(false);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
@@ -1206,6 +1207,26 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	publicNetworkCartInfo: ko.observableArray([])
 	    });
 	    
+	    this.changeList_PublicNetwork = function(){
+	    	self.isAdd_PublicNetworkSingle(false);
+	    	self.isAdd_PublicNetworkMore(true);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_PublicNetwork(0);
+	    	self.num_PublicNetwork(1);	    	
+	    }
+	    
+	    this.changeSingle_PublicNetwork = function(){
+	    	self.isAdd_PublicNetworkSingle(true);
+	    	self.isAdd_PublicNetworkMore(false);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_PublicNetwork(0);
+	    	self.num_PublicNetwork(1);	    	
+	    }
+	    
 	    this.num_PublicNetwork.subscribe(function(){
 	    	if(!self.num_PublicNetwork.isValid()){
 	    		return;
@@ -1219,6 +1240,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					azUuid:ko.observable(""),
 					vpcUuid: ko.observable(""),
 					workip: ko.observable(""),
+					remark:ko.observable(""),
 					billRuleUuid: ko.observable(""),
 					applyType: ko.observable("1"),
 					applyNum: ko.observable(""),
@@ -1228,13 +1250,37 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					networkList:ko.observableArray([])
 	    		})
 	    	}	    
-	    	
+	    	changeDateFormat();
 	    	
 	    });
 	    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
 	  //################## 公网IP end ##################
 	  
 	    this.osTypeArray = ko.observableArray([]);
+	    
+	    function setArrayCharge(attr){
+	    	var arrayCharge = [];
+	    	for(var i=0;i<attr.length;i++){
+	    		arrayCharge.push(new objCharge(attr[i]));
+	    	}
+	    	return arrayCharge;
+	    }
+	    
+	    function objCharge(value){
+	    	if(value=="DAY"){
+	    		this.name = "按日";
+	    		this.value = value;
+	    	}else if(value=="MONTH"){
+				this.name = "按月";
+				this.value = value;
+			}else if(value=="QUARTER"){
+				this.name = "按季度";
+				this.value = value;
+			}else{
+				this.name = "按年";
+				this.value = value;	
+			}
+	    }
 	  //################## VDC start ##################
 	    this.isAdd_VDC = ko.observable(false);
 	    this.add_VDC = function(obj){
@@ -1248,11 +1294,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		    	console.log(data.serviceVDC.osType);
 		    	var osType = data.serviceVDC.osType;
 		    	var isLimit = data.serviceVDC.isLimit;
-		    	
+		    	self.osTypeArray(getArrayByString(osType));
+		    	console.log(setArrayCharge(getArrayByString(data.chargeType)));
+		    	self.model_VDC().vdcCartInfo().billRuleArray(setArrayCharge(getArrayByString(data.chargeType)));
 		    	if(data.charge==1){
 		    		self.model_VDC().vdcCartInfo().charge("NO");
 		    	}else{
 		    		self.model_VDC().vdcCartInfo().charge("YES");
+		    		self.model_VDC().vdcCartInfo().billRuleArray(getArrayByString(data.chargeType));
 		    	}
 		    	if(isLimit=="no"){
 		    		self.model_VDC().vdcCartInfo().quota("-1");
@@ -1271,13 +1320,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		 	    	self.model_VDC().vdcCartInfo().objectStorage(data.serviceVDC.maxObjStorageNum);
 		 	    	self.model_VDC().vdcCartInfo().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
 		    	}
-		    	
-		    	self.osTypeArray(getArrayByOsType(osType));
-
 	        });	    	
 	    }
 	  	
-	  	function getArrayByOsType(type){
+	  	function getArrayByString(type){
 	  		var a = type.split(',');
 	  		return a;
 	  	}
@@ -1308,7 +1354,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					billRuleUuid: ko.observable(""),
 					applyType: ko.observable("1"),
 					applyNum: ko.observable(""),
-					applyTime: ko.observable("")                                  
+					applyTime: ko.observable(""),
+					billRuleArray:ko.observableArray([])
 		    	})
 		    });
 	  	}
@@ -1999,7 +2046,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请对象存储</h3>
       </div>
       <div class='modal-body form-horizontal'>
-        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_ObjectStorageMore">单个申请</a>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_ObjectStorage">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -2042,8 +2089,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							<label class="form-inline"> <input type="radio"
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
-								style="width: 206px" class="form-control applyDateFormat"
-								id="applyServiceBalancingBox_daterange'+i+'">
+								style="width: 206px" class="form-control applyDateFormat" data-bind="value: applyTime">
 							</label>
 						</div>
 					</td>
@@ -2064,15 +2110,125 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
   </div>
 </div>
 <!-- 对象存储多个 -->
+<!-- 公网IP单个 -->
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkSingle }">
+  <div class='modal-dialog modal-lg' data-bind="foreach: model_PublicNetwork().publicNetworkCartInfo">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请公网IP服务</h3>
+      </div>
+      <div class='modal-body form-horizontal row'>
+        <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+          <a class="btn btn-default pull-right" data-bind="click: $root.changeList_PublicNetwork">批量申请</a>
+        </div>
+        
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">公网IP名称：</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control w" data-bind="value: name">
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">所属VDC：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">可用分区：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVpc},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">所属VPC：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">网络名称：</label>
+              <div class="col-sm-8">
+                <select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:workip,optionsCaption:'请选择'"></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">备注：</label>
+              <div class="col-sm-8">
+                <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">申请时长：</label>
+              <div class="col-sm-8">
+                <div class="radio">
+                  <label class="form-inline">
+                    <input type="radio" value="1" data-bind="checked: applyType,name:publicNetworkSingle" > 永久
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="form-inline">
+                    <input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name:publicNetworkSingle">
+                    <select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="form-inline">
+                    <input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name:publicNetworkSingle">
+                    <span class="">有效期至 </span>
+                    <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: applyTime">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="form-group col-md-6">
+            <div class="row">
+              <label class="col-sm-4 control-label">套餐：</label>
+              <div class="col-sm-3">
+				<select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+              </div>
+              <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+            </div>
 
+          </div>
+          
+
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-info" data-bind="click: $root.addToCart">添加到购物车</a>
+        <a class="btn btn-success" data-dismiss="modal" data-bind="click: $root.addToOrder">提交订单</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 公网IP单个 -->
 <!-- 公网IP多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetworkMore }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkMore }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请公网IP</h3>
       </div>
       <div class='modal-body form-horizontal'>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_PublicNetwork">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -2117,8 +2273,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							<label class="form-inline"> <input type="radio"
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
-								style="width: 206px" class="form-control"
-								id="applyServiceBalancingBox_daterange'+i+'">
+								style="width: 206px" class="form-control applyDateFormat" data-bind="value: applyTime">
 							</label>
 						</div>
 					</td>
@@ -2312,7 +2467,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
           <div>
             <label class="col-sm-3 control-label">套餐：</label>
             <div class="col-sm-2">
-				<select class="form-control"  data-bind="options:billRoleList,optionsText:'name',optionsValue:'value',value:model_VDC().vdcCartInfo().billRuleUuid"></select>
+                <select class="form-control"  data-bind="options:billRoleList,optionsText:'name',optionsValue:'value',value:model_VDC().vdcCartInfo().billRuleUuid"></select>
             </div>
             <span class="col-sm-3 control-label text-left">费用：100/月</span>
           </div>
