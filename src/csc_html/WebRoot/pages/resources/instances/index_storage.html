@@ -6,13 +6,13 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属VDC</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
+        <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
       </div>      
     </div>  
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
+        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.azUuids, optionsText: 'name', optionsValue: 'id'"></select>
       </div>      
     </div>
                                       
@@ -91,12 +91,12 @@
         <div class='modal-content'>
           <div class='modal-header'>
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建云硬盘</h3>
-          </div>
-          <div class='modal-body form-horizontal row'>
+          </div>       
+          <div class='modal-body form-horizontal row' data-bind="with: currentVO">
             <div class="form-group">
               <label class="col-xs-3 control-label">云硬盘名称</label>
               <div class="col-xs-8">
-                <input type="text" class="form-control">
+                <input type="text" class="form-control" data-bind="value:volumeName">
               </div>
               <div class="col-xs-1">
                 <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -105,7 +105,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">存储大小(GB)</label>
               <div class="col-xs-8">
-                <input type="text" class="form-control">
+                <input type="text" class="form-control" data-bind="value:volumeSize">
               </div>
               <div class="col-xs-1">
                 <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -114,8 +114,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">所属VDC</label>
               <div class="col-xs-8">
-                <select class="form-control">
-                  <option value="">VDC1</option>
+                <select class="form-control" data-bind="value:vdcUuid">
                 </select>
               </div>
               <div class="col-xs-1">
@@ -125,8 +124,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">可用分区</label>
               <div class="col-xs-8">
-                <select class="form-control">
-                  <option value="">可用分区1</option>
+                <select class="form-control" data-bind="value:azUuid">
                 </select>
               </div>
               <div class="col-xs-1">
@@ -136,7 +134,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">挂载云主机</label>
               <div class="col-xs-8">
-                <select class="form-control">
+                <select class="form-control" data-bind="value:volumeServerId">
                   <option value="">云主机1</option>
                 </select>
               </div>
@@ -149,7 +147,7 @@
               <div class="col-xs-8">
                 <div class="input-group">
                  <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                 <input type="text" value="" class="form-control input-sm" id="vdisk_duration">
+                 <input type="text" value="" class="form-control input-sm" id="vdisk_duration" data-bind="value:effectiveDate">
                </div>                            
              </div>
              <div class="col-xs-1">
@@ -159,12 +157,12 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">备注</label>
             <div class="col-xs-8">
-              <textarea class="form-control" cols="5" rows="5"></textarea>
+              <textarea class="form-control" cols="5" rows="5" data-bind="value:description"></textarea>
             </div>
           </div>
         </div>
         <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn-info" data-bind="click:ok">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
@@ -201,7 +199,7 @@
 
         </div>
         <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn-info" data-bind="click:ok">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
@@ -211,48 +209,51 @@
 </div>
 </div>
 
+
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_Storage(){
-
+   	  
+   	  this.isAddvdisk = ko.observable(false);
       var self = this;
+      
+      this.currentVO = ko.validatedObservable({
+         volumeName: ko.observable().extend({required:true}),
+         volumeSize: ko.observable().extend({required:true})
+      });
 
-      this.isAddvdisk = ko.observable(false);
       this.addvdisk = function(){
+	    this.currentVO.fromJSON({
+	    	volumeId: null,
+	    	volumeName: '',
+	    	volumeSize: '',
+	    	volumeServerId: '',
+	    	vpcUuid: '',
+	    	vdcUuid: '',
+	    	azUuid: '',
+	    	effectiveDate: '2016-08-01 00:00:00',
+	    	description:''
+	    	
+        });
         self.isAddvdisk(true);
+      }
+      
+      this.ok = function(){
+      	//console.log(this.currentVO.toJSON());
+      	ko.validation.group(self.currentVO).showAllMessages();
+      	if(self.currentVO.isValid()){
+   			csc.rest.post('api/v5.0.0/volumes', this.currentVO.toJSON(), function(){
+   	            self.isEdit(false);
+   	            self.table.refreshData();
+   			});
+        }
       }
 
       $("#modal_addvdisk").on("shown.bs.modal",function(){
 
           // daterange             
-          $('#vdisk_duration').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
-            {
-              format:'YYYY/MM/DD',
-              startDate: moment().subtract('days', 29),
-              endDate: moment(),
-              separator:'至',
-              locale:{
-                applyLabel: '确认',
-                cancelLabel: '取消',
-                fromLabel: '开始日期',
-                toLabel: '结束日期',
-                weekLabel: '周',
-                customRangeLabel: '自定义范围',                            
-                daysOfWeek:["日","一","二","三","四","五","六"],
-                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
-              },
-              ranges: {
-               '当天': [moment(), moment()],
-               '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
-               '近7天': [moment().subtract('days', 6), moment()],
-               '近30天': [moment().subtract('days', 29), moment()],
-               '当月': [moment().startOf('month'), moment().endOf('month')],
-               '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
-              }
-            }
-
-          ); 
+          $('#vdisk_duration').val(moment().subtract('days', 29).format('YYYY/MM/DD')).datetimepicker({format: 'yyyy-mm-dd hh:ii'});; 
 
       })
 
@@ -271,16 +272,16 @@
       }
 
       this.searchParam = ko.observable({
-        partition: '',
-        vdc: '',
+        azUuid: '',
+        vdcUuid: '',
         volumeNameLike: ''
       });
       
       this.reset = function(){
         this.searchParam({
-          partition: '',
-          vdc: '',
-          volumeNameLike: ''
+       	   azUuid: '',
+           vdcUuid: '',
+           volumeNameLike: ''
         })
       }
       this.search = function(){
@@ -288,6 +289,8 @@
         this.table.params(this.searchParam());
       }
       this.table = new DataTable([], {path: 'http://localhost:8098/csc/api/v5.0.0/volumes?type=Disk'})
+      
+      
 
       //下拉选择
       this.vdcs = ko.observableArray([]);

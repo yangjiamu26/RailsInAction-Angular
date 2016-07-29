@@ -733,8 +733,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				    }); 
 				}
 			}else if(self.productType()=='5'){
-				if(this.model_PublicNetwork.isValid()){
-				 	 csc.rest.post('api/v5.0.0/orders',this.model_PublicNetwork.toJSON(),function(data){
+				if(self.model_PublicNetwork.isValid()){
+				 	 csc.rest.post('api/v5.0.0/orders',self.model_PublicNetwork.toJSON(),function(data){
 				 		systemMsg.alert('成功提交订单！');
 				 		self.isAdd_PublicNetwork(false);
 				    }); 
@@ -1155,7 +1155,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	self.num_ObjectStorage(1);	    	
 	    }
 	    
-	    this.changeSingle_ObjectStorageMore = function(){
+	    this.changeSingle_ObjectStorage = function(){
 	    	self.isAdd_ObjectStorageSingle(true);
 	    	self.isAdd_ObjectStorageMore(false);
 	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
@@ -1207,6 +1207,26 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	publicNetworkCartInfo: ko.observableArray([])
 	    });
 	    
+	    this.changeList_PublicNetwork = function(){
+	    	self.isAdd_PublicNetworkSingle(false);
+	    	self.isAdd_PublicNetworkMore(true);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_PublicNetwork(0);
+	    	self.num_PublicNetwork(1);	    	
+	    }
+	    
+	    this.changeSingle_PublicNetwork = function(){
+	    	self.isAdd_PublicNetworkSingle(true);
+	    	self.isAdd_PublicNetworkMore(false);
+	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
+	        	self.vdcList(data);
+	        });
+	    	self.num_PublicNetwork(0);
+	    	self.num_PublicNetwork(1);	    	
+	    }
+	    
 	    this.num_PublicNetwork.subscribe(function(){
 	    	if(!self.num_PublicNetwork.isValid()){
 	    		return;
@@ -1230,7 +1250,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					networkList:ko.observableArray([])
 	    		})
 	    	}	    
-	    	
+	    	changeDateFormat();
 	    	
 	    });
 	    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
@@ -2026,7 +2046,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请对象存储</h3>
       </div>
       <div class='modal-body form-horizontal'>
-        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_ObjectStorageMore">单个申请</a>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_ObjectStorage">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -2069,8 +2089,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							<label class="form-inline"> <input type="radio"
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
-								style="width: 206px" class="form-control applyDateFormat"
-								id="applyServiceBalancingBox_daterange'+i+'">
+								style="width: 206px" class="form-control applyDateFormat" data-bind="value: applyTime">
 							</label>
 						</div>
 					</td>
@@ -2100,7 +2119,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
       </div>
       <div class='modal-body form-horizontal row'>
         <div class="form-inline clearfix" style="padding:0 15px 15px 0">
-          <a class="btn btn-default pull-right">批量申请</a>
+          <a class="btn btn-default pull-right" data-bind="click: $root.changeList_PublicNetwork">批量申请</a>
         </div>
         
           <div class="form-group col-md-6">
@@ -2202,13 +2221,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 公网IP单个 -->
 <!-- 公网IP多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_PublicNetworkMore }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkMore }">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请公网IP</h3>
       </div>
       <div class='modal-body form-horizontal'>
+        <a class="btn btn-default pull-right" data-bind="click:$root.changeSingle_PublicNetwork">单个申请</a>
         <div class="form-inline">
           <div class="input-group">
              <span class="input-group-addon">申请数量</span>
@@ -2253,8 +2273,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							<label class="form-inline"> <input type="radio"
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
-								style="width: 206px" class="form-control"
-								id="applyServiceBalancingBox_daterange'+i+'">
+								style="width: 206px" class="form-control applyDateFormat" data-bind="value: applyTime">
 							</label>
 						</div>
 					</td>
