@@ -1,7 +1,9 @@
 
 function RestServiceJs(newurl) {
+  var url = newurl;
+  if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
   var self = {};
-  self.myurl = newurl;  
+  self.myurl = url;  
    
   self.post = function(model, callback) {  
       $.ajax({  

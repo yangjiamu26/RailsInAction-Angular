@@ -88,12 +88,40 @@ $(function(){
     }
 
     /*host*/
+    this.hosts = {
+      WinServerList: ko.observableArray([]),
+      VMwareList: ko.observableArray([]),
+      PowerVMList: ko.observableArray([])
+    };
     this.hostSelected = ko.observable("全部");
     this.setHostSelected = function(object,event){
+      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue;
       var val = event.currentTarget.attributes["toselect"].nodeValue;
       self.hostSelected(val);
-      var type = val == "全部" ? "" : val;
-      window.host_index_viewModel.loadData(false,type);
+      var hype = hypervisor ? hypervisor : "";
+      var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
+      window.HostIndex_viewModel.loadData(false, hype, id);
+    }
+    this.getResPools = function(){
+      self.hosts.WinServerList.removeAll();
+      self.hosts.VMwareList.removeAll();
+      self.hosts.PowerVMList.removeAll();
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"winserver"},function(data){
+        for(var i=0;i<data.data.length;i++){
+          self.hosts.WinServerList.push(data.data[i]);
+        }
+      });
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"VMware"},function(data){
+        for(var i=0;i<data.data.length;i++){
+          self.hosts.VMwareList.push(data.data[i]);
+        }
+      });
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"PowerVM"},function(data){
+        for(var i=0;i<data.data.length;i++){
+          self.hosts.PowerVMList.push(data.data[i]);
+        }
+      });
+      window.HostIndex_viewModel.loadData();
     }
     
   }
@@ -117,7 +145,10 @@ $(function(){
     _touch.css({'-webkit-transition':'',"opacity":1});
   });
   $$('.assistive').on('touchmove', function(event) {
-    ismove = true;
+    setTimeout(function(){
+      ismove = true;
+    },300)
+    
     event.preventDefault();
     var e = event.touches[0];
     new_x = e.clientX;
