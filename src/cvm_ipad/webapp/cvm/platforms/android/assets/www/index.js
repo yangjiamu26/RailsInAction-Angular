@@ -117,7 +117,10 @@ $(function(){
     _touch.css({'-webkit-transition':'',"opacity":1});
   });
   $$('.assistive').on('touchmove', function(event) {
-    ismove = true;
+    setTimeout(function(){
+            ismove = true;
+        }, 300);
+
     event.preventDefault();
     var e = event.touches[0];
     new_x = e.clientX;

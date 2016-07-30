@@ -46,7 +46,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">订单信息</div>
 		<div id="orderDetailedList">
-			<div item="orderdetailed-vm">
+			<div item="orderdetailed-VM">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>云主机 2</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -65,16 +65,17 @@
 						</tr>
 					</thead>
 					<tbody>
+					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 						<tr>
 							<td><a class="expand-btn"><i class="fa fa-arrow-right"></i></a></td>
-							<td>云主机2</td>
-							<td>2</td>
-							<td>2</td>
-							<td>2</td>
-							<td>VPC01</td>
-							<td>2016-5-18至2018-8-8</td>
-							<td>0.5元/小时</td>
-							<td>施工失败</td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
+							<td data-bind="text:flowState"></td>
 							<td>
 								<div class="progress progress-sm">
                   <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
@@ -141,29 +142,11 @@
 								</table>
 							</td>
 						</tr>
-						<tr>
-							<td><a class="expand-btn"><i class="fa fa-arrow-right"></i></a></td>
-							<td>云主机2</td>
-							<td>2</td>
-							<td>2</td>
-							<td>2</td>
-							<td>VPC01</td>
-							<td>2016-5-18至2018-8-8</td>
-							<td>0.5元/小时</td>
-							<td>施工失败</td>
-							<td>
-								<div class="progress progress-sm">
-                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-                    60%
-                  </div>
-                </div>
-              </td>
-              <td><a>失败原因</a></td>
-						</tr>
+						<!-- /ko -->
 					</tbody>
 				</table>
 			</div>
-			<div item="orderdetailed-harddisk">
+			<div item="orderdetailed-DISK">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>云硬盘 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -301,7 +284,7 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-router">
+			<div item="orderdetailed-ROUTER">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>路由器 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -339,7 +322,7 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-ip">
+			<div item="orderdetailed-PUBLICIP">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>公网IP 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -377,7 +360,7 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-balancer">
+			<div item="orderdetailed-LOAD_BALANCING">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>负载均衡器 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -443,7 +426,7 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-sshkey">
+			<div item="orderdetailed-SECRET_KEY">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>SSH密钥 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -475,7 +458,7 @@
 				</table>
 			</div>
 
-			<div item="orderdetailed-objstorage">
+			<div item="orderdetailed-OBJECT_STORAGE">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>对象存储 1</strong></h5>
 				<table class="table table-striped">
 					<thead>
@@ -516,6 +499,13 @@
 <script type="text/javascript">
 	var scripts = [null, null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		console.log(args);
+		function ViewModel(){
+			var self = this;
+			this.table = new DataTable([], {path:'api/v5.0.0/orders/'+args.uuid+'/items'});
+			
+		}
+		
 		$(".expand-btn").click(function(){
 			$(this).find('i').toggleClass("fa-arrow-down");
 			$(this).parents('tr').next("tr").toggle();
@@ -532,6 +522,8 @@
 			if(!hasItem)
 				$(this).remove();
 		});
+		
+		ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 	});
 	
 </script>

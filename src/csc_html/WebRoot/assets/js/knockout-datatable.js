@@ -69,9 +69,9 @@
       });      
       this.initObservables();
       if ((serverSideOpts = this.options.serverSidePagination) && serverSideOpts.enabled) {
-    	if (!(serverSideOpts.path && serverSideOpts.loader)) {
-          throw new Error("`path` or `loader` missing from `serverSidePagination` object");
-        }
+    	//if (!(serverSideOpts.path && serverSideOpts.loader)) {
+        //  throw new Error("`path` or `loader` missing from `serverSidePagination` object");
+        //}
         this.options.paginationPath = serverSideOpts.path;
         this.options.resultHandlerFn = serverSideOpts.loader;
         this.initWithServerSidePagination();
@@ -95,6 +95,7 @@
       var _defaultMatch;
       this.filtering = ko.observable(false);
       this.forceFilter = ko.observable(false);
+      
       this.filter.subscribe((function(_this) {
         return function() {
           return _this.currentPage(1);
@@ -357,7 +358,10 @@
         return function(data, cb) {
           _this.isSelectedAll(false);
           var key, req, url, val;
-          var path = _this.options.paginationPath;
+          var path = _this.path();
+           
+          if(!path) return;
+          
           if(path.indexOf('?')>-1){
         	  path += "&";
           }else{
@@ -414,6 +418,7 @@
       this.filtering = ko.observable(false);
       this.pagedRows = ko.observableArray([]);
       this.numFilteredRows = ko.observable(0);
+      this.path = ko.observable(this.options.paginationPath);
       this.filter.subscribe((function(_this) {
         return function() {
           return _this.currentPage(1);
@@ -429,6 +434,11 @@
           return _this.currentPage(1);
         };
       })(this));
+      this.path.subscribe((function(_this) {
+          return function() {
+            return _this.currentPage(1);
+          };
+        })(this));
       ko.computed((function(_this) {
         return function() {
           var data;
@@ -444,6 +454,7 @@
             }
             total = response.total, results = response.results;
             _this.numFilteredRows(total);
+            if(results)
             return _this.pagedRows(results.map(_this.options.resultHandlerFn));
           });
         };

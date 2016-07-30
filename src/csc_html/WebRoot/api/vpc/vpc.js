@@ -55,6 +55,16 @@
 				csc.rest.del('api/v5.0.0/vpcNetworks/'+uuid,function(data){
 					 callback(data)
    		        })
+			},
+			/**
+			 * 获取VPC下的网络
+			 * @param uuid vpc uuid
+			 */
+			getVpcNet:function(param,callback){
+				 var param = csc.util.httpQueryParamConvert(param);
+				 csc.rest.get('api/v5.0.0/vpcNetworks?'+param,function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

@@ -116,19 +116,17 @@
                     <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                       <div class="panel panel-default">
                         <div class="wrapper-md form-inline">
-                          <div class="radio">
+                          <div class="radio"  >
                             <label>
-                              <input name="limit" type="radio" value="0" data-bind="checked: isLimit" > 不限配额
+                              <input name="limit" type="radio" id="no_limit_radio" value="0"   data-bind="checked: isLimit" > 不限配额
                             </label>
                           </div>&nbsp;&nbsp;&nbsp;
                           <div class="radio">
                             <label>
-                              <input name="limit" type="radio" value="1" data-bind="checked: isLimit" > 限制配额
+                              <input name="limit" type="radio" id="limit_radio" value="1" data-bind="checked: isLimit" > 限制配额
                             </label>
                           </div>
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-                          <button class="btn btn-default btn-sm" data-bind="visible:isLimit()=='1',click: openEdit_quota(true)">分配配额</button>
 
                           <button class="btn btn-default btn-sm" data-bind="visible:isLimit()=='1',click:modifyVdcQuota">分配配额</button>
 
@@ -149,11 +147,11 @@
                         </div>
                       </div>
                       
-  	                <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: modifyVdcQuotaModel }">  
+  	                <div role="dialog" aria-hidden="true" class="modal fade"    data-bind="modal: { show: modifyVdcQuotaModel,backdrop: 'static' }" >  
                        <div class='modal-dialog' role='document'>
 					    <div class='modal-content'>
 					      <div class='modal-header'>
-					        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>分配配额</h3>
+					        <button type="button" class="close" data-bind="click: closeEdit_quota" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>分配配额</h3>
 					      </div>
 					      <div class='modal-body form-horizontal'>
 					        <div class="form-group">
@@ -267,12 +265,13 @@
 					      </div>
 					      <div class='modal-footer'>
 					        <input type="button" name="commit" value="确定" data-bind="click:confirmModifyVdcQuota" class="btn btn-default btn-info" />
-					        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					        <button name="button" type="submit" class="btn btn-default btn btn-default" data-bind="click: closeEdit_quota" data-dismiss="modal">取消</button>
 					      </div>
 					    </div>
 					  </div>
                      </div>
-                     
+
+
 
                     </div>
                   </div>
@@ -288,44 +287,11 @@
                       <div class="panel panel-default">
                         <div class="row wrapper">
                           <div class="col-xs-2">
-                            <a class="btn btn-sm btn-primary" onclick="showModal('pages/vdcs/vdcs/new_group.html')">添加可用分区</a>
-                          </div>
-                          <div class="col-xs-3">
-                            <div class="input-group">
-                              <span class="input-group-addon">云管理平台</span>
-                              <select class="input-sm form-control w-sm inline v-middle">
-                                <option value="-1">全部</option>
-                                <option value="0">云管理平台1</option>
-                                <option value="1">云管理平台2</option>
-                                <option value="2">云管理平台3</option>
-                                <option value="3">云管理平台4</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div class="col-xs-3">
-                            <div class="input-group">
-                              <span class="input-group-addon">虚拟化类型</span>
-                              <select class="input-sm form-control w-sm inline v-middle">
-                                <option value="-1">全部</option>
-                                <option value="0">虚拟化类型1</option>
-                                <option value="1">虚拟化类型2</option>
-                                <option value="2">虚拟化类型3</option>
-                                <option value="3">虚拟化类型4</option>
-                              </select>  
-                            </div>
-                          </div>
-                          <div class="col-xs-3">          
-                            <div class="input-group">
-                              <span class="input-group-addon">名称</span>
-                              <input type="text" class="input-sm form-control" placeholder="请输入名称">
-                            </div>
-                          </div>
-                          <div class="col-xs-1">
-                            <button class="btn btn-sm btn-default" type="button">搜索</button>
+                            <a class="btn btn-sm btn-primary" data-bind="click:addVdcAZ">添加可用分区</a>
                           </div>
                         </div>        
                         <div class="table-responsive" style="min-height: 0.01%">
-                          <table class="table table-striped">
+                          <table class="table table-striped" data-bind="with:vdcRelAzListTable">
                             <thead>
                               <tr>
                                 <th>云管理平台</th>
@@ -335,48 +301,181 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <td>平台名称</td>
-                                <td>类型名称</td>
-                                <td>zone01</td>
-                                <td><a onclick="systemMsg.alert('确定移除吗？')">移除</a></td>
-                              </tr>
+                                <tr data-bind="visible: showNoData">
+						            <td colspan=11 class="aligncenter">
+						              This table has no data.
+						            </td>
+						        </tr>
+						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+								<tr>
+									<td data-bind="text: $row.cloudPlatform">平台名称</td>
+	                                <td data-bind="text: $row.virtualHypervisor">类型名称</td>
+	                                <td data-bind="text: $row.name"></td>
+	                                <td><a data-bind="click:$root.removeAzRul">移除</a></td>
+								</tr>	
+							    <!-- /ko -->	
                             </tbody>
                           </table>
                         </div>
-                        <footer class="panel-footer">
-                          <ul class="pagination">
-                            <li class="page active">
-                              <a href="#pages/javascript:void(0)">1</a>
-                            </li>
-                            <li class="page">
-                              <a>2</a>
-                            </li>
-                            <li class="page">
-                              <a>3</a>
-                            </li>
-                            <li class="page">
-                              <a>4</a>
-                            </li>
-                            <li class="page">
-                              <a >5</a>
-                            </li>
-                            <li class="page gap disabled">
-                              <a href="#pages/javascript:void(0)">…</a>
-                            </li>
-                            <li class="next">
-                              <a>下页 ›</a>
-                            </li>
-                            <li class="last">
-                              <a>末页 »</a>
-                            </li>
-                          </ul>
-                        </footer>          
-                        
                       </div>
-
                     </div>
+                    
+                    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcAZModel }" >  
+                     <div class='modal-dialog modal-lg' role='document'>
+					    <div class='modal-content'>
+					      <div class='modal-header'>
+					        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加分区</h3>
+					      </div>
+					      <div class='modal-body'>
+					        <div>
+					          <div class="row" id="net_0">
+					            <div class="col-xs-5">
+					              <p>待选择：</p>
+					              <div class="table-responsive">
+					              <table class="table table-striped">
+					                <thead>
+					                  <th>
+					                    <div class="checkbox">
+					                      <label class="i-checks">
+					                        <input type="checkbox" value="">
+					                        <i></i>
+					                      </label>
+					                    </div> 
+					                  </th>
+					                  <th>云管理平台</th>
+					                  <th>虚拟化类型</th>
+					                  <th>可用分区</th>
+					                </thead>
+					                <tbody  id="availableAzListTableId">
+					                  <tr>
+					                    <td>
+					                      <div class="checkbox">
+					                        <label class="i-checks">
+					                          <input type="checkbox" value="">
+					                          <i></i>
+					                        </label>
+					                      </div> 
+					                    </td>
+					                    <td>wincenter</td>
+					                    <td>WinServer</td>
+					                    <td>zone1</td>
+					                  </tr>
+					                </tbody>
+					              </table>
+					              </div>
+					            </div>
+					            <div class="col-xs-2">
+					              <button class="btn btn-block btn-default" id="addAz2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+					              <button class="btn btn-block btn-default" id="removeAz2PreAddList" >&lt;&lt;</button>
+					            </div>
+					            <div class="col-xs-5">
+					              <p>已选择：</p>
+					              <div class="table-responsive">               
+					              <table class="table table-striped">
+					                <thead>
+					                  <th>
+					                    <div class="checkbox">
+					                      <label class="i-checks">
+					                        <input type="checkbox" value="">
+					                        <i></i>
+					                      </label>
+					                    </div> 
+					                  </th>
+					                  <th>云管理平台</th>
+					                  <th>虚拟化类型</th>
+					                  <th>可用分区</th>
+					                </thead>
+					                <tbody id="preAddAzListTableId">
+					                </tbody>
+					              </table>
+					              </div>
+					            </div>
+					          </div>
+					          <div id="net_1" style="display:none">
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>子网名称
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>生成IP方式
+					              </label>
+					              <div class="col-xs-3">
+					                <select class="form-control" >
+					                  <option>网段</option>
+					                </select>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>开始地址
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>结束地址
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>掩码
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>网关
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>主DNS
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					            <div class="form-group string required">
+					              <label class="string required col-xs-2 control-label">
+					                <abbr title="必填项">*</abbr>备DNS
+					              </label>
+					              <div class="col-xs-3">
+					                <input class="string required form-control" type="text"/>
+					              </div>
+					            </div>
+					          </div>
+					        </div>
+					      </div>
+					      <div class='modal-footer'>
+					        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
+					        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					      </div>
+					    </div>
+					  </div>
+                    </div>
+                    
+                    
+                    
                   </div>
+                  
+                  
+                  
+                  
                   <div class="panel panel-default">
                     <div class="panel-heading" role="tab" id="headingThree">
                       <h4 class="panel-title">
@@ -554,6 +653,7 @@
   <script type="text/javascript">
     var scripts = ["api/vdc/vdc.js", null]
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+ 
 
       var accordionBox = $("#accordion");
       $("#expandAll").on("click",function(){
@@ -570,35 +670,6 @@
       });
 
 
-      function ViewModal_quota(){
-        this.isLimit = ko.observable("0");
-        var self = this;
-        this.isLimit.subscribe(function(){
-          if (self.isLimit() == '0') {
-              confirm('确定把VDC配额由限制改为不限制吗？',function(){
-            },function(){
-              self.isLimit("1");
-            });
-          }else{
-            console.log('限制配额')
-          };
-        });
-
-        this.openEdit_quota = ko.observable('');
-        this.doneEdit_quota = function(){
-          //do something
-          self.openEdit_quota(false);
-        }
-        this.closeEdit_quota = function(){
-          //do something
-          self.openEdit_quota(false);
-        }
-      };
-
-      var viewModal = new ViewModal_quota();
-      ko.applyBindings(viewModal, $('#page-content')[0]);
-      viewModal.openEdit_quota(true);
-
 	      
 	      var vdcListViewModal = function(){
 	    	    var self = this;
@@ -606,6 +677,7 @@
 	    		self.vdcQuotaListTable = ko.observable();
 	    		self.selectVdcVO = ko.observable({});
 	    		self.isLimit = ko.observable("0");
+	    		self.vdcRelAzListTable = new DataTable([]);
 	    		self.vdcQuotaVO = ko.validatedObservable({
 	    		                     "VM":ko.observable().extend({required: true}),
 							         "DISK" :ko.observable().extend({required: true}),
@@ -627,6 +699,7 @@
 				self.confirmModifyVdcQuota = function(){
 					ko.validation.group(self.vdcQuotaVO).showAllMessages();
 	    	        if(self.vdcQuotaVO.isValid()){
+	    	        	self.isPreConfigQuota = false;
 	    	        	var vdcQuota = self.vdcQuotaVO.toJSON();
 	    	        	var quotaOptList = [];
 	    	        	for(var key in vdcQuota){
@@ -644,30 +717,67 @@
 				}
 				  
 				
-				  $("#VDCLeftMenu").on("click","tr",function(){
-    		    	  $(this).addClass('active').siblings().removeClass('active');
-    		    	  var vdcUuid = $(this).attr("vdcUuid")
-    		    	  console.log(vdcUuid)
-    		    	  for(var i=0;i<vdcList.length;i++){
-    		    		  if(vdcUuid == vdcList[i].uuid){
-    		    			  setVDCSummaryInfo(vdcList[i])
-    		    			  break;
-    		    		  }
-    		    	  }
-    		      }) 
+				/****配额按钮***/
+				self.isPreConfigQuota = ko.observable(false);
+				$("#no_limit_radio").bind("click",function(){
+					confirm('确定把VDC配额由限制改为不限制吗？',function(){
+						var quotaParam = {
+	    	        			"limitQuota":false,
+	    	        	 }   
+						$.VDC.updateQuota(self.selectVdcVO().uuid,quotaParam,function(data){
+	    	        	});
+					},function(){
+						self.isLimit(1)
+						$("#limit_radio").prop("checked","checked");
+					})
+				})
 				
-		         /*  self.isLimit.subscribe(function(){
-			          if (self.isLimit() == '0') {
-			              confirm('确定把VDC配额由限制改为不限制吗？',function(v){
-			            	          self.isLimit("1");
-					       });
-			          }else{
-			        	  confirm('确定把VDC配额由不限制改为限制改吗？',function(v){
-	            	          self.isLimit("0");
-			      		   });
-			          };
-		          })  */
-		          
+				$("#limit_radio").bind("click",function(){
+					  self.isPreConfigQuota = true;
+					  self.modifyVdcQuotaModel(true)	
+				})
+				
+				self.closeEdit_quota = function(){
+					  if(self.isPreConfigQuota){
+						  self.isLimit(0)
+						  $("#no_limit_radio").prop("checked","checked");
+					  }
+					  self.isPreConfigQuota = false;
+					  self.modifyVdcQuotaModel(false)
+				}
+				/****配额按钮***/
+				
+				/****添加AZ*****/
+				self.addVdcAZModel = ko.observable(false);
+				$("#addAz2PreAddList").bind("click",function(data){
+					
+					alert(1)
+					
+				})
+				
+				$("#removeAz2PreAddList").bind("click",function(data){
+					alert(2)
+					
+				})
+				
+				self.addVdcAZ = function(){
+					$("#availableAzListTableId").html("");
+					$("#preAddAzListTableId").html("");
+					$.VDC.getAvailableToVdc({},function(data){
+						  var tableBody = "";
+						  if(data && data.results){
+							  var azList = data.results;
+							  for(var i=0;i<azList.length;i++){
+								  var az = azList[i];
+								  tableBody = "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" /><i></i></label></div></td>";
+								  tableBody +="<td>"+az.cloudPlatform+"</td><td>"+az.virtualHypervisor+"</td><td>"+az.name+"</td></tr>";
+							  } 
+						  }
+						  $("#availableAzListTableId").html(tableBody);
+					});
+					self.addVdcAZModel(true);
+				}
+				/****添加AZ******/
 		          
 	    		$.VDC.getVDCs({},function(data){
 	    			  var tableBody = "";
@@ -692,13 +802,11 @@
 	    			  $("#VDCLeftMenu").on("click","tr",function(){
 	    		    	  $(this).addClass('active').siblings().removeClass('active');
 	    		    	  var vdcUuid = $(this).attr("vdcUuid")
-	    		    	  console.log(vdcUuid)
-	    		    	  for(var i=0;i<vdcList.length;i++){
-	    		    		  if(vdcUuid == vdcList[i].uuid){
-	    		    			  setVDCSummaryInfo(vdcList[i])
-	    		    			  break;
+	    		    	  $.VDC.getVDCs({uuid:vdcUuid},function(data){
+	    		    		  if(data && data.results && data.results.length >0){
+	    		    			  setVDCSummaryInfo(data.results[0])
 	    		    		  }
-	    		    	  }
+	    		    	  })
 	    		      }) 
 	    		      
 	    		      
@@ -744,7 +852,20 @@
 	    					  self.vdcQuotaListTable(tableBody);
     						  self.vdcQuotaVO.fromJSON(vdcQuotaJSON);
 	    				   });
+	    				 
 	    				  
+	    				self.vdcRelAzListTable.perPage(100000);//重新加载数据 
+	    				self.vdcRelAzListTable.path('api/v5.0.0/vdcs/'+vdc.uuid+'/azs');
+	    				
+	    				self.removeAzRul = function(rowObj){
+	    					var name = rowObj.name;
+	    	    			confirm("确定移除可用分区["+name+"]？",function(arg){
+	    	    				$.VDC.removeVdcAz(vdc.uuid,rowObj.uuid,function(data){
+	    	    					  self.vdcRelAzListTable.refreshData();
+	    	    					  alert("移除可用分区["+name+"]成功！")
+	    	           			});
+	    	    			 });
+	    				}
 	    				  
 	    			}
 	    		});
@@ -754,7 +875,7 @@
 	    		
 	    		self.createVdcMode = ko.observable(false);
 	    		self.vdcVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true,maxLength:32,cscNameRule:true}),
+    			     "name":ko.observable("").extend({required: true,maxLength:32,cscNameRule:true}),
 					 "desc":ko.observable().extend({maxLength:256})
 				});
 	    		
@@ -770,133 +891,20 @@
 	    		self.confirmCreateVdc = function(){
 	    			  var param =  self.vdcVO.toJSON();
 	    			   $.VDC.createVDC(param,function(data){
-	    				   self.vdcListTable.refreshData();
+	    				   //self.vdcListTable.refreshData();
+	    				   console.log(data)
+	    				   var tableBody = "<tr vdcUuid='"+data.uuid+"'  ><td><a>"+data.name+"</a</td></tr>";
+ 			               //self.vdcListTable(tableBody);
+ 			               console.log(self.vdcListTable(self.vdcListTable()+tableBody))
 	    				   self.createVdcMode(false)
 	    			   });
 	    		}
 	    		
 	      }
-	      ko.applyBindings(new vdcListViewModal(), $('#vdc_list_id')[0]); 
+	      ko.applyBindings(new vdcListViewModal(), $('#page-content')[0]); 
 
     });
 
   </script>
+  
 
-  <!-- 分配配额 modal -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isLimit()=='1' && openEdit_quota }">
-    <form class="simple_form form-horizontal form-withtool" novalidate="novalidate" >
-      <div class='modal-dialog' role='document'>
-        <div class='modal-content'>
-          <div class='modal-header'>
-            <button type="button" class="close" data-bind="click: closeEdit_quota"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>分配配额</h3>
-          </div>
-          <div class='modal-body'>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">CPU(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">内存(G)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">存储(G)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">VPC(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">云硬盘(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">公网IP(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">路由器(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">防火墙(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">负载均衡器(个)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">SSH密钥(对)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputEmail3" class="col-xs-3 control-label">对象存储(G)：</label>
-              <div class="col-xs-7">
-                <input type="text" class="form-control"  placeholder="" value="10000" data-toggle="tooltip" data-placement="right" title="1-10000" data-trigger="focus"  />
-              </div>
-              <div class="col-xs-1">
-                <span class="text-danger inline m-l-n m-t-sm">*</span>
-              </div>
-            </div>
-          </div>
-          <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: doneEdit_quota" />
-            <button name="button" type="submit" class="btn btn-default btn btn-default" data-bind="click: closeEdit_quota">取消</button>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-   <!-- 分配配额 modal -->

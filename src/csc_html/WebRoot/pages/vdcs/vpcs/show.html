@@ -12,7 +12,7 @@
 			<li class="active" role="presentation">
 				<a aria-controls="VPC" data-toggle="tab" href="#baseInfo" role="tab">基本信息</a>
 			</li>
-			<li role="presentation">
+			<li role="presentation" id="topoBox">
 				<a aria-controls="router" data-toggle="tab" href="#topo" role="tab">网络拓扑图</a>
 			</li>
 		</ul>
@@ -23,8 +23,9 @@
 					<p><strong>所属VDC：</strong><span data-bind="text:vpcVO().vdcName"></span></p>
 					<p><strong>可用分区：</strong><span data-bind="text:vpcVO().azName"></span></p>
 					<p><strong>外部网络：</strong>
-						<button class="btn btn-default btn-sm" onclick="showModal('pages/vdcs/subnets/newforvpc.html')">添加</button>
-						<button class="btn btn-default btn-sm">移除</button>
+					    <span data-bind="text:vpcExtNetQuery().name"></span>
+						<button class="btn btn-default btn-sm" data-bind="click:addVpcExtNet,visible: shouldShowAddExt">添加</button>
+						<button class="btn btn-default btn-sm" data-bind="click:removeVpcExtNet,visible: shouldShowRemoveExt">移除</button>
 					</p>
           <p><strong>私有网络：</strong>
             <button class="btn btn-default btn-sm"  data-bind="click:createVpcNet" >创建</button>
@@ -90,6 +91,27 @@
 				        </li>
 				      </ul>
 				 </footer>
+			
+			<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVpcExtNetModal }">
+			  <div class='modal-dialog modal-lg' role='document'>
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加子网</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <div class="form-group string required">
+			          <span>网络名称：</span>
+			          <select class="form-control" style="display:inline-block;width:150px"  data-bind="options:vpcExtNetList,optionsText:'netWorkName',optionsValue:'netWorkUuid',value:vpcExtNetVO().vpcExtNetUuid"  id="netSelect">
+			          </select>
+			        </div>
+			        </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
 				 
 		   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createVpcNetModal }">
 			 <div class='modal-dialog' role='document' >
@@ -171,61 +193,110 @@
 			
 			<div class="tab-pane" id="topo" role="tabpanel">
 				<div class="row">
-					<div class="col-xs-8">
-						<canvas id="canvas1" width=850 height=550></canvas>
+					<div class="col-xs-9" style="padding-top:15px;">
+						<div class="col-md-2" style="position:relative;">
+							<div class="panel panel-default">
+							   <div class="panel-body">
+							       <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/network.png"  class="network"></div>
+								      <div class="caption">网络</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/Router.png" class="Router"></div>
+								      <div class="caption">路由器</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/ICF.png" class="ICF"></div>
+								      <div class="caption">防火墙</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/cloudHost.png" class="cloudHost"></div>
+								      <div class="caption">云主机</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/loadBalance.png" class="loadBalance"></div>
+								      <div class="caption">负载均衡</div>
+								    </div>
+							      </div>
+							   </div>
+							 
+							</div>
+						<div class="col-md-10">
+							<canvas id="canvas1" width=810 height=550></canvas>
+						</div>
 					</div>
-					<div class="col-xs-4 form-horizontal" style="padding-right:30px;padding-top:15px;">
-						<div class="panel panel-default">
-							<div class="panel-heading">子网配置</div>
+					<!-- network Router  ICF cloudHost loadBalance -->
+					<div class="col-xs-3 form-horizontal" style="padding-right:30px;padding-top:15px;">
+						<div class="panel panel-default networkInfo">
+							<div class="panel-heading">网络配置</div>
 							<div class="panel-body">
-								<div class="form-group">
-									<label  class="col-xs-4 control-label">网络类型：</label>
-									<div class="col-xs-7">
-										<select class="form-control">
-											<option>公有网络</option>
-										</select>
-									</div>
-								</div>
+							
 								<div class="form-group">
 									<label  class="col-xs-4 control-label">网络名称：</label>
 									<div class="col-xs-7">
-										<select class="form-control">
-											<option>网络名称1</option>
-											<option>网络名称2</option>
-										</select>
+										<input type="text" class="form-control">
 									</div>
 									<div class="col-xs-1">
 							            <span class="text-danger inline m-l-n m-t-sm">*</span>
 							        </div>
 								</div>
 								<div class="form-group">
-									<label  class="col-xs-4 control-label">子网名称：</label>
+									<label  class="col-xs-4 control-label">网段：</label>
 									<div class="col-xs-7">
-										<select class="form-control">
-											<option>子网名称1</option>
-											<option>子网名称2</option>
-										</select>
+										<input type="text" class="form-control">
 									</div>
 									<div class="col-xs-1">
 							            <span class="text-danger inline m-l-n m-t-sm">*</span>
 							        </div>
 								</div>
-							</div>
-						</div>
-
-						<div class="panel panel-default">
-							<div class="panel-heading">子网配置</div>
-							<div class="panel-body">
 								<div class="form-group">
-									<label  class="col-xs-4 control-label">网络类型：</label>
+									<label  class="col-xs-4 control-label">子网俺码：</label>
 									<div class="col-xs-7">
-										<select class="form-control">
-											<option>私有网络</option>
-										</select>
+										<input type="text" class="form-control">
 									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
 								</div>
 								<div class="form-group">
-									<label  class="col-xs-4 control-label">子网名称：</label>
+									<label  class="col-xs-4 control-label">可用IP段：</label>
+									<div class="col-xs-7">
+										<button type="button" class="btn btn-link">添加</button>
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-default inline m-l-n m-t-sm"></span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label"> </label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+										
+							           <button type="button" class="btn btn-link inline m-l-n text-danger">X</button>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">网关：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">主DNS：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">备DNS：</label>
 									<div class="col-xs-7">
 										<input type="text" class="form-control">
 									</div>
@@ -236,7 +307,8 @@
 							</div>
 						</div>
 
-						<div class="panel panel-default">
+
+						<div class="panel panel-default RouterInfo">
 							<div class="panel-heading">路由器配置</div>
 							<div class="panel-body">
 								<div class="form-group">
@@ -260,7 +332,7 @@
 							</div>
 						</div>
 
-						<div class="panel panel-default">
+						<div class="panel panel-default RouterInfo">
 							<div class="panel-heading">路由器配置</div>
 							<div class="panel-body">
 								<div class="form-group">
@@ -284,7 +356,7 @@
 							</div>
 						</div>
 
-						<div class="panel panel-default">
+						<div class="panel panel-default ICFInfo">
 							<div class="panel-heading">防火墙配置</div>
 							<div class="panel-body">
 								<div class="form-group">
@@ -326,7 +398,7 @@
 							</div>
 						</div>
 
-						<div class="panel panel-default">
+						<div class="panel panel-default ICFInfo">
 							<div class="panel-heading">防火墙配置</div>
 							<div class="panel-body">
 								<div class="form-group">
@@ -364,16 +436,329 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js"]
+	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js", "api/vdc/vdc.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		//创建topo
+			var isData=true;
+			var canvas = document.getElementById('canvas1');			
+			var stage = new JTopo.Stage(canvas);
+			var scene = new JTopo.Scene(stage);
+			scene.backgroundColor='255,255,255';
+			stage.add(scene);
+
+		//创建固定节点
+			
+			addNode("Internet",false,10,200)
+
+		//创建固定分隔线
+			function circlenode(a1,a2){
+				 circleNode = new JTopo.CircleNode("");
+			            circleNode.radius = 10; // 半径
+			            circleNode.alpha = 0;
+			            circleNode.fillColor = '255, 255, 255'; // 填充颜色
+			            circleNode.setLocation(a1, a2);
+			            circleNode.textPosition = 'Middle_Center'; // 文本位置
+			            circleNode.dragable=false;
+						circleNode.visible=false;
+			            scene.add(circleNode);
+			            return circleNode;
+			}
+
+			var circ1=circlenode(60,60);
+			var circ2=circlenode(60,440);
+			
+			var linkcustom = new JTopo.Link(circ1, circ2, "");
+			linkcustom.strokeColor = '165,165,165';
+			linkcustom.dashedPattern = 3;
+			linkcustom.lineWidth = 2; // 线宽
+			linkcustom.dragable=false;
+			linkcustom.editAble=false;
+			scene.add(linkcustom);
+
+		//模拟数据  network Router  ICF cloudHost loadBalance
+		data=["network", "Router","ICF","cloudHost","loadBalance","network","network","network","network"];
+
+		//根据数据生成topo
+		function addNode(str,dragable,x,y){
+			var node = new JTopo.Node(str);							
+			node.setLocation(x, y);
+			node.setImage( "assets/img/topo/images/"+str+".png", false);
+			node.width=48;
+			node.height=48;
+			node.fontColor="0,0,0";
+			node.dragable=dragable;
+			node.editAble=false;
+			scene.add(node);
+		}
+		if(isData){
+			var ICFNum=0,routerNum=0,networkNum=0,loadBalanceNum=0,cloudHostNum=0;
+			for (var i = 0; i <data.length; i++) {
+				
+				switch(data[i]){
+						case "ICF":
+							var x=175
+							if(ICFNum==0){
+								var y=15;
+							}else{
+								var y=15+ICFNum*60
+							}
+							addNode(data[i],true,x,y);
+							ICFNum++;
+							break;
+						case "Router":
+						    var x=305
+						    if(routerNum==0){
+								var y=15;
+							}else{
+								var y=15+routerNum*60
+							}
+							addNode(data[i],true,x,y);
+						    routerNum++;
+						    break;
+						case "network":
+							var x=435
+							if(networkNum==0){
+								var y=15;
+							}else{
+								var y=15+networkNum*60;
+							}
+							addNode(data[i],true,x,y);
+							networkNum++;
+							break;
+						case "loadBalance":
+							var x=565
+							if(loadBalanceNum==0){
+								var y=15;
+							}else{
+								var y=15+loadBalanceNum*60
+							}
+							addNode(data[i],true,x,y);
+							loadBalanceNum++;
+							break;
+						case "cloudHost":
+							var x=690;
+							if(cloudHostNum==0){
+								var y=15;
+							}else{
+								var y=15+cloudHostNum*60
+							}
+							addNode(data[i],true,x,y);
+							cloudHostNum++;
+							break;
+					}
+			};
+
+
+		}
+		//画线
+		
+		var getDisp=scene.getDisplayedElements(),router=[],network=[],loadBalance=[];
+		for (var i = 0; i < getDisp.length; i++) {
+			if(getDisp[i].elementType=="node" && getDisp[i].alpha!=0){
+			//	var image=$(getDisp[i].image).attr("src");
+				var imageName=getDisp[i].text;
+				if(imageName=="Router"){
+					router.push(getDisp[i])
+				}else if(imageName=="network"){
+					network.push(getDisp[i])
+				}else if(imageName=="loadBalance"){
+					loadBalance.push(getDisp[i])
+				}
+			}
+
+		};
+		for (var j =0; j < router.length; j++) {
+			for(var k=0; k<network.length; k++){
+	                var link = new JTopo.Link(router[j], network[k]);
+	               // link.text = 'L'+i;
+	                link.lineWidth = 3; // 线宽
+	                link.bundleGap = 30; // 线条之间的间隔
+	                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+	                link.strokeColor = JTopo.util.randomColor(); // 线条颜色随机
+	                link.type = 'loop'; // 自定义属性
+	                scene.add(link);
+	            }
+        };
+        for (var j =0; j < loadBalance.length; j++) {
+			for(var k=0; k<network.length; k++){
+	                var link = new JTopo.Link(loadBalance[j], network[k]);
+	               // link.text = 'L'+k;
+	                link.lineWidth = 3; // 线宽
+	                link.bundleGap = 30; // 线条之间的间隔
+	                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+	                link.strokeColor = JTopo.util.randomColor(); // 线条颜色随机
+	                link.type = 'loop'; // 自定义属性
+	                scene.add(link);
+	            }
+        };
+		//拖拽生成画布节点
+
+		var isDrag = false;
+		function isIE(){
+		  if(navigator.userAgent.indexOf("MSIE")>0){return true;}
+		  else{return false;}
+		}
+		function addListener(element,e,fn){
+		  if(isIE()){element.attachEvent("on" + e,fn);}
+		 else{element.addEventListener(e,fn,false);}
+		}
+		function drag(e){
+		 var e = e || window.event;
+		 var element = e.srcElement || e.target;
+		 if(e.preventDefault)e.preventDefault();
+		 else e.returnvalue=false;
+		 isDrag = true;
+		 var relLeft = e.clientX - parseInt(element.style.left);
+		 var relTop = e.clientY - parseInt(element.style.top);
+		 element.onmouseup = function(){ isDrag = false; }
+		 document.onmousemove = function(e_move){
+		   var e_move = e_move || window.event;
+		   if(isDrag){
+		     element.style.left=e_move.clientX - relLeft + "px";
+		     element.style.top=e_move.clientY - relTop + "px";
+		     return false;
+		   }
+		 }
+		}
+
+		
+		$("#topoBox").click(function(){
+			var timeTemp=setInterval(function(){
+				var thumbnail=$(".thumbnail").position();
+				if(thumbnail.left>0){
+					var dragE=$(".thumbnail").find("img");
+					dragE.each(function(){
+						var position=$(this).position();
+						if($(this).css("position")!="absolute"){
+							$(this).css({"position":"absolute","left":position.left+15,"top":position.top+5,"z-index":10});
+						}
+						addListener($(this).get(0),"mousedown",drag);
+					})
+					dragE.click(function(e){
+						if ("static"==$(this).css("position")){
+								var position=$(this).position();
+								var left=position.left+15;
+								var top=position.top+5;
+								
+								$(this).css({"position":"absolute","left":left,"top":top,"z-index":10});
+								addListener($(this).get(0),"mousedown",drag);
+							}
+
+					 })
+					dragE.mouseup(function(e){
+						$(this).css({"position":"static"});
+						var thisClass=$(this).attr("class")
+						var xx=e.pageX;
+						var yy=e.pageY;
+						var canvasxy=$("#canvas1").offset();
+						var px=xx-canvasxy.left;
+						var y=yy-canvasxy.top;
+						var attrsrc=$(this).attr("src");
+						var text=$(this).parent().siblings(".caption").text();
+						
+						switch(thisClass){
+							case "ICF":
+								var x=100+ 130* Math.random();
+								break;
+							case "Router":
+							    var x=230+ 130* Math.random();
+							    break;
+							case "network":
+								var x=360+ 130* Math.random();
+								break;
+							case "loadBalance":
+								var x=490+ 130* Math.random();
+								break;
+							case "cloudHost":
+								var x=620 + 130* Math.random();
+								break;
+
+						}
+						if(px>10){console.log(text);
+							var node = new JTopo.Node(text);							
+							node.setLocation(x, y);
+							node.setImage(attrsrc, false);
+							node.fontColor="0,0,0";
+							node.width=48;
+							node.height=48;
+							scene.add(node);
+							node.addEventListener('mouseup', function(event){
+				                currentNode = this;
+				            });
+						}
+						
+
+					})
+					clearInterval(timeTemp);
+				}
+
+			},50)
+		})
+		//选中节点显示属性
+		scene.click(function(){
+			if(scene.selectedElements.length>0){console.log(scene.selectedElements[0])
+				var image=$(scene.selectedElements[0].image).attr("src");
+				var imageName=image.slice(image.lastIndexOf('/')+1,image.lastIndexOf('.'));
+				switch(imageName){
+							case "ICF":
+								$(".ICFInfo").show();
+								$(".RouterInfo,.networkInfo,.loadBalanceInfo,.cloudHostInfo").hide();
+								break;
+							case "Router":
+							    $(".RouterInfo").show();
+							    $(".ICFInfo,.networkInfo,.loadBalanceInfo,.cloudHostInfo").hide();
+							    break;
+							case "network":
+								 $(".networkInfo").show();
+								 $(".ICFInfo,.RouterInfo,.loadBalanceInfo,.cloudHostInfo").hide();
+								break;
+							case "loadBalance":
+								 $(".loadBalanceInfo").show();
+								 $(".ICFInfo,.RouterInfo,.networkInfo,.cloudHostInfo").hide();
+								break;
+							case "cloudHost":
+								 $(".cloudHostInfo").show();
+								 $(".ICFInfo,.RouterInfo,.networkInfo,.loadBalanceInfo").hide();
+								break;
+
+						}
+			}
+			
+		})
+		
+
 		var vpcUuid = args.vpcUuid;
-		$.VPC.getVpcs({uuid:vpcUuid},function(data){
+		$.VPC.getVpcs({uuid:vpcUuid},function(data){console.log(data);
 			  if(data.results && data.results.length > 0){
 				    var vpcObj = data.results[0];
 					function vpcInfoViewModel(){
 			    		var self = this;
 			    		self.vpcVO = ko.validatedObservable(vpcObj);
-			    		self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks?vpcUuid='+vpcUuid, perPage: 1});
+			    		
+			    		self.vpcExtNetQuery = ko.observable({
+			    			"name":"",
+			    			 "uuid":""
+			    		});
+						self.shouldShowAddExt = ko.observable(false);
+						self.shouldShowRemoveExt = ko.observable(false);
+						
+			    		$.VPC.getVpcNet({vpcUuid:vpcUuid,type:"EXTERNAL"},function(data){
+			    			  if(data && data.results && data.results.length > 0){
+			    				  var vpcNet = data.results[0];
+			    				  self.vpcExtNetQuery(
+			    						  {
+			    							  "name":vpcNet.name,
+			    							  "uuid":vpcNet.uuid
+			    						  });
+			    				  self.shouldShowAddExt(false);
+			    				  self.shouldShowRemoveExt(true);
+			    			  }else{
+			    				  self.shouldShowAddExt(true);
+			    				  self.shouldShowRemoveExt(false);
+			    			  }
+			    		});
+			    		
+			    		self.netListTable = new DataTable([], {path: 'api/v5.0.0/vpcNetworks?type=INNER&vpcUuid='+vpcUuid, perPage: 1});
 			    		self.searchVpcNetParam = ko.observable({
 		        	        name: ""
 		        	    })
@@ -472,6 +857,62 @@
 			    			 });
 			    		}
 			    		
+			    		
+			    		/********ext network*******/
+			    		self.vpcExtNetVO = ko.validatedObservable({
+		    			        "vpcExtNetUuid":ko.observable().extend({required: true})
+							});
+			    		
+			    		self.vpcExtNetList = ko.observableArray();
+			    		self.addVpcExtNetModal = ko.observable(false);
+			    		this.addVpcExtNet = function(){
+			    			$.VDC.getVdcNetworks(vpcObj.vdcUuid,{},function(data){
+			    				console.log(data)
+			    				 if(data && data.results){
+			    					 self.vpcExtNetList(data.results);
+			    				 }
+			    			});
+			    			
+			    			self.addVpcExtNetModal(true)	
+			    		}
+			    		
+			    		self.removeVpcExtNet = function(){
+			    			var extName = self.vpcExtNetQuery().name;
+			    			var extUuid = self.vpcExtNetQuery().uuid;
+			    			confirm("确定移除外部网络["+extName+"]？",function(arg){
+			    				$.VPC.delVpcNet(extUuid,function(data){
+			    					 self.vpcExtNetQuery({
+		    							  "name":"",
+		    							  "uuid":""
+		    						  })
+			    					 self.shouldShowAddExt(true);
+									 self.shouldShowRemoveExt(false);
+			    					  alert("移除外部网络["+extName+"]成功！")
+			           			});
+			    			 });
+			    		}
+			    		
+			    		self.confirmAddVpcExtNet = function(){
+			    			var vpcExtNetUuid = self.vpcExtNetVO.toJSON().vpcExtNetUuid;
+			    			var param = {};
+		    	    	     param.vpcUuid = vpcObj.uuid;
+		    	    	     param.uuid = vpcExtNetUuid;
+		    	    	     param.type = "EXTERNAL";
+			    			$.VPC.createVpcNetwork(param,function(data){
+			    				console.log(data)
+			    				 if(data){
+			    					 self.vpcExtNetQuery({
+		    							  "name":data.name,
+		    							  "uuid":data.uuid
+		    						  })
+				    				 self.shouldShowAddExt(false);
+									 self.shouldShowRemoveExt(true);
+			    				 }
+			    				self.addVpcExtNetModal(false)	
+			    			});
+			    		}
+			    	
+			    		/************ext network******/
 					}
 					
 				    ko.applyBindings(new vpcInfoViewModel(), $("#page-content")[0]);
