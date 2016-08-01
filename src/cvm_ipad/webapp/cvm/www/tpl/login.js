@@ -12,8 +12,8 @@ myApp.onPageInit("login", function(page) {
     var userInfo = JSON.parse(Storage.getItem("userInfo"));
     var Required = false;
     this.network = baseNet ? ko.observable(baseNet) : ko.observable("http://10.10.111.204:8095");
-    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("admin");
-    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("passw0rd");
+    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("demo");
+    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("demo");
     this.dashboard = null;
     this.login = function(){
       if(this.network()==""){
