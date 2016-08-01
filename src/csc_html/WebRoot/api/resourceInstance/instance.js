@@ -1,43 +1,43 @@
 !function($) {
 	$.INSTANCE = {
 		/**
-		 * 创建PublicIp
+		 * 设置有效期
 		 * 
-		 * @param param
+		 * @param param expiryDate
 		 *            PublicIp创建入参
 		 */
-		createPublicIp : function(param, callback, errorCallback) {
-			csc.rest.post('api/v5.0.0/publicIps', param, function(data) {
+		setExpiredDate : function(uuid, param, callback, errorCallback) {
+			csc.rest.put('api/v5.0.0/resourceInstances/' + uuid, param, function(data) {
 				callback(data);
 			});
 		},
 		/**
-		 * 绑定云主机
+		 * 终止服务
 		 * 
 		 * @param uuid
 		 *            PublicIp uuid
 		 * @param param
 		 *            PublicIp修改入参
 		 */
-		bindPublicIp : function(uuid, param, callback, errorCallback) {
-			csc.rest.put('api/v5.0.0/publicIps/' + uuid + "/bind", param,
-					function(data) {
-						callback(data)
-					});
+		terminalService : function(uuid, callback, errorCallback) {
+			var p = {
+					"expiryDate":" "
+			};
+			$.INSTANCE.setExpiredDate(uuid, {}, callback, errorCallback);
 		},
 		/**
-		 * 解绑
+		 * 终止服务
 		 * 
 		 * @param uuid
 		 *            PublicIp uuid
 		 * @param param
 		 *            PublicIp修改入参
 		 */
-		unbindPublicIp : function(uuid, param, callback, errorCallback) {
-			csc.rest.put('api/v5.0.0/publicIps/' + uuid + "/unbind", param,
-					function(data) {
-						callback(data)
-					});
+		setNoExpired : function(uuid, callback, errorCallback) {
+			var p = {
+					"expiryDate":"2099-12-30 23:59:59"
+			};
+			$.INSTANCE.setExpiredDate(uuid, {}, callback, errorCallback);
 		}
 	};
 }(window.jQuery);

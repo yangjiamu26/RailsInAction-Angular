@@ -66,7 +66,7 @@
                     <tr><th>IP地址</th><td data-bind="text:vmVO().ip"></td></tr>
                     <tr><th>所属物理机</th><td data-bind="text:vmVO().hostName"></td></tr>
                     <tr><th>创建人</th><td data-bind="text:vmVO().userName"></td></tr>
-                    <tr><th>UUID</th><td></td></tr>
+                    <tr><th>UUID</th><td data-bind="text:vmVO().originalId"></td></tr>
                   </table>
                 </div>
               </div>
@@ -300,13 +300,13 @@
                   </div>  -->     
                 </td>
                 <td>
-                	<span class="label label-success" data-bind="if: $row.state == 'completed'">成功</span>
+                	<span class="label label-success" data-bind="if: $row.state == 'success'">成功</span>
                 	<span class="label label-warning" data-bind="if: $row.state == 'active'">进行中</span>
                 	<span class="label label-danger" data-bind="if: $row.state == 'completedAndError'">失败</span>
                 </td>
                 <td data-bind="text: user"></td>
-                <td data-bind="text: executeTime"></td>
-                <td data-bind="text: endTime"></td>
+                <td data-bind="text: executeDate"></td>
+                <td data-bind="text: endDate"></td>
               </tr>
               <!-- /ko -->
             </tbody>
@@ -654,8 +654,9 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
   var cpu_chart ;
+  var vmUuid;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	var vmUuid = args.vmUuid;
+    vmUuid = args.vmUuid;
 	var vmId = args.vmId;
     function ViewModel(){
       var self = this;
@@ -706,7 +707,7 @@
       //--------------------------------操作开始---------------------------------
       //控制台
       this.console = function(){
-    	  csc.rest.get('api/v5.0.0/vms/'+self.vmVO().uuid+'/vmConsole',function(data){
+    	  csc.rest.get('api/v5.0.0/vms/'+vmUuid+'/vmConsole',function(data){
     		  if(data.consoleUrl){
     			  var consoleUrl = data.consoleUrl;
         		  //模拟点击
@@ -987,37 +988,40 @@
   var jsonArray = new Array();
   var meter ;
   // 指标选中事件;
-  function cpuCheckboxClick(obj){
-     meter = $(obj).attr('id');
-    if($('#'+meter).prop("checked")){
-      $("#"+meter+"_threshold").removeAttr("disabled");
-      $("#"+meter+"_period").removeAttr("disabled");
-    }else{
-      $("#"+meter+"_threshold").attr("disabled","disabled");
-      $("#"+meter+"_period").attr("disabled","disabled");
-    }
-  };
+
+	function cpuCheckboxClick(obj) {
+		meter = $(obj).attr('id');
+		if ($('#' + meter).prop("checked")) {
+			$("#" + meter + "_threshold").removeAttr("disabled");
+			$("#" + meter + "_period").removeAttr("disabled");
+		} else {
+			$("#" + meter + "_threshold").attr("disabled", "disabled");
+			$("#" + meter + "_period").attr("disabled", "disabled");
+		}
+	};
 
    //弹出窗弹出后执行回调方法，对弹出窗里面的内容进行初始化操作;
-  $("#alarmModal").on("shown.bs.modal", function(){
-  var vmUuid ="20160728"; // 指定云主机对应数据库id;此处测试默认1; 
-  $.ajax("api/v5.0.0/vms/"+vmUuid+"/configAlarm").done(function(data){
-  	  console.log(data);
-      $.each(data,function(id,obj){
-        $("input:checkbox[name='checkbox']").each(function(){
-          if(obj.meter==$(this).attr('value') && obj.enable=='true'){
-            $(this).attr("checked","checked");  // checkbox选中;
-            meter = $(this).attr('id'); // 指标名称;
-            $("#"+meter+"_threshold").removeAttr("disabled");
-            $("#"+meter+"_period").removeAttr("disabled");
-            $("#"+meter+"_threshold").val(obj.threshold);
-            $("#"+meter+"_period").val(obj.period);
-          };
-        });
-      });
-    });
-  });
-  
+
+	$("#alarmModal").on("shown.bs.modal", function() {
+		$.ajax("api/v5.0.0/vms/" + vmUuid + "/configAlarm").done(function(data) {
+			console.log(data);
+			$.each(data, function(id, obj) {
+				$("input:checkbox[name='checkbox']").each(function() {
+					if (obj.meter == $(this).attr('value') && obj.enable == 'true') {
+						$(this).attr("checked", "checked");
+						// checkbox选中;
+						meter = $(this).attr('id');
+						// 指标名称;
+						$("#" + meter + "_threshold").removeAttr("disabled");
+						$("#" + meter + "_period").removeAttr("disabled");
+						$("#" + meter + "_threshold").val(obj.threshold);
+						$("#" + meter + "_period").val(obj.period);
+					};
+				});
+			});
+		});
+	});
+
   // 确定按钮;
   function confirmBtn() {
     jsonArray = [];
@@ -1026,16 +1030,15 @@
       var obj = {
         "meter"     : $(this).attr('value'),
         "threshold" : $("#" + meter + "_threshold").val(),
-        "period"    : $("#" + meter + "_period").val()*60,
+        "period"    : $("#" + meter + "_period").val(),
         "enable"    : true
       };
       jsonArray.push(obj);
     });
     if(jsonArray.length!=0){// 异步提交信息;
-      var vmUUID ="20160728";
         $.ajax({
         type: 'PUT',
-        url: "api/v5.0.0/vms/"+vmUUID+"/configAlarm",
+        url: "api/v5.0.0/vms/"+vmUuid+"/configAlarm",
         data: JSON.stringify(jsonArray),
         dataType:'json',
         success: function(data){
@@ -1068,15 +1071,13 @@
 
 	// 查询监控指标数据;
 	function getMonitorData(time) {
-		var vmUUID = "1";
-		// 获取云主机id; 此处先默认
 		var period = "60";
 		// 周期不长, 可调整默认为60s;
 		// 获取当前时间之前xx分钟;
 		var nowDate = new Date();
 		nowDate.setMinutes(nowDate.getMinutes() - time);
-		console.log("api/v5.0.0/vms/" + vmUUID + "/performance?startTime=" + nowDate.getTime() + "&step=" + period);
-		$.ajax("api/v5.0.0/vms/" + vmUUID + "/performance?startTime=" + nowDate.getTime() + "&step=" + period).done(function(data) {
+		console.log("api/v5.0.0/vms/" + vmUuid + "/performance?startTime=" + nowDate.getTime() + "&step=" + period);
+		$.ajax("api/v5.0.0/vms/" + vmUuid + "/performance?startTime=" + nowDate.getTime() + "&step=" + period).done(function(data) {
 			if(data!=null && data!=""){
 				$.each(data,function(id,element){
 					if(element.name.indexOf("CPU")!=-1){

@@ -79,7 +79,7 @@
 	            <td><!-- 操作 -->
 	            	<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a> 
 	            	| <a href="#" data-bind="click: $root.unbindVm">解绑</a>  
-	            	| <a href="#" data-bind="click: $root.changeExpiredTime">有效时间变更</a>  
+	            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a>  
 	            	| <a href="#" data-bind="click: $root.terminateService">终止</a>  
 	            	| <a href="#" data-bind="click: $root.deleteIp">删除</a>
 	            </td>
@@ -105,38 +105,6 @@
         </ul>
       </footer>
 </div>
-
-<!-- 绑定云主机页面 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowBindingPage }">
-    <div class='modal-dialog modal-lg' style="width:600px;">
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-        </div>
-        <div class='modal-body form-horizontal' data-bind="with: currentIpVo">
-          <div class="form-group">
-            <label class="col-sm-3 control-label">公网IP：</label>
-            <div class="col-sm-8">
-              <span data-bind="text: ip">150.152.11.25</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">云主机：</label>
-            <div class="col-sm-8">
-              <select class="form-control">
-                <option value="1">1</option>
-              </select>
-            </div>
-          </div>
-
-        </div>
-        <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info">确定</a>
-          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-        </div>
-      </div>
-    </div>
-  </div>
 
 <!-- 创建公网IP页面 -->
   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowCreatePage}">
@@ -257,11 +225,66 @@
     </div>
   </div>
 
+<!-- 绑定云主机页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowBindingPage }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+        </div>
+        <div class='modal-body form-horizontal' data-bind="with: bindingVo">
+          <div class="form-group">
+            <label class="col-sm-3 control-label">公网IP：</label>
+            <div class="col-sm-8">
+              <span data-bind="text: ip">150.152.11.25</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">云主机：</label>
+            <div class="col-sm-8">
+              <select class="form-control">
+                <option value="1">1</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>  
+  
+  <!-- 修改有效期 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateTime }">
+     <div class='modal-dialog modal-md'>
+       <div class='modal-content'>
+         <div class='modal-header'>
+           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+         </div>
+         <div class='modal-body form-horizontal row'>
+           <div class="form-group">
+             <label class="col-sm-3 control-label">有效期：</label>
+             <div class="col-sm-8">
+               <input type="email" class="form-control" data-bind="value: validateTimeVO().time">
+             </div>
+           </div>
+         </div>
+         <div class='modal-footer' style="text-align:center;">
+           <a class="btn btn-default btn-info" data-bind="click: changeExpiredTime">确定</a>
+           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+         </div>
+       </div>
+     </div>
+   </div>
+
 </div>
 <script type="text/javascript">
   var scripts = ["api/vpc/vpc.js", 
-                 "api/resource/az/az.js",
                  "api/vdc/vdc.js",
+                 "api/resourceInstance/instance.js",
                  "api/resourceInstance/publicIp/publicIp.js", 
                  "assets/lib/moment/moment.js",
                  "assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
@@ -298,8 +321,7 @@
       this.azList = ko.observableArray();
       this.vpcList = ko.observableArray();
       this.networkList = ko.observableArray();
-		
-      this.isShowBindingPage = ko.observable(false);
+      
       this.isShowCreatePage = ko.observable(false);
       
       this.currentIpVo = ko.validatedObservable({
@@ -415,21 +437,38 @@
       };
       
       //弹出绑定云主机页面
+      this.isShowBindingPage = ko.observable(false);
+      this.bindingVo = ko.validatedObservable({
+    	  uuid: 	ko.observable(),
+    	  vmUuid: 	ko.observable(),
+    	  vmName: 	ko.observable(),
+    	  ip:		ko.observable()
+      });
       this.showBindingPage = function(vo){
            self.isShowBindingPage(true);
            //对当前公网IP对象进行绑定
-           self.currentIpVo(vo);
+           self.bindingVo({
+        	   uuid: 	vo.uuid,
+        	   vmUuid:	vo.vmUuid,
+        	   vmName:	vo.vmName,
+        	   ip:		vo.ip
+           });
       };
 	  
-      this.bindVm = function(vo){
-    	  $.PUBLIC_IP.bindPublicIp(vo.uuid, self.vmObj().portId, function(data){
+      this.bindVm = function(){
+    	  var uuid = self.bindingVo().uuid;
+    	  var vmUuid = self.bindingVo().vmUuid;
+    	  var vmName = self.bindingVo().vmName
+    	  
+    	  $.PUBLIC_IP.bindPublicIp(uuid, vmName, function(data){
 				self.publicIpTable.refreshData();
-				alert("绑定云主机[" + self.vmObj().portName + "]成功！")
+				self.isShowBindingPage(false);
+				alert("绑定云主机[" + vmName + "]成功！")
    		});
       };
       
       //解绑公网IP
-      this.unbindVm = function(row){
+      this.unbindVm = function(vo){
     	  var name = vo.name;
 		  confirm("确定解绑公网IP[" + name + "]？", function(arg){
 			$.PUBLIC_IP.unbindPublicIp(vo.uuid, function(data){
@@ -440,15 +479,37 @@
       }
       
       //修改有效时间
-      this.changeExpiredTime = function(vo){
-    	  
+      this.isValidateTime = ko.observable(false);
+      this.validateTimeVO = ko.validatedObservable({
+    	  uuid: ko.observable(),
+    	  name: ko.observable(),
+    	  time: ko.observable()
+      });
+      this.showChangeValiTimePage = function(object, event){
+    	  self.isValidateTime(true);
+    	  //设置修改对象的uuid
+    	  self.validateTimeVO().uuid(object.uuid);
+    	  self.validateTimeVO().name(object.name);
+      }
+      
+      this.changeExpiredTime = function(){
+    	  var uuid = self.validateTimeVO().uuid();
+    	  var name = self.validateTimeVO().name();
+    	  var p = {
+    		  expiryDate : self.validateTimeVO().time()
+    	  };
+    	  $.INSTANCE.setExpiredDate(uuid, p, function(data){
+    		  self.publicIpTable.refreshData();
+		 	  self.isValidateTime(false);
+		 	  alert('修改公网IP['+ name+ ']有效期成功！');
+    	  });
       }
       
       //终止服务
       this.terminateService = function(vo){
     	  var name = vo.name;
 		  confirm("确定终止公网IP[" + name + "]服务？", function(arg){
-			$.PUBLIC_IP.delPublicIp(vo.uuid, function(data){
+			  $.INSTANCE.terminalService(vo.uuid, function(data){
 				self.publicIpTable.refreshData();
 				alert("终止公网IP[" + name + "]服务成功！")
      		});

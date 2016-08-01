@@ -80,7 +80,7 @@
 											<div class="input-group">
 												<span class="input-group-addon">所属产品</span> 
 												<select class="form-control input-sm"
-													data-bind="value: searchParam().product, options:productList,optionsText:'name',optionsValue:'codeName', optionsCaption: '全部'">
+													data-bind="value: searchParam().productName, options:productList,optionsText:'name',optionsValue:'codeName', optionsCaption: '全部'">
 													<option value="">全部</option>
 												</select>
 											</div>
@@ -234,7 +234,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
 	    
-	var product = 'VDC';  	
+	var product = 'VDC';//默认选中VDC  	
         
     var dirUuid = 0;//目录UUID
     //目录树start
@@ -325,11 +325,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
            $.fn.zTree.init($("#dirTree"), setting1, data);
        });
     }
-    //发布范围
-    function buildTree1(){
-      $.fn.zTree.init($("#serviceModalTree"), setting2, zNodes);
-      
-    }
 	<!-- vdc -->
     //初始化操作系统类型下拉框
     function loadVdcOsType(){
@@ -348,12 +343,22 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     function loadVmCpu(){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
       		viewModel.cpuList(data);
+      		if(data.length > 0){   	      			
+   	      		for(var i = 0;i < data.length;i++){
+          			viewModel.cpuCheckList.push(data[i].value);
+            	}
+	      	}
          });
     }
     //初始化云主机内存
     function loadVmMemory(){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource',function(data){
       		viewModel.memoryList(data);
+      		if(data.length > 0){   	      			
+   	      		for(var i = 0;i < data.length;i++){
+          			viewModel.memoryCheckList.push(data[i].value);
+            	}
+	      	}
          });
     }
     //初始化发布范围VDC
@@ -372,7 +377,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     
     $(document).ready(function(){
     	loadTree();		    //服务目录树
-    	buildTree1();		//发布范围数据
         loadProduct();	   //获取产品下拉框数据
         
         //loadServiceTree();//加载弹窗的服务目录树
@@ -511,14 +515,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.searchParam = ko.observable({
     	  dirUUID: dirUuid,
           state: "",
-          product: "",
+          productName: "",
           serviceName: ""
       })
       //重置
       this.reset = function(){
 			this.searchParam({
 				state: "",
-				product: "",
+				productName: "",
 				serviceName: ""
 			})
       }
@@ -559,6 +563,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  if(this.step() == 2 && this.selected_product()!='VDC'){
     		  //根据azUuid获取发布范围接口数据调用
     		  var azStrs = getAzUuids(this.azUuidList());
+    		  if(azStrs == ""){
+    			  alert("请选择可用分区！");
+    			  return;
+    		  }
+    		  //debugger
     		  loadReleaseVdc(azStrs);
     		  console.log(azStrs);
     	  }
@@ -592,10 +601,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         	  loadVirtualPlatform();//获取虚拟化平台数据
         	  loadVmCpu();//获取虚拟机CPU
         	  loadVmMemory();//获取虚拟机内存
-              buildTree1();
           }else if(viewModel.selected_product()=='DISK'){//选择云盘
         	  loadDiskType()//初始化云盘类型
-        	  buildTree1();
+          }else{
+        	  
           }
         }
         
@@ -681,7 +690,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   			 memory: ko.observable()
   		 },
   		 servicePartitions : ko.observable(),
-  		 azUuids : ko.observable()
+  		 azUuids : ko.observable(),
+  		 serviceDisk : {
+  			diskType: ko.observable(),
+  			azUuid: ko.observable()
+  		 }
   	   })
   	   //虚拟机的cpu
   	   this.cpuCheckList = ko.observableArray();
@@ -753,19 +766,46 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
   		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
   		
-  		  if(this.selected_product()=='VDC'){
+  		  if(this.selected_product()=='VDC'){//VDC保存时的数据
   			  this.serviceVO().serviceVm = null;
-  			  this.serviceVO().servicePartitions = null;
-  	      }else if(this.selected_product()=='VM'){
+  			  this.serviceVO().serviceDisk = null;
+  	      }else if(this.selected_product()=='VM'){//云主机保存时的数据
+	  	      var releaseRange = getReleaseRanges(this.releaseRange());
+	  	      if(releaseRange == ""){
+	  	      	alert("请选择发布范围！");
+	  	      	return;
+	  	      }
   	    	  this.serviceVO().serviceVDC = null;
+  	    	  this.serviceVO().serviceDisk = null;
   	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
   	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
   	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
   	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
-  	    	  this.serviceVO().serviceVm.azUuid(getAzUuids(this.azUuidList()));//虚拟机可用分区
+//  	    	  this.serviceVO().serviceVm.azUuid(getAzUuids(this.azUuidList()));//虚拟机可用分区
   	    	  this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
   	    	  this.serviceVO().servicePartitions(getReleaseRanges(this.releaseRange()));//发布范围
-  	      }  		
+  	      }else if(this.selected_product()=='DISK'){//云盘保存时的数据
+  	    	var releaseRange = getReleaseRanges(this.releaseRange());
+  	      	if(releaseRange == ""){
+  	      		alert("请选择发布范围！");
+  	      		return;
+  	      	}
+  	    	this.serviceVO().serviceVm = null;
+  	    	this.serviceVO().serviceVDC = null;
+  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
+  	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
+  	    	this.serviceVO().servicePartitions();//发布范围
+  	      }else if(this.selected_product()=="PUBLICIP"){
+  	    	  
+  	      }else{
+  	    	var releaseRange = getReleaseRanges(this.releaseRange());
+  	      	if(releaseRange == ""){
+  	      		alert("请选择发布范围！");
+  	      		return;
+  	      	}
+  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
+  	      }
+  		  debugger
   		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
   				self.table.refreshData();
   				self.isCreateService(false);
@@ -782,19 +822,40 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         //虚拟化类型选择事件
         this.changeVirtualValue = function(viewModel, event){      	  
            if(viewModel.selected_product()=='VM'){
+        	  //当选择不同的虚拟化时得清空初始化数据，重新加载
+   			  if(viewModel.azUuidList().length > 0){
+    			 viewModel.azUuidList.removeAll();
+    		  }
+       	   	  if(viewModel.osTypeCheckList().length > 0){
+      			  viewModel.osTypeCheckList.removeAll();
+      		  }
         	 //初始化虚拟机操作系统类型数据        	 
    	      	 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+this.serviceVO().serviceVm.virtualName(),function(data){   	      		 
-   	      		viewModel.vmOsTypeList(data);
-   	         });       	     
+   	      		viewModel.vmOsTypeList(data);   	      		
+   	      		if(data.length > 0){   	      			
+	   	      		for(var i = 0;i < data.length;i++){
+	          			viewModel.osTypeCheckList.push(data[i].value);
+	            	}
+   	      		}
+   	         });
         	   
         	 //初始化可用分区数据
           	 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+this.serviceVO().serviceVm.virtualName(),function(data1){
-          		viewModel.azList(data1.results);
+          		viewModel.azList(data1.results);          		
+          		if(data1.results.length > 0){          			
+          			for(var i = 0;i < data1.results.length;i++){
+              			viewModel.azUuidList.push(data1.results[i].uuid);
+                	}
+          		}
              });
-           }else{
+           }else if(viewModel.selected_product()=='VDC'){
               
+           }else{
+        	   //根据当前用户获取可用分区
+        	   
            }
          }
+        
         //添加操作系统版本start
        // this.packages = ko.observableArray();
         this.osType_chosen = ko.observableArray()
@@ -803,7 +864,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.isAdd_osType = ko.observable(false);
 
 		this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
-        
+        //添加操作系统版本按钮
         this.addOsType = function(package,event){
           if(self.azUuidList().length <= 0){
         	  alert("请选择可用分区！");
@@ -983,7 +1044,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" checked="checked"><span data-bind="text:name"></span>
                       </label>
                     </div>
                     <!-- /ko -->                    
@@ -1083,14 +1144,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
+                    <!-- /ko -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区2
+                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
                       </label>
                     </div>
                   </div>
@@ -1125,14 +1188,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
+                    <!-- /ko -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区2
+                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
                       </label>
                     </div>
                   </div>
@@ -1291,14 +1356,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
+                    <!-- /ko -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区2
+                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
                       </label>
                     </div>
                   </div>
@@ -1333,9 +1400,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 </div>
               </div>
               
-            </div>
-
-            
+            </div>            
             <!-- 公网IP end -->
             <!-- 负载均衡 start -->
             <div class='form-horizontal row' data-bind="if: selected_product()=='LOAD_BALANCING'">
@@ -1350,14 +1415,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
+                    <!-- /ko -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区2
+                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
                       </label>
                     </div>
                   </div>
@@ -1378,14 +1445,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
+                    <!-- /ko -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区2
+                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
                       </label>
                     </div>
                   </div>
