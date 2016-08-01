@@ -48,7 +48,7 @@
               </div>
               <label class="col-xs-1 control-label no-padder-h">CPU(个)</label>
               <div class="col-xs-2">
-                <input type="text" class="form-control" data-bind="value: currentVO().cpu"/>
+                <input type="text" class="form-control" data-bind="value: currentVO().vcpu"/>
               </div>
               <div class="col-xs-1">
                 <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -319,12 +319,12 @@
     
 		  this.currentVO = ko.validatedObservable({
 	        id: ko.observable(),
-	        name: ko.observable("").extend({required: true}),
+	        instanceName: ko.observable("").extend({required: true}),
 	        vdcId: ko.observable("").extend({required: true}),
 	        partition: ko.observable().extend({required: true}),
 	        systemType: ko.observable("").extend({required: true}),
 	        systemVersion: ko.observable("").extend({required: true}),
-	        cpu: ko.observable("").extend({required: true}),
+	        vcpu: ko.observable("").extend({required: true}),
 	        memory: ko.observable("").extend({required: true}),
 	        storage: ko.observable("").extend({required: true}),
 	        ipPool: ko.observable("").extend({required: true}),
@@ -336,8 +336,20 @@
 	        isBind: ko.observable("").extend({required: true}),
 	        sshKey: ko.observable("").extend({required: true})
 	      });
-		  var object={name : "wolegequ"};
-		  self.currentVO(object);
+		  
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
+	      		 console.log(data);
+	      		var vmData = data.vms[0];
+	      		var vmObject = {
+	      			name : vmData.instanceName,
+	      			vcpu : vmData.vcpu
+	      		}
+			    self.currentVO(vmObject);
+	      	 })
+		  })
 		  
 	  }
 	  ko.applyBindings(new ViewModel(), $('#page-content .tab-pane')[0]);

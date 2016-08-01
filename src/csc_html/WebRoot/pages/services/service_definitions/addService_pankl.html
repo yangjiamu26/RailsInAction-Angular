@@ -141,7 +141,7 @@
               <div class="form-group">
                 <label class="col-xs-2 control-label">虚拟化：</label>
                 <div class="col-xs-9">
-                  <select class="form-control" data-bind="value: serviceVO().serviceVm.virtualName">
+                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: serviceVO().serviceVm.virtualName,event:{'change':changeVirtualValue}">
                     <option value="KVM">KVM</option>
                   </select>
                 </div>
@@ -187,7 +187,7 @@
                     </label>
                   </div>
                   <!-- /ko -->
-                  <div class="checkbox">
+                  <!-- <div class="checkbox">
                     <label>
                       <input type="checkbox" value=""> windows
                     </label>
@@ -201,7 +201,7 @@
                     <label>
                       <input type="checkbox" value=""> aix
                     </label>
-                  </div>
+                  </div> -->
                 </div>
               </div>
               <div class="form-group">
@@ -226,7 +226,7 @@
                         </tr>
                       </tbody>
                     </table>
-                    <a class="btn btn-sm btn-success" style="margin-left: 10px;">添加</a>
+                    <a class="btn btn-sm btn-success" style="margin-left: 10px;" data-bind="click: addOsType">添加</a>
                   </div>
                 </div>
               </div>
@@ -330,6 +330,61 @@
                     <label>
                       <input type="checkbox" value=""> 64
                     </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_osType }">
+              <div class='modal-dialog modal-lg'>
+                <div class='modal-content'>
+                  <div class='modal-header'>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择计费</h3>
+                  </div>
+                  <div class='modal-body form-horizontal'>
+                    <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: feeList">
+                      <table class="table table-striped">
+                        <thead>
+                          <tr>
+                            <th>
+				              <div class="checkbox">
+				                <label class="i-checks">
+				                  <input type="checkbox" data-bind="checked: isSelectedAll">
+				                  <i></i>
+				                </label>
+				              </div>                    
+				            </th>  
+                            <th>镜像名称</th>
+                            <th>操作系统类型</th>
+                            <th>操作系统版本</th>
+                            <th>可用分区</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+                          <tr>
+                            <td>
+				              <div class="checkbox">
+				                <label class="i-checks">
+				                  <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
+				                  <i></i>
+				                </label>
+				              </div> 
+				            </td>
+                            <td data-bind="text: attrType"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: price"></td>
+                            <td data-bind="text: price"></td>
+                          </tr>
+                          <!-- /ko -->
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                  </div>
+                  <div class='modal-footer' style="text-align:center;">
+                    <a class="btn btn-default btn-info" data-bind="click: addFeeToList">确定添加</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
                   </div>
                 </div>
               </div>
@@ -752,9 +807,10 @@
                   
                 </div>
               </div>
-            </div>
-            
-            <div role="dialog" aria-hidden="true" id="addFeeDialog" class="modal fade" data-bind="modal: { show: isAdd_Fee }">
+            </div>                                    
+          </div>
+          
+          <div role="dialog" aria-hidden="true" id="addFeeDialog" class="modal fade" data-bind="modal: { show: isAdd_Fee }">
               <div class='modal-dialog modal-lg'>
                 <div class='modal-content'>
                   <div class='modal-header'>
@@ -805,8 +861,7 @@
                   </div>
                 </div>
               </div>
-            </div>            
-          </div>
+            </div>
           
           <div class="tab-pane" data-bind="if: selected_product()!='vdc'">
             <div class='form-horizontal row'>
@@ -880,7 +935,7 @@
     var product = 'vm';
     function ViewModel(){
       var self = this;
-
+	  //修改图标start
       this.isChangeImg = ko.observable(false);
       this.changeImg = function(){
         this.isChangeImg(true);
@@ -888,7 +943,8 @@
       this.setImg = function(){
         this.isChangeImg(false);
       }
-
+      //修改图标end
+	  //选择产品类型start
       this.selected_product = ko.observable();
       this.selected_product(product);
       this.showItems = ko.observable('no');
@@ -899,6 +955,7 @@
           buildTree(); 
         }
       }
+      //选择产品类型end
 	  //添加IP start
       this.isAdd_Ip = ko.observable(false);
       this.addIp = function(){
@@ -974,11 +1031,15 @@
 			 virtualName: ko.observable().extend({required : true}),
 			 azUuid: ko.observableArray(),
 			 osType: ko.observableArray(),
+			 osTypeList : ko.observableArray(),
 			 osVersion: ko.observableArray(),
 			 cpu: ko.observableArray(),
 			 memory: ko.observableArray()
 		 }
 	 })
+	 
+	 //是否计费
+	  this.isFee = ko.observable("1");   
 	 //获取套餐值
 	 function getPackages(obj){   	  
     	  var feeType = "";
@@ -994,20 +1055,45 @@
       //保存方法
 	  this.saveService = function(){    	  
 		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));
-		  this.serviceVO().charge(this.isFee());		  
+		  this.serviceVO().charge(this.isFee());
+		  debugger
+		  if(this.selected_product()=='vdc'){
+			  
+	      }else if(this.selected_product()=='vm'){
+	    	  this.serviceVO().serviceVDC = null;
+	      }
 		  console.log(this.packages_chosen());
 		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
 			  hideModal();
               alert('创建成功！');
           });
 	  }
-	  //是否计费
-	  this.isFee = ko.observable("1");      
+	     
       //产品列表
       this.productList = ko.observableArray();
       //操作系统类型
       this.osList = ko.observableArray();
       
+      /*  云主机start*/
+      //虚拟化类型选择事件
+      this.changeVirtualValue = function(viewModel, event){
+    	  debugger
+         if(viewModel.selected_product()=='vm'){
+        	 csc.rest.get('api/v5.0.0/azs?virtualPlatform='+this.serviceVO().serviceVm.virtualName(),function(data){
+   			 	 debugger
+             });
+         }else{
+            
+         }
+       }
+      //添加操作系统版本start
+      this.isAdd_osType = ko.observable(false);
+      this.addOsType = function(){
+    	  this.isAdd_osType(true);
+      }
+      //添加操作系统版本end
+      
+      /*云主机 end*/
     }
     service_model = new ViewModel();
     ko.applyBindings(service_model, $('#service_definitions_addService')[0]);

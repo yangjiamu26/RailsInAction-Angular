@@ -37,6 +37,22 @@
 	    		    }); 
 			},
 			/**
+			 * 修改vdc
+			 */
+			modifyVDC:function(uuid,param,callback,errorCallback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid,param,function(data){
+					     callback(data);
+	    		    }); 
+			},
+			/**
+			 * 删除vdc
+			 */
+			delVdc:function(vdcUuid,callback){
+				csc.rest.del('api/v5.0.0/vdcs/'+vdcUuid,function(data){
+					 callback(data)
+  		        })
+			},
+			/**
 			 * 获取VDC配额
 			 * @param param  查询条件
 			 */
@@ -62,6 +78,35 @@
 				 csc.rest.get('api/v5.0.0/vdcs/'+uuid+"/networks?"+param,function(data){
 					     callback(data);
 	    		    }); 
+			},
+			/**
+			 * 获取可用的可用分区
+			 * @param param
+			 * @param callback
+			 * @param errorCallback
+			 * @returns
+			 */
+			getAvailableToVdc:function(param,callback,errorCallback){
+				 var param = csc.util.httpQueryParamConvert(param);
+				 csc.rest.get("api/v5.0.0/vdcs/azs/availableToVdc?"+param,function(data){
+					     callback(data);
+	    		    }); 
+			},
+			/**
+			 * 修改VDC下AZ
+			 */
+			modifyVdcAzs:function(uuid,param,callback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/azs",param,function(data){
+					 callback(data)
+    		    }); 
+			},
+			/**
+			 * 修改VDC下AZ 网络
+			 */
+			modifyVdcNetworks:function(uuid,param,callback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/networks",param,function(data){
+					 callback(data)
+    		    }); 
 			}
 	};
 }(window.jQuery);

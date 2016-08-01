@@ -360,7 +360,10 @@
           var key, req, url, val;
           var path = _this.path();
            
-          if(!path) return;
+          if(!path){
+        	  cb(null, {total: 0, results: []});
+        	  return;
+          }
           
           if(path.indexOf('?')>-1){
         	  path += "&";

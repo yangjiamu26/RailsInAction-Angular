@@ -34,7 +34,7 @@
         </div>
       </div>                                     
       <div class="col-xs-2">
-        <button class="btn btn-sm" type="button">重置</button>
+        <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
         <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>        
     </div>
@@ -86,14 +86,14 @@
                 <td data-bind="text: azName"></td>
                 <td data-bind="text: vdcName"></td>
                 <td data-bind="text: vpcName"></td>
-                <td data-bind="text: expiryDate"></td>
+                <td data-bind="text: expiryTime"></td>
                 <td data-bind="text: vcpu"></td>
                 <td data-bind="text: memory"></td>
                 <td data-bind="text: storage"></td>
                 <td data-bind="text: ip"></td>
                 <td>
                 	<span class="label label-success" data-bind="if: isValidate == true">正常</span>
-	                <span class="label label-danger" data-bind="ifnot: isValidate == true">已过期</span>
+	                <span class="label label-danger" data-bind="if: isValidate == false">已过期</span>
                 </td>
                 <td data-bind="text: userName"></td>
                 <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.vmAdjustment">调整资源</a> |
@@ -103,7 +103,7 @@
                     </a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
                       <li>
-                        <a>有效时间变更</a>
+                        <a data-bind="click: $root.editValidateTime">有效时间变更</a>
                        <!--  <a data-bind="click: $root.startOne,if: state == 'SHUTOFF'">开机</a>
                         <a data-bind="click: $root.shutoffOne,if: state == 'ACTIVE'">关机</a>
                         <a data-bind="click: $root.restartOne,if: state == 'ACTIVE'">重启</a>
@@ -116,7 +116,7 @@
                         <a data-bind="click: $root.restartForceOne">强制重启</a>
                         <a data-bind="click: $root.suspend">挂起</a>
                         <a data-bind="click: $root.resume">恢复</a>
-                        <a>终止</a>
+                        <a data-bind="click: $root.validate">终止</a>
                         <!-- <a data-bind="click: $root.removeOne,if: state == 'SHUTOFF' || state == 'ACTIVE'">删除</a> -->
                         <a data-bind="click: $root.removeOne">删除</a>
                       </li>
@@ -277,52 +277,49 @@
                       </div>
                      
                     </div> -->
-                    <!-- <div class="form-group">
+                    <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                       <div class="col-xs-10">
                         <label class="radio-inline" style="padding-top: 2px">
-                          <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 永久
+                          <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked="checked"> 永久
                         </label>
                         <label class="radio-inline">
                           <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                          <input type="text" class="form-control inline w-xxs">
-                          <select class="form-control inline w-xs">
-                            <option value="">月</option>
+                          <input type="text" class="form-control inline w-xxs" id="resource_instance_vm_limit_option2">
+                          <select class="form-control inline w-xs" id="resource_instance_vm_limit_option2_unit">
+                            <option value="DAY">日</option>
+                            <option value="MONTH">月</option>
                           </select>  
                         </label>
                         <label class="radio-inline">
                           <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                          <input type="text" value="" class="form-control inline w" id="vm_duration">
+                          <input type="text" value="" class="form-control inline w" id="resource_instance_vm_limit_option3">
                         </label>                                    
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                    </div> -->
+                    </div>
                   </div>
                 </div>
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     挂载云硬盘
-                    <a href="#" class="pull-right">添加硬盘</a>
+                    <a href="#" class="pull-right" data-bind="click: $root.addAction()">添加硬盘</a>
                   </div>
                   <div class="panel-body">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover" data-bind="foreach:items">
                       <thead>
                         <tr>
-                          <th>序号</th>
-                          <th>云硬盘名称*</th>
-                          <th>存储大小(GB)*</th>
-                          <th>申请时长</th>
+                          <th >云硬盘名称*</th>
+                          <th >存储大小(GB)*</th>
                           <th>操作</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
-                          <td>1</td>
-                          <td><input type="text" class="form-control input-sm"></td>
-                          <td><input type="text" class="form-control input-sm"></td>
-                          <td>有效期至2017-06-22</td>
+                          <td><input type="text" class="form-control input-sm" data-bind="text:volumeName"></td>
+                          <td><input type="text" class="form-control input-sm" data-bind="text:volumeSize"></td>
                           <td><a href="#">删除</a></td>
                         </tr>
                       </tbody>
@@ -412,6 +409,28 @@
         </div>
         <!-- end -->
 
+        <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateTime }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">有效期：</label>
+                  <div class="col-sm-8">
+                    <input type="email" class="form-control" data-bind="value: validateTimeVO().time">
+                  </div>
+                </div>
+              </div>
+              <div class='modal-footer' style="text-align:center;">
+                <a class="btn btn-default btn-info" data-bind="click: validateTime">确定</a>
+                <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isVmAdjustment }">
           <div class='modal-dialog modal-md'>
             <div class='modal-content'>
@@ -426,9 +445,15 @@
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="col-sm-3 control-label">内存(GB)：</label>
+                  <label class="col-sm-3 control-label">内存(MB)：</label>
                   <div class="col-sm-8">
                     <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">存储(GB)：</label>
+                  <div class="col-sm-8">
+                    <input type="email" class="form-control" data-bind="value: adjustmentVO().storage">
                   </div>
                 </div>
               </div>
@@ -450,14 +475,18 @@
     	//系统当前登录用户标识
       var account = "1";
     	//当前用户所辖VDC列表（包括VDC对应的可用分区信息）
-      var vdcList = {};
+      var vdcList = [];
+      var vdcListForAdd = [];
+    	
     	
       var self = this;
 
       this.isVmAdjustment = ko.observable(false);
 
       this.isAddvm = ko.observable(false);
-
+      
+      this.isValidateTime = ko.observable(false);
+      
       this.addvm = function(){
         self.isAddvm(true);
       }
@@ -465,7 +494,7 @@
       $("#modal_addvm").on("shown.bs.modal",function(){
 
           // daterange             
-          $('#vm_duration').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+          $('#resource_instance_vm_limit_option3').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
             {
               format:'YYYY/MM/DD',
               startDate: moment().subtract('days', 29),
@@ -576,24 +605,31 @@
       }
       
       //终止（服务实例）
-      this.pause = function(){
-
+      this.validate = function(object, event){
+    	  systemMsg.confirm("确定要终止云主机 "+object.name+"？",function(){
+    		var putBody = {"expiryDate":""};
+  			csc.rest.put('api/v5.0.0/resourceInstances/'+object.uuid,putBody,function(data){
+			 		systemMsg.alert('云主机终止成功！');
+			 		self.table.refreshData();
+			    });
+  		});
       }
-      
+      //查询条件初始化
       this.searchParam = ko.observable({
-        azUuid: '',
         state: '',
+        name: '',
         vdcUuid: '',
-        name: ''
+        azUuid: ''
       })
+      
+      //重置查询条件
       this.reset = function(){
-        this.searchParam({
-          azUuid: '',
-          state: '',
-          vdcUuid: '',
-          name: ''
-        })
-        this.table.params({});
+    	  this.searchParam({
+    	        state: '',
+    	        name: '',
+    	        vdcUuid: '',
+    	        azUuid: ''
+    	  })
       }
       
       this.search = function(){
@@ -623,7 +659,7 @@
       this.loadVdcs();
       //选择不同VDC后，可用分区下拉框要跟着改变
       this.onchange_vdcs = function(){
-    	  var vdcUuid = this.searchParam.vdcUuid();
+    	  var vdcUuid = self.searchParam().vdcUuid;
     	  for(var i=0;i<vdcList.length;i++){
     		  if(vdcList[i].uuid == vdcUuid){
     			  self.loadPartitions(vdcList[i].azs);
@@ -677,8 +713,8 @@
 			vdc: ko.observable(),
 			partition: ko.observable(),
 			image:  ko.observable(),
-			vcpu: ko.observable(),
-			memory: ko.observable(),
+			vcpu: ko.observable().extend({required: true}),
+			memory: ko.observable().extend({required: true}),
 			storage: ko.observable(),
 			vpc: ko.observable(),
 			network: ko.observable(),
@@ -709,20 +745,24 @@
       //SSH
       this.add_sshKeys = ko.observableArray([]);
       
-      
       //VDC
       this.add_vdcs = ko.observableArray([]);
       this.add_vdcs_def = function(){
-    	  self.add_vdcs(vdcList);
+    	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
+    		  if(data.results){
+    			  vdcListForAdd = data.results;
+		    	  self.add_vdcs(vdcListForAdd);
+    		  }
+    	  });
       }
       this.add_vdcs_def();
       
       //VDC->可用分区
       this.onchange_add_vdcs = function(){
     	  var vdcUuid = self.currentVO().vdc();
-    	  for(var i=0;i<vdcList.length;i++){
-    		  if(vdcList[i].uuid == vdcUuid){
-    			  self.add_partitions(vdcList[i].azs);
+    	  for(var i=0;i<vdcListForAdd.length;i++){
+    		  if(vdcListForAdd[i].uuid == vdcUuid){
+    			  self.add_partitions(vdcListForAdd[i].azs);
     			  break;
     		  }
     	  }
@@ -737,7 +777,7 @@
     	  csc.rest.get('api/v5.0.0/images?azUuid='+azUuid,function(data){
     		  self.add_images(data.results);
     	  });
-    	  csc.rest.get('api/v5.0.0/sshKey?azUuid='+azUuid,function(data){
+    	  csc.rest.get('api/v5.0.0/sshKeys?azUuid='+azUuid,function(data){
     		  self.add_sshKeys(data.results);
     	  });
       }
@@ -771,21 +811,47 @@
     	  ko.validation.group(this.currentVO).showAllMessages();
 	      if(this.currentVO.isValid()){
 	    	  var postBody = {};
-	    	  postBody.name = self.currentVO.name();
-	    	  postBody.vdcUuid = self.currentVO.vdc();
-	    	  postBody.azUuid = self.currentVO.partition();
-	    	  postBody.imageUuid = self.currentVO.image();
-	    	  postBody.vcpu = self.currentVO.vcpu();
-	    	  postBody.memory = self.currentVO.memory();
-	    	  postBody.storage = self.currentVO.storage();
-	    	  postBody.vpcUuid = self.currentVO.vpc();
+	    	  postBody.name = self.currentVO().name();
+	    	  postBody.vdcUuid = self.currentVO().vdc();
+	    	  postBody.azUuid = self.currentVO().partition();
+	    	  postBody.imageUuid = self.currentVO().image();
+	    	  postBody.vcpu = self.currentVO().vcpu();
+	    	  postBody.memory = self.currentVO().memory();
+	    	  postBody.storage = self.currentVO().storage();
+	    	  postBody.vpcUuid = self.currentVO().vpc();
 	    	  var networkList= [];
 	    	  var networkInfo = {};
-	    	  nwtworkInfo.networkId = self.currentVO.network();
+	    	  networkInfo.networkId = self.currentVO().network();
 	    	  networkList.push(networkInfo);
 	    	  postBody.networkList = networkList;
-	    	  postBody.sshKeyUuid = self.currentVO.sshKey();
+	    	  postBody.sshKeyUuid = self.currentVO().sshKey();
 	    	  
+	    	  var expiryTime = "";
+	    	  var temp = document.getElementsByName("inlineRadioOptions");
+	    	  for(var i=0;i<temp.length;i++)
+	    	  {
+	    	     if(temp[i].checked){
+	    	    	 if(temp[i].value == "option1"){
+	    	    		 expiryTime = "2099-12-30 23:59:59"
+	    	    	 }else if(temp[i].value == "option2"){
+	    	    		 expiryTime = "2099-12-30 23:59:59"
+	    	    	 }else{
+	    	    		 var timeStr = $("#resource_instance_vm_limit_"+temp[i].value).val();
+	    	    		 expiryTime = timeStr.split("至")[0] + " 23:59:59";
+	    	    	 }
+	    	     }
+	    	  }
+	    	  postBody.expiryTime = expiryTime;
+	    	  postBody.diskList = [];
+	    	  for(var i=0;i<this.items().length;i++){
+	    		  var disk = {};
+	    		  console.log(this.items()[i]);
+	    		  disk.volumeName = this.items ()[i].volumeName();
+	    		  disk.volumeSize = this.items()[i].volumeSize;
+	    		  postBody.diskList.push(disk);
+	    	  }
+	    	  console.log(postBody);
+	    	  return;
 	    	  csc.rest.post('api/v5.0.0/vms',postBody.toJSON(),function(data){
 			 		systemMsg.alert('创建云主机请求成功，任务ID：'+data.taskId+'！');
 			 		self.isAdd(false);
@@ -799,6 +865,7 @@
       this.adjustmentVO = ko.validatedObservable({
     	  vcpu: ko.observable(),
     	  memory: ko.observable(),
+    	  storage: ko.observable(),
     	  vmUuid: ko.observable()
       });
       
@@ -807,6 +874,7 @@
           console.log(self.adjustmentVO());
           self.adjustmentVO().vcpu(object.vcpu);
           self.adjustmentVO().memory(object.memory);
+          self.adjustmentVO().storage(object.storage);
           self.adjustmentVO().vmUuid(object.uuid);
       };
       
@@ -816,6 +884,7 @@
     	  putBody.operationType = "RESIZE";
     	  putBody.vcpu = self.adjustmentVO().vcpu();
     	  putBody.memory = self.adjustmentVO().memory();
+    	  putBody.storage = self.adjustmentVO().storage();
     	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
 		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
 		 		self.isVmAdjustment(false);
@@ -824,6 +893,43 @@
       }
       //------------------------------------------调整配置结束------------------------------
       
+      //------------------------------------------云硬盘列表开始----------------------------
+      this.items = ko.observableArray([]);
+      //增加一条数据
+      var perDisk = function(){
+        this.volumeName = ko.observable("");
+        this.volumeSize = ko.observable("");
+      };
+      this.itemToAdd = ko.observable(new perDisk());
+      this.addAction = function(){
+    	  this.items.push(this.itemToAdd());
+          this.itemToAdd(new perDisk()); 
+      }
+      
+      //------------------------------------------云硬盘列表结束----------------------------
+      
+      //------------------------------------------修改有效期开始----------------------------
+      this.validateTimeVO = ko.validatedObservable({
+    	  time: ko.observable(),
+    	  uuid: ko.observable()
+      });
+      
+      this.editValidateTime = function(object, event){
+    	  self.isValidateTime(true);
+    	  self.validateTimeVO().uuid(object.uuid);
+      }
+      
+      //修改有效期
+      this.validateTime = function(){
+    	  var putBody = {};
+    	  putBody.expiryDate = self.validateTimeVO().time();
+    	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
+		 		systemMsg.alert('云主机修改有效期成功！');
+		 		self.isValidateTime(false);
+		 		self.table.refreshData();
+		  });
+      }
+      //------------------------------------------修改有效期结束----------------------------
     }
     ko.applyBindings(new ViewModel_VM(), $('#partition_vms')[0]);
   })

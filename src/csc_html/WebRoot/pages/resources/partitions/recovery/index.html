@@ -9,40 +9,36 @@
   <div class="bg-white-only">
     <div class="row wrapper">
       <div class="col-md-5">
-        <button class="btn btn-sm btn-default">回收</button>
-        <button class="btn btn-sm btn-primary" type="button">导出</button>
+        <a class="btn btn-sm btn-default" data-bind="attr: {href: exportURL}">导出</a>
       </div>
       <div class="col-md-3">
         <div class="input-group">
           <span class="input-group-addon">服务类型</span>
-          <select class="form-control input-sm">
+          <select class="form-control input-sm" data-bind="value: searchParam().type">
             <option value="">全部</option>
-            <option value="">云主机</option>
+            <option value="VM">云主机</option>
+            <option value="DISK">云硬盘</option>
+            <option value="PUBLICIP">公网IP</option>
+            <option value="LOAD_BALANCING">负载均衡器</option>
+            <option value="SECRET_KEY">SSH密钥</option>
+            <option value="OBJECT_STORAGE">对象存储</option>
           </select>
         </div>
       </div>
       <div class="col-md-3">
         <div class="input-group">
-          <span class="input-group-addon">名称</span>
-          <input type="text" class="input-sm form-control" placeholder="请输入名称">
+          <span class="input-group-addon" >名称</span>
+          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
         </div>
       </div>
       <div class="col-md-1">
-        <button class="btn btn-sm btn-default" type="button">搜索</button>
+        <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
       </div>
     </div>   
     <div class='table-responsive' data-bind="with:table">
       <table class='table table-striped table-hover'>
         <thead>
           <tr>
-            <th>
-              <div class="checkbox">
-                <label class="i-checks">
-                  <input type="checkbox" value="">
-                  <i></i>
-                </label>
-              </div>                   
-            </th>
             <th>资源名称</th>
             <th>可用分区</th>
             <th>服务类型</th>
@@ -61,22 +57,23 @@
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td>
-              <div class="checkbox">
-                <label class="i-checks">
-                  <input type="checkbox" value="">
-                  <i></i>
-                </label>
-              </div>                   
+            <td data-bind="text:name"></td>
+            <td data-bind="text:azName"></td>
+            <td >
+            	<span data-bind="if: type == 'VM'">云主机</span>
+            	<span data-bind="if: type == 'DISK'">云硬盘</span>
+            	<span data-bind="if: type == 'PUBLICIP'">公网IP</span>
+            	<span data-bind="if: type == 'LOAD_BALANCING'">负载均衡器</span>
+            	<span data-bind="if: type == 'SECRET_KEY'">SSH密钥</span>
+            	<span data-bind="if: type == 'OBJECT_STORAGE'">对象存储</span>
             </td>
-            <td data-bind="text:resource"></td>
-            <td data-bind="text:partitions"></td>
-            <td data-bind="text:type"></td>
-            <td data-bind="text:busSystem"></td>
-            <td data-bind="text:user"></td>
-            <td data-bind="text:date"></td>
-            <td data-bind="text:passedDay"></td>
-            <td><a href="#">回收</a> </td>
+            <td data-bind="text:userName"></td>
+            <td data-bind="text:vdcName"></td>
+            <td data-bind="text:expiryTime"></td>
+            <td data-bind="text:expiredDay"></td>
+            <td>
+            	<a data-bind="click: $root.recover">回收</a>
+			</td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -103,7 +100,29 @@
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
-      this.table = new DataTable([], {path: 'pages/resources/partitions/recovery/index.json'});
+    	
+    	//查询条件初始化
+        this.searchParam = ko.observable({
+          name: '',
+          type:''
+        })
+        this.search = function(){
+            this.table.params(this.searchParam());
+        }
+    	
+      this.table = new DataTable([], {path: 'api/v5.0.0/resourceInstances?isValidate=false'});
+      
+      //回收方法
+      this.recover = function(object, event){
+    	  systemMsg.confirm("确定要回收资源实例 "+object.name+"？",function(){
+    			csc.rest.del('api/v5.0.0/resourceInstances/'+object.uuid,function(data){
+			 		systemMsg.alert('回收资源实例请求成功！');
+			 		self.table.refreshData();
+			    });
+    	  });
+      }
+      //导出
+      this.exportURL = ko.observable("api/v5.0.0/resourceInstances/export");
     }
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);
   });

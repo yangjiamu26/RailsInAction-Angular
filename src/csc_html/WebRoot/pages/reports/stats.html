@@ -185,11 +185,11 @@
 						  <div class="col-xs-2">
 						    <div class="input-group">
 						      <span class="input-group-addon">产品类型</span>
-						      <select class="form-control input-sm" data-bind="options:typeList,optionsText:'text',optionsValue:'value',value:searchParam().resourceType">
+						      <select class="form-control input-sm" data-bind="options:typeList,optionsText:'name',optionsValue:'name',optionsCaption:'全部',value:searchParam().resourceType">
 						      </select>
 						    </div>      
 						  </div>
-						  <div class="col-xs-3" style="width: 250px;">
+						  <div class="col-xs-3" style="width: 220px;">
 						      <div class="input-group">
 						         <span class="input-group-addon">所属VDC</span>
 						         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().vdcName">
@@ -205,19 +205,13 @@
 						</div>
 						<div class="senior-search m-t" id="senior_billing" style="display:none">
 							<div class="row">
-							  <div class="col-xs-2" data-bind="visible: configVO().checkConditonsSelected().indexOf('serviceName')>-1">
+							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('serviceName')>-1">
 							      <div class="input-group">
 							         <span class="input-group-addon">服务名称</span>
 							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().serviceName">
 							      </div>      
 							  </div>
-							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('azName')>-1">
-							      <div class="input-group">
-							         <span class="input-group-addon">所属可用分区</span>
-						         	 <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().azName">
-							      </div>      
-							  </div>
-							  <div class="col-xs-2" data-bind="visible: configVO().checkConditonsSelected().indexOf('userName')>-1">
+							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('userName')>-1">
 							      <div class="input-group">
 							         <span class="input-group-addon">申请人</span>
 							         <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().userName">
@@ -363,9 +357,7 @@
 						  <div class="col-xs-3">
 						    <div class="input-group">
 						      <span class="input-group-addon">所属数据中心</span>
-						      <select class="form-control input-sm">
-						        <option value="">全部</option>
-						        <option value="">数据中心1</option>
+						      <select class="form-control input-sm" data-bind="options:dcList,optionsText:'name',optionsValue:'uuid',optionsCaption:'全部',value:searchParam().dcUuid">
 						      </select>
 						    </div>      
 						  </div>
@@ -798,33 +790,44 @@
     function ViewModel(path, conditions, fields, name){
     	var self = this;
     	var perPage = 5;
-      	//计费  产品类型下拉列表
-      	var typeCountries = [{text:'全部', value:''},
-      	                 	 {text:'云主机', value:'云主机'},
-      	                 	 {text:'云硬盘', value:'云硬盘'},
-      	               	 	 {text:'云软件', value:'云软件'}];   
-        this.typeList = ko.observableArray(typeCountries);
-        //物理机 虚拟化类型下拉列表
-        var virtualTypeCountries = [{text:'全部', value:''},
-      	                 			{text:'WinServer', value:'WinServer'},
-      	                 			{text:'VMWare', value:'VMWare'},
-      	               	 			{text:'PowerVM', value:'PowerVM'},
-      	               	 			{text:'KVM', value:'KVM'}];   
-        this.virtualTypeList = ko.observableArray(virtualTypeCountries);
-        //云主机 服务状态下拉列表
-        var statusCountries = [{text:'全部', value:''},
-      	                 	   {text:'正常', value:'正常'},
-      	                 	   {text:'过期', value:'过期'},];   
-        this.statusList = ko.observableArray(statusCountries);
+    	if(name == 'billing'){
+    		//产品类型下拉列表
+            self.typeList = ko.observableArray();
+            csc.rest.get("api/v5.0.0/reports/fee/products", function(data){
+            	self.typeList(data);
+            });
+    	}
+      	if(name == 'host'){
+      		//数据中心
+      		self.dcList = ko.observableArray();
+            csc.rest.get("api/v5.0.0/reports/macReport/dataCenters", function(data){
+            	self.dcList(data);
+            });
+      		//虚拟化类型下拉列表
+            var virtualTypeCountries = [{text:'全部', value:''},
+          	                 			{text:'WinServer', value:'WinServer'},
+          	                 			{text:'VMWare', value:'VMWare'},
+          	               	 			{text:'PowerVM', value:'PowerVM'},
+          	               	 			{text:'KVM', value:'KVM'}];   
+            self.virtualTypeList = ko.observableArray(virtualTypeCountries);
+      	}
+        
+        if(name == 'vm'){
+        	//服务状态下拉列表
+        	var statusCountries = [{text:'全部', value:''},
+          	                 	   {text:'正常', value:'正常'},
+          	                 	   {text:'过期', value:'过期'},];   
+        	self.statusList = ko.observableArray(statusCountries);
+        }
         
       	this.searchParam = ko.observable({
       		vdcName: "",
       		resourceType: "",
       		serviceName: "",
       		user: "",
+      		dcUuid: "",
       		virtualType: "",
       		partitionName: "",
-      		azName: "",
       		timestamp: "",
       		name: "",
       		userName: "",
@@ -855,9 +858,9 @@
 	      		resourceType: "",
 	      		serviceName: "",
 	      		user: "",
+	      		dcUuid: "",
 	      		virtualType: "",
 	      		partitionName: "",
-	      		azName: "",
 	      		name: "",
 	      		userName: "",
 	      		ip: "",
@@ -1001,8 +1004,8 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(name == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','azName','userName']);
-      					self.configVO().checkConditonsSelected(['serviceName','azName','userName']);
+      					self.configVO().conditions_selected_ids(['serviceName','userName']);
+      					self.configVO().checkConditonsSelected(['serviceName','userName']);
           				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','azName','userName',
           				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
       				}else if(name == 'host'){
@@ -1053,7 +1056,7 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(report == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','azName','userName']);
+      					self.configVO().conditions_selected_ids(['serviceName','userName']);
           				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','azName','userName',
           				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
       				}else if(report == 'host'){
@@ -1105,7 +1108,6 @@
     		'api/v5.0.0/reports/fee',
     		[
 		    	{id: 'serviceName', name: '服务名称'},
-		    	{id: 'azName', name: '所属可用分区'},
 		    	{id: 'userName', name: '申请人'}
 			],
 			[
@@ -1113,7 +1115,6 @@
 				{id: 'serviceName', name: '服务名称'},
 				{id: 'resourceType', name: '产品类型'},
 				{id: 'vdcName', name: '所属VDC'},
-				{id: 'azName', name: '所属可用分区'},
 				{id: 'userName', name: '服务申请人'},
 				{id: 'finishedTime', name: '服务开通时间'},
 				{id: 'timestamp', name: '计费结算日期'},

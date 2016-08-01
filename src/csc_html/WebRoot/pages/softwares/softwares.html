@@ -44,7 +44,7 @@
 											<div class="input-group">
 												<span class="input-group-addon">软件类型</span> <select
 													class="form-control input-sm"
-													data-bind="value: searchParam().type, options: $root.types, optionsText: 'name', optionsValue: 'id'">
+													data-bind="value: searchParam().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
 												</select>
 											</div>
 										</div>
@@ -52,7 +52,7 @@
 											<div class="input-group">
 												<span class="input-group-addon">名称</span> <input type="text"
 													class="input-sm form-control" placeholder="请输入名称"
-													data-bind="value: searchParam().name">
+													data-bind="value: searchParam().softwareName">
 											</div>
 										</div>
 										<div class="col-xs-1">
@@ -73,6 +73,7 @@
 													</th>
 													<th>软件名称</th>
 													<th>软件版本</th>
+													<th>上传进度</th>
 													<th>软件类型</th>
 													<th>适用架构</th>
 													<th>操作系统类型</th>
@@ -98,18 +99,20 @@
 															</label>
 														</div>
 													</td>
-													<td>Oracle</td>
-													<td>可用分区1</td>
-													<td><span class="label label-success">可用</span><span
-														class="label label-danger">不可用</span></td>
-													<td>数据库</td>
-													<td>true/false</td>
-													<td>Linux</td>
-													<td>xxx</td>
-													<td>可安装</td>
-													<td>20160606 00:00:00</td>
-													<td><a data-bind="click: $root.edit">修改</a> | <a
-														data-bind="click: $root.removeOne">删除</a></td>
+													<td data-bind="text: $row.name"></td>
+													<td data-bind="text: $row.version"></td>
+													<td data-bind="text: $row.progress, attr: {id: $row.uuid}"></td>
+													<td data-bind="text: $row.softTypeName"></td>
+													<td data-bind="text: $row.cpuArch"></td>
+													<td data-bind="text: $row.osType"></td>
+													<td data-bind="text: $row.osName"></td>
+													<td data-bind="text: $row.scriptName"></td>
+													<td><span
+														data-bind="text: $row.statusName, attr: {class: $root.statusCss($row)}"
+														class="label label-success"></span></td>
+													<td data-bind="text: $row.createTime"></td>
+													<td><a data-bind="click: $root.edit">修改</a></td>
+
 												</tr>
 												<!-- /ko -->
 											</tbody>
@@ -139,6 +142,7 @@
 		</div>
 	</div>
 
+	<!-- 软件增改维护弹窗   start -->
 	<div role="dialog" id="softwareModal" aria-hidden="true"
 		class="modal fade" data-bind="modal: { show: isAdd }">
 		<div class='modal-dialog' role='document'>
@@ -147,14 +151,14 @@
 					<button type="button" class="close" data-dismiss="modal">
 						<span aria-hidden="true">&times;</span>
 					</button>
-					<h3 class='modal-title' data-bind="ifnot: currentVO().id">添加软件</h3>
-					<h3 class='modal-title' data-bind="if: currentVO().id">修改软件</h3>
+					<h3 class='modal-title' data-bind="ifnot: currentVO().Id">添加软件</h3>
+					<h3 class='modal-title' data-bind="if: currentVO().Id">修改软件</h3>
 				</div>
 				<div class='modal-body form-horizontal'>
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件名称 </label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" />
+							<input class="string required form-control" type="text" data-bind="value:currentVO().name" />
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -163,7 +167,7 @@
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件版本 </label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" />
+							<input class="string required form-control" type="text" data-bind="value:currentVO().version" />
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -172,7 +176,9 @@
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件分类 </label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" />
+							<select class="form-control input-sm" id="softTypeSel"
+								data-bind="value: currentVO().softType, options: $root.types, optionsText: 'name', optionsValue: 'name', optionsCaption: ''">
+							</select>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -181,7 +187,9 @@
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件类型 </label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" />
+							<select class="form-control input-sm"
+								data-bind="value: currentVO().softTypeName, options: $root.editTypeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: ''">
+							</select>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -191,12 +199,12 @@
 						<label class="col-xs-3 control-label"> 适用架构 </label>
 						<div class="col-xs-8 form-inline">
 							<div class="checkbox">
-								<label class="i-checks"> <input type="checkbox" value="">
+								<label class="i-checks"> <input type="checkbox" value="32-bit" data-bind="checked: cpuArchArr">
 									<i></i>32位
 								</label>
 							</div>
 							<div class="checkbox">
-								<label class="i-checks"> <input type="checkbox" value="">
+								<label class="i-checks"> <input type="checkbox" value="64-bit" data-bind="checked: cpuArchArr">
 									<i></i>64位
 								</label>
 							</div>
@@ -209,7 +217,7 @@
 						<label class="col-xs-3 control-label"> 磁盘空间要求 </label>
 						<div class="col-xs-8">
 							<div class="input-group">
-								<input type="text" class="input-sm form-control" placeholder="">
+								<input type="text" class="input-sm form-control" placeholder="最低要求值" data-bind="value: currentVO().spaceSize">
 								<span class="input-group-addon">GB</span>
 							</div>
 						</div>
@@ -217,38 +225,54 @@
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
 						</div>
 					</div>
+					
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 操作系统类型 </label>
 						<div class="col-xs-8">
-							<input type="text" class="form-control" id="selVal"
-								placeholder=""> <select multiple="multiple"
-								class="form-control" id="sel">
-								<option>linux</option>
-								<option>windows</option>
+							<select class="form-control input-sm" id="osTypeSel" data-bind="value: currentVO().osType">
+								<option selected="selected"></option>
+								<option value="linux">linux</option>
+								<option value="window">windows</option>
+								<option value="aix">aix</option>
 							</select>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
 						</div>
 					</div>
+					
+					<div class="form-group">
+						<label class="col-xs-3 control-label"> 适用操作系统 </label>
+						<div class="col-xs-8">
+							<input type="text" class="form-control" id="selVal"
+								placeholder="" data-bind="value: currentVO().osName"> 
+							<select multiple="multiple" class="form-control" id="sel"
+						 		data-bind="options: $root.osNames, optionsText: 'name', optionsValue: 'name'">
+							</select>
+						</div>
+						<div class="col-xs-1">
+							<span class="text-danger inline m-l-n m-t-sm">*</span>
+						</div>
+					</div>
+					
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 安装类型 </label>
 						<div class="col-xs-8">
-							<select class="form-control">
-								<option>安装</option>
-								<option>升级</option>
+							<select class="form-control" data-bind="value: currentVO().installType">
+								<option value="安装">安装</option>
+								<option value="升级">升级</option>
 							</select>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
 						</div>
 					</div>
+					
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 安装文件 </label>
-
 						<div class="col-xs-8 form-inline">
 							<input id="soft_file_txt" class="string required form-control"
-								type="text" />
+								type="text" data-bind="value: currentVO().installFileName" />
 							<div id="picker" class="btn">浏览</div>
 							<button class="btn btn-default" id="pickBtn">上传</button>
 						</div>
@@ -260,7 +284,7 @@
 							<label class="col-xs-3 control-label"> 关联脚本 </label>
 							<div class="col-xs-8 form-inline">
 								<input class="string required form-control" type="text" />
-								<button class="btn btn-default">选择脚本</button>
+								<button class="btn btn-default" data-bind="click: chooseScript">选择脚本</button>
 							</div>
 							<div class="col-xs-1">
 								<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -269,16 +293,17 @@
 					</div>
 					<div class='modal-footer' style="text-align: center">
 						<input type="button" name="commit" value="确定"
-							class="btn btn-default btn-info" />
+							class="btn btn-default btn-info" data-bind="click: submitSoftware, enable: submitBtnStatus"/>
 						<button name="button" type="submit"
 							class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
 					</div>
 				</div>
 			</div>
 		</div>
-
-
 	</div>
+	<!-- 软件增改维护弹窗   end -->
+
+	<!-- 软件类型维护弹窗   start -->
 	<div role="dialog" aria-hidden="true" class="modal fade"
 		data-bind="modal: { show: isManageType }">
 		<div class='modal-dialog' role='document'>
@@ -292,9 +317,9 @@
 				<div class='modal-body form-horizontal'>
 					<div class="form-group string required">
 						<div class="col-xs-12 form-inline">
-							软件类型名称：<input type="text" class="form-control" />
+							软件类型名称：<input type="text" class="form-control" data-bind="value: searchSoftTypeNm"/>
+							<button class="btn btn-default" data-bind="click: searchType">查询</button>
 							<button class="btn btn-default" data-bind="click: addType">添加</button>
-							<button class="btn btn-default" data-bind="click: editType">修改</button>
 							<button class="btn btn-default" data-bind="click: removeType">删除</button>
 						</div>
 					</div>
@@ -311,6 +336,7 @@
 									</th>
 									<th>软件分类</th>
 									<th>软件类型名称</th>
+									<th>操作</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -327,216 +353,654 @@
 											</label>
 										</div>
 									</td>
-									<td>1</td>
-									<td>数据库</td>
+									<td data-bind="text: $row.type"></td>
+									<td data-bind="text: $row.name"></td>
+									<td><a data-bind="click: $root.editType">修改</a></td>
 								</tr>
 								<!-- /ko -->
 							</tbody>
 						</table>
 					</div>
 				</div>
+
 				<div class='modal-footer'>
-					<button name="button" type="submit"
-						class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+					<div data-bind="with: typeTable, visible: table.pages() > 1">
+						<ul class="pagination">
+							<li data-bind="css: leftPagerClass, click: prevPage"><a
+								href="#">&laquo;</a></li>
+							<!-- ko foreach: {data: (new Array(pages()))} -->
+							<li data-bind="css: $parent.pageClass($index() + 1)"><a
+								href="#"
+								data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							</li>
+							<!-- /ko -->
+							<li data-bind="css: rightPagerClass, click: nextPage"><a
+								href="#">&raquo;</a></li>
+						</ul>
+					</div>
+					<!-- <div>
+						<button name="button" type="submit"
+							class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+					</div> -->
 				</div>
 			</div>
 		</div>
 	</div>
+	<!-- 软件类型维护弹窗   end -->
+
+	<!-- 软件类型增改维护弹窗   start -->
+	<div role="dialog" aria-hidden="true" class="modal fade"
+		data-bind="modal: { show: isTypeAdd }">
+
+		<div class='modal-dialog' role='document'>
+			<div class='modal-content'>
+				<div class='modal-header'>
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h3 class='modal-title' data-bind="ifnot: sofyTypeVO().uuid">添加软件类型</h3>
+					<h3 class='modal-title' data-bind="if: sofyTypeVO().uuid">修改软件类型</h3>
+				</div>
+				<div class='modal-body form-horizontal'>
+					<div class="form-group">
+						<label class="col-xs-3 control-label"> 软件分类 </label>
+						<div class="col-xs-8">
+							<input class="string required form-control" type="text" data-bind="value: sofyTypeVO().type" />
+						</div>
+						<div class="col-xs-1">
+							<span class="text-danger inline m-l-n m-t-sm">*</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-3 control-label"> 软件类型名称</label>
+						<div class="col-xs-8">
+							<input class="string required form-control" type="text" data-bind="value: sofyTypeVO().name"/>
+						</div>
+						<div class="col-xs-1">
+							<span class="text-danger inline m-l-n m-t-sm">*</span>
+						</div>
+					</div>
+					<div class='modal-footer' style="text-align: center">
+						<input type="button" name="commit" value="确定"
+							class="btn btn-default btn-info" data-bind="click: submitSoftType"/>
+						<button name="button" type="submit"
+							class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 软件类型增改维护弹窗   end -->
+	
+	<!-- 脚本甄选弹窗   start -->
+	<div role="dialog" aria-hidden="true" class="modal fade"
+		data-bind="modal: { show: isBindScript }">
+		<div class='modal-dialog' role='document'>
+			<div class='modal-content'>
+				<div class='modal-header'>
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h3 class='modal-title'>关联脚本</h3>
+				</div>
+				<div class='modal-body form-horizontal'>
+					<div class="table-responsive" data-bind="with: scriptTable">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>脚本名称</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr data-bind="visible: showNoData">
+									<td colspan=11 class="aligncenter">This table has no data.</td>
+								</tr>
+								<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+								<tr>
+									<td data-bind="text: $row.name"></td>
+									<td data-bind="text: $row.createTime"></td>
+									<td><a data-bind="click: $root.bindScript">选择</a></td>
+								</tr>
+								<!-- /ko -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div class='modal-footer'>
+					<div data-bind="with: scriptTable, visible: table.pages() > 1">
+						<ul class="pagination">
+							<li data-bind="css: leftPagerClass, click: prevPage"><a
+								href="#">&laquo;</a></li>
+							<!-- ko foreach: {data: (new Array(pages()))} -->
+							<li data-bind="css: $parent.pageClass($index() + 1)"><a
+								href="#"
+								data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							</li>
+							<!-- /ko -->
+							<li data-bind="css: rightPagerClass, click: nextPage"><a
+								href="#">&raquo;</a></li>
+						</ul>
+					</div>
+					<!-- <div>
+						<button name="button" type="submit"
+							class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+					</div> -->
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 脚本甄选弹窗   end -->
+	
 </div>
 
 <script type="text/javascript">
-		
-		var uploader;
-  		var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/webuploader/webuploader.js', null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	  
-    function ViewModel() {
-    	
-    	this.isAdd = ko.observable(false);
-      	this.isManageType = ko.observable(false);
-      	
-      	var self = this;
-      	
-      	this.currentVO = ko.observable({});
-      	
-      	/**新增**/
-      	this.add = function(){
-        	self.currentVO({
-          		id: null
-        	});
-        	self.isAdd(true);
-      	};
-      	
-      	/**修改**/
-      	this.edit = function(object, event){
-        	self.currentVO(object);
-        	self.isAdd(true);
-      	};
-      	
-      	/**删除**/
-      	this.remove = function(){
-        	console.log("removeSelected");
-      	};
-      	
-      	/**删除单个**/
-      	this.removeOne = function(object, event){
-        	console.log("removeOne")
-      	};
-      	
-      	/**软件类型维护**/
-      	this.manageType = function(){
-        	this.isManageType(true);
-      	};
-      	
-      	this.typeTable = new DataTable([], {path: 'pages/softwares/softwares_types.json'});
-      	
-      	/**软件类型新增**/
-      	this.addType = function(){
-        	console.log("addType")
-        	self.loadTypes();
-      	};
-      	
-      	/**软件类型修改**/
-      	this.editType = function(){
-        	console.log("editType")
-        	self.loadTypes();
-      	};
-      	
-      	/**软件类型删除**/
-      	this.removeType = function(){
-        	console.log("removeType")
-        	self.loadTypes();
-      	};
-      	
-      	/**软件搜索**/
-      	this.searchParam = ko.observable({
-        	type: "",
-        	name: ""
-      	});
-      	
-      	this.search = function(){
-        	this.table.params(this.searchParam());
-      	};
-      
-      	this.types = ko.observableArray([]);
-      	
-      	this.table = new DataTable([], {path: 'pages/softwares/softwares.json'});
+	var uploader;
+	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js',
+			'api/software/software.js',
+			'assets/lib/webuploader/webuploader.js', null ]
+		$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
-      	//软件类型下拉选择
-   		this.loadTypes = function(){
-        	$.ajax("pages/softwares/softwares_types.json").done(function(data){
-          		self.types(data.results);
-        	});
-      	};
-      
-    	this.loadTypes();
-    }
-    
-    <!--
-    
+				function ViewModel() {
 
-    $(document).ready(function(){
-    	var setting = {
-			view:{
-    			showIcon:false,
-    		    showLine:false
-    		}
-    	};
+					this.isAdd = ko.observable(false);
+					
+					this.isManageType = ko.observable(false);
+					
+					this.isTypeAdd = ko.observable(false);
+					
+					this.isBindScript = ko.observable(false);
+					
+					this.searchSoftTypeNm = ko.observable("");
+					
+					this.cpuArchArr = ko.observableArray([]);
+					
+					this.types = ko.observableArray([]);
+					
+					this.typeNames = ko.observableArray([]);
+					
+					this.editTypeNames = ko.observableArray([]);
+					
+					this.osNames = ko.observableArray([]);
+					
+					this.submitBtnStatus = ko.observable(true); 
+					
+					this.sofyTypeVO = ko.validatedObservable({
+						type : ko.observable().extend({required : true}),
+						name : ko.observable().extend({required : true})
+					});
+					
+					this.currentVO = ko.validatedObservable({
+						Id: null,
+						uuid: null,
+						name: ko.observable().extend({required : true}),
+						version: ko.observable().extend({required : true}),
+						softType: ko.observable().extend({required : true}),
+						softTypeName: ko.observable().extend({required : true}),
+						cpuArch: ko.observable().extend({required : true}),
+						spaceSize: ko.observable().extend({required : true}),
+						osType: ko.observable().extend({required : true}),
+						osName: ko.observable().extend({required : true}),
+						installType: ko.observable().extend({required : true}),
+						installFilePath: '',
+						installFileName: ko.observable().extend({required : true}),
+						scriptUuid: null,
+						scriptName: ''
+					});
+	
+					var self = this;
+					
+					this.treeSetting = {
+							view : {
+								showIcon : false,
+								showLine : false
+							},
+							
+							callback : {
+								onClick: function(event, treeId, treeNode) {
+									
+									var params = {
+										softTypeName : "",
+										softType : ""
+									}
+									
+									if (treeNode.level == 1) {
+										params.softType = treeNode.name;
+									} else if (treeNode.level == 2) {
+										params.softTypeName = treeNode.name;
+									}
+									
+									self.table.params(params);
+								} 
+							}
+						};
+					
+					/** 软件状态属性 css样式 **/
+					this.statusCss = function (item) {
+						if (item.status == 1) {
+							return 'label label-success';	
+						} else {
+							return 'label label-danger';
+						}
+					}
+					
+					/**新增软件**/
+					this.add = function() {
+						self.currentVO.fromJSON({
+							Id : null,
+							uuid: null,
+							name: '',
+							version: '',
+							softType: '',
+							softTypeName: '',
+							cpuArch: '',
+							spaceSize: '',
+							osType: '',
+							osName: '',
+							installType: '',
+							installFilePath: '',
+							installFileName: '',
+							scriptUuid: null,
+							scriptName: ''
+						});
+						
+						self.loadTypes();
+						self.osNames([]);
+						self.cpuArchArr([]);
+						self.isAdd(true);
+					};
+	
+					/**修改软件**/
+					this.edit = function(object, event) {
+						
+						self.cpuArchArr(object.cpuArch.split(','));
+						
+						self.loadOsNames(object.osType);
+						
+						self.loadTypes(function(data) {
+							self.loadTypeNames({softType: object.softType, fromModel:'Y'}, function(data) {
+								self.currentVO.fromJSON(object);
+								self.isAdd(true);
+							});
+						});
+					};
+	
+					/**删除软件**/
+					this.remove = function() {
+						var uuids = '';
+						
+						$.each(self.table.chosenItems(), function(i,val){      
+							uuids += (val.uuid + ',');
+					  	});   
+						
+						var params = {uuids: uuids.substring(0, uuids.length-1)};
+						
+						systemMsg.confirm("确定要删除所选软件?", function(){
+							$.SOFTWARE.deleteSoftware(params, function(data) {
+								
+								if (data.message.indexOf('success') != -1) {
+									systemMsg.alert('删除软件成功！');
+									self.table.refreshData();
+								}
+								
+							})
+			      		});
+					};
+	
+					/**选择绑定脚本**/
+					this.bindScript = function (object, event) {
+						console.log(object);
+					};
+	
+					/**软件搜索参数**/
+					this.searchParam = ko.observable({
+						softTypeName : "",
+						softwareName : ""
+					});
+	
+					/**软件搜索**/
+					this.search = function() {
+						this.table.params(this.searchParam());
+					};
+	
+					/**软件列表数据**/
+					this.table = new DataTable([], {
+						path : 'api/v5.0.0/soft/softwares'
+					});
+	
+					//软件类型下拉选择
+					this.loadTypeNames = function(params, callback) {
+						$.SOFT_TYPE.loadSoftTypeList(params, function(data) {
+							if (params.fromModel) {
+								self.editTypeNames(data);
+							} else {
+								self.typeNames(data);
+							}
+							
+							if (callback) {
+								callback(data);
+							}
+						});
+					};
+					
+					//软件分类下拉选择
+					this.loadTypes = function(callback) {
+						$.SOFT_TYPE.loadSoftTypeList({type:'Y'}, function(data) {
+							self.types(data);
+							
+							if (callback) {
+								callback(data);
+							}
+						});
+					};
+					
+					// 适用操作系统多选下拉
+					this.loadOsNames = function(osType) {
+			        	$.ajax("pages/softwares/os_names.json").done(function(data) {
+		        			self.osNames([]);
 
-    	var zNodes =[
-    		      { name:"软件", open:true,
-    		        children: [
-    		          { name:"数据库", open:true,children:[
-    		            { name:"DB1"},
-    		            { name:"DB2"}
-    		          ]},
-    		          { name:"中间件", open:true,
-    		            children: [
-    		              { name:"was"},
-    		              { name:"IHS"}
-    		            ]}
-    		        ]
-    		      }
-    		    ];
-    	
-    	
-    	$.fn.zTree.init($("#serverDefinitionsTree"), setting, zNodes);
-    	
-    	var viewModel = new ViewModel();
-    	
-    	ko.applyBindings(viewModel, $('#page-content')[0]);
-	  	$("#softwareModal").on("shown.bs.modal",function() {
-	  		
- 			console.log('11111');  		
-	    	$("#sel").on("change",function(){
-    	    	var val = [];
-	    	    
-	  	     	$("#sel option:selected").each(function() {
-	    	    	val.push($(this).val()); 
-	    	   	});
-	  	     	
-	    	    $("#selVal").val(val.join(','));
-    	 	});
-	    	 
-	    	// 上传组件
-	        var uploader = WebUploader.create({
-	            // 文件接收服务端。
-	            threads : 1,
-	            fileNumLimit :1,
-	            chunked: true,
-	            chunkSize: 2621440,
-	            resize: false,
-	        });
-	    	
-    	 	uploader.addButton({
-	    		id: '#picker',
-	    		multiple : false
-    	 	});
-	    	 
-    	 	uploader.on('beforeFileQueued', function(file) {
-    	 	    //重置上传队列
-    	 	    uploader.reset();
-    	 	});
-    	 	
-    	 	uploader.on('fileQueued', function(file) {
- 	    		$("#soft_file_txt").val(file.name);
-  	 	 	});
-    	 	
-    	 	/* uploader.on('uploadSuccess', function(file, response) {
-    	 		console.log(response);
-    	 		
- 	    		if (response.code != '200') {
- 	    			uploader.stop(true);
- 	    			uploader.reset();
- 	    			alert(response.message);
- 	    		}
-  	 	 	}); */
-    	 	
-		  	$('#pickBtn').on('click', function() {
-		  		//uploader.options.server = 'api/v5.0.0/file/upload/rest';  
-		  		uploader.options.server = '/file/uploadServlet?handler=cscSoft&actionKey='+WebUploader.guid('csc_upload_')+'&dataKey=123';
-		  		
-	    		uploader.upload();
-	    		
-	    		csc.uploader.bind('123', uploader);
-	    		
-	    		uploader.on('uploadFinished', function() {
-	    			csc.uploader.unbind('123')
-	    			uploader = null;
-	    		});
-		  	})
-	    });
-	  	
-    });
-    //-->
+			        		$.each(data.vmTemplates, function(i, val) {
+			        			if (val.osVersion.toLowerCase().indexOf(osType) != -1) {
+					          		self.osNames.push({name: val.osVersion});
+			        			}
+			        		});
+			        	});
+			      	};
+			      	
+			      	/** 脚本列表数据 **/
+			      	this.scriptTable = new DataTable([], {
+						path : 'api/v5.0.0/script/bind/scripts',
+						perPage : 5
+					});
+			      	
+			      	/** 选择脚本  **/
+					this.chooseScript = function() {
+						this.scriptTable.refreshData();
+			      		
+						self.isBindScript(true);
+					}
 
-    $('.service-delete-btn').click(function(){
-      if(confirm('确定删除吗？')){
-        console.log('执行删除！')
-      }
-    })
+			      	/** 构建文件上传器 **/
+			      	this.initUploader = function () {
+			      		self.uploader = WebUploader.create({
+							// 文件接收服务端。
+							threads : 1,
+							fileNumLimit : 1,
+							chunked : true,
+							chunkSize : 1310720,
+							resize : false
+						});
+			      		
+			      		self.uploader.on('beforeFileQueued', function(file) {
+							//重置上传队列
+							self.uploader.reset();
+						});
+			      	}
+			      	
+			      	/** 上传安装包文件 **/
+			      	this.uploadFile = function(uuid) {
+			      		if (!uuid) {
+			      			systemMsg.alert('上传安装包失败！');
+			      			return;
+			      		}
+			      		
+			      		self.uploader.options.server = '/file/uploadServlet?handler=cscSoft&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + uuid;
+			      		
+			      		self.uploader.on('startUpload', function() {
+			      			var intervalId = setInterval(function() {
+								
+								$.SOFTWARE.getProgress(uuid, function(data) {
+									$('#'+uuid).html('');
+									
+									if (data.progress.indexOf('%') != -1) {
+										$('#'+uuid).html(data.progress);
+									}
+									
+									//clearInterval(intervalId);
+									if (data.progress == 'success' || data.progress == 'N/A') {
+										clearInterval(intervalId);	
+										self.table.refreshData();
+									}
+								});
+							}, 3500);
+			      		});
+			      		
+			      		/* self.uploader.on('uploadProgress', function(file, percentage) {
+			      			console.log(percentage);
+			      			$('#'+uuid).html(percentage);
+			      		}); */
+			      		
+						self.uploader.on('uploadFinished', function() {
+							csc.uploader.unbind(uuid);
+						});
 
-    
+			      		self.uploader.upload();
 
-  });
+						csc.uploader.bind(uuid, self.uploader);
+			      	}
+			      	
+					/** 软件信息提交 **/
+					this.submitSoftware = function() {
+						
+						self.submitBtnStatus(false);
+						
+						ko.validation.group(self.currentVO).showAllMessages();
+						
+						self.currentVO().cpuArch(self.cpuArchArr().join(','));
+						
+						if (self.currentVO.isValid()) {
+							
+							if (self.currentVO().uuid) {
+								
+								$.SOFTWARE.updateSoftware(self.currentVO.toJSON(), function(data) {
+									
+									var msg = data.message;
+									
+									if (msg.indexOf("success") != -1) {
+										systemMsg.alert('修改软件成功！');
+										
+										if (msg.indexOf("_upload") != -1) {
+											// 保存完数据再上传文件
+											
+											self.uploadFile(self.currentVO.toJSON().uuid);
+										}
+										
+										self.table.refreshData();
+								 		
+									} else {
+										systemMsg.alert(msg);
+									}
+									
+									self.isAdd(false);
+									self.submitBtnStatus(true);
+								});
+							} else {
+								$.SOFTWARE.createSoftware(self.currentVO.toJSON(), function(data) {
+									
+									if (data.uuid) {
+										systemMsg.alert('添加软件成功！');
+										
+										// 保存完数据再上传文件
+										self.uploadFile(data.uuid);
+										
+										self.table.refreshData();
+								 		self.isAdd(false);
+									}
+									
+									self.submitBtnStatus(true);
+								});
+							}
+						} else {
+							self.submitBtnStatus(true);
+						}
+					}
+					
+			      	/**软件类型维护**/
+					this.manageType = function() {
+						this.isManageType(true);
+					};
+	
+					/** 软件类型列表数据 **/
+					this.typeTable = new DataTable([], {
+						path : 'api/v5.0.0/soft/softTypes',
+						perPage : 5
+					});
+					
+					/** 软件类型搜索 **/
+					this.searchType = function() {
+						var params = {softTypeName: self.searchSoftTypeNm()};
+						
+						self.typeTable.params(params);
+					}
+			      	
+					/**软件类型新增**/
+					this.addType = function() {
+						self.sofyTypeVO.fromJSON({
+							"type" : '',
+							"name" : '',
+							"uuid" : null,
+							"id" : null
+						});
+						
+						self.isTypeAdd(true);
+					};
+	
+					/**软件类型修改**/
+					this.editType = function(rowObj, event) {
+						self.sofyTypeVO.fromJSON(rowObj);
+						self.isTypeAdd(true);
+					};
+	
+					/**软件类型删除**/
+					this.removeType = function() {
+						
+						var entityIds = '';
+						
+						$.each(self.typeTable.chosenItems(), function(i,val){      
+							entityIds += (val.Id + ',');
+					  	});   
+						
+						var params = {entityIds: entityIds.substring(0, entityIds.length-1)};
+						
+						systemMsg.confirm("确定要删除所选软件类型?", function(){
+							$.SOFT_TYPE.deleteSoftType(params, function() {
+								self.typeTable.refreshData();
+								self.loadTypeNames({});
+								
+								$.SOFT_TYPE.loadSoftTypeTree(function (data) {
+									$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+								});
+							})
+			      		});
+					};
+					
+					/** 软件类型提交 **/
+					this.submitSoftType = function() {
+						ko.validation.group(self.sofyTypeVO).showAllMessages();
+						
+						if (self.sofyTypeVO.isValid()) {
+							
+							if (self.sofyTypeVO().uuid) {
+								$.SOFT_TYPE.updateSoftType(self.sofyTypeVO().uuid, self.sofyTypeVO.toJSON(), function(data) {
+									systemMsg.alert('修改软件类型成功！');
+						        	self.typeTable.refreshData();
+						        	
+									self.loadTypeNames({});
+									
+									$.SOFT_TYPE.loadSoftTypeTree(function (data) {
+										$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+									});
+									
+							 		self.isTypeAdd(false);
+								});
+							} else {
+								$.SOFT_TYPE.createSoftType(self.sofyTypeVO.toJSON(), function(data) {
+									systemMsg.alert('添加软件类型成功！');
+							 		self.isTypeAdd(false);
+						        	self.typeTable.refreshData();
+						        	
+						        	self.loadTypeNames({});
+									
+									$.SOFT_TYPE.loadSoftTypeTree(function (data) {
+										$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+									});
+								});
+							}
+    	    	        }
+					}
+					
+					this.loadTypeNames({});
+				}
+
+				$(document).ready(function() {
+					
+					var viewModel = new ViewModel();
+					
+					ko.applyBindings(viewModel, $('#page-content')[0]);
+					
+					$.SOFT_TYPE.loadSoftTypeTree(function (data) {
+						$.fn.zTree.init($("#serverDefinitionsTree"), viewModel.treeSetting, data);
+					});
+							
+					$("#softwareModal").on("shown.bs.modal", function() {
+
+						$("#sel").on("change", function() {
+							var val = [];
+
+							$("#sel option:selected").each(function() {
+								val.push($(this).val());
+							});
+
+							var valStr = val.join(',');
+							viewModel.currentVO().osName(valStr);
+						});
+						
+						$('#softTypeSel').on('change', function() {
+							viewModel.loadTypeNames({softType: viewModel.currentVO().softType(), fromModel:'Y'});
+						});
+						
+						$('#osTypeSel').on('change', function() {
+							viewModel.loadOsNames(viewModel.currentVO().osType());
+						});
+
+						viewModel.initUploader();
+						
+						viewModel.uploader.addButton({
+							id : '#picker',
+							multiple : false
+						});
+
+						viewModel.uploader.on('fileQueued', function(file) {
+								
+							viewModel.currentVO().installFileName(file.name);
+						});
+
+						/* uploader.on('uploadSuccess', function(file, response) {
+							console.log(response);
+							
+							if (response.code != '200') {
+								uploader.stop(true);
+								uploader.reset();
+								alert(response.message);
+							}
+						}); */
+
+						$('#pickBtn').on('click', function() {
+							//uploader.options.server = 'api/v5.0.0/file/upload/rest';  
+							uploader.options.server = '/file/uploadServlet?handler=cscSoft&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=123';
+
+							uploader.upload();
+
+							csc.uploader.bind('123',uploader);
+
+							uploader.on('uploadFinished', function() {
+								csc.uploader.unbind('123')
+								uploader = null;
+							});
+						});
+					});
+				});
+			});
 </script>

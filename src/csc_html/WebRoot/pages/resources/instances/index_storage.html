@@ -6,20 +6,20 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属VDC</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
+        <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
       </div>      
     </div>  
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.azUuids, optionsText: 'name', optionsValue: 'id'"></select>
+        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
       </div>      
     </div>
                                       
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().volumeNameLike">
+        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().volumeName">
       </div>
     </div>
     <div class="col-xs-2">
@@ -59,7 +59,7 @@
             <td data-bind="text:vpcName"></td>
             <td data-bind="text:volumeSize"></td>
             <td data-bind="text:volumeStatus"></td>
-            <td data-bind="text:hostUuid"></td>
+            <td data-bind="text:volumeServerId"></td>
             <td data-bind="text:path"></td>
             <!-- <td data-bind=""></td> -->
             <td data-bind="text:userName"></td>
@@ -114,8 +114,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">所属VDC</label>
               <div class="col-xs-8">
-                <select class="form-control" data-bind="value:vdcUuid">
-                </select>
+               <select class="form-control input-sm" data-bind="value: vdcUuid, options: $root.vdcs_add, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs_add}"></select>
               </div>
               <div class="col-xs-1">
                 <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -124,8 +123,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">可用分区</label>
               <div class="col-xs-8">
-                <select class="form-control" data-bind="value:azUuid">
-                </select>
+                <select class="form-control input-sm" data-bind="value: azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_azs_add}"></select>
               </div>
               <div class="col-xs-1">
                 <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -134,7 +132,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">挂载云主机</label>
               <div class="col-xs-8">
-                <select class="form-control" data-bind="value:volumeServerId">
+                <select class="form-control" data-bind="value:volumeServerId, options: $root.vms, optionsText: 'name', optionsValue: 'uuid'">
                   <option value="">云主机1</option>
                 </select>
               </div>
@@ -214,7 +212,11 @@
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_Storage(){
-   	  
+	  //系统当前登录用户标识
+      var account = "1";
+  	  //当前用户所辖VDC列表（包括VDC对应的可用分区信息）
+      var vdcList = {};
+      	
    	  this.isAddvdisk = ko.observable(false);
       var self = this;
       
@@ -223,6 +225,7 @@
          volumeSize: ko.observable().extend({required:true})
       });
 
+      //点击创建
       this.addvdisk = function(){
 	    this.currentVO.fromJSON({
 	    	volumeId: null,
@@ -234,8 +237,9 @@
 	    	azUuid: '',
 	    	effectiveDate: '2016-08-01 00:00:00',
 	    	description:''
-	    	
         });
+	    self.loadVdcs_add();
+	    
         self.isAddvdisk(true);
       }
       
@@ -250,12 +254,14 @@
         }
       }
 
+      /**
       $("#modal_addvdisk").on("shown.bs.modal",function(){
 
           // daterange             
           $('#vdisk_duration').val(moment().subtract('days', 29).format('YYYY/MM/DD')).datetimepicker({format: 'yyyy-mm-dd hh:ii'});; 
 
       })
+      **/
 
       this.isStorageExpand = ko.observable(false);
 
@@ -274,39 +280,131 @@
       this.searchParam = ko.observable({
         azUuid: '',
         vdcUuid: '',
-        volumeNameLike: ''
+        volumeName: ''
       });
       
       this.reset = function(){
         this.searchParam({
        	   azUuid: '',
            vdcUuid: '',
-           volumeNameLike: ''
+           volumeName: ''
         })
       }
       this.search = function(){
         console.log(this.searchParam());
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([], {path: 'http://localhost:8098/csc/api/v5.0.0/volumes?type=Disk'})
+      this.table = new DataTable([], {path: 'api/v5.0.0/volumes?type=Disk'})
       
       
-
-      //下拉选择
+	  /** 下拉级联选择--------------------------------------------START **/
+      //查询：下拉选择，加载VDC
       this.vdcs = ko.observableArray([]);
-      this.loadVdcs = function(){
-        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
-          self.vdcs(data.results);
-        });
-      }
+      //获取可用分区数据
       this.partitions = ko.observableArray([]);
-      this.loadPartitions = function(){
-        $.ajax("pages/resources/partitions/index.json").done(function(data){
-          self.partitions(data.results);
-        });
+      //新增：云主机下拉列表
+      this.vms = ko.observableArray([]);
+      //查询加载
+      this.loadVdcs = function(){
+    	  csc.rest.get('api/v5.0.0/vdcs',function(data){
+    		  if(data.results){
+    			  vdcList = data.results;
+    			  //为备选列表添加一个名为"全部"的选项
+    			  self.reBandai();
+    			  self.vdcs(vdcList);
+    		  }
+    	  });
       }
+      
+      //查询：选择不同VDC后，可用分区下拉框要跟着改变
+      this.onchange_vdcs = function(){
+    	  var vdcUuid = self.searchParam().vdcUuid;
+    	  csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
+    		  if(data.results){
+    			  self.partitions(data.results);
+    		  }
+    	  });
+    	  /* for(var i=0;i<vdcList.length;i++){
+    		  if(vdcList[i].uuid == vdcUuid){
+    			  self.loadPartitions(vdcList[i].azs);
+    		      self.table.params(self.searchParam());
+    			  break;
+    		  }
+    	  } */
+      }
+      
+      //查询：下拉选择，加载VDC
+      this.vdcs_add = ko.observableArray([]);
+      //新增页面加载，不需要全部选项
+      this.loadVdcs_add = function(){
+    	  csc.rest.get('api/v5.0.0/vdcs',function(data){
+    		  if(data.results){
+    			  vdcList = data.results;
+    			  self.vdcs_add(vdcList);
+    		  }
+    	  });
+      }
+      //新增：选择不同VDC后，可用分区下拉框要跟着改变
+      this.onchange_vdcs_add = function(){
+    	  var vdcUuid = self.currentVO.toJSON().vdcUuid;
+    	  csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
+    		  if(data.results){
+    			  self.partitions(data.results);
+    		  }
+    	  });
+      }
+      
+      //修改：选择不同的可用分区云主机列表也要跟着改变
+      this.onchange_azs_add = function(){
+    	  self.loadVms();
+      }
+      
+      this.loadVms = function(){
+    	  var vdcUuid = self.currentVO.toJSON().vdcUuid;
+    	  var azUuid = self.currentVO.toJSON().azUuid;
+    	  //console.log(vdcUuid);
+    	  //console.log(azUuid);
+    	  csc.rest.get('api/v5.0.0/vms?vdcUuid='+vdcUuid+'&azUuid='+azUuid,function(data){
+    		  if(data.results){
+    			  vms = data.results;
+    			  self.vms(vms);
+    		  }
+    	  });
+      }
+      
+      /* 为VDC和可用分区下拉框添加"全部"备选项*/
+      this.reBandai = function(){
+		  var vdcUuids = "";
+		  var azs = [];
+    	  for(var i=0;i<vdcList.length;i++){
+			  if(i == (vdcList.length-1)){
+				  vdcUuids = vdcUuids + vdcList[i].uuid;
+			  }else{
+				  vdcUuids = vdcUuids + vdcList[i].uuid + ",";
+			  }
+			  azs.push(vdcList[i].azs);
+			  var azList = vdcList[i].azs;
+			  var azUuids = "";
+			  if(azList){
+				  for(var j=0;j<azList.length;j++){
+					  if(j == (azList.length-1)){
+						  azUuids = azUuids + azList[i].uuid;
+					  }else{
+						  azUuids = azUuids + azList[i].uuid + ",";
+					  }
+				  }
+				  var azDef = {"name":"全部","uuid":azUuids};
+				  azList.unshift(azDef);
+			  }
+    	  }
+    	  var vdcDef = {"name":"全部","uuid":vdcUuids,"azs":azs};
+		  vdcList.unshift(vdcDef);
+      }
+      
       this.loadVdcs();
-      this.loadPartitions();
+      //this.loadPartitions();
+      /** 下拉级联选择--------------------------------------------END **/
+      
     }
     ko.applyBindings(new ViewModel_Storage(), $('#partition_storages')[0]);
   })

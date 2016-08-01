@@ -43,10 +43,10 @@
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
-              <td data-bind="text:name"></td>
-              <td data-bind="text:group"></td>
-              <td data-bind="text:desc"></td>
-              <td data-bind="text:value"></td>
+              <td data-bind="text: $row.name"></td>
+              <td data-bind="text: $row.group"></td>
+              <td data-bind="text: $row.desc"></td>
+              <td data-bind="text: $row.values"></td>
               <td>
                 <a data-bind="click:$root.edit">修改</a>
               </td>
@@ -81,11 +81,11 @@
               <div class='modal-header'>
                   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改字典</h3>
               </div>
-              <div class='modal-body'>
+              <div class='modal-body' data-bind="with:currentVO">
                   <div class="form-group">
                       <label class="col-xs-3 control-label" for="">所属组：</label>
                       <div class="col-xs-8">
-                          <input type="text" class="form-control" placeholder="" value="service_emgc_con" disabled>
+                          <input type="text" class="form-control" placeholder="" data-bind="value:group" disabled>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -94,7 +94,7 @@
                   <div class="form-group">
                       <label class="col-xs-3 control-label" for="">后端代码：</label>
                       <div class="col-xs-8">
-                          <input type="text" class="form-control" placeholder="" value="busdomain_quato" disabled>
+                          <input type="text" class="form-control" placeholder="" data-bind="value:code" disabled>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -103,7 +103,7 @@
                   <div class="form-group">
                       <label class="col-xs-3 control-label" for="">名称：</label>
                       <div class="col-xs-8">
-                          <input type="mail" class="form-control" placeholder="" value="服务实例定时任务执行时间">
+                          <input type="mail" class="form-control" placeholder="" data-bind="value:name">
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -112,11 +112,11 @@
                   <div class="form-group">
                       <label class="col-xs-3 control-label" for="">说明：</label>
                       <div class="col-xs-8">
-                          <input type="text" class="form-control" placeholder="" value="用于服务计费，设值前请先确保您熟悉Quartz的cron表达式">
+                          <input type="text" class="form-control" placeholder="" data-bind="value:desc">
                       </div>                 
                   </div>
                   <div class="form-group">
-                      <label class="col-xs-3 control-label" for="">值：</label>
+                      <label class="col-xs-3 control-label" for="" >值：</label>
                       <div class="col-xs-8">
                         <select class="form-control">
                           <option>开</option>
@@ -130,7 +130,7 @@
                   <div class="form-group">
                       <label class="col-xs-3 control-label" for="">值：</label>
                       <div class="col-xs-8">
-                        <input type="mail" class="form-control" placeholder="" value="0">
+                        <input type="mail" class="form-control" placeholder="" data-bind="value:values">
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -138,7 +138,7 @@
                   </div>
               </div>
               <div class='modal-footer'>
-                  <input type="button" name="commit" value="确定" class="btn btn-info" data-dismiss="modal" data-bind="click:ok" />
+                  <input type="button" name="commit" value="确定" class="btn btn-info" data-dismiss="modal" data-bind="click: okBtnFun" />
                   <button name="button" type="button" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
               </div>
           </div>
@@ -148,38 +148,73 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    function ViewModel(){
-      this.isEdit = ko.observable(false);
-      this.currentVO = ko.observable({});
-      var self = this;
 
-      this.edit = function(object, event){
-        console.log(object)
-        self.currentVO(object);
-        self.isEdit(true);        
-      };
+	var scripts = [ null, "api/systems/wordBook/wordBook.js" ]
+	$('.page-content-area').ace_ajax(
+			'loadScripts',
+			scripts,
+			function(args) {
+				function ViewModel() {
+					this.isEdit = ko.observable(false);
+					this.currentVO = ko.observable({});
+					
+					
+					var self = this;
+					self.currentVO = ko.observable({});
+					self.oldVO = ko.observable({});
+					
+					//显示编辑字典页面
+					this.edit = function(object, event) {
+						console.log(object)
+						self.currentVO(object);
+						self.isEdit(true);
+					};
+					
+					//判断字典是否已修改
+					self.isChanged = function(o1, o2){
+						if(o1.name == o2.name.trim() && o1.desc == o2.desc.trim()){
+							return false;
+						}else{
+							return true;
+						}
+					}
+					
+					//修改字典信息
+					self.editWordBook = function(currentVO) {
+						if(self.isChanged(self.oldVO(), currentVO)){
+							params = {
+									group : currentVO.group.trim(),
+									code : currentVO.code.trim(),
+									name : currentVO.name.trim(),
+									desc : currentVO.desc.trim(),
+									values : currentVO.values.trim(),
+								};
+								$.WORDBOOK.updateWord(currentVO.uuid, params, function(data) {
+									self.table.refreshData();
+									alert("修改信息成功！");
+								});
+						}
+					}
 
-      this.ok = function(){
-        if(this.currentVO().id == null){
-          systemMsg.alert("你创建了一个资源属性");
-        }else{
-          systemMsg.alert("你修改了一个资源属性");
-        };
-      };
+					//确定按钮
+					self.okBtnFun = function(object) {
 
-      this.searchParam = ko.observable({
-        name: ""
-      });
+							self.editWordBook(self.currentVO());
+					}
 
-      this.search = function(){
-        this.table.params(this.searchParam());
-      };
+					this.searchParam = ko.observable({
+						name : "",
+						group : "",
+					});
 
-      this.table = new DataTable([], {path: 'pages/systems/dictionaries/index.json'});
-    }
-
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
-  });
+					//查询按钮
+					this.search = function() {
+						this.table.params(this.searchParam());
+					};
+					this.table = new DataTable([], {
+						path : '/csc/api/v5.0.0/wordBooks'
+					});
+				}
+				ko.applyBindings(new ViewModel(), $('#page-content')[0]);
+			});
 </script>
