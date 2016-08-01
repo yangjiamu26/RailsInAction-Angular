@@ -12,7 +12,7 @@
       <li class='active' role='presentation'>
         <a aria-controls='instance_vm_summary' data-toggle='tab' href='#instance_vm_summary' role='tab'>云主机摘要</a></li>
       <li role='presentation'>
-        <a aria-controls='instance_vm_softwares' data-toggle='tab' href='#instance_vm_monitor' role='tab'>监控</a></li>
+        <a aria-controls='instance_vm_softwares' data-toggle='tab' id="vm_monitor_tab" href='#instance_vm_monitor' role='tab'>监控</a></li>
       <li role='presentation'>
         <a aria-controls='instance_vm_scripts' data-toggle='tab' href='#instance_vm_tasks' role='tab'>调度任务</a></li>
       <li role='presentation'>
@@ -32,7 +32,7 @@
               <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED'"><button class="btn btn-sm btn-default" >恢复</button></a>
               <a data-bind="click: $root.vmAdjustment"><button class="btn btn-sm btn-default" >调整资源</button></a>
               <a><button class="btn btn-sm btn-default">有效时间变更</button></a>
-              <a><button class="btn btn-sm btn-default">终止</button></a>
+              <a data-bind="click: $root.validate"><button class="btn btn-sm btn-default">终止</button></a>
               <a data-bind="click: $root.removeOne"><button class="btn btn-sm btn-default" >删除</button></a>
             </div>
           </div> 
@@ -96,11 +96,11 @@
                     <tr><th>服务状态</th>
                     	<td>
                     		<span class="label label-success" data-bind="if: vmVO().isValidate == true">正常</span>
-                    		<span class="label label-danger" data-bind="ifnot: vmVO().isValidate == true">已过期</span>
+                    		<span class="label label-danger" data-bind="if: vmVO().isValidate == false">已过期</span>
                     	</td>
                     </tr>
-                    <tr><th>生效时间</th><td data-bind="text:vmVO().effectiveDate"></td></tr>
-                    <tr><th>失效时间</th><td data-bind="text:vmVO().expiryDate"></td></tr>
+                    <tr><th>生效时间</th><td data-bind="text:vmVO().effectiveTime"></td></tr>
+                    <tr><th>失效时间</th><td data-bind="text:vmVO().expiryTime"></td></tr>
                   </table>
                 </div>
               </div>
@@ -223,12 +223,14 @@
 
           <div class="row wrapper">
             <div class="col-xs-9">
-              <select class="input-sm form-control w-sm inline v-middle">
-                <option value="0">10分钟</option>
-                <option value="1">20分钟</option>
-                <option value="2">30分钟</option>
-                <option value="3">60分钟</option>
-              </select> 
+              <strong>采集</strong>
+              <select class="input-sm form-control w-sm inline v-middle" id="minute_select">
+                 <option value="10">10</option>
+                 <option value="20">20</option>
+                 <option value="30">30</option>
+                 <option value="60">60</option>
+              </select>
+              <strong>之前数据</strong>&nbsp;
               <button class="btn btn-sm btn-default" data-bind="click: config">告警配置</button>
             </div>
           </div> 
@@ -258,14 +260,6 @@
                   <div class='panel-heading'>存储使用率(%)</div>
                   <div class="panel-body">
                     <div id="storageUse_chart" style="height:150px;"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xs-6">
-                <div class="panel panel-default">
-                  <div class='panel-heading'>存储IO(kB/s)</div>
-                  <div class="panel-body">
-                    <div id="storageIO_chart" style="height:150px;"></div>
                   </div>
                 </div>
               </div>
@@ -401,6 +395,7 @@
           </div>，触发告警     
         </div>
         
+        <!--
         <h4>告警配置</h4>
         <div class="m-t m-l-lg text-primary">
            告警重复间隔
@@ -411,7 +406,7 @@
               </div>
            </div>    
         </div>
-
+	     -->
       </div>
       <div class='modal-footer' style="text-align:center;">
         <a class="btn btn-default btn-info"  onclick="confirmBtn();">确定</a>
@@ -633,9 +628,15 @@
                   </div>
                 </div>
 				<div class="form-group">
-	                  <label class="col-sm-3 control-label">内存(GB)：</label>
+	                  <label class="col-sm-3 control-label">内存(MB)：</label>
 	                  <div class="col-sm-8">
 	                    <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
+	                  </div>
+				</div>
+				<div class="form-group">
+	                  <label class="col-sm-3 control-label">存储(GB)：</label>
+	                  <div class="col-sm-8">
+	                    <input type="email" class="form-control" data-bind="value: adjustmentVO().storage">
 	                  </div>
 				</div>
 			</div>
@@ -652,6 +653,7 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, "assets/lib/highcharts/highstock.js"]
+  var cpu_chart ;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	var vmUuid = args.vmUuid;
 	var vmId = args.vmId;
@@ -777,8 +779,14 @@
       }
       
       //终止（服务实例）
-      this.pause = function(){
-
+      this.validate = function(){
+    	  systemMsg.confirm("确定要终止云主机 "+self.vmVO().name+"？",function(){
+    		var putBody = {"expiryDate":""};
+  			csc.rest.put('api/v5.0.0/resourceInstances/'+self.vmVO().uuid,putBody,function(data){
+			 		systemMsg.alert('云主机终止成功！');
+			 		self.table.refreshData();
+			    });
+  		});
       }
       
       //--------------------------------操作结束---------------------------------
@@ -787,6 +795,7 @@
       this.adjustmentVO = ko.validatedObservable({
     	  vcpu: ko.observable(),
     	  memory: ko.observable(),
+    	  storage: ko.observable(),
     	  vmUuid: ko.observable()
       });
       
@@ -794,6 +803,7 @@
           self.isVmAdjustment(true);
           self.adjustmentVO().vcpu(self.vmVO().vcpu);
           self.adjustmentVO().memory(self.vmVO().memory);
+          self.adjustmentVO().storage(self.vmVO().storage);
           self.adjustmentVO().vmUuid(self.vmVO().uuid);
       };
       
@@ -803,6 +813,7 @@
     	  putBody.operationType = "RESIZE";
     	  putBody.vcpu = self.adjustmentVO().vcpu();
     	  putBody.memory = self.adjustmentVO().memory();
+    	  putBody.storage = self.adjustmentVO().storage();
     	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
 		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
 		 		self.isVmAdjustment(false);
@@ -815,7 +826,11 @@
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
     //cpu使用率
-    $('#cpuUse_chart').highcharts({
+    	cpu_chart = new Highcharts.Chart({
+    		chart: {  
+                //将报表对象渲染到层上  
+            renderTo: 'cpuUse_chart'  
+        },   
         title: {
             text: '',
         },
@@ -830,7 +845,7 @@
             '#e268de' // purple
         ],               
         xAxis: {
-            categories: ['15:55', '16:00', '16:05', '16:10', '16:15', '16:20','16:25', '16:30']
+            categories: []
         },
         yAxis: {
             title: {
@@ -847,7 +862,7 @@
         },
         series: [{
             name: 'cpu使用率',
-            data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5]
+            data: []
         }]
     });
 
@@ -985,8 +1000,9 @@
 
    //弹出窗弹出后执行回调方法，对弹出窗里面的内容进行初始化操作;
   $("#alarmModal").on("shown.bs.modal", function(){
-    var vmUuid ="20160728"; // 指定云主机对应数据库id;此处测试默认1; 
+  var vmUuid ="20160728"; // 指定云主机对应数据库id;此处测试默认1; 
   $.ajax("api/v5.0.0/vms/"+vmUuid+"/configAlarm").done(function(data){
+  	  console.log(data);
       $.each(data,function(id,obj){
         $("input:checkbox[name='checkbox']").each(function(){
           if(obj.meter==$(this).attr('value') && obj.enable=='true'){
@@ -994,8 +1010,8 @@
             meter = $(this).attr('id'); // 指标名称;
             $("#"+meter+"_threshold").removeAttr("disabled");
             $("#"+meter+"_period").removeAttr("disabled");
-          $("#"+meter+"_threshold").val(obj.threshold);
-          $("#"+meter+"_period").val(obj.period);
+            $("#"+meter+"_threshold").val(obj.threshold);
+            $("#"+meter+"_period").val(obj.period);
           };
         });
       });
@@ -1010,7 +1026,7 @@
       var obj = {
         "meter"     : $(this).attr('value'),
         "threshold" : $("#" + meter + "_threshold").val(),
-        "period"    : $("#" + meter + "_period").val(),
+        "period"    : $("#" + meter + "_period").val()*60,
         "enable"    : true
       };
       jsonArray.push(obj);
@@ -1036,4 +1052,41 @@
       systemMsg.alert("请配置告警信息");
     }
   }
+
+	// change事件;
+	$("#minute_select").change(function() {
+		var before = $("#minute_select option:selected").val();
+		getMonitorData(before);
+	});
+
+	// 监控面板打开事件;
+	$("#vm_monitor_tab").on("click", function() {
+		// 获取select 选中内容;
+		var before = $("#minute_select option:selected").val();
+		getMonitorData(before);
+	});
+
+	// 查询监控指标数据;
+	function getMonitorData(time) {
+		var vmUUID = "1";
+		// 获取云主机id; 此处先默认
+		var period = "60";
+		// 周期不长, 可调整默认为60s;
+		// 获取当前时间之前xx分钟;
+		var nowDate = new Date();
+		nowDate.setMinutes(nowDate.getMinutes() - time);
+		console.log("api/v5.0.0/vms/" + vmUUID + "/performance?startTime=" + nowDate.getTime() + "&step=" + period);
+		$.ajax("api/v5.0.0/vms/" + vmUUID + "/performance?startTime=" + nowDate.getTime() + "&step=" + period).done(function(data) {
+			if(data!=null && data!=""){
+				$.each(data,function(id,element){
+					if(element.name.indexOf("CPU")!=-1){
+						cpu_chart.series[0].setData(element.ydataList);    
+						cpu_chart.xAxis[0].setCategories(element.xdataList);
+					};
+				});
+			}else{
+				systemMsg.alert("监控信息查询为空!");
+			}
+		});
+	};
 </script>

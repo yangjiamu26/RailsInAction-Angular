@@ -6,16 +6,13 @@
             <div class="col-xs-3">
               <div class="input-group">
                 <span class="input-group-addon">所属VDC</span>
-                <select class="form-control input-sm" data-bind="value: searchParam().vdc, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
+                <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'id'"></select>
               </div>      
             </div>  
             <div class="col-xs-3">
               <div class="input-group">
                 <span class="input-group-addon">所属可用分区</span>
-                <select class="form-control input-sm">
-                  <option value="">全部</option>
-                  <option value="">可用分区1</option>
-                </select>
+               <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
               </div>      
             </div>                        
             <div class="col-xs-3">
@@ -30,7 +27,7 @@
             </div>
           </div>                         
           <div id='instance_sshkeys'>
-            <div class='table-responsive'>
+            <div class='table-responsive' data-bind="with: table">
               <table class='table table-striped'>
                 <thead>
                   <tr>
@@ -41,45 +38,47 @@
                     <th>所属VDC</th>
                     <th>服务状态</th>
                     <th>有效期</th>
+                   <!--  <th>创建时间</th> -->
                     <th>创建人</th>
                     <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
+                   <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
-                    <td>测试密钥1</td>
-                    <td>8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a</td>
-                    <td>AAAAAAAAAA</td>
-                    <td>AZ1</td>
-                    <td>VDC1</td>
-                    <td>正常</td>
-                    <td>20160501</td>
-                    <td>admin</td>
-                    <td><a href="#">下载</a> | <a href="#" data-bind="click: bindvmForSecretkey">查看挂载云主机</a> | <a>有效时间变更</a> | <a>终止</a> | <a href="#">删除</a></td>
+                    <td data-bind="text:name">测试密钥1</td>
+                    <td data-bind="text:fingerprint">8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a:8a:c6:9a</td>
+                    <td data-bind="text:publicKey">AAAAAAAAAA</td>
+                    <td data-bind="text:azName">AZ1</td>
+                    <td data-bind="text:vdcName">VDC1</td>
+                    <td>
+		            	<span class="label label-success" data-bind="if:isValidate">正常</span>
+		              	<span class="label label-danger" data-bind="ifnot:isValidate">已过期</span>
+		            </td>
+		            <td data-bind="text:expiryDate">2016-06-29 11:55</td>
+		           <!--  <td data-bind="text:createTime">2016-06-29 13:56</td> -->
+		            <td data-bind="text:userName">admin</td>
+                    <td><a href="#">下载</a> | <a href="#" data-bind="click: $root.bindvmForSecretkey">查看挂载云主机</a> | <a>有效时间变更</a> | <a>终止</a> | <a href="#">删除</a></td>
                   </tr>
+                   <!-- /ko -->
                 </tbody>
               </table>
             </div>
-            <footer class='panel-footer'>
-              <ul class="pagination">
-                <li class="page active">
-                  <a href="#pages/javascript:void(0)">1</a></li>
-                <li class="page">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">2</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=3">3</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=5">5</a></li>
-                <li class="page gap disabled">
-                  <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                <li class="next">
-                  <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=2">下页 &rsaquo;</a></li>
-                <li class="last">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_sshkeys=63">末页 &raquo;</a></li>
-              </ul>
-            </footer>
+             <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+		      <ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <!-- ko foreach: {data: (new Array(pages()))} -->
+		        <li data-bind="css: $parent.pageClass($index() + 1)">
+		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		        </li>
+		        <!-- /ko -->
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		      </ul>
+		    </footer>
           </div>
           <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
             <div class='modal-dialog modal-lg' style="width:600px;">
@@ -196,7 +195,7 @@
         </div>
 
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","api/resourceInstance/sshkey/sshkey.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_SSHKey(){
       var self = this;
@@ -209,6 +208,71 @@
       this.addSecretkey = function(){
         self.isAddSecretkey(true);
       };
+      
+      
+      
+
+      //定义搜索下拉选择
+      this.vdcs = ko.observableArray([]);
+      this.loadVdcs = function(){
+        $.ajax("pages/resources/instances/object_storages_vdcs.json").done(function(data){
+          self.vdcs(data.results);
+        });
+      }
+      this.partitions = ko.observableArray([]);
+      this.loadPartitions = function(){
+        $.ajax("pages/resources/instances/object_storages_azs.json").done(function(data){
+          self.partitions(data.results);
+        });
+      }
+      //加载搜索下拉框数据
+      this.loadVdcs();
+      this.loadPartitions();
+      
+      //添加时下拉，可以加载页面时加载，也可以弹窗时加载
+      this.vdcsAdd = ko.observableArray([]);
+      this.loadVdcsAdd = function(){
+        $.ajax("pages/resources/instances/object_storages_vdcs.json").done(function(data){
+          self.vdcsAdd(data.results);
+        });
+      }
+      this.partitionsAdd = ko.observableArray([]);
+      this.loadPartitionsAdd = function(){
+        $.ajax("pages/resources/instances/object_storages_azs.json").done(function(data){
+          self.partitionsAdd(data.results);
+        });
+      }
+      //加载创建弹出框中的vdc和az
+      this.loadVdcsAdd();
+      this.loadPartitionsAdd();
+     
+
+      this.searchParam = ko.observable({
+        azUuid: '',
+        vdcUuid: '',
+        name: ''
+      })
+      this.reset = function(){
+        this.searchParam({
+          azUuid: '',
+          vdcUuid: '',
+          name: ''
+        });
+        
+        this.table.params({});
+      }
+      this.search = function(){
+        this.table.params(this.searchParam());
+      }
+      this.table = new DataTable([], {path: 'api/v5.0.0/sshKeys'});
+      
+      
+      
+   
+      
+      
+      
+      
     };   
      ko.applyBindings(new ViewModel_SSHKey(), $('#partition_sshkeys')[0]); 
   })

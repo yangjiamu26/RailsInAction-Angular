@@ -275,6 +275,11 @@
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
+    	var self = this;
+
+		/* self.currentVO = ko.observable({});
+		self.oldVO = ko.observable({}); */
+		
       this.server = ko.observable({
          "report": {
           "urlAddr": "",
@@ -325,60 +330,116 @@
 
       this.reportTest = function(object){
           console.log(object);
+          var param = {
+                  "urlAddr": this.urlAddr,
+                  "userName": this.userName,
+                  "userPwd": this.userPwd
+                }; 
+          $FTP_CONF.checkCollRepoIsConnect(param , function(data){
+      		if(data && data.msg) {
+      			alert(data.msg + '！');
+      		}
+      	})
         
       }
       this.reportSave = function(object){
         console.log(object);
-        csc.rest.post('api/v5.0.0/severconfsrepo', {
-            "urlAddr": "",
-            "userName": "",
-            "userPwd": ""
-          }, function(){
-            self.isAdd(false);
-          })
+        var param = {
+                "urlAddr": this.urlAddr,
+                "userName": this.userName,
+                "userPwd": this.userPwd
+              }; 
+       /*  var ipReg =  "^(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])){3}$";
+
+    	var ipPatt = new RegExp(ipReg); */
+        if(this.urlAddr==""){
+        	alert("请输入正确的url地址！");
+        }else if(this.userName==""||this.userPwd==""){
+        	alert("请输入用户名或密码！");
+        }else{
+        	csc.rest.post('api/v5.0.0/severconfsrepo',param , function(){
+                 self.isAdd(false);
+               })
+               alert("保存配置成功！");
+        }   
         
       }
+      
+     
 
       this.ftpTest = function(object){
         console.log(object);
+        var param={
+                "serverAddr": this.serverAddr,
+                "portNum": this.portNum,
+                "softWareAddr": this.softWareAddr,
+                "scriptAddr": this.scriptAddr,
+                "username": this.username,
+                "userPwd": this.userPwd
+              };
+        $FTP_CONF.checkFtpIsConnect(param , function(data){
+    		if(data && data.msg) {
+    			alert(data.msg + '！');
+    		}
+    	})
+        
       }
       this.ftpSave = function(object){
         console.log(object);
-        csc.rest.post('api/v5.0.0/severconfsftp', {
-            "serverAddr": this.serverAddr,
-            "portNum": this.portNum,
-            "softWareAddr": this.softWareAddr,
-            "scriptAddr": this.scriptAddr,
-            "username": this.username,
-            "userPwd": this.userPwd
-          }, function(){
-            self.isAdd(false);
-          })
+        var param={
+                "serverAddr": this.serverAddr,
+                "portNum": this.portNum,
+                "softWareAddr": this.softWareAddr,
+                "scriptAddr": this.scriptAddr,
+                "username": this.username,
+                "userPwd": this.userPwd
+              };
+        if(this.serverAddr == ""){
+        	alert("请输入服务器地址！");
+        }else if(this.portNum == ""){
+        	alert("请输入端口号！");
+        }else if(this.softWareAddr == ""){
+        	alert("请输入软件库地址！");
+        }else if(this.scriptAddr == ""){
+        	alert("请输入脚本库地址！");
+        }else if(this.userName == ""||this.userPwd == ""){
+        	alert("请输入用户名或密码！");
+        }else{
+        	csc.rest.post('api/v5.0.0/severconfsftp', param, function(){
+                self.isAdd(false);
+              })
+            alert("保存配置成功！");
+        }
+        
       }
+      
+      
 
       this.chefTest = function(object){
-        console.log(object);
-        
+        console.log(object);        
       }
       this.chefSave = function(object){
         console.log(object);
-        //var param="ipAddr:"+this.ipAddr+",&portNum:"+this.portNum+",&username:"+this.username+",&userPwd:"+this.userPwd;
-       // alert(param);
-      /*  {
-            "ipAddr": this.ipAddr,
-            "portNum": this.portNum,
-            "username": this.username,
-            "userPwd": this.userPwd
-          } */
-        csc.rest.post('api/v5.0.0/severconfs', {
-            "ipAddr": this.ipAddr,
-            "portNum": this.portNum,
-            "username": this.username,
-            "userPwd": this.userPwd
-          }, function(){
-            self.isAdd(false);
-          })
-        
+        var param = {
+                "ipAddr": this.ipAddr,
+                "portNum": this.portNum,
+                "username": this.username,
+                "userPwd": this.userPwd
+              };
+        var ipReg =  "^(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])){3}$";//ip地址的正则表达式
+    	var ipPatt = new RegExp(ipReg);
+       if(this.ipAddr == ""||!ipPatt.test(this.ipAddr)){
+    	   alert("请输入正确的ip地址！");
+       }else if(this.portNum == ""){
+    	   alert("请输入端口号！");
+       }else if(this.userName == ""||this.userPwd == ""){
+    	   alert("请输入用户名或密码！");
+       }else{
+    	   csc.rest.post('api/v5.0.0/severconfschef', param, function(){
+               self.isAdd(false);
+             })
+             alert("保存配置成功！");
+       }        
         
       }
 
@@ -387,10 +448,6 @@
       }
       this.emailSave = function(object){
           console.log(object);
-/* 
-       $.ajax(url,data,get/post,funciont{
-    	   alert
-       }) */
       }
     }
 

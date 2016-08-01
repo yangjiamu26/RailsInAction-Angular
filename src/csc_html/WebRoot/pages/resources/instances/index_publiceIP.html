@@ -1,22 +1,23 @@
 <div class='panel panel-default'>
+  <!-- 创建与搜索栏 -->
   <div class="row wrapper">
     <div class="col-xs-1">
       <div class="input-group">
-        <button class="btn btn-primary btn-sm" data-bind="click:createPubliceIP">创建</button>
+        <button class="btn btn-primary btn-sm" data-bind="click:showCreatePage">创建</button>
       </div>      
     </div>
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属VDC</span>
-        <select class="form-control">
-          <option>VDC1</option>
+        <select class="form-control" data-bind="value: searchParam().vdcUuid, options: $root.searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
+          <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
         </select>
       </div>      
     </div>   
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().partition, options: $root.partitions, optionsText: 'name', optionsValue: 'id'"></select>
+        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.searchAzList, optionsText: 'name', optionsValue: 'uuid'"></select>
       </div>      
     </div> 
              
@@ -30,9 +31,10 @@
       <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
       <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
     </div>
-  </div>                        
+  </div>  
+   <!-- 公网IP列表 -->                      
   <div id='instance_publicips'>
-    <div class='table-responsive'>
+    <div class='table-responsive' data-bind="with: publicIpTable">
       <table class='table table-striped'>
         <thead>
           <tr>
@@ -52,237 +54,479 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>电信IP</td>
-            <td>192.168.1.1</td>
-            <td>255.255.255.0</td>
-            <td>可用分区名</td>
-            <td>xxx</td>
-            <td>xxx</td>
-            <td>xxx</td>
-            <td>xxx</td>
-            <td><label class="label label-success">正常</label></td>
-            <td>20160501</td>
-            <td>20160501-20160520</td>
-            <td>admin</td>
-            <td><a href="#" data-bind="click: bindvmForIP">绑定云主机</a> | <a href="#">解绑</a>  | <a href="#">有效时间变更</a>  | <a href="#">终止</a>  | <a href="#">删除</a></td>
-          </tr>
+        	<tr data-bind="visible: showNoData">
+              <td colspan=13 class="aligncenter">
+               	 暂无数据
+              </td>
+            </tr>
+            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+          	<tr>
+	            <td data-bind="text: $row.name"></td> <!-- 公网IP名称 -->
+	            <td data-bind="text: $row.ip"></td><!-- IP地址 -->
+	            <td data-bind="text: $row.cidr"></td><!-- 子网掩码 -->
+	            <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
+	            <td data-bind="text: $row.vdcName"></td><!-- 所属VDC -->
+	            <td data-bind="text: $row.vpcName"></td><!-- 所属VPC -->
+	            <td data-bind="text: $row.routerName"></td><!-- 路由器 -->
+	            <td data-bind="text: $row.vmName"></td><!-- 云主机 -->
+	            <td><label class="label label-success">
+	            	<span data-bind="text: $row.state"></span><!-- 服务状态 -->
+	            	</label>
+	            </td>
+	            <td data-bind="text: $row.createTime"></td><!-- 创建时间 -->
+	            <td data-bind="text: $row.validTime"></td><!-- 有效期 -->
+	            <td data-bind="text: $row.userName"></td><!-- 创建人 -->
+	            <td><!-- 操作 -->
+	            	<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a> 
+	            	| <a href="#" data-bind="click: $root.unbindVm">解绑</a>  
+	            	| <a href="#" data-bind="click: $root.changeExpiredTime">有效时间变更</a>  
+	            	| <a href="#" data-bind="click: $root.terminateService">终止</a>  
+	            	| <a href="#" data-bind="click: $root.deleteIp">删除</a>
+	            </td>
+          	</tr>
+          	<!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class='panel-footer'>
-      <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a></li>
-          <li class="page">
-            <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">2</a></li>
-            <li class="page">
-              <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=3">3</a></li>
-              <li class="page">
-                <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=4">4</a></li>
-                <li class="page">
-                  <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=5">5</a></li>
-                  <li class="page gap disabled">
-                    <a href="#pages/javascript:void(0)">&hellip;</a></li>
-                    <li class="next">
-                      <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">下页 &rsaquo;</a></li>
-                      <li class="last">
-                        <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a></li>
-                      </ul>
-                    </footer>
-                  </div>
+    <!-- 分页DIV --> 
+      <footer class="panel-footer" data-bind="with: publicIpTable, visible: publicIpTable.pages() > 1">
+        <ul class="pagination">
+          <li data-bind="css: leftPagerClass, click: prevPage">
+            <a href="#">&laquo;</a>
+          </li>
+          <!-- ko foreach: {data: (new Array(pages()))} -->
+          <li data-bind="css: $parent.pageClass($index() + 1)">
+            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+          </li>
+          <!-- /ko -->
+          <li data-bind="css: rightPagerClass, click: nextPage">
+            <a href="#">&raquo;</a>
+          </li>
+        </ul>
+      </footer>
+</div>
 
-                  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForIP }">
-                    <div class='modal-dialog modal-lg' style="width:600px;">
-                      <div class='modal-content'>
-                        <div class='modal-header'>
-                          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
-                        </div>
-                        <div class='modal-body form-horizontal row'>
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">公网IP：</label>
-                            <div class="col-sm-8">
-                              <span>150.152.11.25</span>
-                            </div>
-                          </div>
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">云主机：</label>
-                            <div class="col-sm-8">
-                              <select class="form-control">
-                                <option value="1">1</option>
-                              </select>
-                            </div>
-                          </div>
+<!-- 绑定云主机页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowBindingPage }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+        </div>
+        <div class='modal-body form-horizontal' data-bind="with: currentIpVo">
+          <div class="form-group">
+            <label class="col-sm-3 control-label">公网IP：</label>
+            <div class="col-sm-8">
+              <span data-bind="text: ip">150.152.11.25</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">云主机：</label>
+            <div class="col-sm-8">
+              <select class="form-control">
+                <option value="1">1</option>
+              </select>
+            </div>
+          </div>
 
-                        </div>
-                        <div class='modal-footer' style="text-align:center;">
-                          <a class="btn btn-default btn-info">确定</a>
-                          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isCreatePubliceIP}">
-                    <div class='modal-dialog' role='document'>
-                      <div class='modal-content'>
-                        <div class='modal-header'>
-                          <button type="button" class="close" data-dismiss="modal">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                          <h3 class='modal-title'>创建公网IP</h3>
-                        </div>
-                        <div class='modal-body form-horizontal'>
+<!-- 创建公网IP页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowCreatePage}">
+    <div class='modal-dialog' role='document'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h3 class='modal-title'>创建公网IP</h3>
+        </div>
+        <div class='modal-body form-horizontal row'  data-bind="with:currentIpVo">
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">公网IP名称</label>
-                            <div class="col-sm-8">
-                              <input type="text" class="form-control"  placeholder="公网IP名称">
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">公网IP名称</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control"  placeholder="公网IP名称" data-bind="value: name">
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">所属VDC</label>
-                            <div class="col-sm-8">
-                              <select class="form-control">
-                                <option>研发部1</option>
-                                <option>研发部2</option>
-                              </select>
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">所属VDC</label>
+            <div class="col-sm-8">
+              <select class="form-control" data-bind="options:$root.vdcList,optionsText:'name',value: vdcUuid,optionsValue:'uuid'">
+                <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
+                <option>研发部2</option>
+              </select>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">所属VPC</label>
-                            <div class="col-sm-8">
-                              <select class="form-control">
-                                <option>208</option>
-                                <option>206</option>
-                              </select>
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">可用分区</label>
+            <div class="col-sm-8">
+              <select class="form-control" data-bind="options:$root.azList,optionsText:'name',optionsValue:'uuid',value: azUuid, disable: vdcUuid==null">
+                <option>可用分区1</option>
+                <option>可用分区2</option>
+              </select>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">可用分区</label>
-                            <div class="col-sm-8">
-                              <select class="form-control">
-                                <option>可用分区1</option>
-                                <option>可用分区2</option>
-                              </select>
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">所属VPC</label>
+            <div class="col-sm-8">
+              <select class="form-control" data-bind="options:$root.vpcList,optionsText:'name',optionsValue:'uuid',value: vpcUuid, disable: csc.util.isNull(azUuid)">
+                <option>208</option>
+                <option>206</option>
+              </select>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="col-sm-3 control-label">网络名称</label>
+            <div class="col-sm-8">
+              <select class="form-control" data-bind="options:$root.networkList,optionsText:'name',optionsValue:'uuid',value: networkUuid, disable: vpcUuid==null">
+                <option>网络1</option>
+                <option>网络2</option>
+              </select>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">网络名称</label>
-                            <div class="col-sm-8">
-                              <select class="form-control">
-                                <option>网络1</option>
-                                <option>网络2</option>
-                              </select>
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">申请时长</label>
+            <div class="col-sm-9">
+              <div>
+                <label class="radio-inline" style="padding-top: 2px">
+                  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 永久
+                </label>
+              </div>
+              <div>
+                <label class="radio-inline">
+                  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
+                  <input type="text" class="form-control input-sm inline w-xxs">
+                  <select class="form-control inline w-xs input-sm">
+                    <option value="">月</option>
+                  </select>  
+                </label>
+              </div>
+              <div>
+                <label class="radio-inline">
+                  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
+                  <input type="text" value="" class="form-control inline w input-sm" id="ip_duration">
+                </label> 
+              </div>                                   
+            </div>
+          </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">申请时长</label>
-                            <div class="col-sm-9">
-                              <div>
-                                <label class="radio-inline" style="padding-top: 2px">
-                                  <input type="radio"  name="inlineRadioOptions" id="inlineRadio1" value="option1"> 永久
-                                </label>
-                              </div>
-                              <div>
-                                <label class="radio-inline">
-                                  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                                  <input type="text" class="form-control input-sm inline w-xxs">
-                                  <select class="form-control inline w-xs input-sm">
-                                    <option value="">月</option>
-                                  </select>  
-                                </label>
-                              </div>
-                              <div>
-                                <label class="radio-inline">
-                                  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                                  <input type="text" value="" class="form-control inline w input-sm" id="vm_duration">
-                                </label> 
-                              </div>                                   
-                            </div>
-                          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">备注</label>
+            <div class="col-sm-8">
+              <textarea class="form-control" data-bind="text: desc"></textarea>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class='modal-footer'>
+          <button name="button" type="submit" class="btn btn-primary "  data-bind="click: createPublicIp">确定</button>
+          <button name="button" type="submit" class="btn btn-default " data-dismiss="modal">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                          <div class="form-group">
-                            <label class="col-sm-3 control-label">备注</label>
-                            <div class="col-sm-8">
-                              <textarea class="form-control"></textarea>
-                            </div>
-                            <div class="col-sm-1">
-                              <span class="text-danger inline m-l-n m-t-sm">*</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class='modal-footer'>
-                          <button name="button" type="submit" class="btn btn-primary " data-dismiss="modal">确定</button>
-                          <button name="button" type="submit" class="btn btn-default " data-dismiss="modal">取消</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
+</div>
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  var scripts = ["api/vpc/vpc.js", 
+                 "api/resource/az/az.js",
+                 "api/vdc/vdc.js",
+                 "api/resourceInstance/publicIp/publicIp.js", 
+                 "assets/lib/moment/moment.js",
+                 "assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  var vdcUuid = "f91c14a2-5981-405c-bcba-5170f5b3a86d";
+	  var azUuid = "461b37d4-4b37-45d2-82b0-10b057da255d";
+	  var vpcUuid = "vpcUuid";
+	  var networkUuid = "f01ddf2a-7791-40ba-bbdd-84bd57b6153e"; //外部网络
+	  
+	  $('#ip_duration').val(moment().subtract('days', 29).format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD'))
+	    .daterangepicker({
+	        startDate: moment().subtract('days', 29),
+	        endDate: moment(),
+	        ranges: {
+	         '当天': [moment(), moment()],
+	         '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
+	         '近7天': [moment().subtract('days', 6), moment()],
+	         '近30天': [moment().subtract('days', 29), moment()],
+	         '当月': [moment().startOf('month'), moment().endOf('month')],
+	         '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+	        }
+	      }
+	    ); 
+	  
     function ViewModel_PublicIP(){
       var self = this;
-      this.isBindvmForIP = ko.observable(false);
-      this.isCreatePubliceIP = ko.observable(false);
-      this.createPubliceIP = function(){
-        self.isCreatePubliceIP(true);
+      //搜索栏
+      this.searchVdcList = ko.observableArray();
+      this.searchAzList = ko.observableArray();
+      
+      
+      //创建页面
+      this.vdcList = ko.observableArray();
+      this.azList = ko.observableArray();
+      this.vpcList = ko.observableArray();
+      this.networkList = ko.observableArray();
+		
+      this.isShowBindingPage = ko.observable(false);
+      this.isShowCreatePage = ko.observable(false);
+      
+      this.currentIpVo = ko.validatedObservable({
+    	  "name": ko.observable("").extend({required: true}),
+    	  "vdcUuid": ko.observable("").extend({required: true}),
+  		  "azUuid":  ko.observable("").extend({required: true}),
+  		  "vpcUuid": ko.observable("").extend({required: true}),
+  		  "networkUuid": ko.observable("").extend({required: true}),
+  		  "timeType": "",
+  		  "timeValue":"",
+    	  "desc": "",
+    	  "ip":"",
+    	  "cidr":"",
+    	  "azName":"",
+    	  "routerName":"",
+    	  "vmName":"",
+    	  "vmIp":"",
+    	  "state":"",
+    	  "createTime":"",
+    	  "valiTime":"",
+    	  "userName":"",
+    	  "expiredDate":""
+	  });
+      
+      this.vmObj = ko.observable({
+    	  "portId":"",
+    	  "portName": ""
+      });
+      
+      //弹出创建页面
+      var subscriptionVdc;//subscription.dispose();
+      var subscriptionAz;
+      var subscriptionVpc;
+      this.showCreatePage = function(){
+      		self.isShowCreatePage(true);
+      		self.vdcList([]);
+			self.azList([]);
+			self.vpcList([]);
+			self.networkList([]);
+			
+			self.currentIpVo.fromJSON({
+				"name":"",
+				"vdcUuid":"",
+				"azUuid":  "",
+		  		"vpcUuid": "",
+		  		"networkUuid": "",
+		  		"timeType": "",
+		  		"timeValue":"",
+		    	"desc": ""
+			});
+			$.VDC.getVDCs({},function(data){
+				 if(data && data.results){
+					 self.vdcList(data.results);
+				 }
+			});
+			
+			//vdc获取AZ
+			subscriptionVdc = self.currentIpVo().vdcUuid.subscribe(function(val){
+			    self.azList([]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VDC.getVdcAzs(val,{},function(data){
+		   				 if(data && data.results){
+		   					 self.azList(data.results);
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
+			//AZ获取VPC
+			subscriptionAz = self.currentIpVo().azUuid.subscribe(function(val){
+			    self.vpcList([]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VPC.getVpcs({azUuid:val},function(data){
+		   				 if(data && data.results){
+		   					 self.vpcList(data.results);
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
+			//VPC获取Network
+			subscriptionVpc = self.currentIpVo().vpcUuid.subscribe(function(val){
+			    self.networkList([]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VPC.getVpcNet({vpcUuid:val,type:"EXTERNAL"},function(data){
+		   				 if(data && data.results){
+		   					 self.networkList(data.results);
+		   				 }
+		   			});
+			    }
+    	    });
+      		
       };
-      this.bindvmForIP = function(){
-        self.isBindvmForIP(true);
+      //创建
+      this.createPublicIp = function(object, event){
+    	  //console.log(self.currentIpVo());
+    	  ko.validation.group(self.currentIpVo).showAllMessages();
+          if(self.currentIpVo.isValid()){
+        	  var p = {
+   	    		"name": self.currentIpVo().name(),
+   	    		"vdcUuid": self.currentIpVo().vdcUuid(),
+   	    		"azUuid":	self.currentIpVo().azUuid(),
+   	    		"vpcUuid": self.currentIpVo().vpcUuid(),
+   	    		"networkUuid": self.currentIpVo().networkUuid(),
+   	    		"desc": self.currentIpVo().desc
+   	    	  };
+   	    	  $.PUBLIC_IP.createPublicIp(p, function(data){
+   	    		  self.isShowCreatePage(false);
+   	    		  self.publicIpTable.refreshData();
+   				  alert("创建公网IP成功！");
+   	    	  })
+          }
       };
-
-      this.unbind = function(object, event){
-
+      
+      //弹出绑定云主机页面
+      this.showBindingPage = function(vo){
+           self.isShowBindingPage(true);
+           //对当前公网IP对象进行绑定
+           self.currentIpVo(vo);
+      };
+	  
+      this.bindVm = function(vo){
+    	  $.PUBLIC_IP.bindPublicIp(vo.uuid, self.vmObj().portId, function(data){
+				self.publicIpTable.refreshData();
+				alert("绑定云主机[" + self.vmObj().portName + "]成功！")
+   		});
+      };
+      
+      //解绑公网IP
+      this.unbindVm = function(row){
+    	  var name = vo.name;
+		  confirm("确定解绑公网IP[" + name + "]？", function(arg){
+			$.PUBLIC_IP.unbindPublicIp(vo.uuid, function(data){
+				self.publicIpTable.refreshData();
+				alert("解绑公网IP[" + name + "]成功！")
+     		});
+		  });
+      }
+      
+      //修改有效时间
+      this.changeExpiredTime = function(vo){
+    	  
+      }
+      
+      //终止服务
+      this.terminateService = function(vo){
+    	  var name = vo.name;
+		  confirm("确定终止公网IP[" + name + "]服务？", function(arg){
+			$.PUBLIC_IP.delPublicIp(vo.uuid, function(data){
+				self.publicIpTable.refreshData();
+				alert("终止公网IP[" + name + "]服务成功！")
+     		});
+		  });
+      }
+      
+      //删除公网IP
+      this.deleteIp = function(vo){
+    	  var name = vo.name;
+		  confirm("确定删除公网IP[" + name + "]？", function(arg){
+			$.PUBLIC_IP.delPublicIp(vo.uuid, function(data){
+				self.publicIpTable.refreshData();
+				alert("删除公网IP[" + name + "]成功！")
+     		});
+		  });
       }
 
       this.searchParam = ko.observable({
-        partition: '',
-        name: ''
-      })
-      this.reset = function(){
-        this.searchParam({
-          partition: '',
+    	  vdcUuid: ko.observable(""),
+          azUuid: ko.observable(""),
           name: ''
-        });
-        this.table.params({})
+      })
+      
+      //初始化查询参数
+      var subSearchVdc;//subscription.dispose();
+      var subSearchAz;
+      this.init = function(){
+    	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
+    	  $.VDC.getVDCs({},function(data){
+    			if(data && data.results){
+    				data.results.push({"name": "全部", "uuid": ""});
+    				self.searchVdcList(data.results);
+    			}
+    	  });
+    	  subSearchVdc = self.searchParam().vdcUuid.subscribe(function(val){
+			    self.searchAzList([{"name": "全部", "uuid": ""}]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VDC.getVdcAzs(val,{},function(data){
+		   				 if(data && data.results){
+		   					 data.results.push({"name": "全部", "uuid": ""});
+		   					 self.searchAzList(data.results);
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
+    	  
+    	  
+      }();
+      
+      //重置
+      this.reset = function(){
+          this.searchParam({
+          	vdcUuid: '',
+          	azUuid: '',
+          	name: ''
+          });
+          this.publicIpTable.params({})
       }
+      //搜索
       this.search = function(){
-        this.table.params(this.searchParam());
+    	  var p = {
+    		  "vdcUuid": this.searchParam().vdcUuid(),
+    		  "azUuid": this.searchParam().azUuid(),
+    		  "name": this.searchParam().name
+    	  };
+          this.publicIpTable.params(p);
       }
-      this.table = new DataTable([], {path: 'pages/resources/instances/publicips.json'})
-
-      //下拉选择
-      this.partitions = ko.observableArray([]);
-      this.loadPartitions = function(){
-        $.ajax("pages/resources/partitions/index.json").done(function(data){
-          self.partitions(data.results);
-        });
-      }
-      this.loadPartitions();
+      //公网IP表格
+      this.publicIpTable = new DataTable({
+    		  perPage: 10,
+              path: 'api/v5.0.0/publicIps',
+              loader: function(result){
+                  //result.userName_ = "超级管理员"; 
+                  return result;
+              }
+      });
+      
     }
      ko.applyBindings(new ViewModel_PublicIP(), $('#partition_publicips')[0]);
   })

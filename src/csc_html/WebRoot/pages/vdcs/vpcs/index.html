@@ -267,14 +267,9 @@
 					            网络名称
 					          </label>
 					          <div class="col-xs-8">
-					            <select class="form-control">
-					              <option>网络1</option>
-					              <option>网络2</option>
+					            <select class="form-control"  data-bind="options:extNetList,optionsText:'name',optionsValue:'originalId',value: routerVO().originalExtnetId">
 					            </select>
 					          </div>
-					          <div class="col-xs-1">
-					            <span class="text-danger inline m-l-n m-t-sm">*</span>
-					          </div>          
 					        </div>
 					      </div>
 					      <div class='modal-footer'>
@@ -489,7 +484,7 @@
 				      <div class='modal-header'>
 				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
 				           <h3 class='modal-title' data-bind="ifnot: secretGroupVO().uuid">创建安全组</h3>
-					       <h3 class='modal-title' data-bind="if: secretGroupVO().uuid">创建安全组</h3>
+					       <h3 class='modal-title' data-bind="if: secretGroupVO().uuid">修改安全组</h3>
 				      </div>
 				      <div class='modal-body form-horizontal'>
 				        <div class="form-group">
@@ -696,9 +691,9 @@
     		self.vdcList = ko.observableArray();
     		self.azList = ko.observableArray();
     		this.vpcVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
-					 "vdcUuid":ko.observable().extend({required: true}),
-					 "azUuid":ko.observable().extend({required: true})
+    			     "name":ko.observable("").extend({required: true,cscNameRule:true,maxLength:32}),
+					 "vdcUuid":ko.observable("").extend({required: true}),
+					 "azUuid":ko.observable("").extend({required: true})
 					});
     		
     		this.createVpcModal = ko.observable(false);
@@ -775,7 +770,6 @@
     			 });
     		}
     		
-
     	    this.searchParam = ko.observable({
     	      name: ""
     	    })
@@ -795,23 +789,28 @@
     		var self = this;
     		self.vdcList = ko.observableArray();
     		self.vpcList = ko.observableArray();
+    		self.extNetList = ko.observableArray();
     		self.routerVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true}),
-					 "vdcUuid":ko.observable().extend({required: true}),
-					 "vpcUuid":ko.observable().extend({required: true})
+    			     "name":ko.observable("").extend({required: true}),
+					 "vdcUuid":ko.observable("").extend({required: true}),
+					 "vpcUuid":ko.observable("").extend({required: true}),
+					 "originalExtnetId":ko.observable()
 					});
     		
     		self.createRouterModal = ko.observable(false);
        		var subscriptionVdc;//subscription.dispose();
+       		var subscriptionVpc;
     		self.createRouter = function(){
     			self.vdcList([]);
     			self.vpcList([]);
+    			self.extNetList([]);
     			//TODO 查询其他模块的接口
     			//self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
     			//self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
     			self.routerVO.fromJSON({"name":"",
 					 "vdcUuid":"",
 					 "vpcUuid": "",
+					 "originalExtnetId":"",
 					 "uuid":null
 					});
     			
@@ -823,6 +822,17 @@
     		   				 }
     		   			});
     	    	    })
+    	    	    
+    	    	subscriptionVpc =  self.routerVO().vpcUuid.subscribe(function(val){
+    	    		    self.extNetList([]);
+    	    			$.VPC.getVpcNet({vpcUuid:val,type:"EXTERNAL"},function(data){
+			    			  if(data && data.results){
+			    				  var extNet = [{"name":"请选择","originalId":""}];
+			    				  extNet =  extNet.concat(data.results);
+			    				  self.extNetList(extNet);
+			    			  }
+			    		});
+    	    	  });
     	    	    
     			$.VDC.getVDCs({},function(data){
     				 if(data && data.results){
@@ -837,9 +847,17 @@
     		
     		self.modifyRouter = function(rowObj, event){
     			subscriptionVdc && subscriptionVdc.dispose();
+    			subscriptionVpc && subscriptionVpc.dispose();
                 self.vdcList([{"uuid": rowObj.vdcUuid,"name": rowObj.vdcName}]);
     			self.vpcList([{"uuid": rowObj.vpcUuid,"name": rowObj.vpcName}]);
-    			self.routerVO.fromJSON(rowObj);
+    			$.VPC.getVpcNet({vpcUuid:rowObj.vpcUuid,type:"EXTERNAL"},function(data){
+	    			  if(data && data.results){
+	    				  var extNet = [{"name":"请选择","uuid":""}];
+	    				  extNet =  extNet.concat(data.results);
+	    				  self.extNetList(extNet);
+	    			  }
+	    			  self.routerVO.fromJSON(rowObj);
+	    		});
     			self.createRouterModal(true)	
     		}
       		
@@ -858,7 +876,8 @@
           	        if(self.routerVO.isValid()){
           	        	 var uuid = self.routerVO.toJSON().uuid;
             			 var putBody = {
-            					 "name":self.routerVO.toJSON().name
+            					 "name":self.routerVO.toJSON().name,
+            					 "originalExtnetId":self.routerVO.toJSON().originalExtnetId
             			 }
            				$.ROUTER.modifyRouter(uuid,putBody,function(data){
            					self.createRouterModal(false);
@@ -902,10 +921,10 @@
     		self.routerList = ko.observableArray();
     		
     		self.firewallVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
-					 "vdcUuid":ko.observable().extend({required: true}),
-					 "vpcUuid":ko.observable().extend({required: true}),
-					 "routerUuid":ko.observable().extend({required: true})
+    			     "name":ko.observable("").extend({required: true,cscNameRule:true,maxLength:32}),
+					 "vdcUuid":ko.observable("").extend({required: true}),
+					 "vpcUuid":ko.observable("").extend({required: true}),
+					 "routerUuid":ko.observable("").extend({required: true})
 					});
     	
     		var subscriptionVdc;//subscription.dispose();
@@ -949,8 +968,9 @@
     		}
     		
     		self.modifyFirewall = function(rowObj, event){
+    			console.log(rowObj)
     			subscriptionVdc && subscriptionVdc.dispose();
-        		subscriptionVdc  && subscriptionVpc.dispose();
+        		subscriptionVpc  && subscriptionVpc.dispose();
                 self.vdcList([{"uuid": rowObj.vdcUuid,"name": rowObj.vdcName}]);
     			self.vpcList([{"uuid": rowObj.vpcUuid,"name": rowObj.vpcName}]);
     			self.routerList([{"uuid": rowObj.routerUuid,"name": rowObj.routerName}]);
@@ -1014,20 +1034,34 @@
     		var self = this;
     		self.vdcList = ko.observableArray();
     		self.vpcList = ko.observableArray();
-    		self.secretgroupListTable = ko.observableArray();
     		
     		self.secretGroupVO = ko.validatedObservable({
-    			     "name":ko.observable().extend({required: true}),
-					 "vdcUuid":ko.observable().extend({required: true}),
-					 "vpcUuid":ko.observable().extend({required: true}),
+    			     "name":ko.observable("").extend({required: true}),
+					 "vdcUuid":ko.observable("").extend({required: true}),
+					 "vpcUuid":ko.observable("").extend({required: true}),
 					 "desc":""
 					});
     		     
     		self.createSecretGroupModel = ko.observable(false);
+      		var subscriptionVdc;//subscription.dispose();
     		self.createSecretGroup = function(){
-    			//TODO 查询其他模块的接口
-    			self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
-    			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
+    			self.vdcList([]);
+    			self.vpcList([]);
+    			subscriptionVdc = self.secretGroupVO().vdcUuid.subscribe(function(val){
+				    self.vpcList([]);
+	    	    	$.VPC.getVpcs({vdcUuid:val},function(data){
+		   				 if(data && data.results){
+		   					 self.vpcList(data.results);
+		   				 }
+		   			});
+	    	    })
+	    	    
+	    	    $.VDC.getVDCs({},function(data){
+    				 if(data && data.results){
+    					 self.vdcList(data.results);
+    				 }
+    			});
+	    	    
     			self.secretGroupVO.fromJSON({"name":"",
 					 "vdcUuid":"",
 					 "vpcUuid": "",
@@ -1038,7 +1072,8 @@
     		}
     		
     		self.modifySecretGroup = function(rowObj, event){
-    			//TODO 查询其他模块的接口
+    			subscriptionVpc  && subscriptionVpc.dispose();
+    			
                 self.vdcList([{"vdcUuid": "550E8400-E29B-11D4-A716-4466554400043","vdcName": "信息技术部"},{"vdcUuid": "e6d5c0c0-9a61-4911-a058-62b59cfe68fd","vdcName": "财务部"}])
     			self.vpcList([{"vpcUuid": "3ade0808-ef77-4a10-b75a-a35704041722","vpcName": "华南区"},{"vpcUuid": "550E8400-E29B-11D4-A716-4466554400043 ","vpcName": "华北区"}])
     			self.secretGroupVO.fromJSON(rowObj);
@@ -1053,8 +1088,8 @@
     				  ko.validation.group(self.secretGroupVO).showAllMessages();
     	    	        if(self.secretGroupVO.isValid()){
     	    	        	$.SECRETGROUP.createSecretGroup(self.secretGroupVO.toJSON(),function(data){
+    	    	        	 	self.secretGroupListTable.refreshData();
     	        			 	self.createSecretGroupModel(false);
-    	        		    	self.secretgroupListTable.refreshData();
     	        			});
     	    	        }
     			}else{
@@ -1065,8 +1100,8 @@
             					 "name":self.secretGroupVO.toJSON().name
             			 }
            				$.SECRETGROUP.modifySecretGroup(uuid,putBody,function(data){
+           					self.secretGroupListTable.refreshData();
            					self.createSecretGroupModel(false);
-            		    	self.secretgroupListTable.refreshData();
                			});
           	        }
     			}

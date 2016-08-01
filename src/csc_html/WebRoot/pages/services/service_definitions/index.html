@@ -118,7 +118,11 @@
 												<tr class="b-l b-l-3x b-l-info">
 													<td data-bind="text: $row.name"></td>
 													<td data-bind="text: $row.productName"></td>
-													<td><span class="label label-danger" data-bind="text: $row.stateDesc"></span></td>
+													<td>
+														<span class="label label-success" data-bind="visible: $row.stateDesc=='已发布',text: $row.stateDesc"></span>
+										                <span class="label label-default" data-bind="visible: $row.stateDesc=='未发布',text: $row.stateDesc"></span>
+										                <span class="label label-danger" data-bind="visible: $row.stateDesc=='已下线'||$row.stateDesc=='已销毁'||$row.stateDesc=='无效',text: $row.stateDesc"></span>
+													</td>
 													<td data-bind="text: $row.dirName"></td>
 													<td data-bind="text: $row.createUserName"></td>
 													<td data-bind="text: $row.effectTime"></td>
@@ -230,7 +234,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
 	    
-	var product = 'vm';  	
+	var product = 'VDC';  	
         
     var dirUuid = 0;//目录UUID
     //目录树start
@@ -326,24 +330,56 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       $.fn.zTree.init($("#serviceModalTree"), setting2, zNodes);
       
     }
-
+	<!-- vdc -->
     //初始化操作系统类型下拉框
     function loadVdcOsType(){
-      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=vdc&configCodeName=osType',function(data){      		
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VDC&configCodeName=osType&urlType=getSource',function(data){      		
       		viewModel.osList(data);
-          });
-      }
+         });
+    }
+    <!-- 云主机   -->
+    //初始化虚拟化类型下拉框数据
+    function loadVirtualPlatform(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getSource',function(data){
+      		viewModel.virtualPlatformList(data);
+         });
+    }
+    //初始化云主机CPU
+    function loadVmCpu(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
+      		viewModel.cpuList(data);
+         });
+    }
+    //初始化云主机内存
+    function loadVmMemory(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource',function(data){
+      		viewModel.memoryList(data);
+         });
+    }
+    //初始化发布范围VDC
+    function loadReleaseVdc(azUuids){
+      	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
+      		viewModel.vdcList(data);
+         });
+    } 
+    <!-- 云盘  -->
+  	//初始化云盘类型
+    function loadDiskType(){
+      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=DISK&configCodeName=diskType&urlType=getSource',function(data){
+      		viewModel.diskTypeList(data);
+         });
+    }
     
     $(document).ready(function(){
     	loadTree();		    //服务目录树
     	buildTree1();		//发布范围数据
         loadProduct();	   //获取产品下拉框数据
-        loadVdcOsType();  //获取VDC操作系统数据
+        
         //loadServiceTree();//加载弹窗的服务目录树
     });         	
   	
     function ViewModel(){
-      //服务目录start
+      <!--服务目录start-->
       var self = this;
       this.isAdd = ko.observable(false);
 
@@ -429,9 +465,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                alert('请选择要修改的目录！');
            }
       }
-      //服务目录end
+      <!--服务目录end-->
       
-      //服务状态修改start
+      <!--服务状态修改start-->
       this.serviceStateVO = ko.observable({    	  
           uuid: "",          
           state: ""
@@ -468,8 +504,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               alert('服务' + stateDesc + '成功！');
           });
       }
-      //服务状态修改end      
+      <!--服务状态修改end-->      
       
+      <!--服务信息列表start-->
       //查询条件参数
       this.searchParam = ko.observable({
     	  dirUUID: dirUuid,
@@ -496,28 +533,35 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.table = new DataTable([], {path: 'api/v5.0.0/service'});      
       //产品列表
       this.productList = ko.observableArray();            
+      <!--服务信息列表end-->
       
       
+      <!-- 创建服务弹窗 -->
       //创建服务弹窗
       this.isCreateService = ko.observable(false);
       this.createService = function(){    	      	   
     	  this.isCreateService(true);
-    	  loadServiceTree();
-    	  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker(
-  		      {
-  		        format:'YYYY-MM-DD',
-  		        startDate: moment().subtract( 29, 'days'),
-  		        endDate: Date.today().addDays(1),
-  		        minDate: Date.today(),
-  		        separator:'至'
-  		      }
-  		    );
+    	  loadServiceTree();//加载服务目录树
+    	  loadVdcOsType();  //获取VDC操作系统数据
+    	  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
+	        format:'YYYY-MM-DD',
+	        startDate: moment().subtract( 29, 'days'),
+	        endDate: Date.today().addDays(1),
+	        minDate: Date.today(),
+	        separator:'至'
+	      });
       }  
       //上一步  下一步 start
       this.step = ko.observable(1);
-          
+         
       this.nextStep = function(){
-    	  
+    	  //debugger
+    	  if(this.step() == 2 && this.selected_product()!='VDC'){
+    		  //根据azUuid获取发布范围接口数据调用
+    		  var azStrs = getAzUuids(this.azUuidList());
+    		  loadReleaseVdc(azStrs);
+    		  console.log(azStrs);
+    	  }
     	  this.step(this.step()+1);
       }
       this.prevStep = function(){
@@ -535,18 +579,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         }
         //修改图标end
         
-        //选择产品start
+        <!--选择产品start-->
         this.selected_product = ko.observable();
         this.selected_product(product);
         this.showItems = ko.observable('no');
-     	 
+     	//选择产品时的change事件
         this.changeValue = function(viewModel, event){
-          if(viewModel.selected_product()=='vdc'){
-          }else{
-            buildTree1(); 
+        	//选择VDC
+          if(viewModel.selected_product()=='VDC'){        	  
+        	  
+          }else if(viewModel.selected_product()=='VM'){//选择云主机
+        	  loadVirtualPlatform();//获取虚拟化平台数据
+        	  loadVmCpu();//获取虚拟机CPU
+        	  loadVmMemory();//获取虚拟机内存
+              buildTree1();
+          }else if(viewModel.selected_product()=='DISK'){//选择云盘
+        	  loadDiskType()//初始化云盘类型
+        	  buildTree1();
           }
         }
-        //选择产品end
+        
+        <!--选择产品end-->
   	    //添加IP start
         this.isAdd_Ip = ko.observable(false);
         this.addIp = function(){
@@ -556,7 +609,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           this.isAdd_Ip(false);
         }
         //添加IP  end
-        //添加计费规则start
+        
+        <!--  添加计费规则start -->
         function Package(type,value){
       	  this.type = ko.observable(type);
       	  this.value = ko.observable(value);
@@ -587,7 +641,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	  this.package_current.feeList(this.feeList.chosenItems());
       	  self.isAdd_Fee(false);
         }
-        //添加计费规则end
+        <!-- 添加计费规则end -->
         //服务信息
   	   this.serviceVO = ko.validatedObservable({
   		 name : ko.observable().extend({required : true}),
@@ -620,15 +674,49 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   		 rules : ko.observable(),
   		 serviceVm : {
   			 virtualName: ko.observable().extend({required : true}),
-  			 azUuid: ko.observableArray(),
-  			 osType: ko.observableArray(),
-  			 osTypeList : ko.observableArray(),
-  			 osVersion: ko.observableArray(),
-  			 cpu: ko.observableArray(),
-  			 memory: ko.observableArray()
-  		 }
+  			 azUuid: ko.observable(),
+  			 osType: ko.observable(),
+  			 osVersion: ko.observable(),
+  			 cpu: ko.observable(),
+  			 memory: ko.observable()
+  		 },
+  		 servicePartitions : ko.observable(),
+  		 azUuids : ko.observable()
   	   })
-  	 
+  	   //虚拟机的cpu
+  	   this.cpuCheckList = ko.observableArray();
+       //虚拟机的操作系统类型
+  	   this.osTypeCheckList = ko.observableArray();
+       //虚拟机的内存
+  	   this.memoryCheckList = ko.observableArray();
+  	   //获取az
+  	   this.azUuidList = ko.observableArray();
+       function getAzUuids(obj){
+    	  var azs = "";    	  
+    	  if(obj.length > 0){
+ 			  for(var i = 0; i < obj.length; i++){
+ 				 azs += obj[i]+","; 
+ 			  }
+ 		  }
+    	  if(azs != ""){
+    		  azs = azs.substring(0, azs.length - 1);
+    	  }    	  
+    	  return azs;
+       }
+  	   //获取所选择的发布范围以","分隔
+  	   this.releaseRange = ko.observableArray();
+  	   function getReleaseRanges(obj){  		   
+  		  var range = "";
+     	  for(var i = 0;i < obj.length;i++){
+     		 range += obj[i] + ",";
+     	  }
+     	  if(range != ""){
+     		 range = range.substring(0,range.length-1);
+     	  }
+     	  return range;
+        }
+  	    
+  	   
   	   //是否计费
   	   this.isFee = ko.observable("1");   
   	   //获取套餐值
@@ -657,19 +745,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	     		 rule = rule.substring(0,rule.length-1);
 	     	  }
 	     	  return rule;
-	       }
+	     }
+  	   	
         //保存方法
-  	    this.saveService = function(){    	  
-  		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));
-  		  this.serviceVO().charge(this.isFee());
-  		  this.serviceVO().rules(getRules(this.packages_chosen()));
-  		  
-  		  if(this.selected_product()=='vdc'){
-  			this.serviceVO().serviceVm = null;
-  	      }else if(this.selected_product()=='vm'){
+  	    this.saveService = function(){
+  	      this.serviceVO().charge(this.isFee());//是否计费
+  		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
+  		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
+  		
+  		  if(this.selected_product()=='VDC'){
+  			  this.serviceVO().serviceVm = null;
+  			  this.serviceVO().servicePartitions = null;
+  	      }else if(this.selected_product()=='VM'){
   	    	  this.serviceVO().serviceVDC = null;
-  	      }
-
+  	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
+  	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
+  	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
+  	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
+  	    	  this.serviceVO().serviceVm.azUuid(getAzUuids(this.azUuidList()));//虚拟机可用分区
+  	    	  this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
+  	    	  this.serviceVO().servicePartitions(getReleaseRanges(this.releaseRange()));//发布范围
+  	      }  		
   		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
   				self.table.refreshData();
   				self.isCreateService(false);
@@ -682,14 +778,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         //操作系统类型
         this.osList = ko.observableArray();
         
-        /*  云主机start*/
+        <!-- 云主机start -->
         //虚拟化类型选择事件
-        this.changeVirtualValue = function(viewModel, event){
-      	  
-           if(viewModel.selected_product()=='vm'){
-          	 csc.rest.get('api/v5.0.0/azs?virtualPlatform='+this.serviceVO().serviceVm.virtualName(),function(data){
-     			 	 debugger
-               });
+        this.changeVirtualValue = function(viewModel, event){      	  
+           if(viewModel.selected_product()=='VM'){
+        	 //初始化虚拟机操作系统类型数据        	 
+   	      	 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+this.serviceVO().serviceVm.virtualName(),function(data){   	      		 
+   	      		viewModel.vmOsTypeList(data);
+   	         });       	     
+        	   
+        	 //初始化可用分区数据
+          	 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+this.serviceVO().serviceVm.virtualName(),function(data1){
+          		viewModel.azList(data1.results);
+             });
            }else{
               
            }
@@ -701,25 +802,62 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         
         this.isAdd_osType = ko.observable(false);
 
-		this.osVersionList = new DataTable([], {path: "api/v5.0.0/billing/rules"});
+		this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
         
-        this.addOsType = function(package,event){        	
+        this.addOsType = function(package,event){
+          if(self.azUuidList().length <= 0){
+        	  alert("请选择可用分区！");
+        	  return;
+          }
+          if(self.osTypeCheckList().length <= 0){
+        	  alert("请选择操作系统类型！");
+        	  return;
+          }
       	  self.osType_current = package;
       	  self.osVersionList.params({
-      		  /* attrType: self.selected_product(),
-      		  cycle: package.value() */
+      		  azUuid: getAzUuids(self.azUuidList()),
+      		  osTypes: getAzUuids(self.osTypeCheckList())
       	  })
      	  self.isAdd_osType(true);              
         }
         this.addOsVersionToList = function(){
       	  this.osType_chosen(this.osVersionList.chosenItems());
-      	  this.isAdd_osType(false);
+      	  self.isAdd_osType(false);
         }
-        //添加操作系统版本end        
-		
+        //获取操作系统版本
+        function getOsVersion(obj){
+        	var osVersion = "";
+        	for(var i = 0;i < obj.length;i++){
+        		osVersion += obj[i].imageUuid + ",";
+        	}
+        	if(osVersion != ""){
+        		osVersion = osVersion.substring(0,osVersion.length-1);
+        	}
+        	return osVersion;
+        }
+        //添加操作系统版本end
         
-        /*云主机 end*/
+		//虚拟化平台数据
+		this.virtualPlatformList = ko.observableArray();
+        //云主机操作系统类型
+        this.vmOsTypeList = ko.observableArray();
+        //可用分区数据
+        this.azList = ko.observableArray();
+        //云主机CPU
+        this.cpuList = ko.observableArray();
+        //云主机内存
+        this.memoryList = ko.observableArray();
+        <!-- 云主机 end  -->
         
+        <!-- 云盘start  -->
+        this.diskTypeList = ko.observableArray();
+        this.diskTypeCheck = ko.observable("HDD");
+        <!-- 云盘end  -->
+        
+        
+        
+        //发布范围
+        this.vdcList = ko.observableArray();
     }
     
     var viewModel = new ViewModel();
@@ -727,7 +865,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   });
 </script>
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isCreateService }">
-<!-- <div class="simple_form form-horizontal" id="service_definitions_addService" data-bind="modal: { show: isCreateService }"> -->
   <div class='modal-dialog modal-lg' style="width:800px;">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -744,7 +881,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           <li data-bind="css: {'active': step()==3}">
             <a >3服务计费</a>
           </li>
-          <!-- ko if: selected_product()!='vdc' -->
+          <!-- ko if: selected_product()!='VDC' -->
           <li data-bind="css: {'active': step()==4}">
             <a >4发布范围</a>
           </li>
@@ -776,13 +913,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <label class="col-xs-3 control-label">产品：</label>
                 <div class="col-xs-7">
                   <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
-                    <option value="vdc">VDC</option>
-                    <option value="vm">云主机</option>
-                    <option value="ssh">SSH密钥</option>
-                    <option value="vdisk">云硬盘</option>
-                    <option value="ip">公网IP</option>
-                    <option value="balancing">负载均衡器</option>
-                    <option value="storage">对象存储</option>
                   </select>
                 </div>
               </div>
@@ -831,12 +961,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 
           <div class="tab-pane" data-bind="css: {'active': step()==2}">
             <!-- 云主机 start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='vm'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='VM'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">虚拟化：</label>
                 <div class="col-xs-9">
-                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: serviceVO().serviceVm.virtualName,event:{'change':changeVirtualValue}">
-                    <option value="">KVM</option>
+                  <select class="form-control" data-bind="options:virtualPlatformList,optionsText:'value',optionsValue:'value',value: serviceVO().serviceVm.virtualName,event:{'change':changeVirtualValue}">                    
                   </select>
                 </div>
               </div>
@@ -851,16 +980,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     </div>
                   </div>
                   <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 可用分区1
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList"><span data-bind="text:name"></span>
                       </label>
                     </div>
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox"> 可用分区2
-                      </label>
-                    </div>
+                    <!-- /ko -->                    
                   </div>
                 </div>
               </div>
@@ -872,21 +998,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       <input type="checkbox" value=""> 全选
                     </label>
                   </div>
+                  <!-- ko foreach : vmOsTypeList -->
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> windows
+                       <input type="checkbox" data-bind="value: value,checked: $root.osTypeCheckList"><span data-bind="text:value"></span>
                     </label>
                   </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> linux
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> aix
-                    </label>
-                  </div>
+                  <!-- /ko -->                 
                 </div>
               </div>
               <div class="form-group">
@@ -895,7 +1013,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="panel panel-default" style="margin:0;padding-bottom:10px">
                     <table class="table table-striped">
                       <thead>
-                        <th>虚拟化</th>
+                        <th>可用分区</th>
                         <th>操作系统类型</th>
                         <th>操作系统版本</th>
                         <th>关联镜象</th>
@@ -903,10 +1021,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </thead>
                       <tbody data-bind="foreach: osType_chosen">
                         <tr>
-                          <td data-bind="text: attrType">KVM</td>
-                          <td data-bind="text: cycle">windows</td>
-                          <td data-bind="text: name">windows server 2008 64bit</td>
-                          <td data-bind="text: state">windows2008</td>
+                          <td data-bind="text: zaName"></td>
+                          <td data-bind="text: osType"></td>
+                          <td data-bind="text: osVersion"></td>
+                          <td data-bind="text: imageName"></td>
                           <td><a class="btn btn-xs btn-default" onclick="confirm('确定删除吗？')">删除</a></td>
                         </tr>
                       </tbody>
@@ -923,36 +1041,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       <input type="checkbox" value=""> 全选
                     </label>
                   </div>
+                  <!-- ko foreach : cpuList  -->
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 1
+                       <input type="checkbox" data-bind="value: value,checked: $root.cpuCheckList"><span data-bind="text: value"></span>
                     </label>
                   </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 2
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 4
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 8
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 16
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 32
-                    </label>
-                  </div>
+                  <!-- /ko -->                  
                 </div>
               </div>
               <div class="form-group">
@@ -963,47 +1058,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       <input type="checkbox" value=""> 全选
                     </label>
                   </div>
+                  <!-- ko foreach : memoryList   -->
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 1
+                       <input type="checkbox" data-bind="value: value,checked: $root.memoryCheckList"><span data-bind="text:value"></span>
                     </label>
                   </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 2
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 4
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 8
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 16
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 32
-                    </label>
-                  </div>
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" value=""> 64
-                    </label>
-                  </div>
+                  <!-- /ko -->                  
                 </div>
               </div>
             </div>
             <!-- 云主机 end -->
             <!-- SSH密钥 start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='ssh'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='SECRET_KEY'">
               
               <div class="form-group">
                 <label class="col-xs-2 control-label">可用分区：</label>
@@ -1032,23 +1099,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             </div>
             <!-- SSH密钥 end -->
             <!-- 云硬盘 start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='vdisk'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='DISK'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">硬盘类型：</label>
                 <div class="col-xs-9">
                   <div class="form-inline">
+                  <!-- ko foreach : diskTypeList   -->
                     <div class="radio">
                       <label>
-                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="option1" checked=""> SSD
+                         <input type="radio" data-bind="value: value,checked: $root.diskTypeCheck"><span data-bind="text:value"></span>
                       </label>
                     </div>
-                    <div class="radio">
-                      <label>
-                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="option1" checked=""> HHD
-                      </label>
-                    </div>
-                  </div>
-                  
+                  <!-- /ko -->            
+                  </div>                  
                 </div>
               </div>
               <div class="form-group">
@@ -1078,7 +1141,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             </div>
             <!-- 云硬盘 end -->
             <!-- VDC start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='vdc'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='VDC'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">支持操作系统：</label>
                 <div class="col-xs-9 form-inline">
@@ -1216,7 +1279,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             </div>
             <!-- VDC end -->
             <!-- 公网IP start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='ip'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='PUBLICIP'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">可用分区：</label>
                 <div class="col-xs-9">
@@ -1275,7 +1338,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             
             <!-- 公网IP end -->
             <!-- 负载均衡 start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='balancing'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='LOAD_BALANCING'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">可用分区：</label>
                 <div class="col-xs-9">
@@ -1303,7 +1366,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             </div>
             <!-- 负载均衡 end -->
             <!-- 对象存储 start -->
-            <div class='form-horizontal row' data-bind="if: selected_product()=='storage'">
+            <div class='form-horizontal row' data-bind="if: selected_product()=='OBJECT_STORAGE'">
               <div class="form-group">
                 <label class="col-xs-2 control-label">可用分区：</label>
                 <div class="col-xs-9">
@@ -1385,13 +1448,29 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
             </div>                      
           </div>
           
-          <div class="tab-pane" data-bind="if: selected_product()!='vdc',  css: {'active': step()==4}">
+          <div class="tab-pane" data-bind="if: selected_product()!='VDC',  css: {'active': step()==4}">
             <div class='form-horizontal row'>
               <div class="form-group">
                 <label class="col-xs-2 control-label">发布范围：</label>
                 <div class="col-xs-9">
-                  <div class="panel panel-default" style="margin:0;padding-bottom:10px">
+                  <!-- <div class="panel panel-default" style="margin:0;padding-bottom:10px">
                     <div id="serviceModalTree" class="ztree release"></div>
+                  </div> -->
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : vdcList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.releaseRange"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->                    
                   </div>
                 </div>
               </div>
@@ -1402,9 +1481,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       </div>
       <div class='modal-footer' style="text-align:center;">
         <a class="btn btn-default btn-info service-step-btn-pre" data-bind="visible: step()>1, click: prevStep">上一步</a>
-        <a class="btn btn-default btn-info service-step-btn-next" data-bind="visible: (selected_product() !='vdc' && step()<4) || (selected_product() =='vdc' && step()<3), click: nextStep">下一步</a>        
-        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='vdc' &&  step()==3), click: saveService">保存</a>
-        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='vdc' &&  step()==3)">保存并发布</a>
+        <a class="btn btn-default btn-info service-step-btn-next" data-bind="visible: (selected_product() !='VDC' && step()<4) || (selected_product() =='VDC' && step()<3), click: nextStep">下一步</a>        
+        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3), click: saveService">保存</a>
+        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3)">保存并发布</a>
         <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
       </div>
     </div>
@@ -1499,10 +1578,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 			         </label>
 			       </div> 
 			     </td>
-                 <td data-bind="text: attrType"></td>
-                 <td data-bind="text: name"></td>
-                 <td data-bind="text: price"></td>
-                 <td data-bind="text: price"></td>
+                 <td data-bind="text: imageName"></td>
+                 <td data-bind="text: osType"></td>
+                 <td data-bind="text: osVersion"></td>
+                 <td data-bind="text: zaName"></td>
                </tr>
                <!-- /ko -->
              </tbody>
