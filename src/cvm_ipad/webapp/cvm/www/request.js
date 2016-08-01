@@ -44,9 +44,14 @@ function RestServiceJs(newurl) {
   };  
    
   self.get = function(id, params, callback) {
+    var end = '';
+      if(self.myurl.indexOf('demoapi')>-1){
+        self.myurl = self.myurl.replace('.json','');
+        end = '.json';
+      }
       $.ajax({  
           type: 'GET',  
-          url: self.myurl + '/' + id,
+          url: self.myurl + '/' + id +end,
           data: params, 
           contentType: 'application/json',  
           success: callback,  

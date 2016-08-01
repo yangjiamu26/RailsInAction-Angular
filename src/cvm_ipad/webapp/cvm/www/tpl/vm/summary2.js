@@ -6,7 +6,7 @@ myApp.onPageInit("vm-summary2", function(page) {
     });
     this.loadData = function(){
       var self = this;
-      $.ajax("tpl/vm/summary2.json?id="+page.query.id).done(function(data){
+      $$.getJSON("tpl/vm/summary2.json?id="+page.query.id, function(data){
         myApp.pullToRefreshDone();
         self.summary(data);
 
