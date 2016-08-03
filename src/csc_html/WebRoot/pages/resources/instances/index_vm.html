@@ -246,7 +246,7 @@
                       <div id="resource_instance_vm_add_ssh">
 	                      <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
 	                      <div class="col-xs-2">
-	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择密钥',value: currentVO().sshKey, options: $root.add_sshKeys, optionsText: 'name', optionsValue: 'uuid'"></select>
+	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择密钥',value: currentVO().sshKey, options: $root.add_sshKeys, optionsText: 'name', optionsValue: 'name'"></select>
 	                      </div>
 	                      <div class="col-xs-1">
 	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -409,7 +409,7 @@
         </div>
         <!-- end -->
 
-        <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateTime }">
+        <div role="dialog" aria-hidden="true" id="modal_edit_validate" class="modal fade" data-bind="modal: { show: isValidateTime }">
           <div class='modal-dialog modal-md'>
             <div class='modal-content'>
               <div class='modal-header'>
@@ -419,7 +419,7 @@
                 <div class="form-group">
                   <label class="col-sm-3 control-label">有效期：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" data-bind="value: validateTimeVO().time">
+                    <input type="text" value="" class="form-control inline w" id="resource_instance_vm_validate_edit" data-bind="value: validateTimeVO().time">
                   </div>
                 </div>
               </div>
@@ -625,8 +625,7 @@
       this.search = function(){
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([], {path: 'api/v5.0.0/vms'});
- 
+      this.table = new DataTable([]);
       //获取可用分区数据
       this.partitions = ko.observableArray([]);
       this.loadPartitions = function(){
@@ -647,9 +646,10 @@
     			  //self.reBandai();
     			  self.partitions(azList);
     		  }
+    		  self.table.params(self.searchParam());
+    		  self.table.path('api/v5.0.0/vms');
     	  });
       }
-      this.loadPartitions();
       
       
       //获取VDC数据
@@ -672,6 +672,7 @@
     			  //self.reBandai();
     			  self.vdcs(vdcList);
     		  }
+    		  self.loadPartitions();
     	  });
       }
       
@@ -959,6 +960,27 @@
       //------------------------------------------云硬盘列表结束----------------------------
       
       //------------------------------------------修改有效期开始----------------------------
+      //modal_edit_validate
+      $("#modal_edit_validate").on("shown.bs.modal",function(){
+		  
+          // daterange             
+          $('#resource_instance_vm_validate_edit').val(self.validateTimeVO().time()).daterangepicker(
+            {
+              format:'YYYY/MM/DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+
+          ); 
+
+      })
       this.validateTimeVO = ko.validatedObservable({
     	  time: ko.observable(),
     	  uuid: ko.observable()
@@ -967,12 +989,13 @@
       this.editValidateTime = function(object, event){
     	  self.isValidateTime(true);
     	  self.validateTimeVO().uuid(object.uuid);
+    	  self.validateTimeVO().time(object.expiryTime)
       }
       
       //修改有效期
       this.validateTime = function(){
     	  var putBody = {};
-    	  putBody.expiryDate = self.validateTimeVO().time();
+    	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
     	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
 		 		systemMsg.alert('云主机修改有效期成功！');
 		 		self.isValidateTime(false);

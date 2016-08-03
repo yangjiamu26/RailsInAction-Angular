@@ -558,7 +558,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             </div>	
             
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'250px'}">
-              <div class='streamline b-l m-b b-warning' data-bind="visible:(alarmList().length>0) ,foreach:alarmList">
+              <div class='streamline b-l m-b b-warning'>
                 <!-- <div class='sl-item b-l'>
                   <div class='m-l'>
                     <div><span class='text-muted small'>5分钟前</span> <span class='text-danger'>云主机告警</span> <span>告警对象名称</span></div>
@@ -589,15 +589,18 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                     <p><span class='text-danger'>VM-123</span>上的磁盘使用速率达到2.67KB/S，该报警设置为在磁盘使用速率超过1.00KB/s时触发</p>
                   </div>
                 </div> -->
-                <div class='sl-item b-l b-info'>
-                  <div class='m-l'>
-                    <div><span class='text-muted small' data-bind="text:alarmTime"></span> <span class='text-danger' data-bind="text:alarmType">云硬盘告警</span> <span data-bind="text:alarmObject">告警对象名称</span></div>
-                    <p data-bind="html:(&quot;<span class='text-danger'>&quot;+alarmInstance+&quot;</span>&quot;+alarmContent)"></p>
-                  </div>
+                <div data-bind="visible:(alarmList().length>0) ,foreach:alarmList">
+	                <div class='sl-item b-l' data-bind="css:$root.alarmStateCss(state)">
+	                  <div class='m-l'>
+	                    <div><span class='text-muted small' data-bind="text:alarmTime"></span> <span class='text-danger' data-bind="text:alarmType">云硬盘告警</span> <span data-bind="text:alarmObject">告警对象名称</span></div>
+	                    <p data-bind="html:(&quot;<span class='text-danger'>&quot;+alarmInstance+&quot;</span>上的&quot;+alarmContent)"></p>
+	                  </div>
+	                </div>
                 </div>
+                <div data-bind="visible:(alarmList().length==0),text:'当前无告警'">
+	            </div>
               </div>
-              <div data-bind="visible:(alarmList().length==0),text:'当前无告警'">
-              </div>
+              
             </div>
           </div>
         </td>
@@ -1429,6 +1432,15 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       csc.rest.get("api/v5.0.0/homepage/alarm?firstResult=0&maxResult=5", function(data){
      	 self.alarmList(data);
       });
+      //告警状态不同颜色不同
+   	  this.alarmStateCss = function(state){
+       	  switch(state){
+       	  case '1':
+       		  return "b-warning";
+       	  case '2':
+       		  return "b-success";
+       	  }
+      }
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);

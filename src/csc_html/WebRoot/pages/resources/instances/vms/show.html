@@ -3,7 +3,7 @@
     <li>当前位置：</li>
     <li>资源</li>
     <li><a href="#pages/resources/instances/index">资源实例</a></li>
-    <li class="active">云主机-0-0</li>
+    <li class="active" data-bind="text: $root.show_vm_name"></li>
   </ol>
 </div>
 <div class="wrapper-md">
@@ -13,8 +13,6 @@
         <a aria-controls='instance_vm_summary' data-toggle='tab' href='#instance_vm_summary' role='tab'>云主机摘要</a></li>
       <li role='presentation'>
         <a aria-controls='instance_vm_softwares' data-toggle='tab' id="vm_monitor_tab" href='#instance_vm_monitor' role='tab'>监控</a></li>
-      <li role='presentation'>
-        <a aria-controls='instance_vm_scripts' data-toggle='tab' href='#instance_vm_tasks' role='tab'>调度任务</a></li>
       <li role='presentation'>
     </ul>
     <div class='tab-content'>
@@ -31,7 +29,7 @@
               <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-default" >挂起</button></a>
               <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED'"><button class="btn btn-sm btn-default" >恢复</button></a>
               <a data-bind="click: $root.vmAdjustment"><button class="btn btn-sm btn-default" >调整资源</button></a>
-              <a><button class="btn btn-sm btn-default">有效时间变更</button></a>
+              <a data-bind="click: $root.editValidateTime"><button class="btn btn-sm btn-default">有效时间变更</button></a>
               <a data-bind="click: $root.validate"><button class="btn btn-sm btn-default">终止</button></a>
               <a data-bind="click: $root.removeOne"><button class="btn btn-sm btn-default" >删除</button></a>
             </div>
@@ -106,16 +104,39 @@
               </div>
             </div>
           </div>
+          
+          <div role="dialog" aria-hidden="true" id="modal_edit_validate_1" class="modal fade" data-bind="modal: { show: isValidateTime }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">有效期：</label>
+                  <div class="col-sm-8">
+                    <input type="text" value="" class="form-control inline w" id="resource_instance_vm_validate_edit_1" data-bind="value: validateTimeVO().time">
+                  </div>
+                </div>
+              </div>
+              <div class='modal-footer' style="text-align:center;">
+                <a class="btn btn-default btn-info" data-bind="click: validateTime">确定</a>
+                <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
           <div class="row wrapper">
             <div class="col-xs-9 m-b-xs">
               <h4>云硬盘列表</h4>
             </div>
             <div class="col-xs-3 m-b-xs">
-              <button class="btn btn-sm btn-default pull-right">刷新</button>
+              <button class="btn btn-sm btn-default pull-right" data-bind="click: $root.reloadVolume">刷新</button>
             </div>
           </div>         
           <div id='instance_storages'>
-            <div class='table-responsive no-height'>
+            <div class='table-responsive no-height' data-bind="with: vm_volume_table">
               <table class='table table-striped'>
                 <thead>
                   <tr>
@@ -130,17 +151,25 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>硬盘1</td>
-                    <td>系统盘</td>
-                    <td>cnware</td>
-                    <td>datastore</td>
-                    <td>19</td>
-                    <td></td>
-                    <td>/asdklf/woeijjf</td>
-                    <td>
-                      <a href="#">扩展</a>
-                  </tr>
+	                <tr data-bind="visible: showNoData">
+		              <td colspan=14 class="aligncenter">
+		                This table has no data.
+		              </td>
+		            </tr>
+	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+	                <tr>
+	                    <td data-bind="text: volumeName"></td>
+	                    <td ></td>
+	                    <td ></td>
+	                    <td ></td>
+	                    <td data-bind="text: volumeSize"></td>
+	                    <td data-bind="text: volumeStatus"></td>
+	                    <td data-bind="text: path"></td>
+	                    <td>
+	                      <a data-bind="click: $root.storageExpand">扩展</a>
+	                    </td>
+                  	</tr>
+                  	<!-- /ko -->
                 </tbody>
               </table>
             </div>
@@ -270,64 +299,6 @@
         </div>
       </div>
       
-      <div class='tab-pane' id='instance_vm_tasks' role='tabpanel'>
-        <div class='table-responsive' data-bind="with: task_table">
-          <table class='table table-striped'>
-            <thead>
-              <tr>
-                <th>任务编号</th>
-                <th>任务名称</th>
-                <th>任务进度</th>
-                <th>任务状态</th>
-                <th>操作人</th>
-                <th>开始时间</th>
-                <th>完成时间</th>
-                </tr>
-            </thead>
-            <tbody>
-	            <tr data-bind="visible: showNoData">
-	              <td colspan=14 class="aligncenter">
-	                This table has no data.
-	              </td>
-	            </tr>
-              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-              <tr>
-                <td data-bind="text: taskId"></td>
-                <td data-bind="text: taskName"></td>
-                <td data-bind="text: progress">
-                 <!--  <div class="progress progress-xs">
-                      <div class="progress-bar progress-bar-info" data-toggle="tooltip" data-bind="attr: { 'width': $row.progress+'%', 'data-original-title': $row.progress+'%'}"></div>
-                  </div>  -->     
-                </td>
-                <td>
-                	<span class="label label-success" data-bind="if: $row.state == 'success'">成功</span>
-                	<span class="label label-warning" data-bind="if: $row.state == 'active'">进行中</span>
-                	<span class="label label-danger" data-bind="if: $row.state == 'completedAndError'">失败</span>
-                </td>
-                <td data-bind="text: user"></td>
-                <td data-bind="text: executeDate"></td>
-                <td data-bind="text: endDate"></td>
-              </tr>
-              <!-- /ko -->
-            </tbody>
-          </table>
-        </div>
-        <footer class="panel-footer" data-bind="with: task_table, visible: task_table.pages() > 1">
-          <ul class="pagination">
-            <li data-bind="css: leftPagerClass, click: prevPage">
-              <a href="#">&laquo;</a>
-            </li>
-            <!-- ko foreach: {data: (new Array(pages()))} -->
-            <li data-bind="css: $parent.pageClass($index() + 1)">
-              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-            </li>
-            <!-- /ko -->
-            <li data-bind="css: rightPagerClass, click: nextPage">
-              <a href="#">&raquo;</a>
-            </li>
-          </ul>
-        </footer>
-      </div>
       
     </div>
   </div>
@@ -647,17 +618,55 @@
 		</div>
 	</div>
 </div>
-        
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isStorageExpand }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>拓展云硬盘</h3>
+        </div>
+        <div class='modal-body form-horizontal row'>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">云硬盘名称：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" placeholder="盘1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">云硬盘大小(GB)：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" placeholder="4">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" placeholder="">
+              可调整范围为：16至39.38
+            </div>
+          </div>
+
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+</div>        
         
 <div id="resource_instance_show_vm_console" style="display:none;"></div> 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/highcharts/highstock.js"]
+  //var scripts = [null, "assets/lib/highcharts/highstock.js"]
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","assets/lib/highcharts/highstock.js"];
+  
   var cpu_chart ;
   var vmUuid;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     vmUuid = args.vmUuid;
 	var vmId = args.vmId;
+	this.show_vm_name = ko.observable("");
     function ViewModel(){
       var self = this;
     	
@@ -666,6 +675,7 @@
       this.isInstallVM = ko.observable(false);
       this.isUpdate = ko.observable(false);
       this.isVmAdjustment = ko.observable(false);
+      this.isValidateTime = ko.observable(false);
 
       this.install = function(){
         this.isInstall(true);
@@ -689,22 +699,42 @@
       //获取云主机摘要
       this.vmVO = ko.validatedObservable({});
       
-      csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
-		  if(data){
-			  self.vmVO(data);
-		  }
-	  });
+      this.reloadVmInfo = function(){
+    	  csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
+    		  if(data){
+    			  self.vmVO(data);
+    			  self.reloadVolume();
+    		  }
+    	  });
+      }
       
-      //获取调度任务列表
+      this.reloadVmInfo();
       
-      this.task_table = new DataTable([], {path: 'api/v5.0.0/tasks'});
-      this.searchParam = ko.observable({
-          targetId:vmId,
-          targetType:"VM"
-        })
-      this.task_table.params(this.searchParam());
+      //------------------------------------------云硬盘列表开始----------------------------
+      this.vm_volume_table = new DataTable([]);
+      
+      this.volume_param = ko.observable({
+    	  firstResult: -1,
+    	  maxResult: -1,
+          volumeServerId: vmUuid
+      })
+        
+      this.reloadVolume = function(){
+    	  self.vm_volume_table.params(self.volume_param());
+		  self.vm_volume_table.path('api/v5.0.0/volumes');
+      }
+      
+      this.isStorageExpand = ko.observable(false);
+
+      this.storageExpand = function(){
+        self.isStorageExpand(true);
+      };
+      //------------------------------------------云硬盘列表结束----------------------------
+      
+      
       
       //--------------------------------操作开始---------------------------------
+      
       //控制台
       this.console = function(){
     	  csc.rest.get('api/v5.0.0/vms/'+vmUuid+'/vmConsole',function(data){
@@ -722,6 +752,7 @@
     			var startPutBody = {"operationType":"START"};
       			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('启动云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
       		});
       }
@@ -731,6 +762,7 @@
   			var startPutBody = {"operationType":"STOP"};
     			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('关闭云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -740,6 +772,7 @@
   			var startPutBody = {"operationType":"RESTART"};
     			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -749,6 +782,7 @@
   			var startPutBody = {"operationType":"FORCERESTART"};
     			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('强制重启云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -758,6 +792,7 @@
   			var startPutBody = {"operationType":"SUSPEND"};
     			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('挂起云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -767,6 +802,7 @@
   			var startPutBody = {"operationType":"RESUME"};
     			csc.rest.put('api/v5.0.0/vms/'+self.vmVO().uuid,startPutBody,function(data){
 			 		systemMsg.alert('恢复云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -775,6 +811,7 @@
     	  systemMsg.confirm("确定要删除云主机 "+self.vmVO().name+"？",function(){
     			csc.rest.del('api/v5.0.0/vms/'+self.vmVO().uuid,function(data){
 			 		systemMsg.alert('删除云主机请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.reloadVmInfo();
 			    });
     		});
       }
@@ -785,7 +822,7 @@
     		var putBody = {"expiryDate":""};
   			csc.rest.put('api/v5.0.0/resourceInstances/'+self.vmVO().uuid,putBody,function(data){
 			 		systemMsg.alert('云主机终止成功！');
-			 		self.table.refreshData();
+			 		self.reloadVmInfo();
 			    });
   		});
       }
@@ -818,10 +855,55 @@
     	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
 		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
 		 		self.isVmAdjustment(false);
+		 		self.reloadVmInfo();
 		  });
       }
       //------------------------------------------调整配置结束------------------------------
       
+    //------------------------------------------修改有效期开始----------------------------
+      //modal_edit_validate
+     $("#modal_edit_validate_1").on("shown.bs.modal",function(){
+		  
+          // daterange             
+          $('#resource_instance_vm_validate_edit_1').val(self.validateTimeVO().time()).daterangepicker(
+            {
+              format:'YYYY/MM/DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+
+          ); 
+
+      })
+      this.validateTimeVO = ko.validatedObservable({
+    	  time: ko.observable(),
+    	  uuid: ko.observable()
+      });
+      
+      this.editValidateTime = function(){
+    	  self.isValidateTime(true);
+    	  self.validateTimeVO().uuid(self.vmVO().uuid);
+    	  self.validateTimeVO().time(self.vmVO().expiryTime);
+      }
+      
+      //修改有效期
+      this.validateTime = function(){
+    	  var putBody = {};
+    	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
+    	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
+		 		systemMsg.alert('云主机修改有效期成功！');
+		 		self.isValidateTime(false);
+		 		self.reloadVmInfo();
+		  });
+      }
+      //------------------------------------------修改有效期结束----------------------------
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  

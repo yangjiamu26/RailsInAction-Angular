@@ -218,23 +218,23 @@
 														<tr>
 															<th><img src="assets/img/windisc.png" alt=""
 																width="60" height="60"></th>
-															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+															<td class="v-middle text-lg"><span data-bind="text:serviceName"></span></td>
 														</tr>
 														<tr>
 															<th>可用分区：</th>
-															<td>分区1/分区2</td>
+															<td data-bind="text:azName"></td>
 														</tr>
 														<tr>
 															<th>硬盘类型：</th>
-															<td>SSD</td>
+															<td data-bind="text:diskType"></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
-															<td>是</td>
+															<td data-bind="text:isFee"></td>
 														</tr>
 														<tr>
 															<th>服务介绍：</th>
-															<td>服务介绍文字。。</td>
+															<td data-bind="text:serviceDesc"></td>
 														</tr>
 													</tbody>
 												</table>
@@ -276,19 +276,19 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+															<td class="v-middle text-lg" data-bind="text:serviceName"><span></span></td>
 														</tr>
 														<tr>
 															<th>可用分区：</th>
-															<td>分区1/分区2</td>
+															<td data-bind="text:azName"></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
-															<td>是</td>
+															<td data-bind="text:isFee"></td>
 														</tr>
 														<tr>
 															<th>服务介绍：</th>
-															<td>服务介绍文字。。</td>
+															<td data-bind="serviceDesc"></td>
 														</tr>
 													</tbody>
 												</table>
@@ -569,11 +569,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	   //可用分区下拉列表
 	    this.azList = ko.observableArray();
 	   
-	    this.vdcChange = function(info,obj,event){//根据变化的vdc及服务ID查找其下的可用分区
+	    this.vdcChange = function(obj){//根据变化的vdc及服务ID查找其下的可用分区
 	    	var _self = this;
 	    	_self.azList.removeAll();
-	        csc.rest.get("api/v5.0.0/cart/getAzList/1/"+obj.vdcUuid(), function(data){//需修改为服务UUID作为参数传递
-	        	_self.azList(data);
+	        csc.rest.get("api/v5.0.0/vdcs/"+obj.vdcUuid()+"/azs", function(data){//需修改为服务UUID作为参数传递
+	        	_self.azList(data.results);
 	        });	        
 	    };
 	    
@@ -702,11 +702,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				self.model_VDC().vdcCartInfo().osTypes(osTypeVdc);
 				
 				if(self.model_VDC.isValid()){
-					console.log(self.model_VDC.toJSON());
-				 	 csc.rest.post('api/v5.0.0/order-apply/vdcs',self.model_VDC.toJSON(),function(data){
-				 		systemMsg.alert('成功提交订单！');
-				 		self.isAdd_VDC(false);
-				    }); 
+				 	 csc.rest.get('api/v5.0.0/orders/item/instance-name?type=VDC&name='+self.model_VDC().vdcCartInfo().name,function(result){	
+					 		 if(result.result==true){
+								  systemMsg.alert(result.message);
+							  }else{
+							 	 csc.rest.post('api/v5.0.0/order-apply/vdcs',self.model_VDC.toJSON(),function(data){
+								 		systemMsg.alert('成功提交订单！');
+								 		self.isAdd_VDC(false);
+								    });
+							  }
+					    });
 				}
 			}else if(self.productType()=='2'){
 				if(this.model_VM.isValid()){
@@ -837,13 +842,32 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    //################## 云硬盘 start ##################
 	    this.isAdd_VdiskSingle = ko.observable(false);
 	    this.isAdd_VdiskMore = ko.observable(false);
-	    this.add_Vdisk = function(){
-	    	self.isAdd_VdiskSingle(true);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
-	        self.num_vdisk(0);
-	        self.num_vdisk(1);
+	    
+	    var diskServiceUuid;
+	    var diskCharge;
+	    var diskChargeType;
+	    this.diskCharge=ko.observable("");
+	    this.add_Vdisk = function(obj){
+	    	
+	    	diskServiceUuid=obj.serviceUuid;
+	    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
+	    		console.log(data);
+	    		self.isAdd_VdiskSingle(true);
+	    		if(data.charge==1){
+	    			self.diskCharge("NO");
+		    	}else{
+		    		self.diskCharge("YES");
+		    		diskChargeType = setArrayCharge(data.chargeType);
+		    		console.log(diskChargeType);
+		    	}
+	    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){//需修改为服务UUID作为参数传递
+	    			self.vdcList(result);
+			        self.num_vdisk(0);
+			        self.num_vdisk(1);
+		        });
+
+	    	});
+
 	    }
 	    
 	    this.changeList_Vdisk = function(){
@@ -881,6 +905,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
         	for(var i=0; i<num; i++){
 	    		self.model_Vdisk().vdiskCartInfo.push({
 	    			name: ko.observable("").extend({required:true}),
+	    			serviceUuid:ko.observable(diskServiceUuid),
 					vdcUuid: ko.observable(""),
 					size: ko.observable(""),
 					azUuid:ko.observable(""),
@@ -890,11 +915,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					applyTime:ko.observable(""),
 					applyType:ko.observable("3"),
 					azList:ko.observableArray([]),
-					vmList:ko.observableArray([])
+					vmList:ko.observableArray([]),
+					charge:ko.observable(self.diskCharge()),
+					billRuleArray:ko.observableArray(diskChargeType),
+					price:ko.observable("")
 	    		})
 	    	}	
 	    });
-	    this.table_Vdisk = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+	    this.table_Vdisk = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK',perPage:6});
 	    //################## 云硬盘 end ##################
 	    
 	  
@@ -960,7 +988,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	}	    
 	    	changeDateFormat();
 	    });
-	    this.table_ObjectStorage = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+	    this.table_ObjectStorage = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/OBJSTORAGE',perPage:6});
 	  //################## 对象存储 end ##################
 	  
 	  //################## 公网IP start ##################
@@ -1031,8 +1059,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  
 	    this.osTypeArray = ko.observableArray([]);
 	    
-	    function setArrayCharge(attr){
-	    	console.log(attr);
+	    function setArrayCharge(value){
+	    	var attr = getArrayByString(value);
 	    	var arrayCharge = [];
 	    	for(var i=0;i<attr.length;i++){
 	    		if(attr[i]=="DAY"){
@@ -1058,12 +1086,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        	console.log(data);
 		    	self.isAdd_VDC(true);
 		    	self.productType(1);
-		    	console.log(data.serviceVDC.osType);
 		    	var osType = data.serviceVDC.osType;
 		    	var isLimit = data.serviceVDC.isLimit;
 		    	self.osTypeArray(getArrayByString(osType));
-		    	console.log(setArrayCharge(getArrayByString(data.chargeType)));
-		    	self.model_VDC().vdcCartInfo().billRuleArray(setArrayCharge(getArrayByString(data.chargeType)));
+		    	console.log(setArrayCharge(data.chargeType));
+		    	self.model_VDC().vdcCartInfo().billRuleArray(setArrayCharge(data.chargeType));
 		    	if(data.charge==1){
 		    		self.model_VDC().vdcCartInfo().charge("NO");
 		    	}else{
@@ -1091,13 +1118,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        });	    	
 	    }
 	    
-	    this.chargeTypeChange= function(arg,data,event){
+	    this.chargeTypeChange= function(arg,data,event){//vdc使用
 	    	var serviceType;
 	    	var type;
 	    	var price;
-	    	if(arg=="vdcCartInfo"){
-	    		serviceType = self.model_VDC().vdcCartInfo();
-	    	}
+	    	serviceType = self.model_VDC().vdcCartInfo();
 	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceType.serviceUuid()+"&cycle="+serviceType.billRuleUuid(), function(result){
 	    		type = serviceType.billRuleUuid();
 	    		price = "费用:"+result.totalPrice;
@@ -1112,6 +1137,24 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    		}
 	    		serviceType.price(price);
 	    	});
+	    }
+	    
+	    this.chargeChange = function(data,event){//除了VDC其他申请用这个方法
+	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
+	    		console.log(result);
+	    		var type = data.billRuleUuid();
+	    		var price = "费用:"+result.totalPrice;
+	    		if(type=="DAY"){
+	    			price+="元/天";
+	    		}else if(type=="MONTH"){
+	    			price+="元/月";
+	    		}else if(type=="QUARTER"){
+	    			price+="元/季度";
+	    		}else{
+	    			price+="元/年";
+	    		}
+	    		data.price(price);
+	    	});	    	
 	    }
 	  	
 	  	function getArrayByString(type){
@@ -1152,7 +1195,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		    });
 	  	}
 	    
-	    //this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 	    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 	  //################## VDC end ##################
 	  
@@ -1796,13 +1838,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
           </div>
           <div class="clearfix"></div>
-          <div class="form-group col-md-6">
+          <div class="form-group col-md-6" data-bind="visible:charge()=='YES'">
             <div class="row">
               <label class="col-sm-4 control-label">套餐：</label>
               <div class="col-sm-3">
-				   <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+				   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange(data,event) }},optionsCaption:'请选择'"></select>
               </div>
-              <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+              <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:price"></span>
             </div>
 
           </div>
@@ -1840,8 +1882,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>可用分区<i style="color:red">*</i></th>
               <th>挂载云主机</th>
               <th>申请时长</th>
-              <th>套餐</th>
-              <th>收费标准</th>
+              <th data-bind="visible:$root.diskCharge()=='YES'">套餐</th>
+              <th data-bind="visible:$root.diskCharge()=='YES'">收费标准</th>
             </thead>
             <tbody data-bind="foreach: model_Vdisk().vdiskCartInfo">
               <tr>
@@ -1863,10 +1905,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					<td>
 						<input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}">
 					</td>
-					<td>
-					    <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
+					<td data-bind="visible:charge()=='YES'">
+					    <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange(data,event) }},optionsCaption:'请选择'"></select>
 					</td>
-					<td>0.5元/小时</td>
+					<td data-bind="visible:charge()=='YES',text:price"></td>
 				</tr>
             </tbody>
           </table>
@@ -1963,7 +2005,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
           </div>
           <div class="clearfix"></div>
-          <div class="form-group col-md-6">
+          <div class="form-group col-md-6" data-bind="visible:charge()=='YES'">
             <div class="row">
               <label class="col-sm-4 control-label">套餐：</label>
               <div class="col-sm-3">
@@ -2387,7 +2429,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
           </div>
         </div>
           <div class="clearfix"></div>
-        <div class="form-group">
+        <div class="form-group" data-bind="visible:false">
           <label class="col-sm-3 control-label">申请时长：</label>
 			<div class="col-sm-8">
 			<div class="radio">

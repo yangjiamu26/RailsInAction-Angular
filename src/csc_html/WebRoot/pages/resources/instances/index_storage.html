@@ -132,7 +132,7 @@
             <div class="form-group">
               <label class="col-xs-3 control-label">挂载云主机</label>
               <div class="col-xs-8">
-                <select class="form-control" data-bind="value:volumeServerId, options: $root.vms, optionsText: 'name', optionsValue: 'uuid'">
+                <select class="form-control" data-bind="value:volumeServerId, options: $root.vms, optionsText: 'name', optionsValue: 'originalId'">
                   <option value="">云主机1</option>
                 </select>
               </div>
@@ -235,7 +235,7 @@
 	    	vpcUuid: '',
 	    	vdcUuid: '',
 	    	azUuid: '',
-	    	effectiveDate: '2016-08-01 00:00:00',
+	    	effectiveDate: '2016-09-01 00:00:00',
 	    	description:''
         });
 	    self.loadVdcs_add();
@@ -243,12 +243,31 @@
         self.isAddvdisk(true);
       }
       
+      /* $("#modal_addvdisk").on("shown.bs.modal",function(){
+          // daterange             
+          $('#vdisk_duration').val(moment().format('YYYY/MM/DD')).daterangepicker(
+            {
+              format:'YYYY/MM/DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+          ); 
+      }) */
+      
       this.ok = function(){
       	//console.log(this.currentVO.toJSON());
       	ko.validation.group(self.currentVO).showAllMessages();
       	if(self.currentVO.isValid()){
-   			csc.rest.post('api/v5.0.0/volumes', this.currentVO.toJSON(), function(){
-   	            self.isEdit(false);
+   			csc.rest.post('api/v5.0.0/volumes', this.currentVO.toJSON(), function(data){
+   				alert("正在创建云硬盘，调度任务ID["+data.taskId+"]！");
+   	            self.isAddvdisk(false);
    	            self.table.refreshData();
    			});
         }
@@ -274,7 +293,14 @@
       }
 
       this.removeOne = function(object, event){
-
+    	  var voumeName = object.volumeName;
+    		var uuid = object.uuid;
+    		confirm("确定删除云硬盘["+voumeName+"]？",function(arg){
+    			csc.rest.del('api/v5.0.0/volumes/'+uuid, function(data){
+    				alert("正在删除，调度任务ID["+data.taskId+"]！");
+    		 		self.table.refreshData();
+    		    });
+    		 });
       }
 
       this.searchParam = ko.observable({
