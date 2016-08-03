@@ -754,6 +754,7 @@
                 osVersion: ko.observable(""),
                 osVersionText: ko.observable(),
 
+                price: ko.ko.observable(),
                 cpu: ko.observable(),
                 memory: ko.observable(),
                 storage: ko.observable(),
@@ -805,7 +806,8 @@
                 vpcList:ko.observableArray([]),
                 networkList:ko.observableArray([]),
                 bussyList:ko.observableArray([]),
-                sshList:ko.observableArray([])
+                sshList:ko.observableArray([]),
+                billRuleList:ko.observableArray([])
                 
             });
             this.queryElement = function(arg,object, event){
@@ -836,6 +838,8 @@
             this.isEdit_sshKeyt = ko.observable(false);
             this.isEdit_vm = ko.observable(false);
             var editObject;
+            var vmChargeType;
+            
             this.editElement = function(dis,arg,object, event){
                 self.vmCartInfo().mountDisks([]);
                 self.vmCartInfo().partitions([]);
@@ -937,8 +941,8 @@
                           var osType=data.osType;
                           var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid+"&osType="+osType;
                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
-                             csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2){debugger;
-                                 csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3){debugger;
+                             csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2){
+                                 csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3){
                                     self.vmCartInfo().sshList(result3.results);
                                     self.vmCartInfo().bussyList(result2.results); 
                                     self.vmCartInfo().vdcList(result.vdcList);
@@ -979,7 +983,7 @@
                                    	self.vmCartInfo().serviceUuid(data.serviceUuid);
                                    	self.vmCartInfo().sshUuid(data.sshUuid);
                                    	self.vmCartInfo().networkType(data.networkType);
-                                        
+                                    self.vmCartInfo().price(data.price)    
                                     
                                     data.mountDisks.forEach(function(e){
                                         var vo=new MountDiskVO();
@@ -996,6 +1000,8 @@
                                         vo.size(e.size);
                                         self.vmCartInfo().partitions.push(vo);
                                     });
+                                   self.vmCartInfo().billRuleList(setArrayCharge(data.chargeList));
+                                   
                                    if(dis=='view'){
                                         self.isView_vm(true);
                                     }else{
@@ -1209,7 +1215,86 @@
             this.delPartitions = function (object){
                 self.vmCartInfo().partitions.remove(object);
             }
+            
+            
+            function setArrayCharge(attr){
+    	    	var arrayCharge = [];
+    	    	for(var i=0;i<attr.length;i++){
+    	    		if(attr[i]=="DAY"){
+    	    			arrayCharge.push({name:"按天",value:"DAY"});
+    	    		}else if(attr[i]=="MONTH"){
+    	    			arrayCharge.push({name:"按月",value:"MONTH"});
+    	    		}else if(attr[i]=="QUARTER"){
+    	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+    	    		}else{
+    	    			arrayCharge.push({name:"按年",value:"YEAR"});
+    	    		}
+    	    	}
+    	    	return arrayCharge;
+    	    }
+            
+            this.chargeChange = function(arg,data,event){//除了VDC其他申请用这个方法
+    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
+    	    		var type = data.billRuleUuid();
+    	    		var price;
+    	    		if(typeof(type)=="undefined"){
+    	    			data.price("");
+    	    			return;
+    	    		}
+    	    		if(arg=="size"){
+    	    			var num = data.size();
+    	    			data.unitPrice(result.ruleList[0].unitPrice);
+    	    			price = num*(result.ruleList[0].unitPrice);
+    	    			price = "费用:"+price;
+    	    		}else{
+    	    			price= "费用:"+result.ruleList[0].unitPrice;
+    	    		}
+    	    		 
+    	    		if(type=="DAY"){
+    	    			price+="元/天";
+    	    		}else if(type=="MONTH"){
+    	    			price+="元/月";
+    	    		}else if(type=="QUARTER"){
+    	    			price+="元/季度";
+    	    		}else{
+    	    			price+="元/年";
+    	    		}
+    	    		data.price(price);
+    	    	});	    	
+    	    }
 
+            this.chargeChangeCart = function(data){//vm
+    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
+    	    		var type = data.billRuleUuid();
+    	    		var price;
+    	    		var price;
+    	    		if(typeof(type)=="undefined"){
+    	    			data.price("");
+    	    			return;
+    	    		}
+    	    		
+    	    		result.ruleList.forEach(function(e){
+    	    			var attrType = e.attrType
+    	    			if(e.attrType=='CPU'){
+    	    				price += data.cpu * e.unitPrice;
+    	    			}else if(e.attrType=='MEMORY'){
+    	    				price += data.memory * e.unitPrice;
+    	    			}else if(e.attrType=='STORAGE'){
+    	    				price += data.storage * e.unitPrice;
+    	    			}
+    	    		});
+    	    		if(type=="DAY"){
+    	    			price+="元/天";
+    	    		}else if(type=="MONTH"){
+    	    			price+="元/月";
+    	    		}else if(type=="QUARTER"){
+    	    			price+="元/季度";
+    	    		}else{
+    	    			price+="元/年";
+    	    		}
+    	    		data.price(price);
+    	    	});	    	
+    	    }
         }
         ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]);
     });
@@ -2676,16 +2761,11 @@
                                 <div class="row">
                                     <label class="col-xs-5 control-label">套餐：</label>
                                     <div class="col-xs-7">
-                                        <select class="form-control w-xs">
-                                            <option value="1">按天</option>
-                                            <option value="1">包月</option>
-                                            <option value="1">按季度</option>
-                                            <option value="1">包年</option>
-                                        </select>
+                                        <select class="form-control w-xs" data-bind="options:billRuleList,optionsText:'name',optionsValue:'value',value:vmCartInfo().billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
                                     </div>
                                 </div>
                             </div>
-                            <span class="control-label col-md-3 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-md-3 text-left" style="height:34px;" data-bind="text:price"></span>
                         </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
