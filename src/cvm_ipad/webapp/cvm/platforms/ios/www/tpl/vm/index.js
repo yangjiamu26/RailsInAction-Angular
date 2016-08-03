@@ -11,10 +11,11 @@ myApp.onPageInit("vm-index", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $.ajax("tpl/vm/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
+      $$.getJSON("tpl/vm/index.json?id="+page.query.id+"&page="+self.page,function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
           initVm_os_chart();

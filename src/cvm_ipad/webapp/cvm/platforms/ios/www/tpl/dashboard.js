@@ -227,17 +227,25 @@ function initTotal_storage_chart(data) {
     });
 
     this.loading = false;
+    var self = this;
     this.loadData = function(){
       //在这里实现总览数据的加载
       if(this.loading) return;
       this.loading = true;
-      var self = this;
+      
       RestServiceJs(BASE_URL+"/overallDetails").query({},function(data){
-        this.loading = false;
+        self.loading = false;
         self.infos(data);
         initTotal_cpu_chart(data);
         initTotal_memory_chart(data);
-        initTotal_storage_chart(data);        
+        initTotal_storage_chart(data);
+        if(data.isDemo){
+            myApp.closeModal('.popup.modal-in');
+            $$('#backToDasboard').show();
+            setTimeout(function(){
+              popoverClose();
+            },0)
+        }
       });
     };
     this.loadDatacenters = function(){
@@ -281,8 +289,8 @@ var view_panel_right, view_home, view_business, view_pool, view_host, view_vm, v
 var is_reload = false;
 
 function popoverClose(event){
-  var datacenter_id = $(event.target).attr("datacenter_id");
-  var datacenter_name = $(event.target).attr("datacenter_name");
+  var datacenter_id = event && $(event.target).attr("datacenter_id") || 1;
+  var datacenter_name = event && $(event.target).attr("datacenter_name") || "demo数据中心";
   CVM_PAD.dcId = datacenter_id;
   CVM_PAD.dcName = datacenter_name;
 

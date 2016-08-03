@@ -47,7 +47,7 @@ myApp.onPageInit("login", function(page) {
         },2000);
       }
 
-      if(this.username()=="demo"&&this.password()=="demo"){
+      if(this.username().toLowerCase()=="demo"&&this.password().toLowerCase()=="demo"){
         BASE_URL = "demoapi";
         return goLogin({"name":"测试用户","account":"demo","password":"demo","flag":true,"token":"demo"})
       }

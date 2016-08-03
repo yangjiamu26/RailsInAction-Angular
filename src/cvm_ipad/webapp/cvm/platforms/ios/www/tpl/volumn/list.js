@@ -11,10 +11,11 @@ myApp.onPageInit("volumn-list", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $.ajax("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page).done(function(data){
+      $$.getJSON("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page, function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
         }
         for(var i=0; i<data.dataList.length; i++){       

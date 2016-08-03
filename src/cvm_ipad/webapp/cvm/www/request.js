@@ -11,6 +11,7 @@ function RestServiceJs(newurl) {
           url: self.myurl,  
           data: JSON.stringify(model),
           processData: false,  
+          dataType: 'json',
           contentType: 'application/json',
           success: callback,  
           error: function(req, status, ex) {
@@ -30,6 +31,7 @@ function RestServiceJs(newurl) {
           url: self.myurl,  
           data: JSON.stringify(params), 
           processData: false,  
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -53,6 +55,7 @@ function RestServiceJs(newurl) {
           type: 'GET',  
           url: self.myurl + '/' + id +end,
           data: params, 
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -72,6 +75,7 @@ function RestServiceJs(newurl) {
           type: 'GET',  
           url: self.myurl,
           data: params, 
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -89,6 +93,7 @@ function RestServiceJs(newurl) {
       $.ajax({  
           type: 'DELETE',  
           url: self.myurl + '/' + id,  
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
