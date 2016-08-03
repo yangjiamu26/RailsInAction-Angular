@@ -1,3 +1,4 @@
+<script src='assets/js/jquery-form.js'></script>
 <div class="bg-light lter b-b wrapper-sm">
 	<ol class="breadcrumb">
 	  <li>当前位置：</li>
@@ -95,8 +96,8 @@
           	<input readonly="readonly" type="text" class="form-control" style="width:243px" data-bind="value: currentVO().defineFile">
           	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
 				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
-					<input id="defineFile" type="file" style="opacity: 0;position: absolute;left:0;right:0;" 
-					data-bind="event:{change:function(data, event){$root.setFile('report',self)}}"/>浏览
+					<input id="defineFile" type="file" name="file" style="opacity: 0;position: absolute;left:0;right:0;" 
+					 data-bind="event:{change:function(data, event){$root.setFile('report', $('#defineFile').val())}}" />浏览
 				</a>
 	    		<a href="javascript:;" class="btn btn-default" 
 	    			data-bind="click: function(data, event){ $root.deleteFile('report') }">删除</a>
@@ -112,10 +113,10 @@
           <label class="col-xs-3 control-label">参数模板文件：</label>
           <div class="col-xs-8 form-inline">
           	<input readonly="readonly" type="text" class="form-control" style="width:243px" data-bind="value: currentVO().paramFile">
-          	<form name="uploadDFileForm" enctype="multipart/form-data" style="display:inline">
+          	<form name="uploadPFileForm" enctype="multipart/form-data" style="display:inline">
 				<a href="javascript:;" class="btn btn-default" style="margin-left: 10px;display: inline-block;width: 54px;height: 34px;overflow: hidden;position:relative;">
-					<input id="paramFile" type="file" style="opacity: 0;position: absolute;left:0;right:0;" 
-					data-bind="event:{change:function(data, event){$root.setFile('param',this)}}"/>浏览
+					<input id="paramFile" type="file" name="file" style="opacity: 0;position: absolute;left:0;right:0;" 
+					data-bind="event:{change:function(data, event){$root.setFile('param',$('#paramFile').val())}}"  />浏览
 				</a>
 	    		<a href="javascript:;" class="btn btn-default" 
 	    			data-bind="click: function(data, event){ $root.deleteFile('param') }">删除</a>
@@ -291,14 +292,13 @@
 	        	}else{
 	        		csc.rest.get('api/v5.0.0/reports/customReports/check?name='+self.currentVO().name(),function(data){
 	        			if(data == 0){
-	        				csc.rest.post('api/v5.0.0/reports/upload',function(data){
-	        					
+	        				self.uploadDfile(self,function(){
+	        					csc.rest.post('api/v5.0.0/reports/customReports',self.currentVO.toJSON(),function(data){
+							 		systemMsg.alert('添加自定义报表成功！');
+							 		self.isAdd(false);
+						        	self.table.refreshData();
+							    });
 	        				});
-	        				csc.rest.post('api/v5.0.0/reports/customReports',self.currentVO.toJSON(),function(data){
-						 		systemMsg.alert('添加自定义报表成功！');
-						 		self.isAdd(false);
-					        	self.table.refreshData();
-						    });
 	        			}else{
 	        				$('#nameError').text('报表名称已经存在！');
 	        			}
@@ -334,6 +334,58 @@
 	        	this.table.params(this.searchParam());
 	      	}
 	      	this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
+	      	this.uploadDfile = function(obj, callback){
+	      		var options  = {    
+// 	      		    	url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
+	      		    	url: 'https://localhost:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
+	      		        type:'post',    
+	      		        success:function(result)    
+	      		        {    
+	      		        	var data = result;
+	      		            if(data['code'] == "0"){  
+	      		            	self.currentVO().reportSaveFile(data['filename']);
+	      		            	//上传参数模板文件
+	      		            	self.uploadPfile(obj,callback);
+	      		            }else{  
+	      		                systemMsg.alert('报表定义'+data['msg']);  
+	      		            }  
+	      		        },
+	      		        error:function(data){
+	      		        	systemMsg.alert('上传文件异常'); 
+	      		        }
+	      		    };    
+	      		    var form = $("form[name=uploadDFileForm]");  
+	      			form.ajaxSubmit(options);
+	      	}
+	      	this.uploadPfile = function(obj, callback){
+	      		if(self.getFileName(self.currentVO().paramFile())==''){
+	    			self.currentVO().paramSaveFile('');
+	    			callback();
+	    		}else{
+	    			if($('#h_pfile').val()!=''){
+	    			    var options  = {    
+// 	    			        url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
+	    			        url: 'https://localhost:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
+	    			        type:'post',    
+	    			        success:function(result)    
+	    			        {    
+	    			        	var data = result;
+	    			            if(data['code'] == "0"){  
+	    			            	obj.currentVO().paramSaveFile(data['filename']);
+	    			            	callback();
+	    			            }else{  
+	    			                systemMsg.alert('参数模板'+data['msg']);  
+	    			            }  
+	    			        },
+	    			        error:function(data){
+	    			        	systemMsg.alert('上传文件异常'); 
+	    			        }
+	    			    };    
+	    				form = $("form[name=uploadPFileForm]");  
+	    				form.ajaxSubmit(options);  
+	    			}
+	    		}
+	      	}
     	}
     	ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
   	});

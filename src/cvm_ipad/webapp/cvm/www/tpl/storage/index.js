@@ -26,6 +26,7 @@ myApp.onPageInit("storage-index", function(page) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
           initStorage_share_chart(data.share,data.local);

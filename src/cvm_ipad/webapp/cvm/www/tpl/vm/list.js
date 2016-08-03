@@ -27,6 +27,7 @@ myApp.onPageInit("vm-list", function(page) {
         case "host":
           this.fromPage("host");
           url=BASE_URL+"/host/"+page.query.id+"/vm";
+          resourcePoolId=page.query.resourcePoolId
           break;
       }
       RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
@@ -34,6 +35,7 @@ myApp.onPageInit("vm-list", function(page) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
         }
         for(var i=0; i<data.data.length; i++){
