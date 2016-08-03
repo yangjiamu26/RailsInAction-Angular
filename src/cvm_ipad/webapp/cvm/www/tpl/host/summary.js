@@ -5,7 +5,9 @@ myApp.onPageInit("host-summary", function(page) {
     });
     this.loadData = function(){
       var self = this;
-      $.ajax("tpl/host/summary.json?id="+page.query.id).done(function(data){
+
+      RestServiceJs(BASE_URL+"/host/"+page.query.id+"/summary").query({},function(data){
+        //$.ajax("tpl/host/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
         self.summary(data);
 
