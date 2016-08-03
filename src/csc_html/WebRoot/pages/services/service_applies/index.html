@@ -320,7 +320,7 @@
 
 								<div class="service-right-content" style="display: none;">
 
-									<div class="service-list-box row" data-bind="with: table_Vdisk">
+									<div class="service-list-box row" data-bind="with: table_PublicNetwork">
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 										<div class="col-xs-4">
 											<div class="panel b-a">
@@ -572,7 +572,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.vdcChange = function(obj){//根据变化的vdc及服务ID查找其下的可用分区
 	    	var _self = this;
 	    	_self.azList.removeAll();
-	        csc.rest.get("api/v5.0.0/vdcs/"+obj.vdcUuid()+"/azs", function(data){//需修改为服务UUID作为参数传递
+	        csc.rest.get("api/v5.0.0/vdcs/"+obj.vdcUuid()+"/azs", function(data){
 	        	_self.azList(data.results);
 	        });	        
 	    };
@@ -595,6 +595,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.vpcChange = function(obj){
 	    	var _self = this;
 	        csc.rest.get("api/v5.0.0/cart/getNetworkList/1/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
+	        	_self.networkList(data);
+	        });
+	    }
+	    
+	    this.vpcChangeByPublic = function(obj){
+	    	var _self = this;
+	        csc.rest.get("api/v5.0.0/cart/getNetworkListByPublic/"+obj.serviceUuid()+"/"+obj.vpcUuid(), function(data){
 	        	_self.networkList(data);
 	        });
 	    }
@@ -639,7 +646,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.sshIsMountList = ko.observableArray(sshIsMounts);
 	    //添加到购物车操作
 		this.addToCart = function(){
-			console.log(self.productType());
 			if(self.productType()==2){
 				if(self.model_VM.isValid()){
 					var jsonArray = self.model_VM.toJSON().vmCartInfo;
@@ -746,12 +752,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					  }
 			    });	
 			}
-
 	    }
 	    
 		//添加到购物车操作
 		this.addToOrder = function(){
-			console.log(typeof(self.productType()));
 			if(self.productType()==1){
 				var osTypeVdc="";
 				for(var i=0;i<self.model_VDC().vdcCartInfo().osTypesSelelct().length;i++){
@@ -937,7 +941,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	
 	    	diskServiceUuid=obj.serviceUuid;
 	    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
-	    		console.log(data);
 	    		self.isAdd_VdiskSingle(true);
 	    		if(data.charge==1){
 	    			self.diskCharge("NO");
@@ -946,7 +949,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		    		diskChargeType = setArrayCharge(data.chargeType);
 		    		console.log(diskChargeType);
 		    	}
-	    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){//需修改为服务UUID作为参数传递
+	    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){
 	    			self.vdcList(result);
 			        self.num_vdisk(0);
 			        self.num_vdisk(1);
@@ -959,9 +962,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeList_Vdisk = function(){
 	    	self.isAdd_VdiskSingle(false);
 	    	self.isAdd_VdiskMore(true);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	        self.num_vdisk(0);
 	        self.num_vdisk(1);	    	
 	    }
@@ -969,9 +969,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeSingle_Vdisk = function(){
 	    	self.isAdd_VdiskSingle(true);
 	    	self.isAdd_VdiskMore(false);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	        self.num_vdisk(0);
 	        self.num_vdisk(1);	    	
 	    }
@@ -1052,9 +1049,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeList_ObjectStorage = function(){
 	    	self.isAdd_ObjectStorageSingle(false);
 	    	self.isAdd_ObjectStorageMore(true);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/"+objStorageServiceUuid, function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	    	self.num_ObjectStorage(0);
 	    	self.num_ObjectStorage(1);	    	
 	    }
@@ -1062,9 +1056,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeSingle_ObjectStorage = function(){
 	    	self.isAdd_ObjectStorageSingle(true);
 	    	self.isAdd_ObjectStorageMore(false);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/"+objStorageServiceUuid, function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	    	self.num_ObjectStorage(0);
 	    	self.num_ObjectStorage(1);	    	
 	    }
@@ -1134,9 +1125,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeList_PublicNetwork = function(){
 	    	self.isAdd_PublicNetworkSingle(false);
 	    	self.isAdd_PublicNetworkMore(true);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	    	self.num_PublicNetwork(0);
 	    	self.num_PublicNetwork(1);	    	
 	    }
@@ -1144,9 +1132,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.changeSingle_PublicNetwork = function(){
 	    	self.isAdd_PublicNetworkSingle(true);
 	    	self.isAdd_PublicNetworkMore(false);
-	        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(data){//需修改为服务UUID作为参数传递
-	        	self.vdcList(data);
-	        });
 	    	self.num_PublicNetwork(0);
 	    	self.num_PublicNetwork(1);	    	
 	    }
@@ -1164,7 +1149,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					vdcUuid: ko.observable(""),
 					azUuid:ko.observable(""),
 					vpcUuid: ko.observable(""),
-					workip: ko.observable(""),
+					netWorkId: ko.observable(""),
 					remark:ko.observable(""),
 					billRuleUuid: ko.observable(""),
 					applyType: ko.observable("1"),
@@ -1181,7 +1166,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	}	    
 	    	changeDateFormat();	
 	    });
-	    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/OBJSTORAGE',perPage:6});
+	    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/IP',perPage:6});
 	  //################## 公网IP end ##################
 	  
 	    this.osTypeArray = ko.observableArray([]);
@@ -1209,7 +1194,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	initVdc();
 	    	var serviceUuid = obj.serviceUuid;
 	    	self.model_VDC().vdcCartInfo().serviceUuid(serviceUuid);
-	        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){//需修改为服务UUID作为参数传递
+	        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
 	        	console.log(data);
 		    	self.isAdd_VDC(true);
 		    	self.productType(1);
@@ -2300,7 +2285,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             <div class="row">
               <label class="col-sm-4 control-label">所属VPC：</label>
               <div class="col-sm-8">
-                <select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+                <select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChangeByPublic},optionsCaption:'请选择'"></select>
               </div>
             </div>
           </div>
@@ -2308,7 +2293,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             <div class="row">
               <label class="col-sm-4 control-label">网络名称：</label>
               <div class="col-sm-8">
-                <select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:workip,optionsCaption:'请选择'"></select>
+                <select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:netWorkId,optionsCaption:'请选择'"></select>
               </div>
             </div>
           </div>
@@ -2404,8 +2389,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					<td><input type="text" class="form-control input-sm" data-bind="value: name"></td>
 					<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select></td>
 					<td><select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVpc},optionsCaption:'请选择'"></select></td>
-					<td><select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select></td>
-					<td><select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:workip,optionsCaption:'请选择'"></select></td>
+					<td><select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChangeByPublic},optionsCaption:'请选择'"></select></td>
+					<td><select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:netWorkId,optionsCaption:'请选择'"></select></td>
 					<td>
 						<div class="radio">
 							<label class="form-inline"> <input type="radio"
@@ -2888,7 +2873,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <div class="row">
                 <label class="col-sm-4 control-label">操作系统版本：</label>
                 <div class="col-sm-8">
-                  <select class="form-control w-xs" data-bind="options:  osVersionList,optionsText:'opVersion',optionsValue:'uuid',value: osVersion,optionsCaption:'请选择'"></select>
+                  <select class="form-control w-xs" data-bind="options:  osVersionList,optionsText:'opSysVersion',optionsValue:'uuid',value: osVersion,optionsCaption:'请选择'"></select>
                 </div>
               </div>
             </div>

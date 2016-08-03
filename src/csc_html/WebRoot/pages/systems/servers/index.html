@@ -9,7 +9,7 @@
   <div class="nav-tabs-alt bg-white-only">
     <ul class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
-        <a aria-controls="report" data-toggle="tab" href="#report" role="tab">集算报表平台配置</a>
+        <a aria-controls="report" data-toggle="tab" href="#report"  role="tab">集算报表平台配置</a>
       </li>
       <li role="presentation">
         <a aria-controls="ftp" data-toggle="tab" href="#ftp" role="tab">FTP配置</a>
@@ -60,7 +60,8 @@
                         <button class="btn btn-primary" type="button" data-bind="click: $root.reportTest">连接测试</button>
                         <button class="btn btn-info" type="button" data-bind="click: $root.reportSave">保存</button>
                     </div>                 
-                </div>            
+                </div> 
+      
             </form>
           </div>
         </div>      
@@ -283,23 +284,23 @@
 		
       this.server = ko.observable({
          "report": {
-          "urlAddr": "",
-          "userName": "",
-          "userPwd": ""
+          "urlAddr": "192.168.1.1",
+          "userName": "username",
+          "userPwd": "password"
         },
         "ftp":{
-          "serverAddr": "",
-          "portNum": "",
-          "softWareAddr": "",
-          "scriptAddr": "",
-          "username": "",
-          "userPwd": ""
+          "serverAddr": "192.168.1.1",
+          "portNum": "80",
+          "softWareAddr": "so/fd/",
+          "scriptAddr": "sr/sr",
+          "username": "username",
+          "userPwd": "password"
         },
         "chef": {
-          "ipAddr": "",
-          "portNum": "",
-          "username": "",
-          "userPwd": ""
+          "ipAddr": "192.168.1.1",
+          "portNum": "80",
+          "username": "username",
+          "userPwd": "password"
         },
         "email": {
           "active": false,
@@ -332,6 +333,11 @@
           "username": "",
           "userPwd": ""
       }) */
+      this.server().report = ko.observable({
+          "urlAddr": "192.168.2.1",
+          "userName": "username",
+          "userPwd": "password"
+        })
 
       this.email_test = ko.observable({
         "email": "",
@@ -343,14 +349,25 @@
       var self = this;
       this.isAdd = ko.observable(false);
       
-      this.loadData = function(){
+      /* this.loadData = function(){
         $.ajax("pages/systems/servers/index.json").done(function(data){
           self.server(data);
         })
       } 
 
-      this.loadData(); 
+      this.loadData();  */
       
+   
+      this.loadData = function(){
+          csc.rest.get('api/v5.0.0/severconfsrepo', function(
+					data) {
+				callback(data);
+			});
+        } 
+
+        this.loadData();  
+    
+   
       this.checkCollRepoConnect = function(object){
           console.log(object);
 
@@ -392,6 +409,7 @@
                  self.isAdd(false);
                })
                alert("保存配置成功！");
+        	 console.log(object);
         }   
         
       }
