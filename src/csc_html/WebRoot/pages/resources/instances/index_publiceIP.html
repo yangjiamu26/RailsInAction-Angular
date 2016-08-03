@@ -1,110 +1,108 @@
-<div class='panel panel-default'>
-  <!-- 创建与搜索栏 -->
-  <div class="row wrapper">
-    <div class="col-xs-1">
-      <div class="input-group">
-        <button class="btn btn-primary btn-sm" data-bind="click:showCreatePage">创建</button>
-      </div>      
+<!-- 创建与搜索栏 -->
+<div class="row wrapper">
+  <div class="col-xs-1">
+    <div class="input-group">
+      <button class="btn btn-info btn-sm" data-bind="click:showCreatePage">创建</button>
+    </div>      
+  </div>
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">所属VDC</span>
+      <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
+        <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
+      </select>
+    </div>      
+  </div>   
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">所属可用分区</span>
+      <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.searchAzList, optionsText: 'name', optionsValue: 'uuid'"></select>
+    </div>      
+  </div> 
+           
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">名称</span>
+      <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
     </div>
-    <div class="col-xs-3">
-      <div class="input-group">
-        <span class="input-group-addon">所属VDC</span>
-        <select class="form-control" data-bind="value: searchParam().vdcUuid, options: $root.searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
-          <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
-        </select>
-      </div>      
-    </div>   
-    <div class="col-xs-3">
-      <div class="input-group">
-        <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.searchAzList, optionsText: 'name', optionsValue: 'uuid'"></select>
-      </div>      
-    </div> 
-             
-    <div class="col-xs-3">
-      <div class="input-group">
-        <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
-      </div>
-    </div>
-    <div class="col-xs-2">
-      <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
-      <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
-    </div>
-  </div>  
-   <!-- 公网IP列表 -->                      
-  <div id='instance_publicips'>
-    <div class='table-responsive' data-bind="with: publicIpTable">
-      <table class='table table-striped'>
-        <thead>
-          <tr>
-            <th>公网IP名称</th>
-            <th>IP地址</th>
-            <th>子网掩码</th>
-            <th>可用分区</th>
-            <th>所属VDC</th>
-            <th>所属VPC</th>
-            <th>路由器</th>
-            <th>云主机</th>
-            <th>服务状态</th>
-            <th>创建时间</th>
-            <th>有效期</th>
-            <th>创建人</th>
-            <th>操作</th>
+  </div>
+  <div class="col-xs-2">
+    <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+    <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
+  </div>
+</div>  
+ <!-- 公网IP列表 -->                      
+<div id='instance_publicips'>
+  <div class='table-responsive' data-bind="with: publicIpTable">
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th>公网IP名称</th>
+          <th>IP地址</th>
+          <th>子网掩码</th>
+          <th>可用分区</th>
+          <th>所属VDC</th>
+          <th>所属VPC</th>
+          <th>路由器</th>
+          <th>云主机</th>
+          <th>服务状态</th>
+          <th>创建时间</th>
+          <th>有效期</th>
+          <th>创建人</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      	<tr data-bind="visible: showNoData">
+            <td colspan=13 class="aligncenter">
+             	 暂无数据
+            </td>
           </tr>
-        </thead>
-        <tbody>
-        	<tr data-bind="visible: showNoData">
-              <td colspan=13 class="aligncenter">
-               	 暂无数据
-              </td>
-            </tr>
-            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-          	<tr>
-	            <td data-bind="text: $row.name"></td> <!-- 公网IP名称 -->
-	            <td data-bind="text: $row.ip"></td><!-- IP地址 -->
-	            <td data-bind="text: $row.cidr"></td><!-- 子网掩码 -->
-	            <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
-	            <td data-bind="text: $row.vdcName"></td><!-- 所属VDC -->
-	            <td data-bind="text: $row.vpcName"></td><!-- 所属VPC -->
-	            <td data-bind="text: $row.routerName"></td><!-- 路由器 -->
-	            <td data-bind="text: $row.vmName"></td><!-- 云主机 -->
-	            <td><label class="label label-success">
-	            	<span data-bind="text: $row.state"></span><!-- 服务状态 -->
-	            	</label>
-	            </td>
-	            <td data-bind="text: $row.createTime"></td><!-- 创建时间 -->
-	            <td data-bind="text: $row.validTime"></td><!-- 有效期 -->
-	            <td data-bind="text: $row.userName"></td><!-- 创建人 -->
-	            <td><!-- 操作 -->
-	            	<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a> 
-	            	| <a href="#" data-bind="click: $root.unbindVm">解绑</a>  
-	            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a>  
-	            	| <a href="#" data-bind="click: $root.terminateService">终止</a>  
-	            	| <a href="#" data-bind="click: $root.deleteIp">删除</a>
-	            </td>
-          	</tr>
-          	<!-- /ko -->
-        </tbody>
-      </table>
-    </div>
-    <!-- 分页DIV --> 
-      <footer class="panel-footer" data-bind="with: publicIpTable, visible: publicIpTable.pages() > 1">
-        <ul class="pagination">
-          <li data-bind="css: leftPagerClass, click: prevPage">
-            <a href="#">&laquo;</a>
-          </li>
-          <!-- ko foreach: {data: (new Array(pages()))} -->
-          <li data-bind="css: $parent.pageClass($index() + 1)">
-            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-          </li>
-          <!-- /ko -->
-          <li data-bind="css: rightPagerClass, click: nextPage">
-            <a href="#">&raquo;</a>
-          </li>
-        </ul>
-      </footer>
-</div>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+        	<tr>
+            <td data-bind="text: $row.name"></td> <!-- 公网IP名称 -->
+            <td data-bind="text: $row.ip"></td><!-- IP地址 -->
+            <td data-bind="text: $row.cidr"></td><!-- 子网掩码 -->
+            <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
+            <td data-bind="text: $row.vdcName"></td><!-- 所属VDC -->
+            <td data-bind="text: $row.vpcName"></td><!-- 所属VPC -->
+            <td data-bind="text: $row.routerName"></td><!-- 路由器 -->
+            <td data-bind="text: $row.vmName"></td><!-- 云主机 -->
+            <td><label class="label label-success">
+            	<span data-bind="text: $row.state"></span><!-- 服务状态 -->
+            	</label>
+            </td>
+            <td data-bind="text: $row.createTime"></td><!-- 创建时间 -->
+            <td data-bind="text: $row.validTime"></td><!-- 有效期 -->
+            <td data-bind="text: $row.userName"></td><!-- 创建人 -->
+            <td><!-- 操作 -->
+            	<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a> 
+            	| <a href="#" data-bind="click: $root.unbindVm">解绑</a>  
+            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a>  
+            	| <a href="#" data-bind="click: $root.terminateService">终止</a>  
+            	| <a href="#" data-bind="click: $root.deleteIp">删除</a>
+            </td>
+        	</tr>
+        	<!-- /ko -->
+      </tbody>
+    </table>
+  </div>
+  <!-- 分页DIV --> 
+    <footer class="panel-footer" data-bind="with: publicIpTable, visible: publicIpTable.pages() > 1">
+      <ul class="pagination">
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
+        </li>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+        </li>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
+        </li>
+      </ul>
+    </footer>
 
 <!-- 创建公网IP页面 -->
   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowCreatePage}">
