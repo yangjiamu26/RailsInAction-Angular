@@ -15,6 +15,7 @@ myApp.onPageInit("vm-index", function(page) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
           initVm_os_chart();

@@ -252,6 +252,7 @@ function init_storage_chart(data) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
         }
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
