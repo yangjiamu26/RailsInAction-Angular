@@ -49,13 +49,14 @@
             <li class="dropdown">
                 <a data-toggle="dropdown" class="dropdown-toggle" aria-expanded="true">
                     <i class="fa fa-fw fa-plus visible-xs-inline-block"></i>
-                    <span>系统管理员</span> <span class="caret"></span>
+                    <span data-bind="text: roleVO().currentRole">系统管理员</span> <span class="caret"></span>
                 </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="#"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>运营管理员</a></li>
-                    <li><a href="#"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>运维管理员</a></li>
-                    <li><a href="#"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC管理员</a></li>
-                    <li><a href="#"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>普通用户</a></li>
+                <ul class="dropdown-menu" role="menu" data-bind="foreach: roleVO().roleName">
+                    <li>
+                    	<a href="#" >
+                    		<i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i><span data-bind="text: name"></span>
+                    	</a>
+                    </li>
                 </ul>
             </li>
             <li class='dropdown'>
@@ -474,6 +475,25 @@
 	    function onPushLetData(event) {
 	    	console.log(event)
 	    } */
+	    
+	    function ViewModel(){
+	    	var self = this;
+	    	
+	    	this.roleVO = ko.observable({
+		    	roleName: ko.observableArray([]),
+		    	currentRole: ko.observable()
+		    });
+		    this.loadRoles = function(){
+		    	csc.rest.get("api/v5.0.0/homepage/roles", function(data){
+		    		self.roleVO().roleName(data);
+		    		self.roleVO().currentRole(data[0].name);
+		   	    });
+		    }
+		    this.loadRoles();
+	    }
+	    var viewModel = new ViewModel();
+	    ko.applyBindings(viewModel,$('.app-header')[0]);
+	    ko.applyBindings(viewModel,$('.app-aside')[0]);
     </script>
   </body>
 
