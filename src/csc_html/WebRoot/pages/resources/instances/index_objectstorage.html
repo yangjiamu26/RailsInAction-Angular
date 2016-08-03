@@ -1,259 +1,258 @@
-<div class='panel panel-default'>
-  <div class="row wrapper">
-    <div class="col-xs-1">
-      <button class="btn btn-sm  btn-primary" data-bind="click:createDisk">创建</button>
+<div class="row wrapper">
+  <div class="col-xs-1">
+    <button class="btn btn-sm  btn-info" data-bind="click:createDisk">创建</button>
+  </div>
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">所属VDC</span>
+      <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid'"></select>
+    </div>      
+  </div>  
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">所属可用分区</span>
+      <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
+    </div>      
+  </div> 
+                                   
+  <div class="col-xs-3">
+    <div class="input-group">
+      <span class="input-group-addon">名称</span>
+      <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
     </div>
-    <div class="col-xs-3">
-      <div class="input-group">
-        <span class="input-group-addon">所属VDC</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid'"></select>
-      </div>      
-    </div>  
-    <div class="col-xs-3">
-      <div class="input-group">
-        <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
-      </div>      
-    </div> 
-                                     
+  </div>
+  <div class="col-xs-2">
+    <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
+    <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
+  </div>
+</div>       
+<div id='instance_object_storages'>
+  <div class='table-responsive' data-bind="with: table">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>对象存储名称</th>
+          <th>可用分区</th>
+          <th>所属VDC</th>
+          <th>总大小(GB)</th>
+          <th>已使用(GB)</th>
+          <th>剩余(GB)</th>
+          <th>服务状态</th>
+          <th>有效期</th>
+          <th>创建时间</th>
+          <th>创建人</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-bind="visible: showNoData">
+          <td colspan=11 class="aligncenter">
+            This table has no data.
+          </td>
+        </tr>
+        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+        <tr>
+          <td><a  href="#" data-bind="text:name,click:$root.showFileTable">cdisk</a></td>
+          <td data-bind="text:azName">AX1</td>
+          <td data-bind="text:vdcName">VDC1</td>
+          <td data-bind="text:applySize">50</td>
+          <td data-bind="text:havedSize">25</td>
+          <td data-bind="text:availableSize">25</td>
+          <td>
+          	<span class="label label-success" data-bind="if:isValidate">正常</span>
+            	<span class="label label-danger" data-bind="ifnot:isValidate">已过期</span>
+          </td>
+          <td data-bind="text:expiryDate">2016-06-29 11:55</td>
+          <td data-bind="text:createTime">2016-06-29 13:56</td>
+          <td data-bind="text:userName">admin</td>
+          <td><a data-bind="click: $root.upload">上传文件</a> | <a>有效时间变更</a> | <a>终止</a> | <a data-bind="click: $root.removeOne">删除</a></td>
+        </tr>
+        <!-- /ko -->
+      </tbody>
+    </table>           
+  </div>
+  <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+    <ul class="pagination">
+      <li data-bind="css: leftPagerClass, click: prevPage">
+        <a href="#">&laquo;</a>
+      </li>
+      <!-- ko foreach: {data: (new Array(pages()))} -->
+      <li data-bind="css: $parent.pageClass($index() + 1)">
+        <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+      </li>
+      <!-- /ko -->
+      <li data-bind="css: rightPagerClass, click: nextPage">
+        <a href="#">&raquo;</a>
+      </li>
+    </ul>
+  </footer>
+</div>
+<!-- 存储详情 -->
+<div id="instance_object_storage_detail" style="display: none">
+  <h3 class="m-l">cdisk</h3>
+  <div class="row wrapper">
+    <div class="col-xs-7 m-b-xs">
+      <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
+      <button class="btn btn-sm btn-primary">上传</button>
+    </div>
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+        <input type="text" class="input-sm form-control" placeholder="请输入名称">
       </div>
     </div>
     <div class="col-xs-2">
-      <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
-      <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
+      <button class="btn btn-sm" type="button">重置</button>
+      <button class="btn btn-sm btn-default" type="button">搜索</button>
     </div>
-  </div>       
-  <div id='instance_object_storages'>
-    <div class='table-responsive' data-bind="with: table">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>对象存储名称</th>
-            <th>可用分区</th>
-            <th>所属VDC</th>
-            <th>总大小(GB)</th>
-            <th>已使用(GB)</th>
-            <th>剩余(GB)</th>
-            <th>服务状态</th>
-            <th>有效期</th>
-            <th>创建时间</th>
-            <th>创建人</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr data-bind="visible: showNoData">
-            <td colspan=11 class="aligncenter">
-              This table has no data.
-            </td>
-          </tr>
-          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-          <tr>
-            <td><a  href="#" data-bind="text:name,click:$root.showFileTable">cdisk</a></td>
-            <td data-bind="text:azName">AX1</td>
-            <td data-bind="text:vdcName">VDC1</td>
-            <td data-bind="text:applySize">50</td>
-            <td data-bind="text:havedSize">25</td>
-            <td data-bind="text:availableSize">25</td>
-            <td>
-            	<span class="label label-success" data-bind="if:isValidate">正常</span>
-              	<span class="label label-danger" data-bind="ifnot:isValidate">已过期</span>
-            </td>
-            <td data-bind="text:expiryDate">2016-06-29 11:55</td>
-            <td data-bind="text:createTime">2016-06-29 13:56</td>
-            <td data-bind="text:userName">admin</td>
-            <td><a data-bind="click: $root.upload">上传文件</a> | <a>有效时间变更</a> | <a>终止</a> | <a data-bind="click: $root.removeOne">删除</a></td>
-          </tr>
-          <!-- /ko -->
-        </tbody>
-      </table>           
-    </div>
-    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-      <ul class="pagination">
-        <li data-bind="css: leftPagerClass, click: prevPage">
-          <a href="#">&laquo;</a>
-        </li>
-        <!-- ko foreach: {data: (new Array(pages()))} -->
-        <li data-bind="css: $parent.pageClass($index() + 1)">
-          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-        </li>
-        <!-- /ko -->
-        <li data-bind="css: rightPagerClass, click: nextPage">
-          <a href="#">&raquo;</a>
-        </li>
-      </ul>
-    </footer>
   </div>
-  <!-- 存储详情 -->
-  <div id="instance_object_storage_detail" style="display: none">
-    <h3 class="m-l">cdisk</h3>
-    <div class="row wrapper">
-      <div class="col-xs-7 m-b-xs">
-        <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-        <button class="btn btn-sm btn-primary">上传</button>
-      </div>
-      <div class="col-xs-3">
-        <div class="input-group">
-          <span class="input-group-addon">名称</span>
-          <input type="text" class="input-sm form-control" placeholder="请输入名称">
-        </div>
-      </div>
-      <div class="col-xs-2">
-        <button class="btn btn-sm" type="button">重置</button>
-        <button class="btn btn-sm btn-default" type="button">搜索</button>
-      </div>
-    </div>
-    <div class="wrapper">
-      <div class='panel panel-default'>       
-        <div class='table-responsive' data-bind="with: fileTable">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>名称</th>
-                <th>大小(GB)</th>
-                <th>创建时间</th>
-                <th>修改时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-bind="visible: showNoData">
-                <td colspan=4 class="aligncenter">
-                  This table has no data.
-                </td>
-              </tr>
-              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-              <tr>
-                <td>centos7.iso</td>
-                <td>1G</td>
-                <td>2016-06-29 13:56</td>
-                <td><a>下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
-              </tr>
-              <!-- /ko -->
-            </tbody>
-          </table>           
-        </div>
-        <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-          <ul class="pagination">
-            <li data-bind="css: leftPagerClass, click: prevPage">
-              <a href="#">&laquo;</a>
-            </li>
-            <!-- ko foreach: {data: (new Array(pages()))} -->
-            <li data-bind="css: $parent.pageClass($index() + 1)">
-              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-            </li>
+  <div class="wrapper">
+    <div class='panel panel-default'>       
+      <div class='table-responsive' data-bind="with: fileTable">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>名称</th>
+              <th>大小(GB)</th>
+              <th>创建时间</th>
+              <th>修改时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-bind="visible: showNoData">
+              <td colspan=4 class="aligncenter">
+                This table has no data.
+              </td>
+            </tr>
+            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+            <tr>
+              <td>centos7.iso</td>
+              <td>1G</td>
+              <td>2016-06-29 13:56</td>
+              <td><a>下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
+            </tr>
             <!-- /ko -->
-            <li data-bind="css: rightPagerClass, click: nextPage">
-              <a href="#">&raquo;</a>
-            </li>
-          </ul>
-        </footer>
+          </tbody>
+        </table>           
       </div>
-    </div>   
-  </div>
-  
-  
-  
-  
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isCreateDisk}">
-    <div class='modal-dialog' role='document'>
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <button type="button" class="close" data-dismiss="modal">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <h3 class='modal-title'>创建对象存储</h3>
-        </div>
-        <div class='modal-body form-horizontal' data-bind="with:currentVO">
+      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+        <ul class="pagination">
+          <li data-bind="css: leftPagerClass, click: prevPage">
+            <a href="#">&laquo;</a>
+          </li>
+          <!-- ko foreach: {data: (new Array(pages()))} -->
+          <li data-bind="css: $parent.pageClass($index() + 1)">
+            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+          </li>
+          <!-- /ko -->
+          <li data-bind="css: rightPagerClass, click: nextPage">
+            <a href="#">&raquo;</a>
+          </li>
+        </ul>
+      </footer>
+    </div>
+  </div>   
+</div>
 
-          <div class="form-group">
-            <label class="col-sm-3 control-label">对象存储名称</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control"  placeholder="对象存储名称" data-bind="value:name">
-            </div>
-            <div class="col-sm-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
-            </div>
+
+
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isCreateDisk}">
+  <div class='modal-dialog' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h3 class='modal-title'>创建对象存储</h3>
+      </div>
+      <div class='modal-body form-horizontal' data-bind="with:currentVO">
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">对象存储名称</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control"  placeholder="对象存储名称" data-bind="value:name">
           </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">存储大小(GB)</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control"  placeholder="存储大小" data-bind="value : applySize">
-            </div>
-            <div class="col-sm-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">所属VDC</label>
-            <div class="col-sm-8">
-              <select class="form-control" data-bind="value:vdcUuid, options: $root.vdcsAdd, optionsText: 'name', optionsValue: 'uuid'"></select>
-            </div>
-            <div class="col-sm-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">可用分区</label>
-            <div class="col-sm-8">
-              <select class="form-control" data-bind="value: azUuid, options: $root.partitionsAdd, optionsText: 'name', optionsValue: 'uuid'"></select>
-            </div>
-            <div class="col-sm-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">申请时长</label>
-            <div class="col-sm-9">
-              <div>
-                <label class="radio-inline" style="padding-top: 2px">
-                  <input type="radio"  name="inlineRadioOptions" id="inlineRadio1" value="option1" checked> 永久
-                </label>
-              </div>
-              <div>
-                <label class="radio-inline">
-                  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                  <input type="text" class="form-control input-sm inline w-xxs">
-                  <select class="form-control inline w-xs input-sm">
-                    <option value="">月</option>
-                  </select>  
-                </label>
-              </div>
-              <div>
-                <label class="radio-inline">
-                  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                  <input type="text" value="" class="form-control inline w input-sm" id="vm_duration">
-                </label> 
-              </div>                                   
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">备注</label>
-            <div class="col-sm-8">
-              <textarea class="form-control" data-bind="value:remark"></textarea>
-            </div>
-            <div class="col-sm-1">
-              <span class="text-danger inline m-l-n m-t-sm"></span>
-            </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>
         </div>
-        <div class='modal-footer'>
-          <button name="button" class="btn btn-primary " data-bind="click:save">确定</button>
-          <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">存储大小(GB)</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control"  placeholder="存储大小" data-bind="value : applySize">
+          </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>
         </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">所属VDC</label>
+          <div class="col-sm-8">
+            <select class="form-control" data-bind="value:vdcUuid, options: $root.vdcsAdd, optionsText: 'name', optionsValue: 'uuid'"></select>
+          </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">可用分区</label>
+          <div class="col-sm-8">
+            <select class="form-control" data-bind="value: azUuid, options: $root.partitionsAdd, optionsText: 'name', optionsValue: 'uuid'"></select>
+          </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">申请时长</label>
+          <div class="col-sm-9">
+            <div>
+              <label class="radio-inline" style="padding-top: 2px">
+                <input type="radio"  name="inlineRadioOptions" id="inlineRadio1" value="option1" checked> 永久
+              </label>
+            </div>
+            <div>
+              <label class="radio-inline">
+                <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
+                <input type="text" class="form-control input-sm inline w-xxs">
+                <select class="form-control inline w-xs input-sm">
+                  <option value="">月</option>
+                </select>  
+              </label>
+            </div>
+            <div>
+              <label class="radio-inline">
+                <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
+                <input type="text" value="" class="form-control inline w input-sm" id="vm_duration">
+              </label> 
+            </div>                                   
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">备注</label>
+          <div class="col-sm-8">
+            <textarea class="form-control" data-bind="value:remark"></textarea>
+          </div>
+          <div class="col-sm-1">
+            <span class="text-danger inline m-l-n m-t-sm"></span>
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer'>
+        <button name="button" class="btn btn-primary " data-bind="click:save">确定</button>
+        <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
       </div>
     </div>
   </div>
 </div>
+
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","api/resourceInstance/objectStorage/objectStorage.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {

@@ -6,6 +6,7 @@ var csc = {};
 csc.rest = {
 	post : function(url, content, successFun, errorFun) {
 		$.ajax({
+			//headers: {'Cookie' : document.cookie },
 			url : url,
 			type : 'POST',
 			dataType : "json",
@@ -24,6 +25,7 @@ csc.rest = {
 	},
 	put : function(url, content, successFun, errorFun) {
 		$.ajax({
+			//headers: {'Cookie' : document.cookie },
 			url : url,
 			type : 'PUT',
 			data : JSON.stringify(content),
@@ -42,6 +44,7 @@ csc.rest = {
 	},
 	del : function(url, successFun, errorFun) {
 		$.ajax({
+			//headers: {'Cookie' : document.cookie },
 			url : url,
 			type : 'DELETE',
 			dataType : "json",
@@ -58,6 +61,7 @@ csc.rest = {
 	},
 	get : function(url, successFun, errorFun) {
 		$.ajax({
+			//headers: {'Cookie' : document.cookie },
 			url : url,
 			type : 'GET',
 			cache : false,
@@ -180,6 +184,13 @@ csc.util = {
 	     m=Math.pow(10,Math.max(r1,r2));
 	     n=(r1>=r2)?r1:r2;
 	     return ((arg1*m-arg2*m)/m).toFixed(n);
+	},
+	bytesToSize : function (bytes) {// 文件大小单位转换
+	    if (bytes === 0) return '0 B';
+	    var k = 1000, // or 1024
+	        sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+	        i = Math.floor(Math.log(bytes) / Math.log(k));
+	   return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
 	}
 }
 
@@ -207,3 +218,4 @@ csc.uploader = {
 		}
 	}
 }
+

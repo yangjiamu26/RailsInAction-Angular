@@ -57,10 +57,10 @@
 					<div class="cell">
 						<div class="cell-inner">
 							<div class="wrapper-md">
-								<div class="panel panel-default">
+								<div class="panel panel-default b-blue">
 									<div class="row wrapper">
 										<div class="col-xs-1">
-											<a class="btn btn-sm btn-primary"  data-bind="click: createService" >创建服务</a>
+											<a class="btn btn-sm btn-info"  data-bind="click: createService" >创建服务</a>
 												<!-- -->
 										</div>
 										<div class="col-xs-3">
@@ -112,7 +112,7 @@
 											</thead>
 											<tbody>
 												<tr data-bind="visible: showNoData">
-													<td colspan="6" class="aligncenter">This table has no data.</td>
+													<td colspan="7" class="aligncenter">This table has no data.</td>
 												</tr>
 												<!-- ko foreach: {data: pagedRows, as: '$row'} -->
 												<tr class="b-l b-l-3x b-l-info">
@@ -365,7 +365,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     function loadReleaseVdc(azUuids){
       	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
       		viewModel.vdcList(data);
-         });
+      		if(data.length > 0){
+      			for(var i = 0;i < data.length;i++){
+          			viewModel.releaseRange.push(data[i].uuid);
+            	}
+      		}
+        });
     } 
     <!-- 云盘  -->
   	//初始化云盘类型
@@ -602,22 +607,29 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         	  loadVmCpu();//获取虚拟机CPU
         	  loadVmMemory();//获取虚拟机内存
           }else if(viewModel.selected_product()=='DISK'){//选择云盘
-        	  loadDiskType()//初始化云盘类型
+        	  loadDiskType();//初始化云盘类型
+        	  getAzsByUser(viewModel);
           }else{
-        	  
+        	  getAzsByUser(viewModel);
           }
         }
-        
-        <!--选择产品end-->
-  	    //添加IP start
-        this.isAdd_Ip = ko.observable(false);
-        this.addIp = function(){
-          this.isAdd_Ip(true);
-        }
-        this.addIpToList = function(){
-          this.isAdd_Ip(false);
-        }
-        //添加IP  end
+        //
+     	function getAzsByUser(viewModel){
+    	   if(viewModel.azUuidList().length > 0){
+     		   viewModel.azUuidList.removeAll();
+     	   }
+       	   //根据当前用户获取可用分区
+       	   csc.rest.get('api/v5.0.0/azs',function(data1){
+         		viewModel.azList(data1.results);          		
+         		if(data1.results.length > 0){          			
+         			for(var i = 0;i < data1.results.length;i++){
+             			viewModel.azUuidList.push(data1.results[i].uuid);
+               		}
+         		}
+            });
+     	}
+     	
+        <!--选择产品end-->  	    
         
         <!--  添加计费规则start -->
         function Package(type,value){
@@ -783,7 +795,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
 //  	    	  this.serviceVO().serviceVm.azUuid(getAzUuids(this.azUuidList()));//虚拟机可用分区
   	    	  this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
-  	    	  this.serviceVO().servicePartitions(getReleaseRanges(this.releaseRange()));//发布范围
+  	    	  this.serviceVO().servicePartitions(releaseRange);//发布范围
   	      }else if(this.selected_product()=='DISK'){//云盘保存时的数据
   	    	var releaseRange = getReleaseRanges(this.releaseRange());
   	      	if(releaseRange == ""){
@@ -794,7 +806,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    	this.serviceVO().serviceVDC = null;
   	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
   	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
-  	    	this.serviceVO().servicePartitions();//发布范围
+  	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
   	      }else if(this.selected_product()=="PUBLICIP"){
   	    	  
   	      }else{
@@ -804,8 +816,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	      		return;
   	      	}
   	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
+  	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
   	      }
-  		  debugger
+  		  //debugger
   		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
   				self.table.refreshData();
   				self.isCreateService(false);
@@ -851,7 +864,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
            }else if(viewModel.selected_product()=='VDC'){
               
            }else{
-        	   //根据当前用户获取可用分区
         	   
            }
          }
@@ -915,7 +927,29 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.diskTypeCheck = ko.observable("HDD");
         <!-- 云盘end  -->
         
+        <!-- 公网IP   start-->
+      	//添加IP start
+        this.isAdd_Ip = ko.observable(false);
+        this.addIp = function(){
+          this.isAdd_Ip(true);
+        }
+        this.addIpToList = function(){
+          this.isAdd_Ip(false);
+        }
+        //添加IP  end
         
+         <!-- 公网IP   start-->
+      //###########    列表、全选     ###############
+	    /* this.isSelectedReleaseAll = ko.pureComputed({
+	        read: function () {
+	            return this.vdcList().length === this.releaseRange().length;
+	        },
+	        write: function (value) {
+	        	debugger
+	        	this.releaseRange(value ? _.pluck(this.vdcList(), 'uuid') : []);
+	        },
+	        owner: this
+	      }); */
         
         //发布范围
         this.vdcList = ko.observableArray();
@@ -1071,7 +1105,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-2 control-label">操作系统版本：</label>                
                 <div class="col-xs-9">
-                  <div class="panel panel-default" style="margin:0;padding-bottom:10px">
+                  <div class="panel panel-default b-blue" style="margin:0;padding-bottom:10px">
                     <table class="table table-striped">
                       <thead>
                         <th>可用分区</th>
@@ -1151,11 +1185,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </label>
                     </div>
                     <!-- /ko -->
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1195,11 +1224,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </label>
                     </div>
                     <!-- /ko -->
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1363,16 +1387,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </label>
                     </div>
                     <!-- /ko -->
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
               <div class="form-group" style="padding:0 50px;">
-                <div class="panel panel-default">
+                <div class="panel panel-default b-blue">
                   <div class="panel-heading clearfix">
                     <strong>公网IP列表</strong>
                     <a class="btn btn-default btn-xs pull-right" style="color:#666;" data-bind="click: addIp">添加</a>
@@ -1422,11 +1441,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </label>
                     </div>
                     <!-- /ko -->
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1452,11 +1466,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       </label>
                     </div>
                     <!-- /ko -->
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" data-bind="checked: $root.azUuidList" value="000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7"> WYY-AZ-1
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1491,7 +1500,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 					</div>
 				  </div>
 				  <div data-bind="foreach: packages_chosen">
-	                  <div class="panel panel-default jifei-panel">
+	                  <div class="panel panel-default b-blue jifei-panel">
 	                    <div class="panel-heading jifei-heading">
 	                    <h4 data-bind="text: type"></h4>
 	                    <a class="btn btn-sm btn-info jifei-btn" data-bind="click: $root.addFeeDay">添加计费规则</a></div>
@@ -1522,16 +1531,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-2 control-label">发布范围：</label>
                 <div class="col-xs-9">
-                  <!-- <div class="panel panel-default" style="margin:0;padding-bottom:10px">
+                  <!-- <div class="panel panel-default b-blue" style="margin:0;padding-bottom:10px">
                     <div id="serviceModalTree" class="ztree release"></div>
                   </div> -->
-                  <div class="form-inline">
+                  <!-- <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="click: isSelectedReleaseAll"> 全选
                       </label>
                     </div>
-                  </div>
+                  </div> -->
                   <div style="padding:0 20px;">
                     <!-- ko foreach : vdcList -->
                     <div class="checkbox">

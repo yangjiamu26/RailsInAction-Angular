@@ -6,7 +6,7 @@
 			getBindableVmList:function(param,callback,errorCallback){
 				 var param = csc.util.httpQueryParamConvert(param);
 				 csc.rest.get('api/v5.0.0/ports/bindableVms?'+param,function(data){
-				     callback(data.results);
+				     callback(data);
     		     }); 
 			}
 	};

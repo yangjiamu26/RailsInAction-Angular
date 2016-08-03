@@ -22,7 +22,11 @@
 			 * 获取软件数据
 			 */
 			getSoftware: function(params, callback, errorCallback) {
+				var param = csc.util.httpQueryParamConvert(params);
 				
+				csc.rest.get('api/v5.0.0/soft/softwares?' + param, function(data) {
+				     callback(data);
+				}); 
 			},
 			
 			/**
@@ -60,7 +64,7 @@
 			 */
 			updateSoftType: function (uuid, params, callback, errorCallback) {
 				csc.rest.put('api/v5.0.0/soft/softType/' + uuid, params, function(data) {
-					 callback(data)
+					 callback(data);
 				}); 
 			},
 			
@@ -71,8 +75,8 @@
 				var param = csc.util.httpQueryParamConvert(params);
 				
 				csc.rest.del('api/v5.0.0/soft/softType?' + param, function(data) {
-					 callback(data)
-  		        })
+					 callback(data);
+  		        });
 			},
 			
 			/**
@@ -89,7 +93,7 @@
 			/**
 			 * 获取软件类型下拉列数据
 			 */
-			loadSoftTypeList: function(params, callback, errorCallback) {
+			loadSoftTypeList: function (params, callback, errorCallback) {
 				var param = csc.util.httpQueryParamConvert(params);
 				
 				csc.rest.get('api/v5.0.0/soft/list/softTypes?' + param, function(data) {
@@ -108,6 +112,35 @@
 			
 	};
 	$.SOFT_SCRIPT = {
+		/**
+		 * 删除FTP脚本文件
+		 */
+		deleteScriptFile: function (params, callback, errorCallback) {
+			var param = csc.util.httpQueryParamConvert(params);
 			
+			csc.rest.del('api/v5.0.0/script/file', params, function(data) {
+			     callback(data);
+			});
+		},
+		/**
+		 * 加载关联的脚本文件数据
+		 */
+		loadScriptFileData: function (params, callback, errorCallback) {
+			var param = csc.util.httpQueryParamConvert(params);
+			
+			csc.rest.get('api/v5.0.0/script/files', params, function(data) {
+			     callback(data);
+			});
+		},
+		/**
+		 * 加载关联的默认安装属性
+		 */
+		loadDefaultAttrData: function (params, callback, errorCallback) {
+			var param = csc.util.httpQueryParamConvert(params);
+			
+			csc.rest.get('api/v5.0.0/script/defaultAttrs', params, function(data) {
+				callback(data);
+			});
+		}
 	};
 }(window.jQuery);

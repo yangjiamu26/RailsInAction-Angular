@@ -1026,6 +1026,15 @@ kv.rules['portRange'] = {
 		  }
 		};
 
+kv.rules['ipProtocolNum'] = {
+		  validator: function (val, params) {
+	  	      	 this.message ='0~255的整数，或-1做通配符';
+	  	      	return (!isNaN(val) && /^-?\d+$/.test(val) && parseInt(val) <= 255  && parseInt(val) >= -1);
+		  }
+		};
+
+
+
 kv.rules['notEqual'] = {
   validator: function (val, params) {
     var otherValue = params;

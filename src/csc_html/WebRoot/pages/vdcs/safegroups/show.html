@@ -72,11 +72,11 @@
 			    </tr>
 				<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td data-bind="text: $row.direction"></td>
+                  <td data-bind="text: $row.directionName"></td>
                   <td data-bind="text: $row.protocol"></td>
-                  <td data-bind="text: $row.portRangeMins"></td>
+                  <td data-bind="text: $row.showPortRange"></td>
                   <td data-bind="text: $row.remoteIpPrefix"></td>
-                  <td data-bind="text: $row.remoteGroupId"></td>
+                  <td data-bind="text: $row.remoteGroupName"></td>
                   <td data-bind="text: $row.etherType"></td>
                   <td>
                       <a data-bind="click:$root.delSgRule">删除</a>
@@ -137,7 +137,7 @@
 				              <option value="dns">DNS</option>
 				              <option value="http">HTTP</option>
 				              <option value="https">HTTPS</option>
-				              <option value="OTHER">其他</option>
+				              <option value="other">其他</option>
 				            </select>
 				          </div>
 				          <div class="col-xs-1">
@@ -386,7 +386,43 @@
 			    	});
 			    	
 		    		self.sgVO = ko.validatedObservable(sgObj);
-		    		self.sgRuleListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/secretGroupRules', perPage: 1});
+		    		self.sgRuleListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/secretGroupRules',
+		    			loader: function(result){ 
+				    				for(key in result){
+				    					if(!result[key]){
+				    						result[key] = "-";
+				    					}
+				    					if(key == "direction"){
+				    						if(result[key] == "egress"){
+				    							result.directionName = "出口";
+				    						}else if(result[key] == "ingress"){
+				    							result.directionName = "入口";
+				    						}
+				    					}
+				    					
+				    					if(key == "protocol" && result[key] == "-"){
+				    						result[key] = "任何";
+				    					}
+				    					
+				    					if(key == "showPortRange"){
+				    						switch(result[key]){
+				    						   case "80":
+				    							   result[key] = "HTTP(80)";
+				    							   break;
+				    						   case "443":
+				    							   result[key] = "HTTPS(443)";
+				    							   break;
+				    						   case "53":
+				    							   result[key] = "DNS(53)";
+				    							   break;
+				    						   case "-":
+				    							   result[key] = "任何";
+				    							   break;
+				    						}
+				    					}
+				    				}
+		                    return result; 
+		                 }});
 		    		self.searchSgRuleParam = ko.observable({
 		    			direction: ""
 	        	    })
@@ -396,14 +432,16 @@
 		       	    }
 		    		
 		    	    self.sgRuelVO =  ko.validatedObservable({
-	    			     "direction":ko.observable().extend({required: true}),
-	    			     "protocol":ko.observable().extend({required: true}),
-						 "portRange":ko.observable().extend({required: {onlyIf: function(){return true}}}),
-						 "remoteIpPrefix":ko.observable(),
-						 "remoteGroupId":ko.observable(),
-						 "ipProtocolNum":ko.observable()
+	    			     "direction":ko.observable("").extend({required: true}),
+	    			     "protocol":ko.observable("").extend({required: true}),
+						 "portRange":ko.observable("").extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}}}),
+						 "remoteIpPrefix":ko.observable("").extend({required: {onlyIf: function(){return true}},ip:{onlyIf: function(){return true}}}),
+						 "remoteGroupId":ko.observable("").extend({required: {onlyIf: function(){return false}}}),
+						 "ipProtocolNum":ko.observable("").extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
 						});
 		    	    
+		    	    
+		    	   
 		    	    
 		    	    self.sgRuelVO().protocol.subscribe(function(val){
 		    	    	// 根据协议显示隐藏相关字段
@@ -411,17 +449,34 @@
 		    	    	     case 'tcp':
 		    	    	    	$('#field-port').show(); 
 		    	    	        $('#field-icmp, #field-protocolNum').hide(); 
-		    	    	     	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return true}} }) 
+		    	    	     	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}} }); 
+		    	    	     	 self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
 		    	    	        break;
-		    	    	     case 'udp':$('#field-port').show(); $('#field-icmp, #field-protocolNum').hide(); break;
-		    	      	     case 'dns': $('#field-port, #field-icmp, #field-protocolNum').hide(); break;
-		    	      	     case 'http': $('#field-port, #field-icmp, #field-protocolNum').hide(); break;
+		    	    	     case 'udp':$('#field-port').show(); $('#field-icmp, #field-protocolNum').hide();
+		    	    	        self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}} });
+		    	    	        self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
+		    	    	        break;
+		    	      	     case 'dns': $('#field-port, #field-icmp, #field-protocolNum').hide(); 
+			    	      	    self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}} })
+			    	      	     self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
+			    	      	    break;
+		    	      	     case 'http': $('#field-port, #field-icmp, #field-protocolNum').hide();
+			    	      	    self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}} })
+			    	      	     self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
+			    	      	    break;
 		    	      	     case 'https': 
 		    	      	    	$('#field-port, #field-icmp, #field-protocolNum').hide();
-		    	      	    	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}}})
+		    	      	    	self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}} })
+		    	      	    	 self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
 		    	      	     	break;
-		    	    	     case 'icmp': $('#field-icmp').show(); $('#field-port, #field-protocolNum').hide(); break;
-		    	    	     case 'other': $('#field-protocolNum').show(); $('#field-port, #field-icmp').hide(); break;
+		    	    	     case 'icmp': $('#field-icmp').show(); $('#field-port, #field-protocolNum').hide();
+		    	    	        self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}} })
+		    	    	        self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return false}},ipProtocolNum:{onlyIf: function(){return false}}})
+		    	      	     	break;
+		    	    	     case 'other': $('#field-protocolNum').show(); $('#field-port, #field-icmp').hide();
+		    	    	       self.sgRuelVO().portRange.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}} })
+		    	    	       self.sgRuelVO().ipProtocolNum.extend({required: {onlyIf: function(){return true}},ipProtocolNum:{onlyIf: function(){return true}}})
+		    	    	       break;
 	    	    	     }
 		    	    })
 		    	    
@@ -435,6 +490,16 @@
 							 "ipProtocolNum":""
 							});
 		    			self.addSGRuleMode(true)	
+		    			$("input[name='remoteRadio']").bind("click",function(){
+		    	            var radioVal = $(this).val();  
+		    				if(radioVal == "SecretGroup"){
+		    					self.sgRuelVO().remoteGroupId.extend({required: {onlyIf: function(){return true}}})
+		    					self.sgRuelVO().remoteIpPrefix.extend({required: {onlyIf: function(){return false}},ip:{onlyIf: function(){return false}}})
+		    				}else if(radioVal == "IP"){
+		    					self.sgRuelVO().remoteGroupId.extend({required: {onlyIf: function(){return false}}})
+		    					self.sgRuelVO().remoteIpPrefix.extend({required: {onlyIf: function(){return true}},ip:{onlyIf: function(){return true}}})
+		    				}
+		    	         })
 		    		}
 		    		
 		    		
@@ -442,35 +507,65 @@
 		    			//console.log(self.sgRuelVO.toJSON())
 		    			ko.validation.group(self.sgRuelVO).showAllMessages();
     	    	        if(self.sgRuelVO.isValid()){
-    	    	        	alert(111)
-    	    	        	/* var sgJson = self.sgRuelVO.toJSON();
+    	    	            var sgJson = self.sgRuelVO.toJSON();
    			    			var  param = {};
    			    			param.etherType = "IPv4";
    			    			param.direction = sgJson.direction;
-   			    			if("other" != sgJson.protocol){
+   			    			if("other" == sgJson.protocol){
    			    				param.protocol = sgJson.ipProtocolNum;
+   			    			}else{
+   			    			    param.protocol = sgJson.protocol;
    			    			}
    			    			
-   			    			param.protocol = sgJson.protocol;
-   			    			var portRange = sgJson.portRange;
-   			    			if(portRange){
-   			    				var prSplist = portRange.split(":");
-   			    				param.portRangeMin = prSplist[0];
-   					    		param.portRangeMax = prSplist[1];
+   			    			if(param.protocol == "tcp" || param.protocol == "udp"){
+   			    				var portRange = sgJson.portRange;
+   	   			    			if(portRange){
+   	   			    				if(portRange.indexOf(":") != -1){
+   	   			    					var prSplist = portRange.split(":");
+   	   	   			    				param.portRangeMin = prSplist[0];
+   	   	   					    		param.portRangeMax = prSplist[1];
+   	   			    				}else{//只有一个值时
+   	   			    					param.portRangeMin = portRange;
+   	   	   					    		param.portRangeMax = portRange;
+   	   			    				}
+   	   			    			}
+   			    			}else{
+	   			    			 switch(param.protocol){
+			    	      	     case 'dns': 
+			    	      	    	param.protocol = "tcp";
+			    	      	    	param.portRangeMin = 53;
+	   	   					    	param.portRangeMax = 53;
+				    	      	    break;
+			    	      	     case 'http': 
+			    	      	    	param.protocol = "tcp";
+			    	      	    	param.portRangeMin = 80;
+	   	   					    	param.portRangeMax = 80;
+				    	      	    break;
+			    	      	     case 'https': 
+			    	      	    	param.protocol = "tcp";
+			    	      	    	param.portRangeMin = 443;
+	   	   					    	param.portRangeMax = 443;
+			    	      	     	break;
+			    	    	     case 'icmp': 
+			    	      	     	break;
+			    	    	     case 'other': 
+			    	    	       break;
+		    	    	         }
    			    			}
+   			    			
    			    			
    			    			var remoteType = $("input[name='remoteRadio']:checked").val();
-   			    		 
+   			    			console.log(remoteType)
    			    			if(remoteType == "IP"){
    			    				param.remoteIpPrefix = sgJson.remoteIpPrefix;
    			    			}else{
    			    				param.remoteGroupId = sgJson.remoteGroupId;
    			    			}
    			    			
-   			    			$.SECRETGROUP.addSecretGroupRule(sgUuid,param,function(data){
+   			    			 $.SECRETGROUP.addSecretGroupRule(sgUuid,param,function(data){
    			    				self.sgRuleListTable.refreshData();
    			    				self.addSGRuleMode(false);
-   			    			});  */
+   			    			});  
     	    	        } 
     	    	     
 		    		}
@@ -488,6 +583,8 @@
 		  }
 		  
 		  
+		  
+		    /*****安全组下虚拟机***/
 		    function sgRelVmViewModel(){
 		    	var self = this;
 		    	self.sgRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/vms', perPage: 1});
@@ -519,7 +616,6 @@
 		    	
 		    	self.confirmAddVm2Sg = function(){
 		    		 var platformIds =  _.pluck(this.sgAddRelVmListTable.chosenItems(), "uuid");
-		    		 console.log(platformIds)
 		    		 if(platformIds){
 		    			 $.SECRETGROUP.addVm2SecretGroup(sgUuid,{"vms":platformIds},function(){
 		    				  self.sgRelVmListTable.refreshData();
@@ -543,7 +639,7 @@
 		    	
 		    }
 		    ko.applyBindings(new sgRelVmViewModel(), $("#page-content .tab-pane")[2]);
-		
+		    /*****安全组下虚拟机***/
 	})
     
 
