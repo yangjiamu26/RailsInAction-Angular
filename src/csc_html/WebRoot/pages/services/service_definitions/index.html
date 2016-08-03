@@ -706,7 +706,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   		 serviceDisk : {
   			diskType: ko.observable(),
   			azUuid: ko.observable()
-  		 }
+  		 },
+  		serviceIp : {
+  			ipUuid: ko.observable()
+  		}
   	   })
   	   //虚拟机的cpu
   	   this.cpuCheckList = ko.observableArray();
@@ -781,6 +784,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   		  if(this.selected_product()=='VDC'){//VDC保存时的数据
   			  this.serviceVO().serviceVm = null;
   			  this.serviceVO().serviceDisk = null;
+  			  this.serviceVO().serviceIP = null;
   	      }else if(this.selected_product()=='VM'){//云主机保存时的数据
 	  	      var releaseRange = getReleaseRanges(this.releaseRange());
 	  	      if(releaseRange == ""){
@@ -789,6 +793,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	  	      }
   	    	  this.serviceVO().serviceVDC = null;
   	    	  this.serviceVO().serviceDisk = null;
+  	    	  this.serviceVO().serviceIP = null;
   	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
   	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
   	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
@@ -804,11 +809,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	      	}
   	    	this.serviceVO().serviceVm = null;
   	    	this.serviceVO().serviceVDC = null;
+  	    	this.serviceVO().serviceIP = null;
   	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
   	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
   	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
-  	      }else if(this.selected_product()=="PUBLICIP"){
-  	    	  
+  	      }else if(this.selected_product()=="PUBLICIP"){//公网IP
+  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
+  	    	this.serviceVO().servicePartitions(getReleaseRanges(this.releaseRange()));//发布范围 
+  	    	this.serviceVO().serviceIp.ipUuid(getIpUuids(this.ip_chosen()));//ip列表
   	      }else{
   	    	var releaseRange = getReleaseRanges(this.releaseRange());
   	      	if(releaseRange == ""){
@@ -933,24 +941,58 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.addIp = function(){
           this.isAdd_Ip(true);
         }
-        this.addIpToList = function(){
+        this.addIpToList = function(package,event){
+          if(self.azUuidList().length <= 0){
+          	 alert("请选择可用分区！");
+          	 return;
+          }
+          self.ip_current = package;
+      	  self.ipList.params({
+      	  })
+          this.ip_chosen(this.ipList.chosenItems());
           this.isAdd_Ip(false);
         }
+        
+        this.ip_chosen = ko.observableArray()
+        this.ip_current = null;
+
+		this.ipList = new DataTable([], {path: "api/v5.0.0/service/getServiceIpList"});
+        //获取ip的uuid以","分隔
+		function getIpUuids(obj){
+			debugger
+			var ipUuid = "";
+        	for(var i = 0;i < obj.length;i++){
+        		ipUuid += obj[i].uuid + ",";
+        	}
+        	if(ipUuid != ""){
+        		ipUuid = ipUuid.substring(0,ipUuid.length-1);
+        	}
+        	return ipUuid;
+		}
         //添加IP  end
         
          <!-- 公网IP   start-->
-      //###########    列表、全选     ###############
-	    /* this.isSelectedReleaseAll = ko.pureComputed({
+      	//###########    列表、全选     ###############
+      	/**发布范围全选按钮**/
+	    this.isSelectedReleaseAll = ko.pureComputed({
 	        read: function () {
 	            return this.vdcList().length === this.releaseRange().length;
 	        },
 	        write: function (value) {
-	        	debugger
 	        	this.releaseRange(value ? _.pluck(this.vdcList(), 'uuid') : []);
 	        },
 	        owner: this
-	      }); */
-        
+	      }); 
+      	/** 可用分区全选按钮 ***/
+	    this.isSelectedAzAll = ko.pureComputed({
+	        read: function () {
+	            return this.azList().length === this.azUuidList().length;
+	        },
+	        write: function (value) {
+	        	this.azUuidList(value ? _.pluck(this.azList(), 'uuid') : []);
+	        },
+	        owner: this
+	      });
         //发布范围
         this.vdcList = ko.observableArray();
     }
@@ -1070,7 +1112,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1173,7 +1215,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1212,7 +1254,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1375,7 +1417,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1406,11 +1448,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                           <th>操作</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody data-bind="foreach: ip_chosen">
                         <tr>
-                          <td>208</td>
-                          <td>网络1</td>
-                          <td>192.168.1.2~192.168.1.253</td>
+                          <td data-bind="text: vpcName"></td>
+                          <td data-bind="text: name"></td>
+                          <td data-bind="text: cidr"></td>
                           <td><a onclick="confirm('确定删除吗？')">删除</a></td>
                         </tr>
                       </tbody>
@@ -1429,7 +1471,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1454,7 +1496,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll"> 全选
                       </label>
                     </div>
                   </div>
@@ -1534,13 +1576,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <!-- <div class="panel panel-default b-blue" style="margin:0;padding-bottom:10px">
                     <div id="serviceModalTree" class="ztree release"></div>
                   </div> -->
-                  <!-- <div class="form-inline">
+                  <div class="form-inline">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" data-bind="click: isSelectedReleaseAll"> 全选
+                        <input type="checkbox" data-bind="checked: isSelectedReleaseAll"> 全选
                       </label>
                     </div>
-                  </div> -->
+                  </div>
                   <div style="padding:0 20px;">
                     <!-- ko foreach : vdcList -->
                     <div class="checkbox">
@@ -1682,11 +1724,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择网络</h3>
         </div>
         <div class='modal-body form-horizontal'>
-          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px">
+          <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: ipList">
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th><input type="checkbox" style="top:-2px;"></th>
+                  <th>
+			       <div class="checkbox">
+			         <label class="i-checks">
+			           <input type="checkbox" data-bind="checked: isSelectedAll">
+			           <i></i>
+			         </label>
+			       </div>
+			      </th>
                   <th>VPC名称</th>
                   <th>网络名称</th>
                   <th>IP资源</th>
@@ -1694,13 +1743,22 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 </tr>
               </thead>
               <tbody>
+              	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td><input type="checkbox" style="top:-2px;"></td>
-                  <td>208</td>
-                  <td>网络1</td>
-                  <td>192.168.1.2~192.168.1.253</td>
-                  <td>分区1</td>
+                  <td>
+			       <div class="checkbox">
+			         <label class="i-checks">
+			           <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
+			           <i></i>
+			         </label>
+			       </div> 
+			      </td>
+                  <td data-bind="text: vpcName"></td>
+                  <td data-bind="text: name"></td>
+                  <td data-bind="text: cidr"></td>
+                  <td data-bind="text: azName"></td>
                 </tr>
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
