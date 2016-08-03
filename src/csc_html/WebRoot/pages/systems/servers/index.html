@@ -272,7 +272,8 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
+  
+  var scripts = [ null, "api/systems/serverconf/serverconf.js" ]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
     	var self = this;
@@ -308,7 +309,29 @@
         }
       });
       
+     /*  this.report = ko.observable({
+    	  "urlAddr": "",
+          "userName": "",
+          "userPwd": ""
+      })
       
+      
+      this.chef = ko.observable({
+    	  "ipAddr": "",
+          "portNum": "",
+          "username": "",
+          "userPwd": ""
+      }) 
+      
+      
+      this.ftp = ko.observable({
+    	  "serverAddr": "",
+          "portNum": "",
+          "softWareAddr": "",
+          "scriptAddr": "",
+          "username": "",
+          "userPwd": ""
+      }) */
 
       this.email_test = ko.observable({
         "email": "",
@@ -317,7 +340,7 @@
       }) 
 
       
-       var self = this;
+      var self = this;
       this.isAdd = ko.observable(false);
       
       this.loadData = function(){
@@ -327,19 +350,27 @@
       } 
 
       this.loadData(); 
-
-      this.reportTest = function(object){
+      
+      this.checkCollRepoConnect = function(object){
           console.log(object);
-          var param = {
+
+    	  var param = {
                   "urlAddr": this.urlAddr,
                   "userName": this.userName,
                   "userPwd": this.userPwd
                 }; 
-          $FTP_CONF.checkCollRepoIsConnect(param , function(data){
-      		if(data && data.msg) {
-      			alert(data.msg + '！');
-      		}
-      	})
+    	  alert(object);
+    	  $.REPO_CONF.checkCollRepoIsConnect(param , function(data){
+        		if(data && data.msg) {
+        			alert(data.msg + '！');
+        		}
+        	});
+    	  
+      }
+
+      this.reportTest = function(object){
+          console.log(object);
+          self.checkCollRepoConnect(object);
         
       }
       this.reportSave = function(object){
@@ -364,24 +395,26 @@
         }   
         
       }
-      
+      self.checkFtpIsConnect = function(object){
+    	  var param={
+                  "serverAddr": this.serverAddr,
+                  "portNum": this.portNum,
+                  "softWareAddr": this.softWareAddr,
+                  "scriptAddr": this.scriptAddr,
+                  "username": this.username,
+                  "userPwd": this.userPwd
+                };
+          $.FTP_CONF.checkFtpIsConnect(param , function(data){
+      		if(data && data.msg) {
+      			alert(data.msg + '！');
+      		}
+      	});
+      }
      
 
       this.ftpTest = function(object){
         console.log(object);
-        var param={
-                "serverAddr": this.serverAddr,
-                "portNum": this.portNum,
-                "softWareAddr": this.softWareAddr,
-                "scriptAddr": this.scriptAddr,
-                "username": this.username,
-                "userPwd": this.userPwd
-              };
-        $FTP_CONF.checkFtpIsConnect(param , function(data){
-    		if(data && data.msg) {
-    			alert(data.msg + '！');
-    		}
-    	})
+        self.checkFtpIsConnect(object);
         
       }
       this.ftpSave = function(object){
@@ -405,7 +438,7 @@
         }else if(this.userName == ""||this.userPwd == ""){
         	alert("请输入用户名或密码！");
         }else{
-        	csc.rest.post('api/v5.0.0/severconfsftp', param, function(){
+        	csc.rest.post('api/v5.0.0/severconfsftp', param , function(){
                 self.isAdd(false);
               })
             alert("保存配置成功！");
@@ -428,6 +461,7 @@
               };
         var ipReg =  "^(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])){3}$";//ip地址的正则表达式
     	var ipPatt = new RegExp(ipReg);
+        alert(param);
        if(this.ipAddr == ""||!ipPatt.test(this.ipAddr)){
     	   alert("请输入正确的ip地址！");
        }else if(this.portNum == ""){

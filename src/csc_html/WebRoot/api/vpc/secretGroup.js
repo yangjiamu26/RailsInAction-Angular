@@ -64,6 +64,24 @@
 				 csc.rest.post('api/v5.0.0/secretGroups/'+sgUuid+'/secretGroupRules',param,function(data){
 					     callback(data);
 	    		    }); 
+			},
+			/**
+			 * 添加虚拟机到安全组
+			 * @param 
+			 */
+			addVm2SecretGroup:function(sgUuid,param,callback,errorCallback){
+				 csc.rest.put('api/v5.0.0/secretGroups/'+sgUuid+'/vms',param,function(data){
+					     callback(data);
+	    		    }); 
+			},
+			/**
+			 * 删除虚拟机到安全组
+			 * @param 
+			 */
+			removeVmfromSecretGroup:function(sgUuid,vmUuid,callback,errorCallback){
+				 csc.rest.del('api/v5.0.0/secretGroups/'+sgUuid+'/secretGroup/'+vmUuid,function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

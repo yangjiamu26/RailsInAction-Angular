@@ -22,7 +22,7 @@
 		updateDev : function(uuid, param, callback, errorCallback) {
 			csc.rest.put('api/v5.0.0/devs/' + uuid, param,
 					function(data) {
-						callback(data)
+						callback(data);
 					});
 		},
 		
@@ -34,7 +34,7 @@
 		 */
 		delDev : function(uuid, callback) {
 			csc.rest.del('api/v5.0.0/devs/' + uuid, function(data) {
-				callback(data)
+				callback(data);
 			})
 		},
 		

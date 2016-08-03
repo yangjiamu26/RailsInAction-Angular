@@ -224,6 +224,7 @@
                   <th>云主机名称</th>
                   <th>状态</th>
                   <th>IP地址</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,6 +238,9 @@
                   <td data-bind="text: $row.name"></td>
                   <td data-bind="text: $row.state"></td>
                   <td data-bind="text: $row.ip"></td>
+                   <td>
+						<a data-bind="click:$root.removeVmFromSg">删除</a>
+				   </td>
                 </tr>
                  <!-- /ko -->	
               </tbody>
@@ -360,8 +364,6 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  
 	var sgUuid = args.sgUuid;
-	   
-
 	
 	$.SECRETGROUP.getSecretGroups({uuid:sgUuid},function(data){
 		  if(data.results && data.results.length > 0){
@@ -498,7 +500,7 @@
        	            self.sgRelVmListTable.params(this.searchSgVmParam());
        	        }
 		    	
-		    	self.sgAddRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/canAddVms', perPage: 2});
+		    	self.sgAddRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/availbleVms', perPage: 2});
 		    	self.searchAddSgVmNameParam = ko.observable({
         	        name: ""
         	     })
@@ -516,9 +518,27 @@
 		    	self.checkAllVm = ko.observable(true),
 		    	
 		    	self.confirmAddVm2Sg = function(){
-		    		 var platformIds =  _.pluck(this.sgAddRelVmListTable.chosenItems(), "platformId") 
+		    		 var platformIds =  _.pluck(this.sgAddRelVmListTable.chosenItems(), "uuid");
 		    		 console.log(platformIds)
-		    		 self.addSecretGroupVmModel(false)	
+		    		 if(platformIds){
+		    			 $.SECRETGROUP.addVm2SecretGroup(sgUuid,{"vms":platformIds},function(){
+		    				  self.sgRelVmListTable.refreshData();
+	    					  self.addSecretGroupVmModel(false)	
+			    		}); 
+		    		 }else{
+		    			 self.addSecretGroupVmModel(false)	
+		    		 }
+		    	}
+		    	
+		    	self.removeVmFromSg = function(row){
+		    		var name = row.name;
+		    		var vmUuid = row.uuid;
+		    		confirm("确定删除安全组移除["+row.name+"]？",function(arg){
+			    			$.SECRETGROUP.removeVmfromSecretGroup(sgUuid,vmUuid,function(){
+			    				  self.sgRelVmListTable.refreshData();
+		    					  alert("从安全组移除虚拟机["+name+"]成功！")
+				    		});
+	    			 });
 		    	}
 		    	
 		    }
