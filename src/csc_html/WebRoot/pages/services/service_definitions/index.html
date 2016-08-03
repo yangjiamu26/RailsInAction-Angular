@@ -158,49 +158,48 @@
 				</div>
 			</div>
 		</div>
-	</div>
-
-	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
-		<div class='modal-dialog modal-lg' style="width: 600px;">
-			<div class='modal-content'>
-				<div class='modal-header'>
-					<button type="button" class="close" data-dismiss="modal">
-						<span aria-hidden="true">&times;</span>
-					</button>
-					<h3 class='modal-title' data-bind="ifnot: directoryVO().uuid">创建服务目录</h3>
-					<h3 class='modal-title' data-bind="if: directoryVO().uuid">修改服务目录</h3>
-				</div>
-				<div class='modal-body form-horizontal row'>
-					<div class="form-group">
-						<label class="col-xs-3 control-label">服务目录名称</label>
-						<div class="col-xs-8">
-							<input type="text" class="form-control" placeholder="请输入名称"
-								data-bind="value: directoryVO().name">
-						</div>
-						<div class="col-xs-1">
-							<span class="text-danger inline m-l-n m-t-sm">*</span>
-						</div>
+	</div>	
+</div>
+<!-- 服务目录弹窗 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
+	<div class='modal-dialog modal-lg' style="width: 600px;">
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title' data-bind="ifnot: directoryVO().uuid">创建服务目录</h3>
+				<h3 class='modal-title' data-bind="if: directoryVO().uuid">修改服务目录</h3>
+			</div>
+			<div class='modal-body form-horizontal row'>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">服务目录名称</label>
+					<div class="col-xs-8">
+						<input type="text" class="form-control" placeholder="请输入名称"
+							data-bind="value: directoryVO().name">
 					</div>
-					<div class="form-group">
-						<label class="col-xs-3 control-label">上级服务目录</label>
-						<div class="col-xs-8">
-							<input type="text" class="form-control" placeholder="请输入名称" disabled="disabled"
-								data-bind="value: directoryVO().parentName">
-						</div>
-						<div class="col-xs-1">
-							<span class="text-danger inline m-l-n m-t-sm">*</span>
-						</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
 					</div>
 				</div>
-				<div class='modal-footer' style="text-align: center;">
-					<a class="btn btn-default btn-info" data-bind="click: save">确定</a> 
-					<a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">上级服务目录</label>
+					<div class="col-xs-8">
+						<input type="text" class="form-control" placeholder="请输入名称" disabled="disabled"
+							data-bind="value: directoryVO().parentName">
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
 				</div>
+			</div>
+			<div class='modal-footer' style="text-align: center;">
+				<a class="btn btn-default btn-info" data-bind="click: save">确定</a> 
+				<a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
 		</div>
 	</div>
 </div>
-
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js', 
@@ -330,6 +329,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     function loadVdcOsType(){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VDC&configCodeName=osType&urlType=getSource',function(data){      		
       		viewModel.osList(data);
+      		if(data.length > 0){   	      			
+   	      		for(var i = 0;i < data.length;i++){
+          			viewModel.serviceVO().serviceVDC.osTypeList.push(data[i].value);
+            	}
+	      	}
          });
     }
     <!-- 云主机   -->
@@ -550,6 +554,23 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.isCreateService = ko.observable(false);
       this.createService = function(){    	      	   
     	  this.isCreateService(true);
+    	  //初始化数据start
+          this.step(1);
+    	  this.serviceVO.fromJSON({
+     		 name : "",
+   	  		 dirName : "",
+   	  		 dirUUID : "",
+   	  		 productId : "VDC",
+   	  		 imageUrl : "",
+   	  		 desc : "",
+   	  		 validTimeType : "1",
+   	  		 charge : "1",
+   	  		 serviceVDC : {
+   	  			 isLimit : 'no',
+   	  			 osTypeList : ko.observableArray()
+   	  		 }   	  		 
+     	  });
+    	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
     	  loadVdcOsType();  //获取VDC操作系统数据
     	  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
@@ -559,6 +580,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        minDate: Date.today(),
 	        separator:'至'
 	      });
+    	  
       }  
       //上一步  下一步 start
       this.step = ko.observable(1);
@@ -959,7 +981,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		this.ipList = new DataTable([], {path: "api/v5.0.0/service/getServiceIpList"});
         //获取ip的uuid以","分隔
 		function getIpUuids(obj){
-			debugger
 			var ipUuid = "";
         	for(var i = 0;i < obj.length;i++){
         		ipUuid += obj[i].uuid + ",";
@@ -976,7 +997,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	/**发布范围全选按钮**/
 	    this.isSelectedReleaseAll = ko.pureComputed({
 	        read: function () {
-	            return this.vdcList().length === this.releaseRange().length;
+	            return this.vdcList().length > 0 && this.vdcList().length === this.releaseRange().length;
 	        },
 	        write: function (value) {
 	        	this.releaseRange(value ? _.pluck(this.vdcList(), 'uuid') : []);
@@ -986,13 +1007,64 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	/** 可用分区全选按钮 ***/
 	    this.isSelectedAzAll = ko.pureComputed({
 	        read: function () {
-	            return this.azList().length === this.azUuidList().length;
+	            return this.azList().length >0 && this.azList().length === this.azUuidList().length;
 	        },
 	        write: function (value) {
 	        	this.azUuidList(value ? _.pluck(this.azList(), 'uuid') : []);
 	        },
 	        owner: this
 	      });
+	    /** 云主机操作系统类型全选按钮 ***/
+	    this.isSelectedOsTypeAll = ko.pureComputed({
+	        read: function () {
+	            return this.vmOsTypeList().length >0 && this.vmOsTypeList().length === this.osTypeCheckList().length;
+	        },
+	        write: function (value) {
+	        	this.osTypeCheckList(value ? _.pluck(this.vmOsTypeList(), 'value') : []);
+	        },
+	        owner: this
+	      });
+	    /** 云主机CPU全选按钮 ***/
+	    this.isSelectedCpuAll = ko.pureComputed({
+	        read: function () {
+	            return this.cpuList().length >0 && this.cpuList().length === this.cpuCheckList().length;
+	        },
+	        write: function (value) {	        	
+	        	this.cpuCheckList(value ? _.pluck(this.cpuList(), 'value') : []);
+	        },
+	        owner: this
+	      });
+	    /** 云主机内存全选按钮 ***/
+	    this.isSelectedMemoryAll = ko.pureComputed({
+	        read: function () {
+	            return this.memoryList().length >0 && this.memoryList().length === this.memoryCheckList().length;
+	        },
+	        write: function (value) {
+	        	this.memoryCheckList(value ? _.pluck(this.memoryList(), 'value') : []);
+	        },
+	        owner: this
+	      });	    
+	    /** 云主机内存全选按钮 ***/
+	    this.isSelectedMemoryAll = ko.pureComputed({
+	        read: function () {
+	            return this.memoryList().length >0 && this.memoryList().length === this.memoryCheckList().length;
+	        },
+	        write: function (value) {
+	        	this.memoryCheckList(value ? _.pluck(this.memoryList(), 'value') : []);
+	        },
+	        owner: this
+	      });
+	    /** VDC操作系统类型全选按钮 ***/
+	    this.isSelectedVdcOsAll = ko.pureComputed({
+	        read: function () {
+	            return this.osList().length >0 && this.osList().length === this.serviceVO().serviceVDC.osTypeList().length;
+	        },
+	        write: function (value) {
+	        	this.serviceVO().serviceVDC.osTypeList(value ? _.pluck(this.osList(), 'value') : []);
+	        },
+	        owner: this
+	      });
+	    
         //发布范围
         this.vdcList = ko.observableArray();
     }
@@ -1132,7 +1204,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 全选
+                      <input type="checkbox" data-bind="checked: isSelectedOsTypeAll"> 全选
                     </label>
                   </div>
                   <!-- ko foreach : vmOsTypeList -->
@@ -1175,7 +1247,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 全选
+                      <input type="checkbox" data-bind="checked: isSelectedCpuAll"> 全选
                     </label>
                   </div>
                   <!-- ko foreach : cpuList  -->
@@ -1192,7 +1264,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value=""> 全选
+                      <input type="checkbox" data-bind="checked: isSelectedMemoryAll"> 全选
                     </label>
                   </div>
                   <!-- ko foreach : memoryList   -->
@@ -1278,7 +1350,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" value="" > 全选
+                      <input type="checkbox" data-bind="checked: isSelectedVdcOsAll"> 全选
                     </label>
                   </div>
                   <!-- ko foreach: osList -->
