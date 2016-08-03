@@ -789,7 +789,28 @@
         </div>
 
       </div>
-      <div class='tab-pane' id='partition_network_externals_topo' role='tabpanel'></div>
+      <div class='tab-pane' id='partition_network_externals_topo' role='tabpanel'>
+          <dl class="dl-horizontal">
+            <dt>部署模式：</dt>
+            <dd>集中式或分布式</dd>
+            <dt>计算节点数：</dt>
+            <dd>100个</dd>
+            <dt>网络节点数：</dt>
+            <dd>100个</dd>
+            <dt>控制节点数：</dt>
+            <dd>100个</dd>
+          </dl>
+            <dl class="dl-horizontal nodeinfo" style="display:none">
+            <dt>IP：</dt>
+            <dd>10.10.111.222</dd>
+            <dt>端口：</dt>
+            <dd>8080</dd>
+            <dt>端口作用：</dt>
+            <dd>上行端口</dd>
+           
+          </dl>
+          <canvas id="canvas" width='1343' height='643'></canvas>
+      </div>
       
       <div class='tab-pane' id='partition_ip_pools' role='tabpanel'>
         <div class='panel panel-default'>
@@ -1231,8 +1252,88 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = ["api/resource/hosts/host.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
+  var scripts = ["api/resource/hosts/host.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js",'assets/js/jtopo.js'];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    //创建topo
+      var isData=true;
+      var canvas = document.getElementById('canvas');      
+      var stage = new JTopo.Stage(canvas);
+      var scene = new JTopo.Scene(stage);
+      scene.backgroundColor='255,255,255';
+      stage.add(scene);
+
+    //添加node节点
+      function addNode(str,text,x,y,type){
+        var node = new JTopo.Node(text);             
+        node.setLocation(x, y);
+        node.setImage( "assets/img/topo/images/"+str+".png", false);
+        node.width=48;
+        node.height=48;
+        node.fontColor="0,0,0";
+        node.dragable=true;
+        node.editAble=false;
+        node.type=str,
+        scene.add(node);
+      }
+    //添加link
+    function addLink(linkA,linkZ){
+        var link = new JTopo.Link(linkA, linkZ);
+                  link.lineWidth = 1; // 线宽
+                  link.bundleGap = 30; // 线条之间的间隔
+                  link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+                  link.strokeColor = 0,0,0 // 线条颜色随机JTopo.util.randomColor();
+                  link.type = 'loop'; // 自定义属性
+                  scene.add(link);
+    }
+    //数据处理
+  
+    for (var i = 1; i <40; i++) {
+      if(i<4){
+        var x=Math.ceil((1000/3)*i);
+        var node=addNode("internet","node"+i,x,30)
+        
+      }else if(i>3 && i <=12){
+        var x=Math.ceil((1200/9)*(i-3));
+        var node=addNode("network","node"+i,x,150)
+       
+      }else{
+        var x=Math.ceil((1200/27)*(i-12));
+        var node=addNode("cloudHost","node"+i,x,Math.random()*370 +230)
+        
+      }
+    }; 
+    var getDisp=scene.getDisplayedElements(),top=[],middle=[],bottom=[];
+    for (var j = 0 ; j < getDisp.length; j++) {
+     
+      if(getDisp[j].type=="internet"){
+        top.push(getDisp[j])
+      }else if(getDisp[j].type=="network"){
+        middle.push(getDisp[j])
+      }else if(getDisp[j].type=="cloudHost"){
+        bottom.push(getDisp[j])
+      }
+    };
+    for (var k = 0; k < top.length; k++) {
+      for (var h = 0; h < middle.length; h++) {
+        addLink(top[k],middle[h])
+      };
+      for (var c = 0; c < bottom.length; c++) {
+        addLink(top[k],bottom[c])
+      };
+    };
+    for (var a = 0; a < middle.length; a++) {
+      for (var b = 0; b < bottom.length; b++) {
+        addLink(middle[a],bottom[b])
+      };
+    };
+
+    //鼠标经过 nodeinfo
+    scene.mouseover(function(e){
+      if(e.target != null && e.target instanceof JTopo.Node){
+        $(".nodeinfo").show().css({"top":e.y,"left":e.x})
+      }
+    })
+    
 	  var azUuid = args.azUuid;
 	  if(csc.util.isNull(azUuid)){
 		  azUuid = "461b37d4-4b37-45d2-82b0-10b057da255d";//args.azUuid;

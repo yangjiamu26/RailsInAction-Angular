@@ -160,68 +160,77 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             <!-- 资源管理 -->
             <div id="titleBar1" class='panel-heading text-base'>资源管理</div>
             <div class='panel-body'>
-              <div class='row text-center welcome-resource-manger' data-bind='with:resourceStatistics'>
+              <div class='row text-center welcome-resource-manger'>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-business"></div>
                     <div class="manger-title">业务系统</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("yewu")?yewu:0'>4</div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().businessNum"></span></div>
                   </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-vm"></div>
                     <div class="manger-title">云主机</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("yunzhu")?yunzhu:0'>13</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().vmNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-vdisk"></div>
                     <div class="manger-title">云硬盘</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("yunying")?yunying:0'>20</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().volumeNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-router"></div>
                     <div class="manger-title">路由器</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("luyou")?luyou:0'>13</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().routerNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-securityGroup"></div>
                     <div class="manger-title">安全组</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("anquan")?anquan:0'>10</div></div> 
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().securityGroupNum"></span></div>
+                  </div> 
                 </a>
                 <p>&nbsp;</p>
                 <a href="#">             
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-ip"></div>
                     <div class="manger-title">公网IP</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("gongwang")?gongwang:0'>20</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().ipNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-loadBalancing"></div>
                     <div class="manger-title">负载均衡</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("fuzai")?fuzai:0'>5</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().loadBalanceNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-firewall"></div>
                     <div class="manger-title">防火墙</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("fanghuo")?fanghuo:0'>4</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().firewallNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-secretKey"></div>
                     <div class="manger-title">SSH密钥</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("miyao")?miyao:0'>13</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().sshNum"></span></div>
+                  </div>
                 </a>
                 <a href="#">
                   <div class='col-lg-2-4 col-xs-4'>
                     <div class="resource-icon resource-icon-storage"></div>
                     <div class="manger-title">对象存储</div>
-                    <div class='h2 m-b-sm' data-bind='text:hasOwnProperty("duixiang")?duixiang:0'>13</div></div>
+                    <div class='h2 m-b-sm'><span data-bind="text: resourceVO().objStorageNum"></span></div>
+                  </div>
                 </a>
               </div>
             </div>
@@ -1316,13 +1325,43 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 
   function ViewModel(){
 	  var self = this;
+	  //--------------------资源管理模块start--------------//
+      this.resourceVO = ko.observable({
+    	  businessNum: ko.observable(),
+    	  vmNum: ko.observable(),
+    	  volumeNum: ko.observable(),
+    	  routerNum: ko.observable(),
+    	  securityGroupNum: ko.observable(),
+    	  ipNum: ko.observable(),
+    	  loadBalanceNum: ko.observable(),
+    	  firewallNum: ko.observable(),
+    	  sshNum: ko.observable(),
+    	  objStorageNum: ko.observable()
+      });
+      //加载资源管理统计信息
+      this.loadResourceStat = function(){
+    	  csc.rest.get("api/v5.0.0/homepage/resource", function(data){
+    		  self.resourceVO().businessNum(data.businessNum);
+    		  self.resourceVO().vmNum(data.vmNum);
+    		  self.resourceVO().volumeNum(data.volumeNum);
+    		  self.resourceVO().routerNum(data.routerNum);
+    		  self.resourceVO().securityGroupNum(data.securityGroupNum);
+    		  self.resourceVO().ipNum(data.ipNum);
+    		  self.resourceVO().loadBalanceNum(data.loadBalanceNum);
+    		  self.resourceVO().firewallNum(data.firewallNum);
+    		  self.resourceVO().sshNum(data.sshNum);
+    		  self.resourceVO().objStorageNum(data.objStorageNum);
+   	      });
+      }
+      this.loadResourceStat();
+	  //--------------------资源管理模块end--------------//
+	  
+	  //--------------------最新通知模块start--------------//
       this.noticeList = ko.observableArray([]);
-      
       //加载通知列表
       csc.rest.get("api/v5.0.0/homepage/notice", function(data){
     	  self.noticeList(data);
       });
-      
       //不同通知类型显示不同颜色
       this.noticeClass = function(title){
          if(title=="通知1")
@@ -1332,7 +1371,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
          else if(title=="通知3")
         	 return "text-danger";
       };
+	  //--------------------最新通知模块end--------------//
       
+      //--------------------数据中心资源模块start--------------//
       //加载数据中心列表
 	  self.dcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/datacenter", function(data){
@@ -1375,29 +1416,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  });
       }
       this.loadDCStatistics();
+      //--------------------数据中心资源模块end--------------//
       
-      var resourceInfo = function(){
-    	  this.yewu = ko.observable("");
-    	  this.yunzhu = ko.observable("");
-    	  this.yunying = ko.observable("");
-    	  this.luyou = ko.observable("");
-    	  this.anquan = ko.observable("");
-    	  this.gongwang = ko.observable("");
-    	  this.fuzai = ko.observable("");
-    	  this.fanghuo = ko.observable("");
-    	  this.miyao = ko.observable("");
-    	  this.duixiang = ko.observable("");
-      }
-      this.resourceStatistics = ko.observable(new resourceInfo());
-      //加载资源管理统计信息
-      this.loadResourceStatistics = function(){
-    	  var url = "api/v5.0.0/homepage/resource";
-    	  csc.rest.get(url, function(data){
-    		  self.resourceStatistics(data);
-    	  });
-      }
-      this.loadResourceStatistics();
-      
+      //--------------------最新订单模块start--------------//
       this.orderList = ko.observableArray([]);
       //加载订单列表
       csc.rest.get("api/v5.0.0/homepage/order?firstResult=0&maxResult=5", function(data){
@@ -1426,7 +1447,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  return "bg-success";
     	  }
       };
+      //--------------------最新订单模块end--------------//
       
+      //--------------------最新告警模块start--------------//
       this.alarmList = ko.observableArray([]);
       //加载告警列表
       csc.rest.get("api/v5.0.0/homepage/alarm?firstResult=0&maxResult=5", function(data){
@@ -1440,7 +1463,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
        	  case '2':
        		  return "b-success";
        	  }
-      }
+      };
+   	  //--------------------最新告警模块end--------------//
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);
