@@ -1,3 +1,6 @@
+<link href="assets/lib/webuploader/webuploader.css" rel="stylesheet"
+	type="text/css" />
+	
 <div class="bg-light lter b-b wrapper-sm">
 	<ol class="breadcrumb">
 		<li>当前位置：</li>
@@ -94,7 +97,7 @@
 	</div>
 </div>
 
-<div role="dialog" aria-hidden="true" class="modal fade"  id="showScriptModal"
+<div role="dialog" aria-hidden="true" class="modal fade" id="showScriptModal"
 	data-bind="modal: { show: isAdd }">
 	<div class='modal-dialog modal-lg' role='document'>
 		<div class='modal-content'>
@@ -105,13 +108,13 @@
 				<h3 class='modal-title' data-bind="ifnot: currentVO().Id">添加脚本</h3>
 				<h3 class='modal-title' data-bind="if: currentVO().Id">修改脚本</h3>
 			</div>
-			<div class='modal-body' data-bind="with: currentVO">
+			<div class='modal-body'>
 				<div class="form-group string required">
 					<div class="col-xs-12 form-inline">
 						脚本名称： <input type="text" class="form-control"
 							data-bind="value: name" />&nbsp;&nbsp;&nbsp;&nbsp; 脚本类型： <select
 							class="form-control"
-							data-bind="value: softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
+							data-bind="value: currentVO().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
 						</select>
 					</div>
 				</div>
@@ -120,41 +123,37 @@
 					<div class="col-xs-12 form-inline">
 						脚本文件：
 						<div id="picker" class="btn">浏览</div>
-						<button class="btn btn-default" id="pickBtn">上传</button>
+						<button class="btn btn-default" data-bind="click: uploadFile">上传</button>
 					</div>
 				</div>
-				<table class="table" data-bind="with: fileTable">
-					<thead>
-						<tr>
-							<th>脚本名称</th>
-							<th>大小</th>
-							<th>上传进度</th>
-							<th>路径</th>
-							<th>脚本属性</th>
-							<th>上传日期</th>
-							<th>操作</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr data-bind="visible: showNoData">
-							<td colspan=11 class="aligncenter">This table has no data.</td>
-						</tr>
-
-						<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-						<tr>
-							<td data-bind="text:$row.name"></td>
-							<td data-bind="text:$row.size"></td>
-							<td></td>
-							<td data-bind="text:$row.path"></td>
-							<td data-bind="text:$row.isExec"></td>
-							<td data-bind="text:$row.uploadTime"></td>
-							<td><a data-bind="if: $row.Id, click: $root.downloadFile">下载</a>
-								| <a data-bind="click: $root.openUpdateFile">修改</a> | <a
-								data-bind="click: $root.removeFile">移除</a></td>
-						</tr>
-						<!-- /ko -->
-					</tbody>
-				</table>
+				<div>
+					<table class="table">
+						<thead>
+							<tr>
+								<th>脚本名称</th>
+								<th>大小</th>
+								<th>上传进度</th>
+								<th>路径</th>
+								<th>脚本属性</th>
+								<th>上传日期</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody data-bind="foreach: fileTable">
+							<tr>
+								<td data-bind="text:name"></td>
+								<td data-bind="text:size"></td>
+								<td data-bind="text:progress"></td>
+								<td data-bind="text:path"></td>
+								<td data-bind="text:isExecName"></td>
+								<td data-bind="text:uploadTime"></td>
+								<td><a data-bind="if: Id, click: $root.downloadFile">下载</a>
+									| <a data-bind="click: $root.openUpdateFile">修改</a> | <a
+									data-bind="click: $root.removeFile">移除</a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 				<hr />
 				<h4>
 					<button class="btn btn-default btn-sm pull-right"
@@ -162,27 +161,27 @@
 					静默安装属性
 				</h4>
 				<p>&nbsp;</p>
-				<table class="table" data-bind="with: attrTable">
-					<thead>
-						<tr>
-							<th>参数名称</th>
-							<th>参数代码</th>
-							<th>默认值</th>
-							<th>操作</th>
-						</tr>
-					</thead>
-					<tbody>
-						<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-						<tr>
-							<td data-bind="text:$row.name"></td>
-							<td data-bind="text:$row.code"></td>
-							<td data-bind="text:$row.value"></td>
-							<td><a data-bind="click: $root.updateAttr">修改</a> | <a
-								data-bind="click: $root.removeAttr">移除</a></td>
-						</tr>
-						<!-- /ko -->
-					</tbody>
-				</table>
+				<div>
+					<table class="table">
+						<thead>
+							<tr>
+								<th>参数名称</th>
+								<th>参数代码</th>
+								<th>默认值</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody data-bind="foreach: attrTable">
+							<tr>
+								<td data-bind="text:name"></td>
+								<td data-bind="text:code"></td>
+								<td data-bind="text:value"></td>
+								<td><a data-bind="click: $root.updateAttr">修改</a> | <a
+									data-bind="click: $root.removeAttr">移除</a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 				<hr />
 				<h4>
 					<button class="btn btn-default btn-sm pull-right"
@@ -200,16 +199,14 @@
 							<th>操作</th>
 						</tr>
 					</thead>
-					<tbody>
-						<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+					<tbody data-bind="foreach: softwareTable">
 						<tr>
-							<td data-bind="text:$row.name"></td>
-							<td data-bind="text:$row.softTypeName"></td>
-							<td data-bind="text:$row.version"></td>
-							<td data-bind="text:$row.osName"></td>
+							<td data-bind="text:name"></td>
+							<td data-bind="text:softTypeName"></td>
+							<td data-bind="text:version"></td>
+							<td data-bind="text:osName"></td>
 							<td><a data-bind="click: $root.removeBindSoft">移除</a></td>
 						</tr>
-						<!-- /ko -->
 					</tbody>
 				</table>
 			</div>
@@ -240,7 +237,7 @@
 					<label class="col-xs-3 control-label"> 脚本名称 </label>
 					<div class="col-xs-8">
 						<input class="string required form-control" type="text"
-							data-bind="value: scriptFileVO().name, enbale: false" />
+							data-bind="value: scriptFileVO().name, enable: false" />
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -251,8 +248,8 @@
 					<div class="col-xs-8">
 						<select class="form-control" data-bind="value: scriptFileVO().isExec">
 							<option value="">--请选则--</option>
-							<option value="0">不可执行脚本</option>
-							<option value="1">可执行脚本</option>
+							<option value="0">不可执行</option>
+							<option value="1">可执行</option>
 						</select>
 					</div>
 					<div class="col-xs-1">
@@ -271,6 +268,153 @@
 </div>
 <!-- 脚本文件维护弹窗   end -->
 
+<!-- 默认安装属性维护弹窗   start -->
+<div role="dialog" aria-hidden="true" class="modal fade"
+	data-bind="modal: { show: isDefaultAttr }">
+
+	<div class='modal-dialog' role='document'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title' data-bind="ifnot: defaultAttrVO().uuid">添加安装属性</h3>
+				<h3 class='modal-title' data-bind="if: defaultAttrVO().uuid">修改安装属性</h3>
+			</div>
+			<div class='modal-body form-horizontal'>
+				<div class="form-group">
+					<label class="col-xs-3 control-label"> 参数名称 </label>
+					<div class="col-xs-8">
+						<input class="string required form-control" type="text"
+							data-bind="value: defaultAttrVO().name" />
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label"> 参数代码</label>
+					<div class="col-xs-8">
+						<input class="string required form-control" type="text"
+							data-bind="value: defaultAttrVO().code" />
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label"> 默认值</label>
+					<div class="col-xs-8">
+						<input class="string required form-control" type="text"
+							data-bind="value: defaultAttrVO().value" />
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
+				</div>
+				<div class='modal-footer' style="text-align: center">
+					<input type="button" name="commit" value="确定"
+						class="btn btn-default btn-info" data-bind="click: saveAttr" />
+					<button name="button" type="submit"
+						class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 默认安装属性维护弹窗   end -->
+
+<!-- 关联软件甄选弹窗   start -->
+<div role="dialog" aria-hidden="true" class="modal fade" id="showSoftwareModal"
+	data-bind="modal: { show: isBindSoft }">
+	<div class='modal-dialog' role='document'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title'>关联脚本</h3>
+			</div>
+			<div class='modal-body form-horizontal'>
+				<div class="form-group string required">
+					<div class="col-xs-12 form-inline">
+						软件类型名称：
+						<select class="form-control input-sm"
+							data-bind="value: searchSoftwareParams().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
+						</select>
+						软件名称：
+						<input type="text" class="form-control" data-bind="value: searchSoftwareParams().softwareNm" />
+						<button class="btn btn-default" data-bind="click: searchSoftware">查询</button>
+					</div>
+				</div>
+				
+				<div class="table-responsive" data-bind="with: chooseSoftwareTable">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>
+									<div class="checkbox">
+										<label class="i-checks"> <input type="checkbox"
+											data-bind="checked: isSelectedAll"> <i></i>
+										</label>
+									</div>
+								</th>
+								<th>软件名称</th>
+								<th>软件类型</th>
+								<th>软件版本</th>
+								<th>适用操作系统</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr data-bind="visible: showNoData">
+								<td colspan=11 class="aligncenter">This table has no data.</td>
+							</tr>
+							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+							<tr>
+								<td>
+									<div class="checkbox">
+										<label class="i-checks"> <input type="checkbox"
+											data-bind="checkedValue: $data, checked: $parent.chosenItems">
+											<i></i>
+										</label>
+									</div>
+								</td>
+								<td data-bind="text: $row.name"></td>
+								<td data-bind="text: $row.softTypeName"></td>
+								<td data-bind="text: $row.version"></td>
+								<td data-bind="text: $row.osName"></td>
+							</tr>
+							<!-- /ko -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class='modal-footer'>
+				<div data-bind="with: chooseSoftwareTable, visible: chooseSoftwareTable.pages() > 1">
+					<ul class="pagination">
+						<li data-bind="css: leftPagerClass, click: prevPage"><a
+							href="#">&laquo;</a></li>
+						<!-- ko foreach: {data: (new Array(pages()))} -->
+						<li data-bind="css: $parent.pageClass($index() + 1)"><a
+							href="#"
+							data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+						</li>
+						<!-- /ko -->
+						<li data-bind="css: rightPagerClass, click: nextPage"><a
+							href="#">&raquo;</a></li>
+					</ul>
+				</div>
+				<!-- <div>
+					<button name="button" type="submit"
+						class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+				</div> -->
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 关联软件甄选弹窗   end -->
+
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
@@ -278,9 +422,6 @@
 	                'assets/lib/webuploader/webuploader.js', null ]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 				function ViewModel() {
-					
-					console.log('---------------1');
-
 					this.isAdd = ko.observable(false);
 
 					this.isScriptFile = ko.observable(false);
@@ -291,9 +432,9 @@
 
 					this.typeNames = ko.observableArray([]);
 
-					console.log('---------------2');
 					var self = this;
 
+					/** 脚本数据描述对象 **/
 					this.currentVO = ko.validatedObservable({
 						Id : null,
 						uuid : 'N/A',
@@ -302,12 +443,36 @@
 						}),
 						softTypeName : ko.observable().extend({
 							required : true
-						})
+						}),
+						// 此为针对已经持久化的数据的编辑提交
+						newScriptFiles : [],
+						updateScriptFiles: [],
+						deleteScriptFiles: [],
+						newDefaultAttrs: [],
+						updateDefaultAttrs: [],
+						deleteDefaultAttrs: [],
+						newSoftwares: [],
+						deleteSoftwares[]
 					});
 					
+					/** 脚本文件数据描述对象 **/
 					this.scriptFileVO = ko.validatedObservable({
+						Id: null,
+						uuid: null,
+						scriptUuid: null,
 						name : ko.observable().extend({required : true}),
-						isExec : ko.observable().extend({required : true})
+						isExec : ko.observable().extend({required : true}),
+						fileTableRow: null
+					});
+					
+					/** 默认安装属性数据描述对象 **/
+					this.defaultAttrVO = ko.validatedObservable({
+						Id: null, 
+						uuid: null,
+						name: ko.observable().extend({required : true}),
+						code: ko.observable().extend({required : true}),
+						value: ko.observable().extend({required : true}),
+						attrTableRow: null
 					});
 					
 					/** 构建文件上传器 **/
@@ -316,8 +481,7 @@
 							// 文件接收服务端。
 							threads : 1,
 							fileNumLimit : 1,
-							chunked : true,
-							chunkSize : 1310720,
+							chunked : false,
 							resize : false
 						});
 			      		
@@ -327,48 +491,77 @@
 						});
 			      		
 			      		self.uploader.on('fileQueued', function(file) {
-							//重置上传队列
-							console.log(file);
-							console.log(self.uploader.getFiles());
+			      			var flag = true;
+			      			
+			      			$.each(self.fileTable(), function(i, val) {
+			      				if (val.name == file.name) {
+			      					systemMsg.alert('已存在同名文件:' + val.name);
+			      					flag = false;
+			      					return;
+			      				}
+			      			});
+
+			      			if (!flag) {
+			      				return;
+			      			}
+			      			
+			      			var addFile = {
+		      					Id: null,
+								uuid: null,
+								name: file.name,
+								progress: ko.observable(),
+								size: csc.util.bytesToSize(file.size),
+								path: ko.observable(),
+								isExec: (self.fileTable().length == 0 ? 1 : 0),
+								isExecName: self.fileTable().length == 0 ? 
+										ko.observable('可执行') : ko.observable('不可执行'),
+								uploadTime: ''
+			      			};
+			      			
+							self.fileTable.push(addFile);
 						});
 			      		
-			      		self.uploader.on('startUpload', function() {
-			      			
-			      			var files = self.uploader.getFiles();
-			      			
-			      			
-						});
+			      		self.uploader.on('uploadProgress', function(file, progress) {
+			      			self.fileTable()[self.fileTable().length-1].progress((progress*100).toFixed(0) + "%");		
+			      		});
+			      		
+			      		self.uploader.on('uploadSuccess', function(file, response) {
+			      			$.each(self.fileTable(), function(i, val) {
+			      				if (val.name == file.name) {
+			      					val.path(response.path);
+			      					val.uploadTime(response.uploadTime);
+			      					return;
+			      				}
+			      			});
+			      		});
 			      	};
-
-			      	console.log('---------------3');
 			      	
+			      	/** 上传脚本文件 **/
+			      	this.uploadFile = function() {
+			      		var uploadKey = WebUploader.guid('csc_upload_');
+			      		
+			      		self.uploader.options.server = '/file/uploadServlet?handler=cscScript&actionKey='
+	      											+ uploadKey + '&dataKey=' + uploadKey;
+			      		
+			      		self.uploader.upload();
+			      	};
 					/** 脚本列表数据 **/
 					this.table = new DataTable([], {
 						path : 'api/v5.0.0/script/scripts'
 					});
-
-					/** 关联的脚本文件列表数据 **/
-					this.fileTable = new DataTable([], {
-						path : 'api/v5.0.0/script/files?scriptUuid='
-								+ self.currentVO().uuid
-					});
+		
+					/** 脚本文件列表数据 **/
+					this.fileTable = ko.observableArray([]);
 
 					/** 关联的默认安装属性列表数据 **/
-					this.attrTable = new DataTable([], {
-						path : 'api/v5.0.0/script/defaultAttrs?scriptUuid='
-								+ self.currentVO().uuid()
-					});
+					this.attrTable = ko.observableArray([]);
 
 					/** 已绑定软件列表数据 **/
-					this.softwareTable = new DataTable([], {
-						path : 'api/v5.0.0/soft/softwares?softTypeName='
-								+ self.currentVO().softTypeName()
-								+ '&scriptUuid=' + self.currentVO().uuid()
-					});
-
+					this.softwareTable = ko.observableArray([]);
+					
 					/** 选择软件列表数据 **/
-					this.softwareTable = new DataTable([], {
-						path : 'api/v5.0.0/soft/softwares?softTypeName='
+					this.chooseSoftwareTable = new DataTable([], {
+						path : 'api/v5.0.0/soft/bind/softwares?softTypeName='
 								+ self.currentVO().softTypeName()
 					});
 
@@ -377,41 +570,144 @@
 						console.log(object);
 					};
 
+					/** 加载脚本文件数据 **/
+					this.loadSctipFileData = function() {
+						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
+							$.SOFT_SCRIPT.loadScriptFileData({scriptUuid: self.currentVO().uuid}, function (data) {
+								$.each(data.results, function(i, val) {
+									self.fileTable.push(val);
+								});
+							});
+						}
+					};
+					
 					/** 修改脚本文件 弹窗**/
 					this.openUpdateFile = function(object, event) {
-						console.log(object);
 						self.scriptFileVO.fromJSON(object);
+						
+						self.scriptFileVO().fileTableRow = object;
 						
 						self.isScriptFile(true);
 					};
 					
 					/** 修改脚本 **/
 					this.updateFile = function() {
+						self.scriptFileVO().fileTableRow.isExec = self.scriptFileVO().isExec();
 						
+						self.scriptFileVO().fileTableRow.isExecName(self.scriptFileVO().isExec == '1' ?
+								'可执行' : '不可执行');
+						self.isScriptFile(false);
 					};
 
 					/** 移除脚本文件 **/
 					this.removeFile = function(object, event) {
-						console.log(object);
+						if (object.path() && !object.Id) {
+							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()}, function(data) {
+								self.fileTable.remove(object);
+							});
+						} else {
+							self.fileTable.remove(object);
+							self.currentVO().deleteScriptFiles.push(object);
+						}
 					};
 
+					/** 加载默认安装属性数据 **/
+					this.loadDefaultAttrData = function() {
+						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
+							$.SOFT_SCRIPT.loadDefaultAttrData({scriptUuid: self.currentVO().uuid}, function (data) {
+								$.each(data.results, function(i, val) {
+									self.attrTable.push(val);
+								});
+							});
+						}
+					};
+					
 					/** 更新默认安装属性 **/
-					this.updateAttr = function(object, event) {
-						console.log(object);
+					this.saveAttr = function() {
+						
+						if (self.defaultAttrVO.attrTableRow) {
+							
+						} else {
+							self.attrTable.push({
+								Id: null,
+								uuid: null,
+								name: ko.observable(self.defaultAttrVO().name()),
+								code: ko.observable(self.defaultAttrVO().code()),
+								value: ko.observable(self.defaultAttrVO().value())
+							});
+						}
+						
+						self.isDefaultAttr(false);
 					};
 
 					/** 删除默认安装属性 **/
 					this.removeAttr = function(object, event) {
-						console.log(object);
+						
+						if (object.uuid) {
+							self.currentVO().deleteDefaultAttrs.push(object);
+						}
+						
+						self.attrTable.remove(object);
 					};
 
-					/** 默认安装属性弹窗 **/
+					/** 默认安装属性弹窗（新增） **/
 					this.openDefaultAttr = function() {
+						
+						self.defaultAttrVO.fromJSON({
+							Id: null, 
+							uuid: null,
+							name: '',
+							code: '',
+							value: '',
+							attrTableRow: null
+						});
+						self.isDefaultAttr(true);
+					};
+					
+					/** 默认安装属性弹窗（修改）  **/
+					this.updateAttr = function(object, event) {
+						self.defaultAttrVO.fromJSON({
+							Id: object.Id,
+							uuid: object.uuid,
+							name: object.name(),
+							code: object.code(),
+							value: object.value()
+						});
+						
+						self.defaultAttrVO.attrTableRow = object;
+						
 						self.isDefaultAttr(true);
 					};
 
+					/** 查询软件参数 **/
+					this.searchSoftwareParams = ko.observable({
+						softTypeName: '',
+						softwareNm: ''
+					});
+					
+					/** 加载关联软件数据 **/
+					this.loadBindedSoftware = function() {
+						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
+							$.SOFTWARE.getSoftware({scriptUuid: self.currentVO().uuid}, function (data) {
+								$.each(data.results, function(i, val) {
+									self.softwareTable.push(val);
+								});
+							});
+						}
+					};
+					
 					/** 选择软件弹窗 **/
 					this.openBindSoftware = function() {
+						
+						if (!self.currentVO().softTypeName()) {
+							systemMsg.alert('请先选择脚本类型');
+							return;
+						}
+						
+						self.searchSoftwareParams().softTypeName = self.currentVO().softTypeName();
+						
+						self.chooseSoftwareTable.params(this.searchSoftwareParams());
+						
 						self.isBindSoft(true);
 					};
 
@@ -419,11 +715,19 @@
 					this.removeBindSoft = function(object, event) {
 						console.log(object);
 					};
+					
+					/** 查询软件 **/
+					this.searchSoftware = function() {
+						console.log(self.searchSoftwareParams());
+						this.chooseSoftwareTable.params(this.searchSoftwareParams());
+					};
+					
 
 					// 脚本类型下拉选择
 					this.loadTypeNames = function(params, callback) {
+						
 						$.SOFT_TYPE.loadSoftTypeList(params, function(data) {
-
+							
 							self.typeNames(data);
 
 							if (callback) {
@@ -432,17 +736,80 @@
 						});
 					};
 
+					// 新增脚本弹窗
 					this.add = function() {
-						this.currentVO({
-							id : null,
-							name : "",
-						})
-						this.isAdd(true);
+						self.currentVO.fromJSON({
+							Id : null,
+							uuid : 'N/A',
+							name : '',
+							softTypeName : '',
+							newScriptFiles : [],
+							updateScriptFiles: [],
+							deleteScriptFiles: [],
+							newDefaultAttrs: [],
+							updateDefaultAttrs: [],
+							deleteDefaultAttrs: [],
+							newSoftwares: [],
+							deleteSoftwares[]
+						});
+						
+						self.fileTable().splice(0, self.fileTable().length);
+						self.attrTable().splice(0, self.attrTable().length);
+						self.softwareTable().splice(0, self.softwareTable().length);
+						
+						self.isAdd(true);
 					};
+					
+					/** 验证提交 **/
+					this.validSubmit = function() {
+						var flag = true;
+						
+						if (self.currentVO.isValid()) {
+							$.each(self.fileTable(), function(i, val) {
+								if (!val.path) {
+									flag = false;
+									
+									return flag; 
+								}
+							});
+						} else {
+							flag = false;
+						}
+						
+						return flag;
+					};
+					
+					// 保存脚本数据
 					this.save = function() {
-						alert(this.script_vo().name)
+						
+						if (!self.validSubmit()) {
+							return;
+						}
+						
+						$.each(self.fileTable(), function(i, val) {
+							if (val.uuid) {
+								self.currentVO().updateScriptFiles.push(val);
+							} else {
+								self.currentVO().newScriptFiles.push(val);
+							}
+						});
+						
+						$.each(self.attrTable(), function(i, val) {
+							if (val.uuid) {
+								self.currentVO().updateDefaultAttrs.push(val);
+							} else {
+								self.currentVO().newDefaultAttrs.push(val);
+							}
+						});
+						
 						this.isAdd(false);
 					};
+					
+					if (self.scriptFileVO().fileTableRow.scriptUuid) {
+						self.currentVO().updateScriptFiles.remove(self.scriptFileVO().fileTableRow);
+						self.currentVO().updateScriptFiles.push(self.scriptFileVO().fileTableRow);
+					}
+					
 					this.remove = function() {
 						console.log("removeSelected");
 					};
@@ -459,8 +826,9 @@
 					};
 
 					this.types = ko.observableArray([]);
-
+					
 					this.loadTypeNames({});
+					
 				}
 				
 				$(document).ready(function() {
@@ -469,7 +837,8 @@
 					
 					ko.applyBindings(viewModel, $('#page-content')[0]);
 					
-					$("#softwareModal").on("shown.bs.modal", function() {
+					/** 脚本编辑弹窗打开回调 **/
+					$("#showScriptModal").on("shown.bs.modal", function() {
 						
 						viewModel.initUploader();
 						
@@ -477,7 +846,41 @@
 							id : '#picker',
 							multiple : false
 						});
-
+						
+						viewModel.loadSctipFileData();
+						
+						viewModel.loadDefaultAttrData();
+						
+						viewModel.loadBindedSoftware();
+					});
+					
+					/** 脚本编辑弹窗关闭回调 **/
+					$("#showScriptModal").on("shown.bs.modal", function() {
+						// 删除未确认的已上传脚本文件
+						
+						var filePathStr = '';
+						
+						$.each(viewModel.fileTable(), function(i, val) {
+							if (val.path()) {
+								filePathStr += (val.path() + ',');	
+							}
+						});
+						
+						if (filePathStr != '') {
+							$.SOFT_SCRIPT.deleteScriptFile({"filePathStr": filePathStr}, function(data) {
+							});
+						}
+					})；
+					
+					
+					/** 软件甄选弹窗关闭回调 **/
+					$('#showSoftwareModal').on('hidden.bs.modal', function() {
+						
+						var chosenSoft = viewModel.chooseSoftwareTable.chosenItems();
+						
+						$.each(chosenSoft, function(i, val) {
+							viewModel.softwareTable.push(val);
+						});
 					});
 				});
 			});

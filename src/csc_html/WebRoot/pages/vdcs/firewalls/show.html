@@ -55,13 +55,13 @@
 						        </tr>
 						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td  data-bind="text: $row.name">规则1</td>
-									<td  data-bind="text: $row.protocol">TCP</td>
-									<td  data-bind="text: $row.action"><span class="label label-success">允许</span></td>
-									<td  data-bind="text: $row.sourceIpAddress">192.168.0.0/23</td>
-									<td  data-bind="text: $row.sourcePort">20</td>
-									<td  data-bind="text: $row.destinationIpAddress">192.168.0.0/23</td>
-									<td  data-bind="text: $row.destinationPort">30</td>
+									<td  data-bind="text: $row.name"></td>
+									<td  data-bind="text: $row.protocolShow"></td>
+									<td  data-bind="text: $row.actionShow"></td>
+									<td  data-bind="text: $row.sourceIpAddress"></td>
+									<td  data-bind="text: $row.sourcePortShow"></td>
+									<td  data-bind="text: $row.destinationIpAddress"></td>
+									<td  data-bind="text: $row.destinationPortShow"></td>
 									<td  data-bind="text: $row.description"></td>
 									<td>
 										<a data-bind="click:$root.modifyFwRuel">修改</a> |
@@ -222,7 +222,16 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 				function firewallInfoViewModel(){
 		    		var self = this;
 		    		
-		    		self.firewallRuleListTable = new DataTable([], {path: 'api/v5.0.0/firewalls/'+fwUuid+'/firewallRules', perPage: 3});
+		    		self.firewallRuleListTable = new DataTable([], {
+		    			path: 'api/v5.0.0/firewalls/'+fwUuid+'/firewallRules',
+		    			loader: function(result){
+		    				result.sourcePortShow = result.sourcePort?result.sourcePort:"-";
+		    				result.destinationPortShow = result.destinationPort?result.destinationPort:"-";
+		    				result.actionShow =  result.action == "ALLOW"? "允许":"拒绝";
+		    				result.protocolShow  = result.protocol?result.protocol:"任何";
+		    			  return result;
+		    			} 
+		    		});
 		    		
 		    		self.protocolList = ko.observableArray();
 		    		self.actionList = ko.observableArray();
@@ -236,18 +245,48 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		    		self.firewallVO = ko.validatedObservable(firewallObj);
 		    	
     	    		self.firewallRuelVO = ko.validatedObservable({
-	    			     "name":ko.observable().extend({required: true,maxLength:32,cscNameRule:true}),
-						 "protocol":ko.observable().extend({required: true}),
-						 "action":ko.observable().extend({required: true}),
-						 "sourceIpAddress":ko.observable().extend({required: true,ip:{cidr:true,supportSpecial:true}}),
-						 "sourcePort":ko.observable().extend({required: true,portRange:true}),
-						 "destinationIpAddress":ko.observable().extend({required: true,ip:{cidr:true,supportSpecial:true}}),
-						 "destinationPort":ko.observable().extend({required: true,portRange:true}),
+	    			     "name":ko.observable("").extend({required: true,maxLength:32,cscNameRule:true}),
+						 "protocol":ko.observable("").extend({required: true}),
+						 "action":ko.observable("").extend({required: true}),
+						 "sourceIpAddress":ko.observable("").extend({required: true,ip:{cidr:true,supportSpecial:true}}),
+						 "sourcePort":ko.observable("").extend({required: true,portRange:{onlyIf: function(){return true}}}),
+						 "destinationIpAddress":ko.observable("").extend({required: true,ip:{cidr:true,supportSpecial:true}}),
+						 "destinationPort":ko.observable("").extend({required: true,portRange:{onlyIf: function(){return true}}}),
 						 "insertStrategyType":ko.observable(),
 						 "insertFirewallRuleId":ko.observable(),
 						 "description":ko.observable().extend({maxLength:256})
 					});
 		    		
+    	    		
+    	    		
+    	    	    self.firewallRuelVO().protocol.subscribe(function(val){
+		    	    	// 根据协议显示隐藏相关字段
+	    	    	     switch(val){
+		    	    	     case 'TCP':
+		    	    	    	$('#field-sourcePort').show();
+		    	    	    	$('#field-destinationPort').show();
+		    	    	    	self.firewallRuelVO().destinationPort.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}}})
+		    	    	    	self.firewallRuelVO().sourcePort.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}}})
+		    	    	        break;
+		    	    	     case 'UDP':
+		    	    	    	 $('#field-sourcePort').show();
+			    	    	     $('#field-destinationPort').show(); 
+			    	   	    	 self.firewallRuelVO().destinationPort.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}}})
+		    	    	    	 self.firewallRuelVO().sourcePort.extend({required: {onlyIf: function(){return true}},portRange:{onlyIf: function(){return true}}})
+		    	    	    	 break;
+		    	      	     case 'ICMP': 
+		    	      	    	 $('#field-sourcePort').hide();
+			    	    	     $('#field-destinationPort').hide(); 
+			    	   	    	self.firewallRuelVO().destinationPort.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}}})
+		    	    	    	self.firewallRuelVO().sourcePort.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}}})
+			    	      	    break;
+		    	      	     default: 
+		    	      	    	 $('#field-sourcePort').hide();
+			    	    	     $('#field-destinationPort').hide(); 
+			    	   	    	self.firewallRuelVO().destinationPort.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}}})
+		    	    	    	self.firewallRuelVO().sourcePort.extend({required: {onlyIf: function(){return false}},portRange:{onlyIf: function(){return false}}})
+	    	    	     }
+		    	    })
 		    		
 		    	    this.addFirewallRuleMode = ko.observable(false);
 		    		self.addRule = function(){
@@ -259,16 +298,16 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		    				}
 			    		}) 
 			    		
-		    			self.firewallRuelVO.fromJSON({"name":"testRule",
+		    			self.firewallRuelVO.fromJSON({"name":"",
 						 "protocol":"",
-						 "action": "ALLOW",
-						 "sourceIpAddress":"8.8.8.8",
-						 "sourcePort":"80:80",
-						 "destinationIpAddress":"114.114.114.114",
-						 "destinationPort":"80:80",
-						 "insertStrategyType":"BEFORE",
+						 "action": "",
+						 "sourceIpAddress":"",
+						 "sourcePort":"",
+						 "destinationIpAddress":"",
+						 "destinationPort":"",
+						 "insertStrategyType":"",
 						 "rtFirewallRuleId":"",
-						 "description":"描述休息休息",
+						 "description":"",
 						 "uuid":null
 						});
 		    			
@@ -283,6 +322,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		          	        	var fwvo = self.firewallRuelVO.toJSON();
 		          	        	if(fwvo.protocol == "NONE"){
 		          	        		fwvo.protocol = null;
+		          	        		fwvo.destinationPort = null;
+		          	        		fwvo.sourcePort = null;
+		          	        	}else if(fwvo.protocol == "ICMP"){
+		          	        		fwvo.destinationPort = null;
+		          	        		fwvo.sourcePort = null;
 		          	        	}
 		           				$.FIREWALL.modifyFirewallRule(fwUuid,firewallRuleUuid,fwvo,function(data){
 		           					self.addFirewallRuleMode(false);
@@ -295,6 +339,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		          	        	var fwvo = self.firewallRuelVO.toJSON();
 		          	        	if(fwvo.protocol == "NONE"){
 		          	        		fwvo.protocol = null;
+		          	        		fwvo.destinationPort = null;
+		          	        		fwvo.sourcePort = null;
+		          	        	}else if(fwvo.protocol == "ICMP"){
+		          	        		fwvo.destinationPort = null;
+		          	        		fwvo.sourcePort = null;
 		          	        	}
 		           				$.FIREWALL.createFirewallRule(fwUuid,fwvo,function(data){
 		           					self.addFirewallRuleMode(false);
@@ -306,8 +355,9 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		    		
 		    		
 		    		self.modifyFwRuel = function(rowObj){
-		    			self.firewallRuelVO.fromJSON(rowObj);
+		    			self.firewallRuelVO.fromJSON({"protocol":"NONE","uuid":rowObj.uuid});//置空协议 为了重新赋值时触发事件
 		    			self.addFirewallRuleMode(true)	
+		    			self.firewallRuelVO.fromJSON(rowObj);
 		    		}
 		    		
 		    		self.delFwRuel = function(rowObj){

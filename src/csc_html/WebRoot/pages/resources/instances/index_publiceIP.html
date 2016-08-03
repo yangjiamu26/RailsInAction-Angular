@@ -242,7 +242,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">云主机：</label>
             <div class="col-sm-8">
-              <select class="form-control">
+              <select class="form-control" data-bind="options:$root.vmList,optionsText:'vmName', value: vm">
                 <option value="1">1</option>
               </select>
             </div>
@@ -250,7 +250,7 @@
 
         </div>
         <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn-info" data-bind="click: $root.bindVm">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
@@ -284,6 +284,7 @@
 <script type="text/javascript">
   var scripts = ["api/vpc/vpc.js", 
                  "api/vdc/vdc.js",
+                 "api/resource/network/port.js",
                  "api/resourceInstance/instance.js",
                  "api/resourceInstance/publicIp/publicIp.js", 
                  "assets/lib/moment/moment.js",
@@ -440,27 +441,44 @@
       this.isShowBindingPage = ko.observable(false);
       this.bindingVo = ko.validatedObservable({
     	  uuid: 	ko.observable(),
-    	  vmUuid: 	ko.observable(),
-    	  vmName: 	ko.observable(),
+    	  vm: 		ko.observable(),
     	  ip:		ko.observable()
       });
+      this.vmList = ko.observableArray();
       this.showBindingPage = function(vo){
            self.isShowBindingPage(true);
            //对当前公网IP对象进行绑定
            self.bindingVo({
-        	   uuid: 	vo.uuid,
-        	   vmUuid:	vo.vmUuid,
-        	   vmName:	vo.vmName,
-        	   ip:		vo.ip
+        	   uuid: vo.uuid,
+        	   vm:	"",
+        	   ip:	vo.ip
            });
+           var p = {
+            	   tenantId: vo.tenantId,
+            	   networkUuid:vo.networkUuid,
+            	   azUuid: vo.azUuid
+           };
+           self.vmList([]);
+           $.PORT.getBindableVmList(p, function(data){
+        	   if(data && data.results){
+        		   //self.vmList(data.results);
+        		   self.vmList({
+        			   vmUuid: "9c0cd5c0-7360-40f8-8381-1a69a69bdde7",
+        			   vmName: "crnName"
+        		   });
+        	   }
+           })
       };
 	  
       this.bindVm = function(){
     	  var uuid = self.bindingVo().uuid;
-    	  var vmUuid = self.bindingVo().vmUuid;
-    	  var vmName = self.bindingVo().vmName
-    	  
-    	  $.PUBLIC_IP.bindPublicIp(uuid, vmName, function(data){
+    	  var portId = self.bindingVo().vm.vmUuid;
+    	  var vmName = self.bindingVo().vm.vmName
+    	  var p = {
+    			"vmUuid":portId,
+    			"vmName":vmName
+    	  };
+    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
 				self.publicIpTable.refreshData();
 				self.isShowBindingPage(false);
 				alert("绑定云主机[" + vmName + "]成功！")
@@ -470,8 +488,11 @@
       //解绑公网IP
       this.unbindVm = function(vo){
     	  var name = vo.name;
+    	  var p = {
+    			 "vmUuid": vo.vmUuid
+    	  };
 		  confirm("确定解绑公网IP[" + name + "]？", function(arg){
-			$.PUBLIC_IP.unbindPublicIp(vo.uuid, function(data){
+			$.PUBLIC_IP.unbindPublicIp(vo.uuid, p, function(data){
 				self.publicIpTable.refreshData();
 				alert("解绑公网IP[" + name + "]成功！")
      		});
