@@ -754,6 +754,7 @@
                 osVersion: ko.observable(""),
                 osVersionText: ko.observable(),
 
+                price: ko.observable(),
                 cpu: ko.observable(),
                 memory: ko.observable(),
                 storage: ko.observable(),
@@ -805,7 +806,8 @@
                 vpcList:ko.observableArray([]),
                 networkList:ko.observableArray([]),
                 bussyList:ko.observableArray([]),
-                sshList:ko.observableArray([])
+                sshList:ko.observableArray([]),
+                billRuleList:ko.observableArray([])
                 
             });
             this.queryElement = function(arg,object, event){
@@ -836,6 +838,8 @@
             this.isEdit_sshKeyt = ko.observable(false);
             this.isEdit_vm = ko.observable(false);
             var editObject;
+            var vmChargeType;
+            
             this.editElement = function(dis,arg,object, event){
                 self.vmCartInfo().mountDisks([]);
                 self.vmCartInfo().partitions([]);
@@ -937,7 +941,7 @@
                           var osType=data.osType;
                           var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid+"&osType="+osType;
                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
-                             csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2){debugger;
+                             csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2){
                                  csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3){debugger;
                                     self.vmCartInfo().sshList(result3.results);
                                     self.vmCartInfo().bussyList(result2.results); 
@@ -979,7 +983,7 @@
                                    	self.vmCartInfo().serviceUuid(data.serviceUuid);
                                    	self.vmCartInfo().sshUuid(data.sshUuid);
                                    	self.vmCartInfo().networkType(data.networkType);
-                                        
+                                    self.vmCartInfo().price(data.price)    
                                     
                                     data.mountDisks.forEach(function(e){
                                         var vo=new MountDiskVO();
@@ -996,6 +1000,8 @@
                                         vo.size(e.size);
                                         self.vmCartInfo().partitions.push(vo);
                                     });
+                                   self.vmCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                                   
                                    if(dis=='view'){
                                         self.isView_vm(true);
                                     }else{
@@ -1070,90 +1076,118 @@
                editObject.applyText(v);
             }
             
+            function nameCheck(name,type,uuid,callback){
+			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name+'&uuid='+uuid,function(result){
+			 		 if(result.result==true){
+						  alert(result.message);
+						  callback(false);
+					  }else{
+						 	csc.rest.get('api/v5.0.0/orders/item/instance-name?type='+type+'&name='+result.name,function(result1){	
+						 		 if(result1.result==true){
+									  systemMsg.alert(result1.message);
+									  callback(false);
+								  }else{
+									  callback(true);
+								  }
+						    });
+					  }
+			    });	
+            }
+            
             this.confirmCommit = function(arg){
                 var json;
+                var type;
                 if(arg=="vdiskCartInfo"){
                     json = self.vdiskCartInfo.toJSON();
+                    type = "DISK";
                 }else if(arg=="objectStorageCartInfo"){
                     json = self.objectStorageCartInfo.toJSON();
+                    type = "OBJECT_STORAGE";
                 }else if(arg=="publicNetworkCartInfo"){
                     json = self.publicNetworkCartInfo.toJSON();
+                    type = "PUBLICIP";
                 }else if(arg=="loadbalancerCartInfo"){
                     json = self.loadbalancerCartInfo.toJSON();
+                    type = "LOAD_BALANCING";
                 }else if(arg=="sshKeytCartInfo"){
                     json = self.sshKeytCartInfo.toJSON();
+                    type = "SECRET_KEY";
                 }else if(arg=="vmCartInfo"){
                     json = self.vmCartInfo.toJSON();
+                    type= "VM";
                 }
-                console.log(json)
-                csc.rest.put('api/v5.0.0/cart/update/'+arg,json,function(data){
-                	systemMsg.alert('修改成功！');
-                     if(arg=="vdiskCartInfo"){
-                        self.isEdit_Vdisk(false);
-                        var vdcItem = _.findWhere(self.vdiskCartInfo().vdcList(), {uuid: data.vdcUuid});
-                        var azItem = _.findWhere(self.vdiskCartInfo().azList(), {uuid: data.azUuid});
-                        var vmItem = _.findWhere(self.vdiskCartInfo().vmList(), {uuid: data.mountVmUuid});
-                        editObject.name(self.vdiskCartInfo().name());
-                        editObject.size(self.vdiskCartInfo().size());
-                        editObject.vdcName(vdcItem.name);
-                        editObject.azName(azItem.name);
-                        editObject.mountVmName(vmItem.resourceName);
-                    }else if(arg=="objectStorageCartInfo"){
-                        self.isEdit_ObjectStorage(false);
-                        var vdcItem = _.findWhere(self.objectStorageCartInfo().vdcList(), {uuid: data.vdcUuid});
-                        var azItem = _.findWhere(self.objectStorageCartInfo().azList(), {uuid: data.azUuid});
-                        editObject.name(self.objectStorageCartInfo().name());
-                        editObject.size(self.objectStorageCartInfo().size());
-                        editObject.vdcName(vdcItem.name);
-                        editObject.azName(azItem.name);
-                    }else if(arg=="publicNetworkCartInfo"){
-                        self.isEdit_PublicNetwork(false);
-                        var vdcItem = _.findWhere(self.publicNetworkCartInfo().vdcList(), {uuid: data.vdcUuid});
-                        var azItem = _.findWhere(self.publicNetworkCartInfo().azList(), {uuid: data.azUuid});
-                        var vpcItem = _.findWhere(self.publicNetworkCartInfo().vpcList(), {uuid: data.vpcUuid});
-                        var networkItem = _.findWhere(self.publicNetworkCartInfo().networkList(), {uuid: data.netWorkId});
-                        editObject.name(self.publicNetworkCartInfo().name());
-                        editObject.vdcName(vdcItem.name);
-                        editObject.azName(azItem.name);
-                        editObject.vpcName(vpcItem.name);
-                        editObject.netWorkName(networkItem.name);
-                        //..
-                    }else if(arg=="loadbalancerCartInfo"){
-                        self.isEdit_loadbalancer(false);
-                        var vdcItem = _.findWhere(self.loadbalancerCartInfo().vdcList(), {uuid: data.vdcUuid});
-                        var azItem = _.findWhere(self.loadbalancerCartInfo().azList(), {uuid: data.azUuid});
-                        editObject.name(self.loadbalancerCartInfo().name);
-                        editObject.vdcName(vdcItem.name);
-                        editObject.azName(azItem.name);
-                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
-                    }else if(arg=="sshKeytCartInfo"){
-                        self.isEdit_sshKeyt(false);
-                        var vdcItem = _.findWhere(self.sshKeytCartInfo().vdcList(), {uuid: data.vdcUuid});
-                        var azItem = _.findWhere(self.sshKeytCartInfo().azList(), {uuid: data.azUuid});
-                        editObject.name(self.sshKeytCartInfo().name);
-                        editObject.vdcName(vdcItem.name);
-                        editObject.azName(azItem.name);
-                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
-                    }else if(arg=="vmCartInfo"){
-                        self.isEdit_vm(false);
-                        editObject.vmName(data.vmName);
-                        editObject.osVersionText(data.osVersionText);
-                        editObject.cpu(data.cpu);
-                        editObject.memory(data.memory);
-                        editObject.storage(data.storage);
-                        editObject.mountDiskNum(data.mountDiskNum);
-                        editObject.softwareNum(data.softwareNum);
-                        editObject.vdcName(data.vdcName);
-                        editObject.vpcName(data.vpcName);
-                        editObject.vpcNetworkName(data.vpcNetworkName);
-                        editObject.azName(data.azName);
-                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime);
-                        editObject.id(data.id);
-                        editObject.uuid(data.uuid);
-                    }
-                     
-                });
-            }
+                nameCheck(json.name,type,json.uuid,function(pass){
+						if(pass){
+							csc.rest.put('api/v5.0.0/cart/update/'+arg,json,function(data){
+			                	systemMsg.alert('修改成功！');
+			                     if(arg=="vdiskCartInfo"){
+			                        self.isEdit_Vdisk(false);
+			                        var vdcItem = _.findWhere(self.vdiskCartInfo().vdcList(), {uuid: data.vdcUuid});
+			                        var azItem = _.findWhere(self.vdiskCartInfo().azList(), {uuid: data.azUuid});
+			                        var vmItem = _.findWhere(self.vdiskCartInfo().vmList(), {uuid: data.mountVmUuid});
+			                        editObject.name(self.vdiskCartInfo().name());
+			                        editObject.size(self.vdiskCartInfo().size());
+			                        editObject.vdcName(vdcItem.name);
+			                        editObject.azName(azItem.name);
+			                        editObject.mountVmName(vmItem.resourceName);
+			                    }else if(arg=="objectStorageCartInfo"){
+			                        self.isEdit_ObjectStorage(false);
+			                        var vdcItem = _.findWhere(self.objectStorageCartInfo().vdcList(), {uuid: data.vdcUuid});
+			                        var azItem = _.findWhere(self.objectStorageCartInfo().azList(), {uuid: data.azUuid});
+			                        editObject.name(self.objectStorageCartInfo().name());
+			                        editObject.size(self.objectStorageCartInfo().size());
+			                        editObject.vdcName(vdcItem.name);
+			                        editObject.azName(azItem.name);
+			                    }else if(arg=="publicNetworkCartInfo"){
+			                        self.isEdit_PublicNetwork(false);
+			                        var vdcItem = _.findWhere(self.publicNetworkCartInfo().vdcList(), {uuid: data.vdcUuid});
+			                        var azItem = _.findWhere(self.publicNetworkCartInfo().azList(), {uuid: data.azUuid});
+			                        var vpcItem = _.findWhere(self.publicNetworkCartInfo().vpcList(), {uuid: data.vpcUuid});
+			                        var networkItem = _.findWhere(self.publicNetworkCartInfo().networkList(), {uuid: data.netWorkId});
+			                        editObject.name(self.publicNetworkCartInfo().name());
+			                        editObject.vdcName(vdcItem.name);
+			                        editObject.azName(azItem.name);
+			                        editObject.vpcName(vpcItem.name);
+			                        editObject.netWorkName(networkItem.name);
+			                        //..
+			                    }else if(arg=="loadbalancerCartInfo"){
+			                        self.isEdit_loadbalancer(false);
+			                        var vdcItem = _.findWhere(self.loadbalancerCartInfo().vdcList(), {uuid: data.vdcUuid});
+			                        var azItem = _.findWhere(self.loadbalancerCartInfo().azList(), {uuid: data.azUuid});
+			                        editObject.name(self.loadbalancerCartInfo().name);
+			                        editObject.vdcName(vdcItem.name);
+			                        editObject.azName(azItem.name);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
+			                    }else if(arg=="sshKeytCartInfo"){
+			                        self.isEdit_sshKeyt(false);
+			                        var vdcItem = _.findWhere(self.sshKeytCartInfo().vdcList(), {uuid: data.vdcUuid});
+			                        var azItem = _.findWhere(self.sshKeytCartInfo().azList(), {uuid: data.azUuid});
+			                        editObject.name(self.sshKeytCartInfo().name);
+			                        editObject.vdcName(vdcItem.name);
+			                        editObject.azName(azItem.name);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
+			                    }else if(arg=="vmCartInfo"){
+			                        self.isEdit_vm(false);
+			                        editObject.vmName(data.vmName);
+			                        editObject.osVersionText(data.osVersionText);
+			                        editObject.cpu(data.cpu);
+			                        editObject.memory(data.memory);
+			                        editObject.storage(data.storage);
+			                        editObject.mountDiskNum(data.mountDiskNum);
+			                        editObject.softwareNum(data.softwareNum);
+			                        editObject.vdcName(data.vdcName);
+			                        editObject.vpcName(data.vpcName);
+			                        editObject.vpcNetworkName(data.vpcNetworkName);
+			                        editObject.azName(data.azName);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime);
+			                        editObject.id(data.id);
+			                        editObject.uuid(data.uuid);
+			                    }
+			                     
+			                });
+						}
+				}); 
+            } 
             
             
             
@@ -1209,9 +1243,88 @@
             this.delPartitions = function (object){
                 self.vmCartInfo().partitions.remove(object);
             }
+            
+            
+            function setArrayCharge(attr){
+    	    	var arrayCharge = [];
+    	    	if(attr !=null){
+    	    		for(var i=0;i<attr.length;i++){
+        	    		if(attr[i]=="DAY"){
+        	    			arrayCharge.push({name:"按天",value:"DAY"});
+        	    		}else if(attr[i]=="MONTH"){
+        	    			arrayCharge.push({name:"按月",value:"MONTH"});
+        	    		}else if(attr[i]=="QUARTER"){
+        	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+        	    		}else{
+        	    			arrayCharge.push({name:"按年",value:"YEAR"});
+        	    		}
+        	    	}
+    	    	}
+    	    	return arrayCharge;
+    	    }
+            
+            this.chargeChange = function(arg,data,event){//除了VDC其他申请用这个方法
+    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
+    	    		var type = data.billRuleUuid();
+    	    		var price;
+    	    		if(typeof(type)=="undefined"){
+    	    			data.price("");
+    	    			return;
+    	    		}
+    	    		if(arg=="size"){
+    	    			var num = data.size();
+    	    			data.unitPrice(result.ruleList[0].unitPrice);
+    	    			price = num*(result.ruleList[0].unitPrice);
+    	    			price = "费用:"+price;
+    	    		}else{
+    	    			price= "费用:"+result.ruleList[0].unitPrice;
+    	    		}
+    	    		 
+    	    		if(type=="DAY"){
+    	    			price+="元/天";
+    	    		}else if(type=="MONTH"){
+    	    			price+="元/月";
+    	    		}else if(type=="QUARTER"){
+    	    			price+="元/季度";
+    	    		}else{
+    	    			price+="元/年";
+    	    		}
+    	    		data.price(price);
+    	    	});	    	
+    	    }
 
+            this.chargeChangeCart = function(data){//vm
+    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.vmCartInfo().serviceUuid()+"&cycle="+data.vmCartInfo().billRuleUuid(), function(result){
+    	    		var type = data.vmCartInfo().billRuleUuid();
+    	    		var price = 0;
+    	    		if(typeof(type)=="undefined"){
+    	    			data.vmCartInfo().price("");
+    	    			return;
+    	    		}
+    	    		
+    	    		result.ruleList.forEach(function(e){
+    	    			if(e.attrType=='CPU'){
+    	    				price += data.vmCartInfo().cpu() * e.unitPrice;
+    	    			}else if(e.attrType=='MEMORY'){
+    	    				price += data.vmCartInfo().memory() * e.unitPrice;
+    	    			}else if(e.attrType=='STORAGE'){
+    	    				price += data.vmCartInfo().storage() * e.unitPrice;
+    	    			}
+    	    		});
+    	    		if(type=="DAY"){
+    	    			price+="元/天";
+    	    		}else if(type=="MONTH"){
+    	    			price+="元/月";
+    	    		}else if(type=="QUARTER"){
+    	    			price+="元/季度";
+    	    		}else{
+    	    			price+="元/年";
+    	    		}
+    	    		data.vmCartInfo().price(price);
+    	    	});	    	
+    	    }
         }
-        ko.applyBindings(new ViewModel, $('#page-content .tab-pane')[0]);
+        ko.applyBindings(new ViewModel, $('#page-content')[0]);
     });
     </script>
     <!-- 云硬盘查看 -->
@@ -2641,7 +2754,7 @@
                                 <div class="row">
                                     <label class="col-xs-5 control-label">选择密钥：</label>
                                     <div class="col-xs-7">
-                                        <select class="form-control w-xs" data-bind="options:vmCartInfo().sshList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().projectUuid,optionsCaption:'请选择'"></select>
+                                        <select class="form-control w-xs" data-bind="options:vmCartInfo().sshList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().sshUuid,optionsCaption:'请选择'"></select>
                                     </div>
                                 </div>
                             </div>
@@ -2676,16 +2789,11 @@
                                 <div class="row">
                                     <label class="col-xs-5 control-label">套餐：</label>
                                     <div class="col-xs-7">
-                                        <select class="form-control w-xs">
-                                            <option value="1">按天</option>
-                                            <option value="1">包月</option>
-                                            <option value="1">按季度</option>
-                                            <option value="1">包年</option>
-                                        </select>
+                                        <select class="form-control w-xs" data-bind="options: vmCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vmCartInfo().billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
                                     </div>
                                 </div>
                             </div>
-                            <span class="control-label col-md-3 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-md-3 text-left" style="height:34px;" data-bind="text: vmCartInfo().price"></span>
                         </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
@@ -2795,7 +2903,7 @@
                                 <div class="row">
                                     <label class="col-sm-4 control-label">所属业务系统：</label>
                                     <div class="col-sm-8">
-                                        <select class="form-control w-xs" data-bind="options:vmCartInfo().bussyList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().projectUuid,optionsCaption:'请选择'"></select>
+                                        <select class="form-control w-xs" data-bind="options: vmCartInfo().bussyList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().projectUuid,optionsCaption:'请选择'"></select>
                                     </div>
                                 </div>
                             </div>
