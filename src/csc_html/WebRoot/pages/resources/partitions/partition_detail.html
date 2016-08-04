@@ -21,8 +21,8 @@
         <a aria-controls='partition_images' data-toggle='tab' href='#partition_images' role='tab'>镜像</a></li>
       <li role='presentation'>
         <a aria-controls='partition_network_externals' data-toggle='tab' href='#partition_network_externals' role='tab'>网络</a></li>
-      <li role='presentation'>
-        <a aria-controls='partition_network_externals_topo' data-toggle='tab' href='#partition_network_externals_topo' role='tab'>拓扑</a></li>
+      <!-- <li role='presentation'>
+        <a aria-controls='partition_network_externals_topo' data-toggle='tab' href='#partition_network_externals_topo' role='tab'>拓扑</a></li> -->
       <li role='presentation'>
         <a aria-controls='partition_ip_pools' data-toggle='tab' href='#partition_ip_pools' role='tab'>IP池</a></li>
     </ul>
@@ -552,6 +552,7 @@
             <div class="row wrapper">
               <div class="col-xs-2">
                 <button class="btn btn-sm btn-primary" data-bind="click: addISO">添加</button>
+                <button class="btn btn-sm btn-primary" data-bind="click: collectISO">收集</button>
               </div>
               <div class="col-xs-3">
                 <div class="input-group">
@@ -1594,9 +1595,15 @@
       /****************************可用分区 START*********************************/
       function imageViewModel(){
     	  this.addISO = false;
+    	  var self = this;
           this.table = new DataTable([], {path: 'api/v5.0.0/images?azUuid=' + azUuid});
           console.log(this.table);
-          
+          this.collectISO = function(){
+       	    csc.rest.get('api/v5.0.0/images/collect?azUuid='+azUuid, function(data){
+       	    	alert("镜像收集成功");
+   		 		self.table.refreshData();
+   		    });
+          }
       }
       ko.applyBindings(new imageViewModel(), $('#partition_images')[0]);
       /****************************可用分区 START*********************************/

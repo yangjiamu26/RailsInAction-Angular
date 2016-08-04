@@ -13,7 +13,10 @@
     <link href='assets/css/font.css' rel='stylesheet' type='text/css'>
     <link href='assets/css/angulr.css' rel='stylesheet' type='text/css'>
     <link href='assets/css/knockout-datatable.css' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" media="all" href="assets/css/app.css" /></head>
+    <link rel="stylesheet" media="all" href="assets/css/app.css" />
+  
+    </head>
+    
   
   <body>
     <div class='app app-header-fixed app-aside-fixed'>
@@ -62,12 +65,12 @@
             <li class='dropdown'>
                 <a data-toggle="dropdown" class="dropdown-toggle" aria-expanded="true">
                     <i class="fa fa-fw fa-warning"></i>
-                    <span>告警</span> <span class='badge badge-sm up bg-danger'>2</span> <span class="caret"></span>
+                    <span>告警</span> <span class='badge badge-sm up bg-danger' data-bind="text: alarmStatVO().totalAlarm()"></span> <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu" role="menu" id="warnings-tabs">
-                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger">10</span>个</a></li>
-                    <li ><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger">5</span>个</a></li>
-                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger">3</span>个</a></li>
+                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
+                    <li ><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
                 </ul>                
             </li>
             <li class='dropdown'>
@@ -858,7 +861,7 @@
     <div class="modal fade modal-draggable" id="ajax_modal_0" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_1" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_2" tabindex="-1" role="dialog"></div>
-
+	<script src="api/v5.0.0/homepage/roles"></script>
     <script src='assets/js/jquery.min.js'></script>
 
     <script src="assets/js/underscore.js"></script>
@@ -946,6 +949,23 @@
 	    		}
 		    	csc.rest.post("api/v5.0.0/homepage/role",role,function(data){}); 
 		    }
+		    
+		    this.alarmStatVO = ko.observable({
+		    	systemAlarm: ko.observable(),
+		    	vdcQuotaAlarm: ko.observable(),
+		    	vmAlarm: ko.observable(),
+		    	totalAlarm: ko.observable()
+		    });
+		    this.loadAlarmStat = function(){
+		    	csc.rest.get("api/v5.0.0/homepage/alarmStat", function(data){
+		    		console.log(data);
+		    		self.alarmStatVO().systemAlarm(data.systemAlarm);
+		    		self.alarmStatVO().vdcQuotaAlarm(data.vdcQuotaAlarm);
+		    		self.alarmStatVO().vmAlarm(data.vmAlarm);
+		    		self.alarmStatVO().totalAlarm(data.systemAlarm+data.vdcQuotaAlarm+data.vmAlarm);
+		   	    });
+		    }
+		    this.loadAlarmStat();
 	    }
 	    var viewModel = new ViewModel();
 	    ko.applyBindings(viewModel,$('.app-header')[0]);
