@@ -1043,7 +1043,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       });
     }
 
-    function doHighchartsWarning(){
+    function doHighchartsWarning(data){
       // 资源告警统计
       $("#total_alarm_chart").highcharts({
         chart: {
@@ -1087,7 +1087,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         series: [
           {
               name: '告警数量',
-              data: [3, 2, 5]
+              data: [data.systemAlarm, data.vdcQuotaAlarm, data.vmAlarm]
           }
         ]
       });
@@ -1135,18 +1135,13 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         series: [
           {
               name: '告警数量',
-              data: [2, 5, 3, 4,2, 5, 3, 5,3,4]
+              data: [data.cpuAlarmNum, data.memAlarmNum, data.stoAlarmNum, data.vpcAlarmNum, data.vmAlarmNum, 
+                     data.volAlarmNum, data.objAlarmNum, data.blaAlarmNum, data.ipAlarmNum, data.sshAlarmNum]
           }
         ]
       });
     }
 
-  setTimeout(function(){
-    doHighchartsVDC();
-    doHighchartsWarning();
-  },10);
-
-      
   var userId = "D1553321141";
   //var userId = "D155332115";
   //var userId = "D155332116";
@@ -1212,7 +1207,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       };
 
       if(item.index == 8 && $("#dragDiv"+item.index).attr('redrawed') != "true"){
-        doHighchartsWarning();
+        //doHighchartsWarning();
         $("#dragDiv8").attr("redrawed","true");
       };
     };
@@ -1449,12 +1444,26 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       };
       //--------------------最新订单模块end--------------//
       
+      //-------------------总体告警统计start--------------//
+      this.doHighchartsWarning = doHighchartsWarning;
+      //加载总体告警统计信息
+      this.loadAlarmStat = function(){
+    	  csc.rest.get("api/v5.0.0/homepage/alarmStat", function(data){
+    		  self.doHighchartsWarning(data);
+   	      });
+      }
+      this.loadAlarmStat();
+      
+      //-------------------总体告警统计end----------------//
+      
       //--------------------最新告警模块start--------------//
       this.alarmList = ko.observableArray([]);
+      
+      
       //加载告警列表
-      csc.rest.get("api/v5.0.0/homepage/alarm?firstResult=0&maxResult=5", function(data){
-     	 self.alarmList(data);
-      });
+      //csc.rest.get("api/v5.0.0/homepage/alarm?firstResult=0&maxResult=5", function(data){
+     //	 self.alarmList(data);
+     // });
       //告警状态不同颜色不同
    	  this.alarmStateCss = function(state){
        	  switch(state){

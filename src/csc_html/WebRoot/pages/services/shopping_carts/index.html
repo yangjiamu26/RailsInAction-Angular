@@ -100,6 +100,7 @@
                         <th>挂载云主机</th>
                         <th>所属VDC</th>
                         <th>可用分区</th>
+                        <th>申请时长</th>
                         <th>操作</th>
                     </thead>
                     <tbody>
@@ -118,6 +119,7 @@
                             <td data-bind="text:mountVmName"></td>
                             <td data-bind="text:vdcName"></td>
                             <td data-bind="text:azName"></td>
+                            <td data-bind="text:applyText"></td>
                             <td><a data-bind="click: function(data, event){ $root.editElement('view','vdiskCartInfo',data,event) }"><i class="fa fa-search fa-lg text-success m-r-sm" title="查看"></i></a> <a data-bind="click: function(data, event){ $root.editElement('edit','vdiskCartInfo',data,event) }"><i class="fa fa-pencil fa-lg text-info m-r-sm" title="修改"></i></a> <a data-bind="click: function(data, event){ $root.deleteElement('vdiskCartInfo',data,event) }"><i class="fa fa-close fa-lg text-danger" title="删除"></i></a>
                             </td>
                         </tr>
@@ -166,7 +168,7 @@
                             <td data-bind="text:size"></td>
                             <td data-bind="text:vdcName"></td>
                             <td data-bind="text:azName"></td>
-                            <td data-bind="text:applyType"></td>
+                            <td data-bind="text:applyText"></td>
                             <td><a data-bind="click: function(data, event){ $root.editElement('view','objectStorageCartInfo',data,event) }"><i class="fa fa-search fa-lg text-success m-r-sm" title="查看"></i></a> <a data-bind="click: function(data, event){ $root.editElement('edit','objectStorageCartInfo',data,event) }"><i class="fa fa-pencil fa-lg text-info m-r-sm" title="修改"></i></a> <a data-bind="click: function(data, event){ $root.deleteElement('objectStorageCartInfo',data,event) }"><i class="fa fa-close fa-lg text-danger" title="删除"></i></a>
                             </td>
                         </tr>
@@ -217,7 +219,7 @@
                             <td data-bind="text:vpcName"></td>
                             <td data-bind="text:netWorkName"></td>
                             <td data-bind="text:azName"></td>
-                            <td data-bind="text:applyTime"></td>
+                            <td data-bind="text:applyText"></td>
                             <td>
                                 <a data-bind="click: function(data, event){ $root.editElement('view','publicNetworkCartInfo',data,event) }"><i class="fa fa-search fa-lg text-success m-r-sm" title="查看"></i></a> <a data-bind="click: function(data, event){ $root.editElement('edit','publicNetworkCartInfo',data,event) }"><i class="fa fa-pencil fa-lg text-info m-r-sm" title="修改"></i></a> <a data-bind="click: function(data, event){ $root.deleteElement('publicNetworkCartInfo',data,event) }"><i class="fa fa-close fa-lg text-danger" title="删除"></i></a>
                             </td>
@@ -341,16 +343,18 @@
     <script type="text/javascript">
     var scripts = [null, "assets/lib/moment/moment.js", "assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	
+    	
         $(".applyModeShow").on("shown.bs.modal", function() {
-            $('.applyDateFormat').val(moment()).daterangepicker({
-                startDate: moment(),
-                singleDatePicker: true,
-                endDate: moment(),
-            });
+        	$('.applyDateFormat').each(function(n,v){
+        		$(this).daterangepicker({
+                	startDate: $(this).val(), 
+                    endDate: false, 
+                    singleDatePicker:true
+                });
+        	})
+            
         })
-
-
-
 
         function ViewModel() {
             var self = this;
@@ -622,8 +626,8 @@
             };
 
             this.azChangeGetVm = function(arg, data, event) {
-                csc.rest.get("api/v5.0.0/cart/getVmList/" + data[arg]().vdcUuid() + "/" + data[arg]().azUuid(), function(result) {
-                    data[arg]().vmList(result);
+                csc.rest.get("api/v5.0.0/vms?vdcUuid=" + data[arg]().vdcUuid() + "&azUuid=" + data[arg]().azUuid(), function(result) {
+                    data[arg]().vmList(result.results);
                 });
             }
 
@@ -637,6 +641,12 @@
             this.vpcChange = function(arg, data, event) {
                 csc.rest.get("api/v5.0.0/cart/getNetworkList/1/" + data[arg]().vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().networkList(result);
+                });
+            }
+            
+            this.vpcChangeByPublic = function(data, event) {
+                csc.rest.get("api/v5.0.0/cart/getNetworkListByPublic/"+self.publicNetworkCartInfo().serviceUuid()+"/" + self.publicNetworkCartInfo().vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                	self.publicNetworkCartInfo().networkList(result);
                 });
             }
 
@@ -653,8 +663,7 @@
                 if (typeof(vmItem) == "undefined") {
                     self.vdiskCartInfo().applyTime("");
                 } else {
-                    console.log(vmItem.expiryDate.substring(0, 10));
-                    self.vdiskCartInfo().applyTime(vmItem.expiryDate.substring(0, 10));
+                    self.vdiskCartInfo().applyTime(vmItem.expiryTime);
                 }
 
             }
@@ -663,6 +672,7 @@
             this.vdiskCartInfo = ko.validatedObservable({
                 id: ko.observable(""),
                 name: ko.observable(""),
+                serviceUuid:ko.observable(""),
                 size: ko.observable(""),
                 vdcUuid: ko.observable(""),
                 azUuid: ko.observable(""),
@@ -671,30 +681,46 @@
                 azList: ko.observableArray([]),
                 vmList: ko.observableArray([]),
                 applyTime: ko.observable(""),
-                remark: ko.observable("")
+                remark: ko.observable(""),
+                charge:ko.observable(""),
+                price:ko.observable(""),
+                billRuleUuid:ko.observable(""),
+                billRuleList: ko.observableArray([]),
+                unitPrice:ko.observable("")
             });
 
             this.objectStorageCartInfo = ko.validatedObservable({
                 id: ko.observable(""),
                 name: ko.observable(""),
+                serviceUuid:ko.observable(""),
                 size: ko.observable(""),
+                applyText:ko.observable(""),
                 applyTime: ko.observable(""),
+                applyType: ko.observable(""),
+                applyNum: ko.observable(""),
                 vdcUuid: ko.observable(""),
                 azUuid: ko.observable(""),
                 billRuleUuid: ko.observable(""),
                 vdcList: ko.observableArray([]),
                 azList: ko.observableArray([]),
                 applyType: ko.observable(""),
-                applyNum: ko.observable("")
+                applyNum: ko.observable(""),
+                charge:ko.observable(""),
+                price:ko.observable(""),
+                billRuleUuid:ko.observable(""),
+                billRuleList: ko.observableArray([]),
+                unitPrice:ko.observable("")
             });
 
             this.publicNetworkCartInfo = ko.validatedObservable({
                 id: ko.observable(""),
                 name: ko.observable(""),
+                serviceUuid:ko.observable(""),
                 vdcUuid: ko.observable(""),
                 azUuid: ko.observable(""),
                 vpcUuid: ko.observable(""),
                 netWorkId: ko.observable(""),
+                applyText:ko.observable(""),
                 applyTime: ko.observable(""),
                 applyType: ko.observable(""),
                 applyNum: ko.observable(""),
@@ -702,7 +728,12 @@
                 vdcList: ko.observableArray([]),
                 azList: ko.observableArray([]),
                 vpcList: ko.observableArray([]),
-                networkList: ko.observableArray([])
+                remark:ko.observable(""),
+                charge:ko.observable(""),
+                billRuleUuid:ko.observable(""),
+                price:ko.observable(""),
+                networkList: ko.observableArray([]),
+                billRuleList: ko.observableArray([])
             });
 
             this.loadbalancerCartInfo = ko.validatedObservable({
@@ -790,6 +821,8 @@
                     
 
                 }, this),
+                
+                
                 //分区
                 partitions: ko.observableArray([]),
                 //硬盘
@@ -810,6 +843,41 @@
                 billRuleList:ko.observableArray([])
                 
             });
+            
+            this.vmCartInfo().applyType.subscribe(function(){
+            	var v="";
+                if("1"==self.vmCartInfo().applyType()){
+                    v="永久";
+                }else if("2"==self.vmCartInfo().applyType()){
+                    v=self.vmCartInfo().applyNum()+"个月";
+                }else if("3"==self.vmCartInfo().applyType()){
+                    v= "有效期至:"+self.vmCartInfo().applyTime().substr(0,10); 
+                }
+                self.vmCartInfo().applyText(v);
+    	    });
+            this.vmCartInfo().applyTime.subscribe(function(){
+            	var v="";
+                if("1"==self.vmCartInfo().applyType()){
+                    v="永久";
+                }else if("2"==self.vmCartInfo().applyType()){
+                    v=self.vmCartInfo().applyNum()+"个月";
+                }else if("3"==self.vmCartInfo().applyType()){
+                    v= "有效期至:"+self.vmCartInfo().applyTime().substr(0,10); 
+                }
+                self.vmCartInfo().applyText(v);
+    	    });
+            this.vmCartInfo().applyNum.subscribe(function(){
+            	var v="";
+                if("1"==self.vmCartInfo().applyType()){
+                    v="永久";
+                }else if("2"==self.vmCartInfo().applyType()){
+                    v=self.vmCartInfo().applyNum()+"个月";
+                }else if("3"==self.vmCartInfo().applyType()){
+                    v= "有效期至:"+self.vmCartInfo().applyTime().substr(0,10); 
+                }
+                self.vmCartInfo().applyText(v);
+    	    });
+            
             this.queryElement = function(arg,object, event){
                 csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
                   if(arg=='vdiskCartInfo'){
@@ -844,9 +912,11 @@
                 self.vmCartInfo().mountDisks([]);
                 self.vmCartInfo().partitions([]);
                 csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
+                		console.log(object.uuid());
                         console.log(data);
+                        
                         if(arg=='vdiskCartInfo'){
-                            var serviceUuid=1;
+                            var serviceUuid=data.serviceUuid;
                             var vdcUuid=data.vdcUuid;
                             var azUuid=data.azUuid;
                             var vpcUuid=data.vpcUuid;
@@ -854,35 +924,42 @@
                             csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
                                 self.vdiskCartInfo().vdcList(result.vdcList);
                                 self.vdiskCartInfo().azList(result.azList);
-                                self.vdiskCartInfo().vmList(result.vmList);
-                                self.publicNetworkCartInfo.fromJSON(data);
-                                self.vdiskCartInfo.fromJSON(data);
-                                if(dis=='view'){
-                                    self.isView_Vdisk(true);
-                                }else{
-                                    self.vdiskCartInfo().id = object.id();
-                                    self.isEdit_Vdisk(true);    
-                                    editObject = object;
-                                }
-                            });
-                      }else if(arg=='objectStorageCartInfo'){
-                            csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
-                                self.objectStorageCartInfo().vdcList(result1);
-                                csc.rest.get("api/v5.0.0/cart/getAzList/1/"+data.vdcUuid, function(result2){//需修改为服务UUID作为参数传递
-                                    self.objectStorageCartInfo().azList(result2);
-                                    console.log(data);
-                                    self.objectStorageCartInfo.fromJSON(data);
+                                self.vdiskCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                                
+                                csc.rest.get("api/v5.0.0/vms?vdcUuid=" + vdcUuid + "&azUuid=" + azUuid, function(result1) {
+                                    self.vdiskCartInfo().vmList(result1.results);
+                                    self.vdiskCartInfo.fromJSON(data);
                                     if(dis=='view'){
-                                        self.isView_ObjectStorage(true);
+                                        self.isView_Vdisk(true);
                                     }else{
-                                        self.objectStorageCartInfo().id = object.id();
-                                        self.isEdit_ObjectStorage(true);
+                                        self.vdiskCartInfo().id = object.id();
+                                        self.isEdit_Vdisk(true);    
                                         editObject = object;
                                     }
                                 });
+                                
+
                             });
+                      }else if(arg=='objectStorageCartInfo'){
+                          var serviceUuid=data.serviceUuid;
+                          var vdcUuid=data.vdcUuid;
+                          var azUuid=data.azUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	  self.objectStorageCartInfo().vdcList(result.vdcList);
+                        	  self.objectStorageCartInfo().azList(result.azList);
+                        	  self.objectStorageCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                        	  self.objectStorageCartInfo.fromJSON(data);
+                              if(dis=='view'){
+                                  self.isView_ObjectStorage(true);
+                              }else{
+                                  self.objectStorageCartInfo().id = object.id();
+                                  self.isEdit_ObjectStorage(true);
+                                  editObject = object;
+                              }
+                          });                    	  
                       }else if(arg=="publicNetworkCartInfo"){
-                            var serviceUuid=1;
+                            var serviceUuid=data.serviceUuid;
                             var vdcUuid=data.vdcUuid;
                             var azUuid=data.azUuid;
                             var vpcUuid=data.vpcUuid;
@@ -892,7 +969,9 @@
                                 self.publicNetworkCartInfo().azList(result.azList);
                                 self.publicNetworkCartInfo().vpcList(result.vpcList);
                                 self.publicNetworkCartInfo().networkList(result.networkListByPublic);
+                                self.publicNetworkCartInfo().billRuleList(setArrayCharge(result.chargeList));
                                 self.publicNetworkCartInfo.fromJSON(data);
+                                
                                 if(dis=='view'){
                                     self.isView_PublicNetwork(true);
                                 }else{
@@ -942,7 +1021,7 @@
                           var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid+"&osType="+osType;
                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
                              csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2){
-                                 csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3){debugger;
+                                 csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3){
                                     self.vmCartInfo().sshList(result3.results);
                                     self.vmCartInfo().bussyList(result2.results); 
                                     self.vmCartInfo().vdcList(result.vdcList);
@@ -961,7 +1040,6 @@
                                    	self.vmCartInfo().applyTime(data.applyTime);
                                    	self.vmCartInfo().applyType(data.applyType);
                                    	self.vmCartInfo().applyNum(data.applyNum);
-                                   	self.vmCartInfo().applyText(data.applyText);
                                    	self.vmCartInfo().remark(data.remark);
                                    	self.vmCartInfo().billRuleUuid(data.billRuleUuid);
                                        
@@ -983,16 +1061,21 @@
                                    	self.vmCartInfo().serviceUuid(data.serviceUuid);
                                    	self.vmCartInfo().sshUuid(data.sshUuid);
                                    	self.vmCartInfo().networkType(data.networkType);
+                                   	
                                     self.vmCartInfo().price(data.price)    
                                     
                                     data.mountDisks.forEach(function(e){
-                                        var vo=new MountDiskVO();
-                                        vo.name(e.name);
-                                        vo.size(e.size);
-                                        vo.serviceUuid(e.serviceUuid);
-                                        vo.serviceName(e.serviceName);
-                                        vo.billRuleUuid(e.billRuleUuid)
-                                        self.vmCartInfo().mountDisks.push(vo);
+                                        csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+e.serviceUuid, function(res){
+                                        	var vo=new MountDiskVO();
+                                        	vo.name(e.name);
+                                            vo.size(e.size);
+                                            vo.serviceUuid(e.serviceUuid);
+                                            vo.serviceName(e.serviceName);
+                                            vo.billRuleUuid(e.billRuleUuid);
+                                            vo.billRuleList(setArrayCharge(res.chargeList));
+                                            vo.price(e.price);
+                                            self.vmCartInfo().mountDisks.push(vo);
+                                        });
                                     });
                                    data.partitions.forEach(function(e){
                                         var vo=new PartitionVO();
@@ -1000,7 +1083,19 @@
                                         vo.size(e.size);
                                         self.vmCartInfo().partitions.push(vo);
                                     });
+
+                                   var v="";
+                                   if("1"==data.applyType){
+                                       v="永久";
+                                   }else if("2"==data.applyType){
+                                       v=data.applyNum+"个月";
+                                   }else if("3"==data.applyType){
+                                       v= "有效期至:"+data.applyTime.substr(0,10); 
+                                   }
+                                   self.vmCartInfo().applyText(v);
                                    self.vmCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                                   
+                                   
                                    
                                    if(dis=='view'){
                                         self.isView_vm(true);
@@ -1008,6 +1103,7 @@
                                         self.isEdit_vm(true);
                                         editObject = object;
                                     }
+                                   
                                  });                             
                              });
                          });
@@ -1129,7 +1225,8 @@
 			                        editObject.size(self.vdiskCartInfo().size());
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
-			                        editObject.mountVmName(vmItem.resourceName);
+			                        editObject.mountVmName(vmItem.name);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
 			                    }else if(arg=="objectStorageCartInfo"){
 			                        self.isEdit_ObjectStorage(false);
 			                        var vdcItem = _.findWhere(self.objectStorageCartInfo().vdcList(), {uuid: data.vdcUuid});
@@ -1138,6 +1235,7 @@
 			                        editObject.size(self.objectStorageCartInfo().size());
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
 			                    }else if(arg=="publicNetworkCartInfo"){
 			                        self.isEdit_PublicNetwork(false);
 			                        var vdcItem = _.findWhere(self.publicNetworkCartInfo().vdcList(), {uuid: data.vdcUuid});
@@ -1149,6 +1247,7 @@
 			                        editObject.azName(azItem.name);
 			                        editObject.vpcName(vpcItem.name);
 			                        editObject.netWorkName(networkItem.name);
+			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
 			                        //..
 			                    }else if(arg=="loadbalancerCartInfo"){
 			                        self.isEdit_loadbalancer(false);
@@ -1209,6 +1308,8 @@
                 this.applyNum = ko.observable();
                 this.applyTime = ko.observable();
                 this.applyText = ko.observable();
+                this.billRuleList=ko.observableArray([]);
+                this.price = ko.observable();
             }
             
             function PartitionVO(){
@@ -1227,13 +1328,18 @@
             this.selectVdiskService = ko.observable(false);
             this.table_Vdisk_VM = null;
             this.selectVdiskService_VM = function(object){
-                self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+                self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK',perPage:6});
                 self.selectVdiskService(true);
                 editObject = object;
             }
             this.submitVdiskService = function(){
-                editObject.serviceName(self.table_Vdisk_VM.chosenItems().name);
-                editObject.serviceUuid(self.table_Vdisk_VM.chosenItems().uuid);
+                editObject.serviceName(self.table_Vdisk_VM.chosenItems().serviceName);
+                editObject.serviceUuid(self.table_Vdisk_VM.chosenItems().serviceUuid);
+                var attr;
+                if(self.table_Vdisk_VM.chosenItems().feeType !=null && self.table_Vdisk_VM.chosenItems().feeType!=""){
+                	attr=self.table_Vdisk_VM.chosenItems().feeType.split(",")
+                }
+                editObject.billRuleList(setArrayCharge(attr));
                 self.selectVdiskService(false);
             }
             
@@ -1263,52 +1369,121 @@
     	    	return arrayCharge;
     	    }
             
-            this.chargeChange = function(arg,data,event){//除了VDC其他申请用这个方法
-    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
-    	    		var type = data.billRuleUuid();
-    	    		var price;
-    	    		if(typeof(type)=="undefined"){
-    	    			data.price("");
-    	    			return;
-    	    		}
-    	    		if(arg=="size"){
-    	    			var num = data.size();
-    	    			data.unitPrice(result.ruleList[0].unitPrice);
-    	    			price = num*(result.ruleList[0].unitPrice);
-    	    			price = "费用:"+price;
-    	    		}else{
-    	    			price= "费用:"+result.ruleList[0].unitPrice;
-    	    		}
-    	    		 
-    	    		if(type=="DAY"){
-    	    			price+="元/天";
-    	    		}else if(type=="MONTH"){
-    	    			price+="元/月";
-    	    		}else if(type=="QUARTER"){
-    	    			price+="元/季度";
-    	    		}else{
-    	    			price+="元/年";
-    	    		}
-    	    		data.price(price);
-    	    	});	    	
+    	    this.sizeChange = function(arg,data,event){
+    	    	var size;
+    	    	var unitPrice;
+    	    	var type;
+    	    	if(arg=='DISK'){
+    	    		size=data.vdiskCartInfo().size();
+    	    		unitPrice=data.vdiskCartInfo().unitPrice();
+    	    		type=data.vdiskCartInfo().billRuleUuid();
+    	    	}else if(arg=='OBJECT_STORAGE'){
+    	    		size=data.objectStorageCartInfo().size();
+    	    		unitPrice=data.objectStorageCartInfo().unitPrice();
+    	    		type=data.objectStorageCartInfo().billRuleUuid();
+    	    	}
+    	    	
+    	    	if(typeof(type)=="undefined"||typeof(unitPrice)=="undefined"){
+    	    		return;
+    	    	}
+    	    	var price = size*unitPrice;
+        		if(type=="DAY"){
+        			price+="元/天";
+        		}else if(type=="MONTH"){
+        			price+="元/月";
+        		}else if(type=="QUARTER"){
+        			price+="元/季度";
+        		}else{
+        			price+="元/年";
+        		}
+    	    	if(arg=='DISK'){
+    	    		data.vdiskCartInfo().price(price);
+    	    	}else if(arg=='OBJECT_STORAGE'){
+    	    		data.objectStorageCartInfo().price(price);
+    	    	}
     	    }
-
-            this.chargeChangeCart = function(data){//vm
-    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.vmCartInfo().serviceUuid()+"&cycle="+data.vmCartInfo().billRuleUuid(), function(result){
-    	    		var type = data.vmCartInfo().billRuleUuid();
+            
+            this.chargeChangeCart = function(arg,data,event){//vm
+               var serviceUuid;
+               var cycle;
+               if(arg=='VM'){
+            	   serviceUuid=data.vmCartInfo().serviceUuid();
+            	   cycle=data.vmCartInfo().billRuleUuid();
+               }else if(arg=='vdisk_VM'){
+            	   serviceUuid=data.serviceUuid();
+            	   cycle=data.billRuleUuid();
+               }else if(arg=="PUBLICIP"){
+            	   serviceUuid=data.publicNetworkCartInfo().serviceUuid();
+            	   cycle=data.publicNetworkCartInfo().billRuleUuid();   
+               }else if(arg=="OBJECT_STORAGE"){
+            	   serviceUuid=data.objectStorageCartInfo().serviceUuid();
+            	   cycle=data.objectStorageCartInfo().billRuleUuid();
+               }else if(arg=='DISK'){
+            	   serviceUuid=data.vdiskCartInfo().serviceUuid();
+            	   cycle=data.vdiskCartInfo().billRuleUuid(); 
+               }
+    	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
     	    		var price = 0;
-    	    		if(typeof(type)=="undefined"){
-    	    			data.vmCartInfo().price("");
-    	    			return;
-    	    		}
-    	    		
+    	    		var cpu=0;
+    	    		var memory=0;
+    	    		var storage=0;
+    	    		var size=0;
+    	    		var type;
+    	    	   if(arg=='VM'){
+    	    		   cpu=data.vmCartInfo().cpu();
+    	               memory=data.vmCartInfo().memory();
+    	               storage=data.vmCartInfo().storage();
+    	               type = data.vmCartInfo().billRuleUuid();
+    	               if(typeof(type)=="undefined"  || typeof(cpu)=="undefined" || typeof(memory)=="undefined" || typeof(storage)=="undefined"){
+    	            	   data.vmCartInfo().price("");
+    	   	    			return;
+    	               }
+   	               }else if(arg=='vdisk_VM'){
+ 	                   size=data.size();
+   	            	   type = data.billRuleUuid();
+	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+	 	            	   data.price("");
+	 	   	    			return;
+	 	               }
+   	               }else if(arg=='PUBLICIP'){
+   	            		type=data.publicNetworkCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined"){
+	 	            	   data.publicNetworkCartInfo().price("");
+	 	   	    			return;
+	 	               }
+   	               }else if(arg=='OBJECT_STORAGE'){
+   	            	   size=data.objectStorageCartInfo().size();
+  	            	   type=data.objectStorageCartInfo().billRuleUuid();
+ 	   	               if(typeof(type)=="undefined"){
+ 	 	            	   data.objectStorageCartInfo().price("");
+ 	 	   	    			return;
+ 	 	               }
+   	               }else if(arg=='DISK'){
+ 	                   size=data.vdiskCartInfo().size();
+   	            	   type = data.vdiskCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+	 	            	   data.vdiskCartInfo().price("");
+	 	   	    			return;
+	 	               }
+   	               }
+    	    	   
     	    		result.ruleList.forEach(function(e){
     	    			if(e.attrType=='CPU'){
-    	    				price += data.vmCartInfo().cpu() * e.unitPrice;
+    	    				price += cpu * e.unitPrice;
     	    			}else if(e.attrType=='MEMORY'){
-    	    				price += data.vmCartInfo().memory() * e.unitPrice;
+    	    				price += memory * e.unitPrice;
     	    			}else if(e.attrType=='STORAGE'){
-    	    				price += data.vmCartInfo().storage() * e.unitPrice;
+    	    				price += storage * e.unitPrice;
+    	    			}else if(e.attrType=='DISK'){
+    	    				price += size * e.unitPrice;
+    	    				if(arg=='DISK'){
+    	    					data.vdiskCartInfo().unitPrice(e.unitPrice);
+    	    				}
+    	    			}else if(e.attrType=='PUBLICIP'){
+    	    				price += e.unitPrice;
+    	    			}else if(e.attrType=='OBJECT_STORAGE'){
+    	    				data.objectStorageCartInfo().unitPrice(e.unitPrice);
+    	    				price += size * e.unitPrice;
     	    			}
     	    		});
     	    		if(type=="DAY"){
@@ -1320,7 +1495,19 @@
     	    		}else{
     	    			price+="元/年";
     	    		}
-    	    		data.vmCartInfo().price(price);
+    	    		
+    	    		if(arg=='VM'){
+    	    			data.vmCartInfo().price(price);
+   	               }else if(arg=='vdisk_VM'){
+   	            	    data.price(price);
+   	               }else if(arg=='PUBLICIP'){
+   	            		data.publicNetworkCartInfo().price(price);
+   	               }else if(arg=='OBJECT_STORAGE'){
+   	            		data.objectStorageCartInfo().price(price);
+   	               }else if(arg=='DISK'){
+   	            		data.vdiskCartInfo().price(price);
+   	               }
+    	    		
     	    	});	    	
     	    }
         }
@@ -1374,7 +1561,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">挂载云主机：</label>
                             <div class="col-sm-8">
-                                <select class="form-control input-sm" data-bind="options:vdiskCartInfo().vmList,optionsText:'resourceName',optionsValue:'uuid',value:vdiskCartInfo().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'" disabled></select>
+                                <select class="form-control input-sm" data-bind="options:vdiskCartInfo().vmList,optionsText:'name',optionsValue:'uuid',value:vdiskCartInfo().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'" disabled></select>
                             </div>
                         </div>
                     </div>
@@ -1398,24 +1585,18 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:vdiskCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vdiskCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('DISK',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:vdiskCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
                 <div class='modal-footer' style="text-align:center;">
-                    <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.confirmCommit('vdiskCartInfo') }">确定</a>
-                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
                 </div>
             </div>
         </div>
@@ -1444,7 +1625,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">存储大小(GB)：</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control w" data-bind="value:vdiskCartInfo().size">
+                                <input type="text" class="form-control w" data-bind="value:vdiskCartInfo().size,event:{change:function(data, event){ $root.sizeChange('DISK',data,event) }">
                             </div>
                         </div>
                     </div>
@@ -1468,7 +1649,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">挂载云主机：</label>
                             <div class="col-sm-8">
-                                <select class="form-control input-sm" data-bind="options:vdiskCartInfo().vmList,optionsText:'resourceName',optionsValue:'uuid',value:vdiskCartInfo().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'"></select>
+                                <select class="form-control input-sm" data-bind="options:vdiskCartInfo().vmList,optionsText:'name',optionsValue:'uuid',value:vdiskCartInfo().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'"></select>
                             </div>
                         </div>
                     </div>
@@ -1492,18 +1673,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:vdiskCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vdiskCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('DISK',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:vdiskCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -1593,24 +1769,18 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:objectStorageCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:objectStorageCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('OBJECT_STORAGE',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:objectStorageCartInfo().price"></></span>
                         </div>
                     </div>
                 </div>
                 <div class='modal-footer' style="text-align:center;">
-                    <a class="btn btn-default btn-info" data-bind="click: function(data, event){ $root.confirmCommit('objectStorageCartInfo') }">确定</a>
-                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
                 </div>
             </div>
         </div>
@@ -1639,7 +1809,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">存储大小(GB)：</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control w" data-bind="value:objectStorageCartInfo().size">
+                                <input type="text" class="form-control w" data-bind="value:objectStorageCartInfo().size,event:{change:function(data, event){ $root.sizeChange('OBJECT_STORAGE',data,event) }}">
                             </div>
                         </div>
                     </div>
@@ -1694,18 +1864,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:objectStorageCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:objectStorageCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('OBJECT_STORAGE',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:objectStorageCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -1757,7 +1922,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">所属VPC：</label>
                             <div class="col-sm-8">
-                                <select class="form-control input-sm" data-bind="options:publicNetworkCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value:publicNetworkCartInfo().vpcUuid,event:{change:function(data, event){ $root.vpcChange('publicNetworkCartInfo',data,event)}},optionsCaption:'请选择'" disabled></select>
+                                <select class="form-control input-sm" data-bind="options:publicNetworkCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value:publicNetworkCartInfo().vpcUuid,event:{change:$root.vpcChangeByPublic},optionsCaption:'请选择'" disabled></select>
                             </div>
                         </div>
                     </div>
@@ -1804,18 +1969,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:publicNetworkCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:publicNetworkCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('PUBLICIP',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text: publicNetworkCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -1867,7 +2027,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">所属VPC：</label>
                             <div class="col-sm-8">
-                                <select class="form-control input-sm" data-bind="options:publicNetworkCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value:publicNetworkCartInfo().vpcUuid,event:{change:function(data, event){ $root.vpcChange('publicNetworkCartInfo',data,event)}},optionsCaption:'请选择'"></select>
+                                <select class="form-control input-sm" data-bind="options:publicNetworkCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value:publicNetworkCartInfo().vpcUuid,event:{change:$root.vpcChangeByPublic},optionsCaption:'请选择'"></select>
                             </div>
                         </div>
                     </div>
@@ -1914,18 +2074,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+								<select class="form-control w-xs" data-bind="options:publicNetworkCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:publicNetworkCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('PUBLICIP',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text: publicNetworkCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2022,7 +2177,7 @@
                     </div>
                 </div>
                 <div class='modal-footer' style="text-align:center;">
-                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
                 </div>
             </div>
         </div>
@@ -2205,7 +2360,7 @@
                     </div>
                 </div>
                 <div class='modal-footer' style="text-align:center;">
-                    <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                    <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
                 </div>
             </div>
         </div>
@@ -2439,7 +2594,7 @@
                   <div class="row">
                     <label class="col-xs-5 control-label">选择密钥：</label>
                     <div class="col-xs-7">
-                      <select class="form-control w-xs" disabled><option value="">密钥1</option><option value="">密钥2</option></select>
+                      <select class="form-control w-xs" data-bind="options:vmCartInfo().sshList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().sshUuid,optionsCaption:'请选择'" disabled></select>
                     </div>
                   </div>
                 </div>
@@ -2477,16 +2632,14 @@
                 </div>
                 <div class="clearfix"></div>
                 <div class="form-group col-md-3">
-                  <div class="row">
-                    <label class="col-xs-5 control-label">套餐：</label>
-                    <div class="col-xs-7">
-                      <select class="form-control w-xs" disabled>
-                        <option value="1">按天</option><option value="1">包月</option><option value="1">按季度</option><option value="1">包年</option>
-                      </select>
+                    <div class="row">
+                        <label class="col-xs-5 control-label">套餐：</label>
+                        <div class="col-xs-7">
+                            <select class="form-control w-xs" data-bind="options: vmCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vmCartInfo().billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'" disabled></select>
+                        </div>
                     </div>
-                  </div>
                 </div>
-                <span class="control-label col-md-3 text-left" style="height:34px;">费用：100元/月</span>
+                <span class="control-label col-md-3 text-left" style="height:34px;" data-bind="text: vmCartInfo().price"></span>
               </div>
             </div>
     
@@ -2512,9 +2665,9 @@
                             <td><input type="text" class="form-control" data-bind="value:name" disabled/></td>
                             <td><input type="text" class="form-control" data-bind="value:size" disabled/></td>
                             <td><input type="text" data-bind="value:serviceName" disabled/></td>
-                            <td><span data-bind="text: $parent.applyTimeText"></span></td>
-                            <td></td>
-                            <td><span ></span></td>
+                            <td><span data-bind="text: $root.vmCartInfo().applyText"></span></td>
+                            <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('vdisk_VM',data,event) }},optionsCaption:'请选择'" disabled></select></td>
+                            <td><span data-bind="text: price"></span></td>
                         </tr>
                         
                       </tbody>
@@ -2592,7 +2745,7 @@
                   <div class="row">
                     <label class="col-sm-4 control-label">所属业务系统：</label>
                     <div class="col-sm-8">
-                      <select class="form-control w" disabled><option value="">1</option></select>
+                      <select class="form-control w-xs" data-bind="options: vmCartInfo().bussyList,optionsText:'name',optionsValue:'uuid',value:vmCartInfo().projectUuid,optionsCaption:'请选择'" disabled></select>
                     </div>
                   </div>
                 </div>
@@ -2611,7 +2764,7 @@
     
           </div>
           <div class='modal-footer' style="text-align:center;">
-            <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+            <a class="btn btn-default btn btn-default" data-dismiss="modal">返回</a>
           </div>
         </div>
       </div>
@@ -2789,7 +2942,7 @@
                                 <div class="row">
                                     <label class="col-xs-5 control-label">套餐：</label>
                                     <div class="col-xs-7">
-                                        <select class="form-control w-xs" data-bind="options: vmCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vmCartInfo().billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
+                                        <select class="form-control w-xs" data-bind="options: vmCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vmCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('VM',data,event) }},optionsCaption:'请选择'"></select>
                                     </div>
                                 </div>
                             </div>
@@ -2820,9 +2973,9 @@
                                     <td><input type="text" class="form-control" data-bind="value:name"/></td>
                                     <td><input type="text" class="form-control" data-bind="value:size"/></td>
                                     <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
-                                    <td><span data-bind="text: $parent.applyTimeText"></span></td>
-                                    <td></td>
-                                    <td><span ></span></td>
+                                    <td><span data-bind="text: $root.vmCartInfo().applyText"></span></td>
+                                    <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('vdisk_VM',data,event) }},optionsCaption:'请选择'"></select></td>
+                                    <td><span data-bind="text: price"></span></td>
                                     <td><a class="btn btn-xs btn-danger" data-bind="click:$root.delMountDisks">删除</a></td>
                                 </tr>
                                 
@@ -2947,9 +3100,9 @@
                <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                  <tr>
                    <td><input type="radio" style="top:-2px;" name="optionsRadios0"  data-bind="checkedValue: $data, checked: $parent.chosenItems"></td>
-                   <td data-bind="text:name"></td>
-                   <td data-bind="text:name">类型</td>
-                   <td data-bind="text:name">是/否</td>
+                   <td data-bind="text:serviceName"></td>
+                   <td data-bind="text:diskType">类型</td>
+                   <td data-bind="text:isFee">是/否</td>
                  </tr>
                  <!-- /ko -->
                </tbody>

@@ -118,7 +118,7 @@
 		deleteScriptFile: function (params, callback, errorCallback) {
 			var param = csc.util.httpQueryParamConvert(params);
 			
-			csc.rest.del('api/v5.0.0/script/file', params, function(data) {
+			csc.rest.del('api/v5.0.0/script/file?'+param, function(data) {
 			     callback(data);
 			});
 		},
@@ -128,7 +128,7 @@
 		loadScriptFileData: function (params, callback, errorCallback) {
 			var param = csc.util.httpQueryParamConvert(params);
 			
-			csc.rest.get('api/v5.0.0/script/files', params, function(data) {
+			csc.rest.get('api/v5.0.0/script/files?' + param, function(data) {
 			     callback(data);
 			});
 		},
@@ -138,7 +138,33 @@
 		loadDefaultAttrData: function (params, callback, errorCallback) {
 			var param = csc.util.httpQueryParamConvert(params);
 			
-			csc.rest.get('api/v5.0.0/script/defaultAttrs', params, function(data) {
+			csc.rest.get('api/v5.0.0/script/defaultAttrs?'+param, function(data) {
+				callback(data);
+			});
+		},
+		/**
+		 * 新增脚本数据
+		 */
+		addScript: function (params, callback, errorCallback) {
+			csc.rest.post('api/v5.0.0/script', params, function(data) {
+			     callback(data);
+		    }); 
+		},
+		/**
+		 * 更新脚本数据
+		 */
+		updateScript: function (uuid, params, callback, errorCallback) {
+			csc.rest.put('api/v5.0.0/script/' + uuid, params, function(data) {
+				 callback(data);
+			}); 
+		},
+		/**
+		 * 删除脚本数据
+		 */
+		deleteScript: function (params, callback, errorCallback) {
+			var param = csc.util.httpQueryParamConvert(params);
+			
+			csc.rest.del('api/v5.0.0/script?' + param, function(data) {
 				callback(data);
 			});
 		}

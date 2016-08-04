@@ -48,20 +48,20 @@
                 <div class="col-xs-1 font-bold">所属VPC：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().vpcName"></div>
                 <div class="col-xs-1 font-bold">业务系统：</div>
-                <div class="col-xs-3" data-bind="text:vmVO().vappName"></div>
+                <div class="col-xs-3" data-bind="text:vmVO().busSysName"></div>
                 <div class="col-xs-1 font-bold">云主机状态：</div>
                 <div class="col-xs-3">
-                  <span class="label label-success" data-bind="if: vmVO().state == 'ACTIVE'">运行中</span>
-                  <span class="label label-danger" data-bind="if: vmVO().state == 'SHUTOFF'">已关机</span>
-                  <span class="label label-info" data-bind="if: vmVO().state == 'SUSPENDED'">已挂起</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_OFF'">正在关机</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'POWERING_ON'">正在启动</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING'">正在重启</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'REBOOTING_HARD'">正在强制重启</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'SUSPENDING'">正在挂起</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'RESUMING'">正在恢复</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'DELETING'">正在删除</span>
-                  <span class="label label-warning" data-bind="if: vmVO().state == 'RESIZING'">正在调整</span>                  
+                    		<span class="label label-success" data-bind="if: vmVO().state == 'ACTIVE' && vmVO().taskState == null">运行中</span>
+							<span class="label label-danger" data-bind="if: vmVO().state == 'SHUTOFF' && vmVO().taskState == null">已关机</span>
+							<span class="label label-info" data-bind="if: vmVO().state == 'SUSPENDED' && vmVO().taskState == null">已挂起</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'POWERING_OFF'">正在关机</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'POWERING_ON'">正在启动</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'REBOOTING'">正在重启</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'REBOOTING_HARD'">正在强制重启</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'SUSPENDING'">正在挂起</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'RESUMING'">正在恢复</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'DELETING'">正在删除</span>
+							<span class="label label-warning" data-bind="if: vmVO().taskState == 'RESIZING'">正在调整</span>                 
                 </div>
               </div>
               <div class="row m-b">
@@ -70,7 +70,7 @@
                 <div class="col-xs-1 font-bold">IP地址：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().ip"></div>
                 <div class="col-xs-1 font-bold">所属物理机：</div>
-                <div class="col-xs-3" data-bind="text:vmVO().hostName"></div>
+                <div class="col-xs-3" data-bind="text:vmVO().ownerHostName"></div>
               </div>
               <div class="row m-b">
                 <div class="col-xs-1 font-bold">创建人：</div>
@@ -93,7 +93,7 @@
               </div>
             </div>
             <div class="col-xs-3">
-              <div class="clear bg-info wrapper">
+              <div class="clear btn-info wrapper">
                 <div class="detail-others-img img-chart">资源使用率</div>
                 <div class="detail-others-text">
                   <p>CPU使用率：<span data-bind="text:vmVO().cpuUsedPer"></span></p>
@@ -101,13 +101,11 @@
                 </div>  
               </div>            
             </div>
-            <div class="col-xs-6">
-              <div class="clear bg-success wrapper">
+            <div class="col-xs-3">
+              <div class="clear btn-danger wrapper">
                 <div class="detail-others-img img-serverinfo">服务信息</div>
                 <div class="detail-others-text">
-                  <p>服务状态：
-                      <span class="label label-info" data-bind="if: vmVO().isValidate == true">正常</span>
-                      <span class="label label-danger" data-bind="if: vmVO().isValidate == false">已过期</span>
+                  <p>服务状态：<span data-bind="if: vmVO().isValidate == true">正常</span><span data-bind="if: vmVO().isValidate == false">已过期</span>
                   </p>
                   <p>生效时间：<span data-bind="text:vmVO().effectiveTime"></span></p>
                   <p>失效时间：<span data-bind="text:vmVO().expiryTime"></span></p>
@@ -187,7 +185,7 @@
           <div class="wrapper">
             <div class="clear">
               <h5 class="pull-left text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>软件列表</h5>
-              <a class="pull-right m-t-sm text-info">刷新</a>
+              <a class="pull-right m-t-sm text-info" data-bind="click: $root.reloadSoftware">刷新</a>
             </div>
             <div class="row padder-v">
               <div class="col-xs-1">
@@ -196,36 +194,32 @@
               <div class="col-xs-3">
                 <div class="input-group w">
                   <span class="input-group-addon">软件类型</span>
-                  <select class="form-control input-sm">
-                    <option value="0">类型1</option>
-                    <option value="1">类型2</option>
-                    <option value="2">类型3</option>
-                    <option value="3">类型4</option>
+                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().softwareType">
+                    <option value="name1">name1</option>
+                    <option value="name2">name2</option>
                   </select>
                 </div>                
               </div>            
               <div class="col-xs-5">
                 <div class="input-group w">
                   <span class="input-group-addon">安装类型</span>
-                  <select class="form-control input-sm">
-                    <option value="0">类型1</option>
-                    <option value="1">类型2</option>
-                    <option value="2">类型3</option>
-                    <option value="3">类型4</option>
+                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().installType">
+                    <option value="安装">安装</option>
+                    <option value="升级">升级</option>
                   </select>
                 </div>                
               </div>            
               <div class="col-xs-3">
                 <div class="input-group">
-                  <input type="text" class="input-sm form-control" placeholder="请输入软件名称">
+                  <input type="text" class="input-sm form-control" placeholder="请输入软件名称" data-bind="value: softwareSearchParam().softwareName">
                   <span class="input-group-btn">
-                    <button class="btn btn-sm btn-default" type="button">搜索</button>
+                    <button class="btn btn-sm btn-default" type="button" >搜索</button>
                   </span>
                 </div>
               </div>
             </div>                     
             <div id='instance_storages'>
-              <div class='table-responsive no-height'>
+              <div class='table-responsive no-height' data-bind="with: vm_software_table">
                 <table class='table table-striped'>
                   <thead>
                     <tr>
@@ -239,15 +233,31 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>MQ</td>
-                      <td>7.5</td>
-                      <td>cnware</td>
-                      <td><a>查看</a> | <a>修改</a></td>
-                      <td>2016-07-22 14:12:21</td>
-                      <td>安装成功</td>
-                      <td><a>重安装</a> | <a>安装日志</a> | <a data-bind="click: update">升级</a></td>
+                  	<tr data-bind="visible: showNoData">
+  		              <td colspan=14 class="aligncenter">
+  		                This table has no data.
+  		              </td>
+  		            </tr>
+  	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+  	                <tr>
+  	                  <td data-bind="text: name"></td>
+                      <td data-bind="text: version"></td>
+                      <td data-bind="text: softTypeName"></td>
+                      <td>
+                      	<a>查看</a> | 
+                      	<a>修改</a>
+                      </td>
+                      <td data-bind="text: installTime"></td>
+                      <td data-bind="text: installState">
+                      	安装成功
+                      </td>
+                      <td>
+                      	<a>重安装</a> | 
+                      	<a>安装日志</a> | 
+                      	<a data-bind="click: update">升级</a>
+                      </td>
                     </tr>
+                    <!-- /ko -->
                   </tbody>
                 </table>
               </div>
@@ -638,26 +648,25 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">云硬盘名称：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" placeholder="盘1">
+              <input type="email" class="form-control" data-bind="value: volumeVO().name">
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-3 control-label">云硬盘大小(GB)：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" placeholder="4">
+              <input type="email" class="form-control" data-bind="value: volumeVO().size">
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" placeholder="">
-              可调整范围为：16至39.38
+              <input type="email" class="form-control" data-bind="value: volumeVO().targetSize">
             </div>
           </div>
 
         </div>
         <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info">确定</a>
+          <a class="btn btn-default btn-info" data-bind="click: $root.doExpand">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
@@ -674,18 +683,20 @@
   var vmUuid;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     vmUuid = args.vmUuid;
-	var vmId = args.vmId;
 	this.show_vm_name = ko.observable("");
     function ViewModel(){
       var self = this;
     	
-      this.isConfig = ko.observable(false);
-      this.isInstall = ko.observable(false);
-      this.isInstallVM = ko.observable(false);
-      this.isUpdate = ko.observable(false);
-      this.isVmAdjustment = ko.observable(false);
-      this.isValidateTime = ko.observable(false);
-
+      this.isConfig = ko.observable(false);//告警配置
+      this.isInstall = ko.observable(false);//安装软件
+      this.isInstallVM = ko.observable(false);//安装软件
+      this.isUpdate = ko.observable(false);//软件升级
+      this.isVmAdjustment = ko.observable(false);//调整资源
+      this.isValidateTime = ko.observable(false);//调整有效期
+      
+      this.config = function(){
+          this.isConfig(true);
+      };
       this.install = function(){
         this.isInstall(true);
       }
@@ -698,9 +709,6 @@
       this.installVMCancel = function(){
         this.isInstallVM(false);
       }
-      this.config = function(){
-        this.isConfig(true);
-      };
       this.update = function(){
         this.isUpdate(true);
       };
@@ -719,13 +727,22 @@
       
       this.reloadVmInfo();
       
+    //------------------------------------------软件列表开始----------------------------
+    this.vm_software_table = new DataTable([]);
+    this.softwareSearchParam = ko.observable({
+    	softwareType: ko.observableArray([]),
+    	installType: '',
+    	softwareName: ''
+  	})
+    //------------------------------------------软件列表结束----------------------------
+    
       //------------------------------------------云硬盘列表开始----------------------------
       this.vm_volume_table = new DataTable([]);
       
       this.volume_param = ko.observable({
     	  firstResult: -1,
     	  maxResult: -1,
-          volumeServerId: vmUuid
+          vmUuid: vmUuid
       })
         
       this.reloadVolume = function(){
@@ -735,9 +752,30 @@
       
       this.isStorageExpand = ko.observable(false);
 
-      this.storageExpand = function(){
+      this.storageExpand = function(objcet,event){
         self.isStorageExpand(true);
+        self.volumeVO().uuid(objcet.uuid);
+        self.volumeVO().name(objcet.volumeName);
+        self.volumeVO().size(objcet.volumeSize);
       };
+      
+      this.volumeVO = ko.validatedObservable({
+    	  uuid: ko.observable(),
+    	  name: ko.observable(),
+    	  size: ko.observable(),
+    	  targetSize: ko.observable()
+      });
+      
+      this.doExpand = function(){
+    	  var putBody = {"volumeSize":self.volumeVO().targetSize};
+    	  csc.rest.put('api/v5.0.0/volumes/'+self.volumeVO().uuid, putBody, function(data){
+ 	            self.isStorageExpand(false);
+ 	            if(data.taskId){
+	 	            systemMsg.alert('扩展云硬盘请求成功，任务ID：'+data.taskId+'！');
+ 	            }
+ 	            self.vm_volume_table.refreshData();
+ 		  });
+      }
       //------------------------------------------云硬盘列表结束----------------------------
       
       

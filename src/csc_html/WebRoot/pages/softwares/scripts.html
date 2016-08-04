@@ -20,14 +20,14 @@
 				<div class="input-group">
 					<span class="input-group-addon">脚本类型</span> <select
 						class="form-control input-sm"
-						data-bind="value: searchParam().type, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'"></select>
+						data-bind="value: searchParam().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'"></select>
 				</div>
 			</div>
 			<div class="col-xs-3">
 				<div class="input-group">
 					<span class="input-group-addon">名称</span> <input type="text"
 						class="input-sm form-control" placeholder="请输入名称"
-						data-bind="value: searchParam().name">
+						data-bind="value: searchParam().scriptName">
 				</div>
 			</div>
 			<div class="col-xs-1">
@@ -73,7 +73,7 @@
 						<td data-bind="text: $row.supportOs"></td>
 						<td data-bind="text: $row.softwareNames"></td>
 						<td data-bind="text: $row.createTime"></td>
-						<td><a data-bind="click: $root.removeOne">删除</a></td>
+						<td><a data-bind="click: $root.update">修改</a></td>
 					</tr>
 					<!-- /ko -->
 				</tbody>
@@ -108,11 +108,11 @@
 				<h3 class='modal-title' data-bind="ifnot: currentVO().Id">添加脚本</h3>
 				<h3 class='modal-title' data-bind="if: currentVO().Id">修改脚本</h3>
 			</div>
-			<div class='modal-body'>
+			<div class='modal-body' style="max-height: 450px; overflow-y: auto;">
 				<div class="form-group string required">
 					<div class="col-xs-12 form-inline">
 						脚本名称： <input type="text" class="form-control"
-							data-bind="value: name" />&nbsp;&nbsp;&nbsp;&nbsp; 脚本类型： <select
+							data-bind="value: currentVO().name" />&nbsp;&nbsp;&nbsp;&nbsp; 脚本类型： <select
 							class="form-control"
 							data-bind="value: currentVO().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
 						</select>
@@ -452,7 +452,7 @@
 						updateDefaultAttrs: [],
 						deleteDefaultAttrs: [],
 						newSoftwares: [],
-						deleteSoftwares[]
+						deleteSoftwares: []
 					});
 					
 					/** 脚本文件数据描述对象 **/
@@ -515,7 +515,7 @@
 								isExec: (self.fileTable().length == 0 ? 1 : 0),
 								isExecName: self.fileTable().length == 0 ? 
 										ko.observable('可执行') : ko.observable('不可执行'),
-								uploadTime: ''
+								uploadTime: ko.observable()
 			      			};
 			      			
 							self.fileTable.push(addFile);
@@ -526,10 +526,18 @@
 			      		});
 			      		
 			      		self.uploader.on('uploadSuccess', function(file, response) {
+			      			if (response.message) {
+			      				systemMsg.alert(response.message);
+			      			}
+			      			
 			      			$.each(self.fileTable(), function(i, val) {
 			      				if (val.name == file.name) {
-			      					val.path(response.path);
-			      					val.uploadTime(response.uploadTime);
+			      					if (response.message) {
+										val.progress('上传失败');			      						
+			      					} else {
+				      					val.path(response.path);
+				      					val.uploadTime(response.uploadTime);
+			      					}
 			      					return;
 			      				}
 			      			});
@@ -575,7 +583,17 @@
 						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
 							$.SOFT_SCRIPT.loadScriptFileData({scriptUuid: self.currentVO().uuid}, function (data) {
 								$.each(data.results, function(i, val) {
-									self.fileTable.push(val);
+									self.fileTable.push({
+										Id: val.Id,
+										uuid: val.uuid,
+										name: val.name,
+										progress: ko.observable(val.progress),
+										size: val.size,
+										path: ko.observable(val.path),
+										isExec: val.isExec,
+										isExecName: ko.observable(val.isExecName),
+										uploadTime: val.uploadTime
+									});
 								});
 							});
 						}
@@ -592,31 +610,55 @@
 					
 					/** 修改脚本 **/
 					this.updateFile = function() {
-						self.scriptFileVO().fileTableRow.isExec = self.scriptFileVO().isExec();
+						var flag = true;
 						
-						self.scriptFileVO().fileTableRow.isExecName(self.scriptFileVO().isExec == '1' ?
-								'可执行' : '不可执行');
-						self.isScriptFile(false);
+						$.each(self.fileTable(), function(i, val) {
+							if (self.scriptFileVO().isExec == '1' && val.name != self.scriptFileVO().name 
+									&& val.isExec == '1') {
+								
+								systemMsg.alert('已存在可执行属性脚本文件');
+								flag = false;
+								return flag;
+							}
+						});
+						
+						if (flag) {
+							self.scriptFileVO().fileTableRow.isExec = self.scriptFileVO().isExec();
+							self.scriptFileVO().fileTableRow.isExecName(self.scriptFileVO().isExec == '1' ?
+									'可执行' : '不可执行');
+							self.isScriptFile(false);
+						}
 					};
 
 					/** 移除脚本文件 **/
 					this.removeFile = function(object, event) {
+						
 						if (object.path() && !object.Id) {
 							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()}, function(data) {
+								
 								self.fileTable.remove(object);
 							});
 						} else {
 							self.fileTable.remove(object);
+							
+							object.progress(object.progress().replace('%', ''));
 							self.currentVO().deleteScriptFiles.push(object);
 						}
 					};
-
+					
 					/** 加载默认安装属性数据 **/
 					this.loadDefaultAttrData = function() {
 						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
 							$.SOFT_SCRIPT.loadDefaultAttrData({scriptUuid: self.currentVO().uuid}, function (data) {
 								$.each(data.results, function(i, val) {
-									self.attrTable.push(val);
+									self.attrTable.push({
+										Id: val.Id,
+										uuid: val.uuid,
+										name: ko.observable(val.name),
+										code: ko.observable(val.code),
+										value: ko.observable(val.value),
+										scriptUuid: val.scriptUuid
+									});
 								});
 							});
 						}
@@ -625,12 +667,15 @@
 					/** 更新默认安装属性 **/
 					this.saveAttr = function() {
 						
-						if (self.defaultAttrVO.attrTableRow) {
-							
+						if (self.defaultAttrVO().attrTableRow) {
+							self.defaultAttrVO().attrTableRow.name(self.defaultAttrVO().name());
+							self.defaultAttrVO().attrTableRow.code(self.defaultAttrVO().code());
+							self.defaultAttrVO().attrTableRow.value(self.defaultAttrVO().value());
 						} else {
 							self.attrTable.push({
 								Id: null,
 								uuid: null,
+								scriptUuid: null,
 								name: ko.observable(self.defaultAttrVO().name()),
 								code: ko.observable(self.defaultAttrVO().code()),
 								value: ko.observable(self.defaultAttrVO().value())
@@ -674,11 +719,11 @@
 							value: object.value()
 						});
 						
-						self.defaultAttrVO.attrTableRow = object;
+						self.defaultAttrVO().attrTableRow = object;
 						
 						self.isDefaultAttr(true);
 					};
-
+					
 					/** 查询软件参数 **/
 					this.searchSoftwareParams = ko.observable({
 						softTypeName: '',
@@ -713,16 +758,19 @@
 
 					/** 删除绑定软件 **/
 					this.removeBindSoft = function(object, event) {
-						console.log(object);
+						
+						if (object.scriptUuid) {
+							self.currentVO().deleteSoftwares.push(object.uuid);
+						}
+						
+						self.softwareTable.remove(object);
 					};
 					
 					/** 查询软件 **/
 					this.searchSoftware = function() {
-						console.log(self.searchSoftwareParams());
 						this.chooseSoftwareTable.params(this.searchSoftwareParams());
 					};
 					
-
 					// 脚本类型下拉选择
 					this.loadTypeNames = function(params, callback) {
 						
@@ -739,18 +787,18 @@
 					// 新增脚本弹窗
 					this.add = function() {
 						self.currentVO.fromJSON({
-							Id : null,
-							uuid : 'N/A',
-							name : '',
-							softTypeName : '',
-							newScriptFiles : [],
+							Id: null,
+							uuid: 'N/A',
+							name: '',
+							softTypeName: '',
+							newScriptFiles: [],
 							updateScriptFiles: [],
 							deleteScriptFiles: [],
 							newDefaultAttrs: [],
 							updateDefaultAttrs: [],
 							deleteDefaultAttrs: [],
 							newSoftwares: [],
-							deleteSoftwares[]
+							deleteSoftwares: []
 						});
 						
 						self.fileTable().splice(0, self.fileTable().length);
@@ -760,13 +808,43 @@
 						self.isAdd(true);
 					};
 					
+					//修改脚本弹窗
+					this.update = function(object, event) {
+						self.currentVO.fromJSON(object);
+						
+						self.currentVO().newScriptFiles.splice(0, self.currentVO().newScriptFiles.length);
+						self.currentVO().updateScriptFiles.splice(0, self.currentVO().updateScriptFiles.length);
+						self.currentVO().deleteScriptFiles.splice(0, self.currentVO().deleteScriptFiles.length);
+						
+						self.currentVO().newDefaultAttrs.splice(0, self.currentVO().newDefaultAttrs.length);
+						self.currentVO().updateDefaultAttrs.splice(0, self.currentVO().updateDefaultAttrs.length);
+						self.currentVO().deleteDefaultAttrs.splice(0, self.currentVO().deleteDefaultAttrs.length);
+						
+						self.currentVO().newSoftwares.splice(0, self.currentVO().newSoftwares.length);
+						self.currentVO().deleteSoftwares.splice(0, self.currentVO().deleteSoftwares.length);
+						
+						self.fileTable().splice(0, self.fileTable().length);
+						self.attrTable().splice(0, self.attrTable().length);
+						self.softwareTable().splice(0, self.softwareTable().length);
+						
+						self.isAdd(true);
+					}
+					
 					/** 验证提交 **/
 					this.validSubmit = function() {
 						var flag = true;
 						
 						if (self.currentVO.isValid()) {
+							if (self.fileTable().length == 0) {
+								systemMsg.alert('未指定脚本文件');
+								flag = false;
+								return flag; 
+							}
+							
 							$.each(self.fileTable(), function(i, val) {
-								if (!val.path) {
+								if (!val.path()) {
+									
+									systemMsg.alert('存在未上传文件的脚本文件');
 									flag = false;
 									
 									return flag; 
@@ -781,12 +859,14 @@
 					
 					// 保存脚本数据
 					this.save = function() {
-						
 						if (!self.validSubmit()) {
 							return;
 						}
 						
 						$.each(self.fileTable(), function(i, val) {
+							
+							val.progress(val.progress().replace('%', ''));
+							
 							if (val.uuid) {
 								self.currentVO().updateScriptFiles.push(val);
 							} else {
@@ -802,24 +882,63 @@
 							}
 						});
 						
-						this.isAdd(false);
+						$.each(self.softwareTable(), function(i, val) {
+							if (!val.scriptUuid) {
+								self.currentVO().newSoftwares.push(val.uuid);
+							}
+						});
+						
+						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
+							
+							$.SOFT_SCRIPT.updateScript(self.currentVO.toJSON().uuid, self.currentVO.toJSON(), function(data) {
+								
+								var msg = data.message;
+								
+								if (msg.indexOf("success") != -1) {
+									self.isAdd(false);
+									systemMsg.alert('修改脚本成功！');
+									self.table.refreshData();
+								} else {
+									systemMsg.alert(msg);
+								}
+							});
+						} else {
+							$.SOFT_SCRIPT.addScript(self.currentVO.toJSON(), function(data) {
+								if (data.Id) {
+									self.isAdd(false);
+									systemMsg.alert('添加脚本成功！');
+									self.table.refreshData();
+								}
+							});	
+						}
 					};
-					
-					if (self.scriptFileVO().fileTableRow.scriptUuid) {
-						self.currentVO().updateScriptFiles.remove(self.scriptFileVO().fileTableRow);
-						self.currentVO().updateScriptFiles.push(self.scriptFileVO().fileTableRow);
-					}
 					
 					this.remove = function() {
-						console.log("removeSelected");
-					};
-					this.removeOne = function(object, event) {
-						console.log(object);
+						var uuids = '';
+						
+						$.each(self.table.chosenItems(), function(i,val){      
+							uuids += (val.uuid + ',');
+					  	});   
+						
+						var params = {uuids: uuids.substring(0, uuids.length-1)};
+						
+						systemMsg.confirm("确定要删除所选脚本?", function(){
+							$.SOFT_SCRIPT.deleteScript(params, function(data) {
+								
+								if (data.message.indexOf('success') != -1) {
+									systemMsg.alert('删除脚本成功！');
+									self.table.refreshData();
+								} else {
+									systemMsg.alert(data.message);
+								}
+							})
+			      		});
+						
 					};
 
 					this.searchParam = ko.observable({
-						type : "",
-						name : ""
+						softTypeName : "",
+						scriptName : ""
 					});
 					this.search = function() {
 						this.table.params(this.searchParam());
@@ -828,11 +947,9 @@
 					this.types = ko.observableArray([]);
 					
 					this.loadTypeNames({});
-					
 				}
 				
 				$(document).ready(function() {
-					
 					var viewModel = new ViewModel();
 					
 					ko.applyBindings(viewModel, $('#page-content')[0]);
@@ -855,23 +972,24 @@
 					});
 					
 					/** 脚本编辑弹窗关闭回调 **/
-					$("#showScriptModal").on("shown.bs.modal", function() {
+					$("#showScriptModal").on("hidden.bs.modal", function() {
 						// 删除未确认的已上传脚本文件
 						
 						var filePathStr = '';
 						
-						$.each(viewModel.fileTable(), function(i, val) {
-							if (val.path()) {
-								filePathStr += (val.path() + ',');	
-							}
-						});
-						
-						if (filePathStr != '') {
-							$.SOFT_SCRIPT.deleteScriptFile({"filePathStr": filePathStr}, function(data) {
+						if (viewModel.currentVO().newScriptFiles.length == 0 ) {
+							$.each(viewModel.fileTable(), function(i, val) {
+								if (!val.uuid && val.path()) {
+									filePathStr += (val.path() + ',');	
+								}
 							});
+							
+							if (filePathStr != '') {
+								$.SOFT_SCRIPT.deleteScriptFile({"filePathStr": filePathStr}, function(data) {
+								});
+							}
 						}
-					})；
-					
+					});
 					
 					/** 软件甄选弹窗关闭回调 **/
 					$('#showSoftwareModal').on('hidden.bs.modal', function() {

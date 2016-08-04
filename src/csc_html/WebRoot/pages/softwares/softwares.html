@@ -283,7 +283,7 @@
 						<div class="form-group">
 							<label class="col-xs-3 control-label"> 关联脚本 </label>
 							<div class="col-xs-8 form-inline">
-								<input class="string required form-control" type="text" />
+								<input class="string required form-control" type="text" data-bind="value: currentVO().scriptName" />
 								<button class="btn btn-default" data-bind="click: chooseScript">选择脚本</button>
 							</div>
 							<div class="col-xs-1">
@@ -547,7 +547,7 @@
 						installFilePath: '',
 						installFileName: ko.observable().extend({required : true}),
 						scriptUuid: null,
-						scriptName: ''
+						scriptName: ko.observable()
 					});
 	
 					var self = this;
@@ -643,15 +643,20 @@
 								if (data.message.indexOf('success') != -1) {
 									systemMsg.alert('删除软件成功！');
 									self.table.refreshData();
+								} else {
+									systemMsg.alert(data.message);
 								}
-								
 							})
 			      		});
 					};
 	
 					/**选择绑定脚本**/
 					this.bindScript = function (object, event) {
-						console.log(object);
+						
+						self.currentVO().scriptUuid = object.uuid;
+						self.currentVO().scriptName(object.name);
+						
+						self.isBindScript(false);
 					};
 	
 					/**软件搜索参数**/
@@ -775,6 +780,12 @@
 						self.uploader.on('uploadFinished', function() {
 							csc.uploader.unbind(uuid);
 						});
+			      		
+			      		self.uploader.on('uploadSuccess', function(file, response) {
+			      			if (response.message) {
+			      				systemMsg.alert(response.message);
+			      			}
+						});
 
 			      		self.uploader.upload();
 
@@ -828,7 +839,6 @@
 										self.table.refreshData();
 								 		self.isAdd(false);
 									}
-									
 									self.submitBtnStatus(true);
 								});
 							}
