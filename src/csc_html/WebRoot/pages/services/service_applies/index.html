@@ -747,17 +747,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						  alert(result.message);
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/orders/item/instance-name?type='+type+'&name='+result.name,function(result1){	
-						 		 if(result1.result==true){
-									  systemMsg.alert(result1.message);
-									  callback(false);
-								  }else{
-									  count = count+1;
-									  if(count==jsonArray.length){
-										  callback(true);
-									  }
-								  }
-						    });
+						  callback(true);
+// 						 	csc.rest.get('api/v5.0.0/orders/item/instance-name?type='+type+'&name='+result.name,function(result1){	
+// 						 		 if(result1.result==true){
+// 									  systemMsg.alert(result1.message);
+// 									  callback(false);
+// 								  }else{
+// 									  count = count+1;
+// 									  if(count==jsonArray.length){
+// 										  callback(true);
+// 									  }
+// 								  }
+// 						    });
 					  }
 			    });	
 			}
@@ -773,17 +774,73 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				osTypeVdc=osTypeVdc.substring(0,osTypeVdc.length-1);
 				self.model_VDC().vdcCartInfo().osTypes(osTypeVdc);
 				
+			
 				if(self.model_VDC.isValid()){
-				 	 csc.rest.get('api/v5.0.0/orders/item/instance-name?type=VDC&name='+self.model_VDC().vdcCartInfo().name,function(result){	
-					 		 if(result.result==true){
-								  systemMsg.alert(result.message);
-							  }else{
-							 	 csc.rest.post('api/v5.0.0/order-apply/vdcs',self.model_VDC.toJSON(),function(data){
+				 	// csc.rest.get('api/v5.0.0/orders/item/instance-name?type=VDC&name='+self.model_VDC().vdcCartInfo().name,function(result){	
+// // 					 		 if(result.result==true){
+// // 								  systemMsg.alert(result.message);
+// // 							  }else{
+								 var orderJson={};
+								 var orderItems = [];
+								 var metaData={};
+								 var resBaseInfo = {};
+								 var vdcQuotaList = [];
+								 if(self.model_VDC().vdcCartInfo().quota()=="-1"){
+									 resBaseInfo.limitQuota="false";
+								 }else{
+									 resBaseInfo.limitQuota="true";
+									 vdcQuotaList.push({type:"CPU",value:self.model_VDC().vdcCartInfo().cpu()});
+									 vdcQuotaList.push({type:"MEMORY",value:self.model_VDC().vdcCartInfo().memory()});
+									 vdcQuotaList.push({type:"STORAGE",value:self.model_VDC().vdcCartInfo().storage()});
+									 vdcQuotaList.push({type:"VPC",value:self.model_VDC().vdcCartInfo().vpcNum()});
+									 vdcQuotaList.push({type:"VM",value:self.model_VDC().vdcCartInfo().vm()});
+									 vdcQuotaList.push({type:"DISK",value:self.model_VDC().vdcCartInfo().disk()});
+									 vdcQuotaList.push({type:"PUBLICIP",value:self.model_VDC().vdcCartInfo().publicIp()});
+									 vdcQuotaList.push({type:"ROUTER",value:self.model_VDC().vdcCartInfo().router()});
+									 vdcQuotaList.push({type:"FIREWALL",value:self.model_VDC().vdcCartInfo().fireWall()});
+									 vdcQuotaList.push({type:"SECRET_KEY",value:self.model_VDC().vdcCartInfo().secretKey()});
+									 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.model_VDC().vdcCartInfo().objectStorage()});
+									 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.model_VDC().vdcCartInfo().loadBalancer()});
+								 }
+								 resBaseInfo.vdcQuotaList=vdcQuotaList;
+								 var charge = self.model_VDC().vdcCartInfo().charge();
+								 var isBill;
+								 if(charge=="YES"){
+									 isBill = "true";
+								 }else{
+									 isBill = "false";
+								 }
+								 var expireValue;
+								 if(self.model_VDC().vdcCartInfo().applyType()=="1"){
+									 expireValue = "";
+								 }else if(self.model_VDC().vdcCartInfo().applyType()=="2"){
+									 expireValue = applyNum;
+								 }else{
+									 expireValue = applyTime;
+								 }
+								 metaData.resBaseInfo=resBaseInfo;
+								 metaData.osType=self.model_VDC().vdcCartInfo().osTypesSelelct();
+								 orderItems.push({
+									 instanceName:self.model_VDC().vdcCartInfo().name(),
+									 serviceUuid:self.model_VDC().vdcCartInfo().serviceUuid(),
+									 isBill:isBill,
+									 billcycle:self.model_VDC().vdcCartInfo().billRuleUuid(),
+									 fee:self.model_VDC().vdcCartInfo().price(),
+									 expireType:self.model_VDC().vdcCartInfo().applyType(),
+									 expireValue:expireValue,
+									 metaData:JSON.stringify(metaData),
+									 desc:self.model_VDC().vdcCartInfo().remark()
+								 })
+								 
+								 orderJson.resourceType = "VDC";
+								 orderJson.orderItems = orderItems;
+
+							 	 csc.rest.post('api/v5.0.0/order',orderJson,function(data){
 								 		systemMsg.alert('成功提交订单！');
 								 		self.isAdd_VDC(false);
-								    });
-							  }
-					    });
+								    }); 
+// 							  }
+					    //});
 				}
 			}else if(self.productType()==2){
 				self.formatOrders_VM();
@@ -801,10 +858,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			}else if(self.productType()==3){
 				if(self.model_Vdisk.isValid()){
 					var jsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
-					return;
 					nameCheck(jsonArray,'DISK',function(pass){
 						if(pass){
-							csc.rest.post('api/v5.0.0/orders',self.model_Vdisk.toJSON(),function(data){
+							self.formatOrders_DISK();
+							csc.rest.post('api/v5.0.0/cart',self.orders.toJSON(),function(data){
 						 		systemMsg.alert('成功提交订单！');
 						 		self.isAdd_VdiskSingle(false);
 						 		self.isAdd_VdiskMore(false);
@@ -992,7 +1049,47 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		        });
 
 	    	});
-
+	    }
+	    
+	   function DISK_baseInfo(){
+		   this.volumeSize = ko.observable();
+		   this.vmUuid = ko.observable();
+	   }
+	    
+	    this.formatOrders_DISK = function(){
+	    	self.orders().orderItems([]);
+	    	self.orders().resourceType("DISk");
+	        self.model_Vdisk().vdiskCartInfo().forEach(function (e){
+	    	   var item =new itmes();
+	    	   item.desc(e.remark());
+	    	   item.azUuid(e.azUuid());
+	    	   item.instanceName(e.name());
+	    	   item.serviceUuid(e.serviceUuid());
+	    	   if(e.charge()=='YES'){
+	    		   item.isBill("true");
+	    	   }else{
+	    		   item.isBill("false");
+	    	   }
+	    	   item.expireType(e.applyType);
+	    	   var expireValue="";
+	    	   if(e.applyType == "2"){
+	    		   expireValue = e.applyNum();
+	    	   }else if(e.applyType == "3"){
+	    		   expireValue = e.applyTime();
+	    	   }
+	    	   item.expireValue(expireValue);
+	    	   item.billcycle(e.billRuleUuid());
+	    	   item.fee(e.price());
+	    	   
+	    	   var meta=new metaData();
+	    	   var baseInfo =new DISK_baseInfo();
+	    	   
+	    	   baseInfo.volumeSize(e.size());
+	    	   baseInfo.vmUuid(e.mountVmUuid());
+	    	   meta.resBaseInfo(baseInfo);
+	    	   item.metaData(ko.toJSON(meta));
+	    	   self.orders().orderItems.push(item);
+	       });
 	    }
 	    
 	    this.changeList_Vdisk = function(){

@@ -78,7 +78,7 @@
                 <i class='fa fa-bell'></i> 通知
                 <span class='badge badge-sm up bg-info'>2</span></a>
             </li>
-            <li><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
+            <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li class='dropdown'>
               <a class='dropdown-toggle clear' data-toggle='dropdown'>
                 <i class='fa fa-user'></i>
@@ -863,6 +863,7 @@
     <div class="modal fade modal-draggable" id="ajax_modal_2" tabindex="-1" role="dialog"></div>
 	<script src="api/v5.0.0/homepage/roles"></script>
 	<script src="api/vdc/vdc.js"></script>
+	<script src="api/file/uploadServlet"></script>
     <script src='assets/js/jquery.min.js'></script>
 
     <script src="assets/js/underscore.js"></script>
@@ -925,19 +926,22 @@
 		    		self.roleVO().currentRole(data[0].name);
 		    		if((data[0].name == "系统管理员") || (data[0].name == "运营管理员") || (data[0].name == "运维管理员")){
 		    			self.roleVO().roleFlag("ALL")
-		    			window.location.hash = '#pages/welcome/index?role=all';
 		    		}else if(data[0].name == "VDC管理员"){
 		    			self.roleVO().roleFlag("VDC");
-		    			window.location.hash = '#pages/welcome/index?role=vdc';
 		    		}else{
 		    			self.roleVO().roleFlag("COMMON");
-		    			window.location.hash = '#pages/welcome/index?role=com';
 		    		}
-		    		csc.rest.post("api/v5.0.0/homepage/role",data[0].name,function(data){});
+		    		csc.rest.post("api/v5.0.0/homepage/role",data[0].name,function(data){
+		    			self.loadAlarmStat();
+		    			window.location.hash = '#pages/welcome/index?role=all';
+		    		});
 		   	    });
 		    }
 		    this.loadRoles();
 		    this.selectRole = function(role){
+		    	csc.rest.post("api/v5.0.0/homepage/role",role,function(data){
+		    		self.loadAlarmStat();
+		    	}); 
 		    	self.roleVO().currentRole(role);
 		    	if((role == "系统管理员") || (role == "运营管理员") || (role == "运维管理员")){
 	    			self.roleVO().roleFlag("ALL")
@@ -949,7 +953,6 @@
 	    			self.roleVO().roleFlag("COMMON");
 	    			window.location.hash = '#pages/welcome/index?role=com';
 	    		}
-		    	csc.rest.post("api/v5.0.0/homepage/role",role,function(data){}); 
 		    }
 		    
 		    this.alarmStatVO = ko.observable({
@@ -960,14 +963,12 @@
 		    });
 		    this.loadAlarmStat = function(){
 		    	csc.rest.get("api/v5.0.0/homepage/alarmStat", function(data){
-		    		console.log(data);
 		    		self.alarmStatVO().systemAlarm(data.systemAlarm);
 		    		self.alarmStatVO().vdcQuotaAlarm(data.vdcQuotaAlarm);
 		    		self.alarmStatVO().vmAlarm(data.vmAlarm);
 		    		self.alarmStatVO().totalAlarm(data.systemAlarm+data.vdcQuotaAlarm+data.vmAlarm);
 		   	    });
 		    }
-		    this.loadAlarmStat();
 		    
 		    /* ------------------ 用户信息模块  ---------------start */
 			var cscUser = function() {
