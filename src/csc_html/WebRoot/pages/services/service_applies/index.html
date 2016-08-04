@@ -786,13 +786,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					    });
 				}
 			}else if(self.productType()==2){
-				debugger;
-				self.formatOrders();
+				self.formatOrders_VM();
 				if(this.model_VM.isValid()){
 					var jsonArray = self.model_VM.toJSON().vmCartInfo;
 					nameCheck(jsonArray,'VM',function(pass){
 						if(pass){
-						 	 csc.rest.post('api/v5.0.0/order-apply/vms',self.VM_orders.toJSON(),function(data){
+						 	 csc.rest.post('api/v5.0.0/order-apply/vms',self.orders.toJSON(),function(data){
 							 		systemMsg.alert('成功提交订单！');
 							 		self.isAdd_VMSingle(false);
 							    }); 
@@ -1382,14 +1381,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  
 	  //################## 云主机start ##################
 	  
-	   this.VM_orders=ko.validatedObservable({
+	   this.orders=ko.validatedObservable({
 		   resourceType : ko.observable(),
-		   desc : ko.observable(),
-		   azUuid : ko.observable(),
 		   orderItems : ko.observableArray([])
 	   })
 	  
-	   function VM_itmes(){
+	   function itmes(){
 		   this.instanceName= ko.observable();
 		   this.serviceUuid = ko.observable();
 		   this.isBill = ko.observable();
@@ -1398,9 +1395,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		   this.billcycle = ko.observable();
 		   this.fee = ko.observable();
 		   this.metaData = ko.observable();
+		   this.desc = ko.observable();
+		   this.azUuid = ko.observable();
 	   }
 	   
-	   function VM_metaData(){
+	   function metaData(){
 		   this.resBaseInfo = ko.observable();
 	   }
 	   
@@ -1429,12 +1428,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	   }
 	   
 	  
-	   this.formatOrders = function(){
-           self.VM_orders().resourceType("VM");
-	       self.VM_orders().desc("");
-	       self.VM_orders().azUuid("");
-	       self.model_VM().vmCartInfo().forEach(function (e){
-	    	   var item =new VM_itmes();
+	   this.formatOrders_VM = function(){
+		   self.orders().orderItems([]);
+		   
+           self.orders().resourceType("VM");
+	       self.model_VM().vmCartInfo().forEach(function (e){debugger;
+	    	   var item =new itmes();
+	    	   item.desc(e.remark());
+	    	   item.azUuid(e.azUuid());
 	    	   item.instanceName(e.vmName());
 	    	   item.serviceUuid(e.serviceUuid());
 	    	   item.isBill(e.charge());
@@ -1450,7 +1451,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	   item.fee(e.price());
 	    	   
 	    	   
-	    	   var meta=new VM_metaData();
+	    	   var meta=new metaData();
 	    	   var baseInfo =new VM_baseInfo();
 	    	   
 	    	   baseInfo.azUuid(e.azUuid());
@@ -1471,7 +1472,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	   });
 	    	   meta.resBaseInfo(baseInfo);
 	    	   item.metaData(ko.toJSON(meta));
-	    	   self.VM_orders().orderItems.push(item);
+	    	   self.orders().orderItems.push(item);
 	       });
 	   }
 	   
