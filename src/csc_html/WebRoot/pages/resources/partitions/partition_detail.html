@@ -7,15 +7,15 @@
   </ol>
 </div>
 <div class='wrapper-md'>
-  <div class='nav-tabs-alt bg-white-only b b-blue'>
-    <ul class='nav nav-tabs' role='tablist'>
+  <div class='nav-tabs-alt bg-white-only'>
+    <ul class='nav nav-tabs' role='tablist' id="partitionsTabs">
       <li class='active' role='presentation'>
         <a aria-controls='partition_summary' data-toggle='tab' href='#partition_summary' role='tab'>摘要</a></li>
-      <li role='presentation'>
+      <li role='presentation' data-bind="visible:activeTab == 'CNware'">
         <a aria-controls='partition_pools' data-toggle='tab' href='#partition_pools' role='tab'>资源池</a></li>
       <li role='presentation'>
         <a aria-controls='partition_hosts' data-toggle='tab' href='#partition_hosts' role='tab'>物理机</a></li>
-      <li role='presentation'>
+      <li role='presentation' data-bind="visible:activeTab == 'CNware'">
         <a aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>存储池</a></li>
       <li role='presentation'>
         <a aria-controls='partition_images' data-toggle='tab' href='#partition_images' role='tab'>镜像</a></li>
@@ -23,33 +23,68 @@
         <a aria-controls='partition_network_externals' data-toggle='tab' href='#partition_network_externals' role='tab'>网络</a></li>
       <!-- <li role='presentation'>
         <a aria-controls='partition_network_externals_topo' data-toggle='tab' href='#partition_network_externals_topo' role='tab'>拓扑</a></li> -->
-      <li role='presentation'>
+      <li role='presentation' data-bind="visible:activeTab == 'CNware'">
         <a aria-controls='partition_ip_pools' data-toggle='tab' href='#partition_ip_pools' role='tab'>IP池</a></li>
     </ul>
     <div class='tab-content'>
       <div class='tab-pane active' id='partition_summary' role='tabpanel'>
         <div class="wrapper">
-            <a class="btn btn-sm btn-default" href="#pages/resources/partitions/index"><i class="fa fa-arrow-left"></i> 返回</a>
-            <button class="btn btn-sm btn-info">修改</button>
-            <button class="btn btn-sm btn-info">删除</button>
+            <button class="btn btn-sm btn-default">修改</button>
+            <button class="btn btn-sm btn-default">删除</button>
         </div>      
         <div class="row wrapper">
-          <div class="col-xs-6">
-            <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
-            <div class="bg-light b-t b-b wrapper-sm">
-              <div class="row m-b">
-                <div class="col-xs-2 font-bold text-nowrap">名称：</div>
-                <div class="col-xs-4" data-bind="text:azInfoVO().name"></div>
-                <div class="col-xs-2 font-bold text-nowrap">数据中心：</div>
-                <div class="col-xs-4" data-bind="text:azInfoVO().datacenterName"></div>
+          <div class="col-xs-5">
+            <div class="panel panel-default">
+              <div class="panel-heading text-base">基本信息</div>
+              <div class="panel-body">
+                <table class="table table-properties">
+                    <tbody>
+                      <tr><th>名称</th><td data-bind="text:azInfoVO().name"></td></tr>
+                      <tr><th>数据中心</th><td data-bind="text:azInfoVO().datacenterName"></td></tr>
+                      <tr><th>云管理平台</th><td data-bind="text:azInfoVO().cloudplatformName"></td></tr>
+                      <tr><th>创建时间</th><td data-bind="text:azInfoVO().createTime"></td></tr>
+                      <tr><th>描述</th><td data-bind="text:azInfoVO().description"></td></tr>
+                  </tbody>
+                  </table>
               </div>
-              <div class="row m-b">
-                <div class="col-xs-2 font-bold text-nowrap">创建时间：</div>
-                <div class="col-xs-4" data-bind="text:azInfoVO().createTime"></div>
-                <div class="col-xs-2 font-bold text-nowrap">描述：</div>
-                <div class="col-xs-4" data-bind="text:azInfoVO().description"></div>
+            </div>            
+          </div>
+          <div class="col-xs-7">
+            <div class="row text-center">
+              <div class="col-xs-4">
+                <h3>CPU</h3>
+                <h5>总量：<span data-bind="text:azSummaryVO().cpuTotal"></span>Hz</h5>
+                <div class='inline m-t m-b-xs easyPieChart' data-bind="ui: {jq: 'easyPieChart', options: {percent: 50,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'} }">
+                  <div>
+                    <span class='text-success h4'><span data-bind="text:azSummaryVO().cpuUseRate"></span>%</span></div>
+                </div>
+                <div class="text-primary-lt">
+                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().cpuAvail"></span>GHz<br/>未用：<span data-bind="text:azSummaryVO().cpuAllocated"></span>Hz</div>    
+                </div>            
               </div>
-             </div>           
+              <div class="col-xs-4">
+                <h3>內存</h3>
+                <h5>总量：<span data-bind="text:azSummaryVO().memoryTotal"></span>GB</h5>
+                <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#fad733',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
+                  <div>
+                    <span class='text-warning h4'><span data-bind="text:azSummaryVO().memoryUseRate"></span>%</span></div>
+                </div>
+                <div class="text-primary-lt">
+                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().memoryAvail"></span>GB<br/>未用：<span data-bind="text:azSummaryVO().memoryAllocated"></span>GB</div>     
+                </div>           
+              </div>
+              <div class="col-xs-4">
+                <h3>存储</h3>
+                <h5>总量：<span data-bind="text:azSummaryVO().storageTotal"></span>GB</h5>
+                <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#f05050',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
+                  <div>
+                    <span class='text-danger h4'><span data-bind="text:azSummaryVO().storageUseRate"></span>%</span></div>
+                </div>
+                <div class="text-primary-lt">
+                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>TB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>TB</div> 
+                </div>               
+              </div>
+            </div>
 
             <div class="wrapper m-t-lg">
               <div class="row">
@@ -97,44 +132,6 @@
                 </div>
               </div>
             </div> 
-            
-          </div>
-          <div class="col-xs-6">
-            <div class="row text-center">
-              <div class="col-xs-4">
-                <h3>CPU</h3>
-                <h5>总量：<span data-bind="text:azSummaryVO().cpuTotal"></span>Hz</h5>
-                <div class='inline m-t m-b-xs easyPieChart' data-bind="ui: {jq: 'easyPieChart', options: {percent: 50,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'} }">
-                  <div>
-                    <span class='text-success h4'><span data-bind="text:azSummaryVO().cpuUseRate"></span>%</span></div>
-                </div>
-                <div class="text-primary-lt">
-                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().cpuAvail"></span>GHz<br/>未用：<span data-bind="text:azSummaryVO().cpuAllocated"></span>Hz</div>    
-                </div>            
-              </div>
-              <div class="col-xs-4">
-                <h3>內存</h3>
-                <h5>总量：<span data-bind="text:azSummaryVO().memoryTotal"></span>GB</h5>
-                <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#fad733',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
-                  <div>
-                    <span class='text-warning h4'><span data-bind="text:azSummaryVO().memoryUseRate"></span>%</span></div>
-                </div>
-                <div class="text-primary-lt">
-                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().memoryAvail"></span>GB<br/>未用：<span data-bind="text:azSummaryVO().memoryAllocated"></span>GB</div>     
-                </div>           
-              </div>
-              <div class="col-xs-4">
-                <h3>存储</h3>
-                <h5>总量：<span data-bind="text:azSummaryVO().storageTotal"></span>GB</h5>
-                <div class='inline m-t m-b-xs easyPieChart' ui-jq='easyPieChart' ui-options="{percent: 59.7,lineWidth: 4,trackColor: '#e8eff0',barColor: '#f05050',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}">
-                  <div>
-                    <span class='text-danger h4'><span data-bind="text:azSummaryVO().storageUseRate"></span>%</span></div>
-                </div>
-                <div class="text-primary-lt">
-                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>TB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>TB</div> 
-                </div>               
-              </div>
-            </div>
                        
           </div>
         </div>
@@ -203,42 +200,27 @@
               <button class="btn btn-sm btn-default" onclick="$('#resource_pools').show().siblings().hide();"><i class="fa fa-arrow-left"></i> 返回</button>              
             </div>
             <div class="row wrapper">
-              <div class="col-xs-6">
-
-                <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
-                <div class="bg-light b-t b-b wrapper-sm">
-                  <div class="row m-b">
-                    <div class="col-xs-2 font-bold text-nowrap">名称：</div>
-                    <div class="col-xs-4">Pool1</div>
-                    <div class="col-xs-2 font-bold text-nowrap">所属数据中心：</div>
-                    <div class="col-xs-4">数据中心一</div>
+              <div class="col-xs-5">
+                <div class="panel panel-default">
+                  <div class="panel-heading text-base">基本信息</div>
+                  <div class="panel-body">
+                    <table class="table table-properties">
+                        <tbody>
+                          <tr><th>名称</th><td>Pool1</td></tr>
+                          <tr><th>所属数据中心</th><td>数据中心一</td></tr>
+                          <tr><th>所属云管理平台</th><td>winserver6.0</td></tr>
+                          <tr><th>可用分区</th><td>XX可用分区</td></tr>
+                          <tr><th>CPU颗数</th><td>4</td></tr>
+                          <tr><th>CPU逻辑单元数</th><td>128</td></tr>
+                          <tr><th>内存</th><td>128G</td></tr>
+                          <tr><th>存储</th><td>20T</td></tr>
+                          <tr><th>描述</th><td>主要内容...</td></tr>
+                      </tbody>
+                      </table>
                   </div>
-                  <div class="row m-b">
-                    <div class="col-xs-2 font-bold text-nowrap">云管理平台：</div>
-                    <div class="col-xs-4">winserver6.0</div>
-                    <div class="col-xs-2 font-bold text-nowrap">可用分区：</div>
-                    <div class="col-xs-4">XX可用分区</div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-2 font-bold text-nowrap">CPU颗数：</div>
-                    <div class="col-xs-4">4</div>
-                    <div class="col-xs-2 font-bold text-nowrap">CPU逻辑单元数：</div>
-                    <div class="col-xs-4">2</div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-2 font-bold text-nowrap">内存（GB）：</div>
-                    <div class="col-xs-4">200</div>
-                    <div class="col-xs-2 font-bold text-nowrap">存储（GB）：</div>
-                    <div class="col-xs-4">600</div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-2 font-bold text-nowrap">描述：</div>
-                    <div class="col-xs-10">主要内容</div>
-                  </div>
-                 </div> 
-
+                </div>            
               </div>
-              <div class="col-xs-6">
+              <div class="col-xs-7">
                 <div class="row text-center">
                   <div class="col-xs-4">
                     <h3>CPU</h3>
@@ -388,62 +370,51 @@
             </div>        
             <div class="row wrapper">
               <div class="col-xs-3">
-                <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
-                <div class="bg-light b-t b-b wrapper-sm">
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">所属资源池：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().resourcePoolName"></div>
+                <div class="panel panel-default">
+                  <div class="panel-heading text-base">基本信息</div>
+                  <div class="panel-body">
+                    <table class="table table-properties">
+                        <tbody>
+                          <tr><th>所属资源池</th><td data-bind="text: hostVo().resourcePoolName">resourcePoolName</td></tr>
+                          <!-- <tr><th>所属VDC</th><td>VDC1</td></tr> -->
+                          <tr><th>名称</th><td data-bind="text: hostVo().hostName"></td></tr>
+                          <tr><th>虚拟机数</th><td>100台</td></tr>
+                          <tr><th>状态</th><td data-bind="html: hostVo().state_"></td></tr>
+                          <tr><th>主机IP</th><td data-bind="text: hostVo().ip"></td></tr>
+                          <tr><th>运行时长</th><td data-bind="text: hostVo().runningTime"></td></tr>
+                      </tbody>
+                      </table>
                   </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">名称：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().hostName"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">虚拟机数：</div>
-                    <div class="col-xs-6"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">状态：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().state_"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">主机IP：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().ip"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">运行时长：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().runningTime"></div>
-                  </div>
-                 </div>             
+                </div>            
               </div>
               <div class="col-xs-3">
-                <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>CPU配置</h5>
-                <div class="bg-light b-t b-b wrapper-sm">
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">CPU主频：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().totalCpu"></div>
+                <div class="panel panel-default">
+                  <div class="panel-heading text-base">CPU配置</div>
+                  <div class="panel-body">
+                    <table class="table table-properties">
+                        <tbody>
+                          <tr>
+                          	<th>CPU主频</th><td data-bind="text: hostVo().totalCpu"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU型号</th><td data-bind="text: hostVo().model"></td>
+                          </tr>
+                          <tr>
+                          	<th>供应商</th><td data-bind="text: hostVo().vendor"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU颗数</th><td data-bind="text: hostVo().cpuNum"></td>
+                          </tr>
+                          <tr>
+                          	<th>CPU逻辑单元数</th><td data-bind="text: hostVo().totalLogicalCpu"></td>
+                          </tr>
+                          <tr>
+                          	<th>运行VCPU个数</th><td data-bind="text: hostVo().usedVcpu"></td>
+                          </tr>
+                      </tbody>
+                      </table>
                   </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">CPU型号：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().model"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">供应商：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().vendor"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">CPU颗数：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().cpuNum"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">CPU逻辑单元数：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().totalLogicalCpu"></div>
-                  </div>
-                  <div class="row m-b">
-                    <div class="col-xs-6 font-bold text-nowrap">运行VCPU个数：</div>
-                    <div class="col-xs-6" data-bind="text: hostVo().usedVcpu"></div>
-                  </div>
-                 </div>            
+                </div>            
               </div>
               <div class="col-xs-6">
                 <div class="row text-center">
@@ -580,8 +551,8 @@
           <div id='resource_images'>
             <div class="row wrapper">
               <div class="col-xs-2">
-                <button class="btn btn-sm btn-info" data-bind="click: addISO">添加</button>
-                <button class="btn btn-sm btn-info" data-bind="click: collectISO">收集</button>
+                <button class="btn btn-sm btn-primary" data-bind="click: addISO">添加</button>
+                <button class="btn btn-sm btn-primary" data-bind="click: collectISO">收集</button>
               </div>
               <div class="col-xs-3">
                 <div class="input-group">
@@ -957,7 +928,7 @@
             <div class="form-inline wrapper">
               <a class="btn btn-default btn-sm m-r-sm" onclick="$('#resource_business').show().siblings().hide();"><i class="fa fa-arrow-left"></i> 返回</a>
               <a class="btn btn-info btn-sm" data-bind="click: cutoverBatch">批量设置</a>
-              <a class="btn btn-info btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">取消割接</a>
+              <a class="btn btn-default btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">取消割接</a>
               <a class="btn btn-success btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">确定割接</a>
             </div>
             <div class="wrapper">
@@ -1364,11 +1335,21 @@
       }
     })
     
-	  var azUuid = args.azUuid;
-	  if(csc.util.isNull(azUuid)){
-		  azUuid = "461b37d4-4b37-45d2-82b0-10b057da255d";//args.azUuid;
-	  }
-
+    //取得URL参数值
+    /**可用分区**/
+	var azUuid = args.azUuid;
+    /**虚拟化云平台 **/
+    var cloudPlatform = args.cloudPlatform;
+   	if(csc.util.isNull(azUuid)){
+	    return;
+	}
+   	
+   	/** 控制TAB展示 **/
+   	function partitionsTabsViewModel(){
+    	this.activeTab = ko.observable(cloudPlatform);
+    }
+    ko.applyBindings(new partitionsTabsViewModel(),$("#partitionsTabs")[0])
+      
     $('#resource_business_cutover_date').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
           {
             singleDatePicker:true,

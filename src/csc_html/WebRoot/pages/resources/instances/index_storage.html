@@ -188,7 +188,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
                         <div class="col-sm-8">
-                            <input type="email" class="form-control" placeholder="" data-bind="value:newSize"> 可调整范围为：<span data-bind="text:volumeSize"></span>至39.38
+                            <input type="email" class="form-control" placeholder="" data-bind="value:newSize"> 可调整范围为：<span data-bind="text:volumeSize"></span>至2T
                         </div>
                     </div>
                 </div>
@@ -270,8 +270,24 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	                    self.table.refreshData();
 	                });
             	}else{
-    	   			csc.rest.put('api/v5.0.0/volumes/'+volumeUuid, this.currentVO.toJSON(), function(){
-    	   	            self.isEdit(false);
+            		var volumeSize_ = this.currentVO.toJSON().volumeSize;
+            		var newSize_ = this.currentVO.toJSON().newSize;
+            		if(newSize_){
+            			if(volumeSize_ >= newSize_){
+            				alert("扩展后大小必须大于原来大小");
+            				return;
+            			}
+            			if(newSize_ > 2000){
+            				alert("扩展后大小必须小于限制最大值");
+            				return;
+            			}
+            		}else{
+            			alert("请输入扩展值");
+            			return;
+            		}
+    	   			csc.rest.put('api/v5.0.0/volumes/'+volumeUuid, this.currentVO.toJSON(), function(data){
+    	   				alert("正在扩展云硬盘，调度任务ID[" + data.taskId + "]！");
+    	   	            self.isStorageExpand(false);
     	   	            self.table.refreshData();
     	   			});
     	   		}
@@ -319,7 +335,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             console.log(this.searchParam());
             this.table.params(this.searchParam());
         }
-        this.table = new DataTable([]);
+        this.table = new DataTable([], {path: 'api/v5.0.0/volumes?type=Disk'});
 
 
         /** 下拉级联选择--------------------------------------------START **/
@@ -358,10 +374,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         //查询加载 VDC下拉列表
         this.loadVdcs = function() {
             csc.rest.get('api/v5.0.0/vdcs?account=' + account, function(data) {
-                console.log(1);
                 if (data.results) {
                     vdcList = data.results;
-                    console.log(vdcList);
                     //为备选列表添加一个名为"全部"的选项
                     var vdcUuids = "";
                     for (var i = 0; i < vdcList.length; i++) {
@@ -378,7 +392,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     vdcList.unshift(vdcDef);
                     self.vdcs(vdcList);
                 }
-                console.log(2);
                 self.loadPartitions();
             });
         }
