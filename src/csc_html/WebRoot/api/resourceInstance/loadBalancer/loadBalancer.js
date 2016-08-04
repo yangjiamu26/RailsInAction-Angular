@@ -25,11 +25,9 @@
 			 * 创建负载均衡器
 			 * @param param 负载均衡器创建入参
 			 */
-			createLoadBalancer:function(param,callback,errorCallback){
+			createLoadBalancer:function(param, callback, errorCallback){
 				 csc.rest.post('api/v5.0.0/loadBalancers', param, function(data){
 					     callback(data);
-	    		    },function(data){
-	    		    	errorCallback(data);
 	    		    }); 
 			},
 			

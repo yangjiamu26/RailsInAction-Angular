@@ -24,11 +24,11 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().azUuid">
+        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
       </div>
     </div>
     <div class="col-xs-2">
-      <button class="btn btn-sm" type="button" >重置</button>
+      <button class="btn btn-sm" type="button" data-bind="click:reset">重置</button>
       <button class="btn btn-sm btn-default" type="button" data-bind="click: searchLb">搜索</button>
     </div>
   </div> 
@@ -109,13 +109,13 @@
           </button>
           <h3 class='modal-title'>创建负载均衡器</h3>
         </div>
-        <div class='modal-body form-horizontal' >
+        <div class='modal-body form-horizontal' data-bind="with: createBlVo">
           <div class="row">
             <div class="col-sm-6">
               <div class="form-group">
                 <label class="col-sm-4 control-label">负载均衡器名称</label>
                 <div class="col-sm-7">
-                  <input type="text" class="form-control"  placeholder="负载均衡器名称">
+                  <input type="text" class="form-control"  placeholder="负载均衡器名称" data-bind="value: name">
                 </div>
                 <div class="col-sm-1">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -128,7 +128,9 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">所属VDC</label>
                 <div class="col-sm-8">
-                  <input type="text" class="form-control"  placeholder="所属VDC">
+                  <select class="form-control" data-bind="options:$root.vdcList,optionsText:'name', optionsValue:'uuid',value: vdcUuid">
+                  	<option>可用分区1</option>
+                  </select>
                 </div>
                 <div class="col-sm-1">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -139,7 +141,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">可用分区</label>
                 <div class="col-sm-8">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options:$root.azList,optionsText:'name',optionsValue:'uuid',value: azUuid, disable: vdcUuid==null">
                     <option>可用分区1</option>
                   </select>
                 </div>
@@ -152,7 +154,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">VPC</label>
                 <div class="col-sm-8">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options:$root.vpcList,optionsText:'name',optionsValue:'uuid',value: vpcUuid, disable: csc.util.isNull(azUuid)">
                     <option>208</option>
                   </select>
                 </div>
@@ -165,7 +167,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">网络</label>
                 <div class="col-sm-8">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options:$root.subnetList,optionsText:'cidr',optionsValue:'originalSubId',value: subnetId, disable: vpcUuid==null">
                     <option>192.168.0.0/24</option>
                   </select>
                 </div>
@@ -178,7 +180,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">协议</label>
                 <div class="col-sm-8">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options:$root.protocolList, value: protocol">
                     <option>TCP</option>
                   </select>
                 </div>
@@ -191,7 +193,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">负载均衡方式</label>
                 <div class="col-sm-8">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options:$root.lbMethodList, value: lbMethod">
                     <option>RoUND_ROBIN</option>
                   </select>
                 </div>
@@ -204,7 +206,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">备注</label>
                 <div class="col-sm-8">
-                  <textarea class="form-control"></textarea>
+                  <textarea class="form-control" data-bind="text: desc"></textarea>
                 </div>
                 <div class="col-sm-1">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -241,7 +243,7 @@
           </div>
         </div>
         <div class='modal-footer'>
-          <button name="button" class="btn btn-primary " >确定</button>
+          <button name="button" class="btn btn-primary " data-bind="click: createLoadBalancer">确定</button>
           <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
         </div>
       </div>
@@ -354,222 +356,183 @@
 
   <!-- 负载均衡器详情 -->
   <div id="instance_balancer_details" style="display: none ">
-    <div class="wrapper-md nav-tabs-alt bg-white-only">
-      <div style="position:relative;">
-        <a style="position:absolute;right:10px;top:5px;" class="btn btn-sm btn-default" onclick="$('#instance_balancers').show().siblings().hide();$('#instance_balancers').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-        <ul class="nav nav-tabs" role="tablist">
-          <li class="active" role="presentation">
-            <a aria-controls="VPN" data-toggle="tab" role="tab">详细信息</a>
-          </li>
-        </ul>
-      </div>
-      <div class="tab-content">
-        <div class="wrapper-md form-inline">
+
+        <div class="wrapper">
+          <a class="btn btn-sm btn-default" onclick="$('#instance_balancers').show().siblings().hide();$('#instance_balancers').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
           <a class="btn btn-sm btn-info">编辑VIP</a>
           <a class="btn btn-sm btn-info">有效时间变更</a>
-          <a class="btn btn-sm btn-default">终止</a>
-          <a class="btn btn-sm btn-default">删除</a>
+          <a class="btn btn-sm btn-info">终止</a>
+          <a class="btn btn-sm btn-info">删除</a>
         </div>
+
+        <div class="wrapper">
+          <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
+          <div class="bg-light b-t b-b wrapper-sm text-nowarp">
+            <div class="row m-b">
+              <div class="col-xs-1 font-bold">负载均衡器名称：</div>
+              <div class="col-xs-3">负载均衡器1</div>
+              <div class="col-xs-1 font-bold">所属VDC：</div>
+              <div class="col-xs-3">VDC1</div>
+              <div class="col-xs-1 font-bold">可用分区：</div>
+              <div class="col-xs-3">可用分区1</div>
+            </div>
+            <div class="row m-b">
+              <div class="col-xs-1 font-bold">所属VPC：</div>
+              <div class="col-xs-3">VPC1</div>
+              <div class="col-xs-1 font-bold">网络：</div>
+              <div class="col-xs-3">208</div>
+              <div class="col-xs-1 font-bold">协议：</div>
+              <div class="col-xs-3">TCP</div>
+            </div>
+            <div class="row m-b">
+              <div class="col-xs-1 font-bold">负载方式：</div>
+              <div class="col-xs-3">SOURCE_IP</div>
+              <div class="col-xs-1 font-bold">状态：</div>
+              <div class="col-xs-3"><span class="label label-success">运行中</span></div>
+              <div class="col-xs-1 font-bold">创建人：</div>
+              <div class="col-xs-3">admin</div>
+            </div>
+            <div class="row m-b">
+              <div class="col-xs-1 font-bold">备注：</div>
+              <div class="col-xs-11"></div>
+            </div>
+          </div>
+        </div>
+
         
-        <div class="row">
-          <div class="col-sm-3">
-            <div class='panel panel-default'>
-              <div class="panel-heading">基本信息</div>
-              <div class='panel-body'>
-                <div class="row">
-                  <label class="col-xs-6">负载均衡器名称：</label>
-                  <span class="col-xs-6">负载均衡器1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">所属VDC：</label>
-                  <span class="col-xs-6">VDC1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">可用分区：</label>
-                  <span class="col-xs-6">可用分区1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">所属VPC：</label>
-                  <span class="col-xs-6">VPC1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">网络：</label>
-                  <span class="col-xs-6">208</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">协议：</label>
-                  <span class="col-xs-6">TCP</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">负载方式：</label>
-                  <span class="col-xs-6">SOURCE_IP</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">状态：</label>
-                  <span class="col-xs-6">运行中</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">创建人：</label>
-                  <span class="col-xs-6">admin</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">备注：</label>
-                  <span class="col-xs-6">XXXX</span>
-                </div>
-              </div>
-            </div>
+        <div class="row wrapper detail-others">
+          <div class="col-xs-4">
+            <div class="clear bg-success wrapper">
+              <div class="detail-others-img img-serverinfo">服务信息</div>
+              <div class="detail-others-text h-xs">
+                <p>服务状态：
+                    <span class="label label-info">正常</span>
+                </p>
+                <p>创建时间：<span>2016-08-04 14:28:50</span></p>
+                <p>生效时间：<span>2016-08-04 14:28:54</span></p>
+                <p>失效时间：<span>2016-08-04 14:28:54</span></p>
+              </div> 
+            </div>             
           </div>
-          <div class="col-sm-3">
-            <div class='panel panel-default'>
-              <div class="panel-heading">服务信息</div>
-              <div class='panel-body'>
+          <div class="col-xs-8">
+            <div class="clear bg-primary wrapper">
+              <div class="detail-others-img img-settings">VIP信息</div>
+              <div class="detail-others-text h-xs" style="width:85%">
                 <div class="row">
-                  <label class="col-xs-6">服务状态：</label>
-                  <span class="col-xs-6"><span class="label label-success">正常</span></span>
+                  <div class="col-xs-6">
+                    <p>VIP名称：<span>负载均衡器1</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>网络：<span>208</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>IP地址：<span>192.1.1.1</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>协议：<span>TCP</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>协议端口：<span>8080</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>会话持久性：<span>是</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>连接限制：<span>5000</span></p>
+                  </div>
+                  <div class="col-xs-6">
+                    <p>备注：<span>XXXX</span></p>
+                  </div>
                 </div>
-                <div class="row">
-                  <label class="col-xs-6">创建时间：</label>
-                  <span class="col-xs-6">2016-08-01 15:00:00</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">生效时间：</label>
-                  <span class="col-xs-6">2016-08-01 15:00:00</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">失效时间：</label>
-                  <span class="col-xs-6">2016-08-01 15:00:00</span>
-                </div>
-                
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-3">
-            <div class='panel panel-default'>
-              <div class="panel-heading">VIP信息</div>
-              <div class='panel-body'>
-                <div class="row">
-                  <label class="col-xs-6">VIP名称：</label>
-                  <span class="col-xs-6">负载均衡器1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">网络：</label>
-                  <span class="col-xs-6">208</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">IP地址：</label>
-                  <span class="col-xs-6">192.1.1.1</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">协议：</label>
-                  <span class="col-xs-6">TCP</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">协议端口：</label>
-                  <span class="col-xs-6">8080</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">会话持久性：</label>
-                  <span class="col-xs-6">是</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">连接限制：</label>
-                  <span class="col-xs-6">5000</span>
-                </div>
-                <div class="row">
-                  <label class="col-xs-6">备注：</label>
-                  <span class="col-xs-6">XXXX</span>
-                </div>
-              </div>
+              </div>                
             </div>
           </div>
         </div>
-        <div class='panel panel-default'>
-          <div class="panel-heading">成员列表</div>
-          <div class="panel-body">
-            <p class="form-inline">
-              <a class="btn btn-info" data-bind="click: addMember">添加成员</a>
-              <a class="btn btn-success pull-right">刷新</a>
-            </p>
-            <div class='table-responsive'>
-              <table class="table table-striped table-bordered">
-                <thead>
-                  <tr>
-                    <th>云主机名称</th>
-                    <th>IP地址</th>
-                    <th>状态</th>
-                    <th>协议端口</th>
-                    <th>权重</th>
-                    <th>所属负载均衡器</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>VM1</td>
-                    <td>192.169.22.56</td>
-                    <td><span class="label label-success">运行中</span></td>
-                    <td>TCP</td>
-                    <td>20</td>
-                    <td>负载均衡器1</td>
-                    <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
-                  </tr>
-                  <tr>
-                    <td>VM2</td>
-                    <td>192.169.22.56</td>
-                    <td><span class="label label-success">运行中</span></td>
-                    <td>TCP</td>
-                    <td>20</td>
-                    <td>负载均衡器1</td>
-                    <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          
+        <div class="wrapper">
+          <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>成员列表</h5>
+          <p class="form-inline">
+            <a class="btn btn-sm btn-info" data-bind="click: addMember">添加成员</a>
+            <a class="text-info pull-right m-t-sm">刷新</a>
+          </p>
+          <div class='table-responsive no-height'>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>云主机名称</th>
+                  <th>IP地址</th>
+                  <th>状态</th>
+                  <th>协议端口</th>
+                  <th>权重</th>
+                  <th>所属负载均衡器</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>VM1</td>
+                  <td>192.169.22.56</td>
+                  <td><span class="label label-success">运行中</span></td>
+                  <td>TCP</td>
+                  <td>20</td>
+                  <td>负载均衡器1</td>
+                  <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
+                </tr>
+                <tr>
+                  <td>VM2</td>
+                  <td>192.169.22.56</td>
+                  <td><span class="label label-success">运行中</span></td>
+                  <td>TCP</td>
+                  <td>20</td>
+                  <td>负载均衡器1</td>
+                  <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class='panel panel-default'>
-          <div class="panel-heading">监控列表</div>
-          <div class="panel-body">
-            <p class="form-inline">
-              <a class="btn btn-info" data-bind="click: addMonitor">添加监控</a>
-              <a class="btn btn-success pull-right">刷新</a>
-            </p>
-            <div class='table-responsive'>
-              <table class="table table-striped table-bordered">
-                <thead>
-                  <tr>
-                    <th>监控类型</th>
-                    <th>延迟</th>
-                    <th>超时</th>
-                    <th>最大重试次数</th>
-                    <th>详情</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>TCP</td>
-                    <td>7</td>
-                    <td>10</td>
-                    <td>5</td>
-                    <td>GET/192.168.1.1:8090=>200</td>
-                    <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
-                  </tr>
-                  <tr>
-                    <td>TCP</td>
-                    <td>7</td>
-                    <td>10</td>
-                    <td>5</td>
-                    <td>GET/192.168.1.1:8090=>200</td>
-                    <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
+        <div class="wrapper">
+          <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>监控列表</h5>
+          <p class="form-inline">
+            <a class="btn btn-sm btn-info" data-bind="click: addMonitor">添加监控</a>
+            <a class="text-info pull-right m-t-sm">刷新</a>
+          </p>
+          <div class='table-responsive no-height'>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>监控类型</th>
+                  <th>延迟</th>
+                  <th>超时</th>
+                  <th>最大重试次数</th>
+                  <th>详情</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TCP</td>
+                  <td>7</td>
+                  <td>10</td>
+                  <td>5</td>
+                  <td>GET/192.168.1.1:8090=>200</td>
+                  <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
+                </tr>
+                <tr>
+                  <td>TCP</td>
+                  <td>7</td>
+                  <td>10</td>
+                  <td>5</td>
+                  <td>GET/192.168.1.1:8090=>200</td>
+                  <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
-    </div>  
+
+  </div> 
   <!-- 负载均衡器详情 END -->
 
     <!-- 添加成员页面 -->
@@ -585,7 +548,7 @@
           <div class="form-group">
                 <label class="col-xs-4 control-label">负载均衡器名称：</label>
                 <div class="col-xs-5">
-                  <input disable class="form-control" type="text" value="负载均衡器1" />
+                  <input class="form-control" type="text" value="负载均衡器1" disabled/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -726,7 +689,7 @@
     <!-- 添加监控END -->
 
   </div>
-  <script type="text/javascript">
+<!--   <script type="text/javascript">
     var scripts = [null,null]
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       function ViewModel(){
@@ -744,7 +707,7 @@
       var viewModel = new ViewModel();
       ko.applyBindings(viewModel, $("#instance_balancer_details")[0]);
     });
-  </script>
+  </script> -->
 
   <!-- 负载均衡器详情 end -->
 
@@ -790,6 +753,16 @@
         
         
       	//搜索
+      //重置
+        this.reset = function(){
+            this.searchParam({
+            	vdcUuid: '',
+            	azUuid: '',
+            	name: ''
+            });
+            this.loadBalancerTable.params({})
+        }
+      	
         this.searchLb = function(){
         	var p = {
         		 "vdcUuid": self.searchParam().vdcUuid(),
@@ -819,11 +792,111 @@
     	/********  创建负载均衡器   *********/
     	
       	this.showCreatePage = ko.observable(false);
+    	//创建的负载均衡器对象
+    	this.createBlVo = ko.validatedObservable({
+    		name: 		ko.observable("").extend({required: true}),
+    		vdcUuid: 	ko.observable("").extend({required: true}),
+    		azUuid:		ko.observable("").extend({required: true}),
+    		vpcUuid: 	ko.observable("").extend({required: true}),
+    		subnetId: ko.observable("").extend({required: true}),
+    		protocol: 	ko.observable("").extend({required: true}),
+    		lbMethod: 	ko.observable("").extend({required: true}),
+    		timeType: 	ko.observable("").extend({required: true}),
+    		timeValue: 	ko.observable(""),
+    		desc: 		ko.observable("")
+    	});
+    	
+    	this.vdcList = ko.observableArray();
+        this.azList = ko.observableArray();
+        this.vpcList = ko.observableArray();
+        this.subnetList = ko.observableArray();
+        this.protocolList = ko.observableArray();
+        this.lbMethodList = ko.observableArray();
       	
       	this.showCreatePageFun = function(){
         	this.showCreatePage(true);
+        	//置空所有选项
+        	self.createBlVo.fromJSON({
+        		name: 		"",
+        		vdcUuid:	"",
+        		azUuid:		"",
+        		vpcUuid: 	"",
+        		subnetId:	"",
+        		protocol: 	"",
+        		lbMethod: 	"",
+        		timeType: 	"",
+        		timeValue: 	"",
+        		desc: 		""
+        	});
+        	
+        	self.lbMethodList($.LOAD_BALANCER.lbMethods);
+    		self.protocolList($.LOAD_BALANCER.lbProtocols);
+        	
+        	var subscriptionVdc;//subscription.dispose();
+            var subscriptionAz;
+            var subscriptionVpc;
+            self.vdcList([]);
+            $.VDC.getVDCs({},function(data){
+				 if(data && data.results){
+					 self.vdcList(data.results);
+					 self.vdcList.unshift({"name": "", "uuid": ""});
+				 }
+			});
+            
+          //vdc获取AZ
+			subscriptionVdc = self.createBlVo().vdcUuid.subscribe(function(val){
+			    self.azList([]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VDC.getVdcAzs(val,{},function(data){
+		   				 if(data && data.results){
+		   					 self.azList(data.results);
+		   					 self.azList.unshift({"name": "", "uuid": ""});
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
+          
+			//AZ获取VPC
+			subscriptionAz = self.createBlVo().azUuid.subscribe(function(val){
+			    self.vpcList([]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VPC.getVpcs({azUuid:val},function(data){
+		   				 if(data && data.results){
+		   					 self.vpcList(data.results);
+		   					 self.vpcList.unshift({"name": "", "uuid": ""});
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
+			
+			//VPC获取subnetList
+			subscriptionVpc = self.createBlVo().vpcUuid.subscribe(function(val){
+			    self.subnetList([{"name": "", "uuid": ""}]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VPC.getVpcNet({vpcUuid:val,type:"INNER"},function(data){
+		   				 if(data && data.results){
+		   					 self.subnetList(data.results);
+		   					 self.subnetList.unshift({"name": "", "uuid": ""});
+		   				 }
+		   			});
+			    }
+    	    });
+			
         	
       	};
+      	
+      	this.createLoadBalancer = function(){
+      		//console.log(self.createBlVo.toJSON());
+      		var p = self.createBlVo.toJSON();
+      		$.LOAD_BALANCER.createLoadBalancer(p, function(data){
+      			self.showCreatePage(false);
+ 	    		self.loadBalancerTable.refreshData();
+ 				alert("创建负载均衡器成功！");
+      		})
+      		
+      	}
       	/********  创建负载均衡器 END   *********/
       	
       	/********  添加VIP   *********/
@@ -834,8 +907,21 @@
         	
       	};
       	/********  添加VIP END  *********/
-      
-      
+      	
+      	/********************  添加成员   ************************/
+      	this.isAddMember = ko.observable(false);
+        this.addMember = function(){
+          this.isAddMember(true);
+        }
+        /********************  添加成员  END ************************/
+        
+        /********************  添加监控   ************************/
+        this.isAddMonitor = ko.observable(false);
+        this.addMonitor = function(){
+          this.isAddMonitor(true);
+        }
+        
+        /********************  添加监控   ************************/
     };
     ko.applyBindings(new ViewModel_Balancer(), $('#partition_balancer')[0]);
   })
