@@ -1,11 +1,14 @@
+<!-- 负载均衡器列表 -->
+<div>
+  <!-- 负载均衡器搜索栏 -->
   <div class="row wrapper">
     <div class="col-xs-1">
-      <button class="btn btn-sm btn-info" data-bind="click:createBalancer">创建</button>     
+      <button class="btn btn-sm btn-info" data-bind="click:showCreatePageFun">创建</button>     
     </div>
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属VDC</span>
-        <select class="form-control input-sm">
+        <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
           <option>VDC1</option>
         </select>
       </div>     
@@ -13,7 +16,7 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">所属可用分区</span>
-        <select class="form-control input-sm">
+        <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: searchAzList, optionsText: 'name', optionsValue: 'uuid'">
           <option>可用分区1</option>
         </select>
       </div>     
@@ -21,16 +24,17 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称">
+        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().azUuid">
       </div>
     </div>
     <div class="col-xs-2">
       <button class="btn btn-sm" type="button" >重置</button>
-      <button class="btn btn-sm btn-default" type="button" >搜索</button>
+      <button class="btn btn-sm btn-default" type="button" data-bind="click: searchLb">搜索</button>
     </div>
-  </div>                        
+  </div> 
+  <!-- 负载均衡器列表 -->                       
   <div id='instance_balancers'>
-    <div class='table-responsive'>
+    <div class='table-responsive' data-bind="with: loadBalancerTable">
       <table class='table table-striped'>
         <thead>
           <tr>
@@ -51,72 +55,52 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><a onclick="$('#instance_balancer_details').show().siblings().hide();">负载均衡器1</a></td>
-            <td>VDC1</td>
-            <td>AZ1</td>
-            <td>VPC1</td>
-            <td>192.168.208.0/24</td>
-            <td>TCP</td>
-            <td>ROUNB_ROBIN</td>
-            <td>运行中</td>
-            <td>VIP1</td>
-            <td>1</td>
-            <td>正常</td>
-            <td>20160605</td>
-            <td>admin</td>
-            <td><a data-bind="click:addVIP">编辑VIP</a> | <a href="#">有效时间变更</a> | <a>终止</a> | <a>删除</a></td>
+          <tr data-bind="visible: showNoData">
+            <td colspan=13 class="aligncenter">
+             	 暂无数据
+            </td>
           </tr>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td>负载均衡器1</td>
-            <td>VDC1</td>
-            <td>AZ1</td>
-            <td>VPC1</td>
-            <td>192.168.208.0/24</td>
-            <td>TCP</td>
-            <td>ROUNB_ROBIN</td>
-            <td>运行中</td>
-            <td>VIP1</td>
-            <td>1</td>
-            <td>正常</td>
-            <td>20160605</td>
-            <td>admin</td>
-            <td><a data-bind="click:addVIP">添加VIP</a> | <a href="#">有效时间变更</a> | <a>终止</a> | <a>删除</a></td>
+            <td><a onclick="$('#instance_balancer_details').show().siblings().hide();" data-bind="text: $row.name">负载均衡器1</a></td><!-- 负载均衡器名称 -->
+            <td data-bind="text: $row.vdcName">VDC1</td> <!-- 所属VDC -->
+            <td data-bind="text: $row.azName">AZ1</td>  <!-- 可用分区 -->
+            <td data-bind="text: $row.vpcName">VPC1</td><!-- 所属VPC -->
+            <td data-bind="text: $row.cidr">192.168.208.0/24</td><!-- 网络 -->
+            <td data-bind="text: $row.protocol">TCP</td><!-- 协议 -->
+            <td data-bind="text: $row.lbMethod">ROUNB_ROBIN</td><!-- 负载方式 -->
+            <td data-bind="text: $row.state">运行中</td><!-- 状态 -->
+            <td data-bind="text: $row.vipName">VIP1</td><!-- VIP名称 -->
+            <td data-bind="text: $row.vipAddress">1</td><!-- VIP地址 -->
+            <td data-bind="text: $row.serviceState">正常</td><!-- 服务状态 -->
+            <td data-bind="text: $row.createTime">20160605</td><!-- 有效期 -->
+            <td data-bind="text: $row.account">admin</td><!-- 创建人 -->
+            <td><a data-bind="click: $root.addVipPageFun">添加VIP</a> |<a data-bind="click:$root.addVipPageFun">编辑VIP</a> | <a href="#">有效时间变更</a> | <a>终止</a> | <a>删除</a></td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>
-    <footer class='panel-footer'>
+     <!-- 负载均衡器分页 -->
+    <footer class="panel-footer" data-bind="with: loadBalancerTable, visible: loadBalancerTable.pages() > 1">
       <ul class="pagination">
-        <li class="page active">
-          <a href="#pages/javascript:void(0)">1</a>
+        <li data-bind="css: leftPagerClass, click: prevPage">
+          <a href="#">&laquo;</a>
         </li>
-        <li class="page">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">2</a>
+        <!-- ko foreach: {data: (new Array(pages()))} -->
+        <li data-bind="css: $parent.pageClass($index() + 1)">
+          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
         </li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=3">3</a>
-        </li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=4">4</a>
-        </li>
-        <li class="page">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=5">5</a>
-        </li>
-        <li class="page gap disabled">
-          <a href="#pages/javascript:void(0)">&hellip;</a>
-        </li>
-        <li class="next">
-          <a rel="next" href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=2">下页 &rsaquo;</a>
-        </li>
-        <li class="last">
-          <a href="#pages/http://localhost/resource_instances?locale=zh-CN&amp;page_instance_publicips=63">末页 &raquo;</a>
+        <!-- /ko -->
+        <li data-bind="css: rightPagerClass, click: nextPage">
+          <a href="#">&raquo;</a>
         </li>
       </ul>
     </footer>
   </div>
-
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isCreateBalancer}">
+</div>
+<!-- 创建负载均衡器页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:showCreatePage}">
     <div class='modal-dialog modal-lg' role='document'>
       <div class='modal-content'>
         <div class='modal-header'>
@@ -263,9 +247,10 @@
       </div>
     </div>
   </div>
+<!-- 创建负载均衡器页面 END -->
 
-
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isAddVIP}">
+<!-- 添加VIP页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:showAddVipPage}">
     <div class='modal-dialog' role='document'>
       <div class='modal-content'>
         <div class='modal-header'>
@@ -365,6 +350,7 @@
       </div>
     </div>
   </div>
+<!-- 添加VIP页面 END -->
 
   <!-- 负载均衡器详情 -->
   <div id="instance_balancer_details" style="display: none ">
@@ -584,9 +570,9 @@
         </div>
       </div>
     </div>  
+  <!-- 负载均衡器详情 END -->
 
-
-    <!-- 添加成员 -->
+    <!-- 添加成员页面 -->
     <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddMember }">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
@@ -645,9 +631,9 @@
         </div>
       </div>
     </div>
-    <!-- 添加成员 -->
+    <!-- 添加成员 END -->
 
-    <!-- 添加监控 -->
+    <!-- 添加监控页面 -->
     <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddMonitor }">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
@@ -737,7 +723,7 @@
         </div>
       </div>
     </div>
-    <!-- 添加监控 -->
+    <!-- 添加监控END -->
 
   </div>
   <script type="text/javascript">
@@ -762,21 +748,94 @@
 
   <!-- 负载均衡器详情 end -->
 
-
-</div>
-
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
+  var scripts = ["api/resource/az/az.js", 
+                 "api/vdc/vdc.js", 
+                 "api/resourceInstance/loadBalancer/loadBalancer.js", 
+                 "assets/lib/moment/moment.js",
+                 "assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_Balancer(){
-      this.isCreateBalancer = ko.observable(false);
-      this.isAddVIP = ko.observable(false);
-      this.createBalancer = function(){
-        this.isCreateBalancer(true);
-      };
-      this.addVIP = function(){
-        this.isAddVIP(true);
-      };
+    	var self = this;
+    	
+    	/**********************  搜索栏   **********************/
+    	//搜索栏
+        this.searchVdcList = ko.observableArray();
+        this.searchAzList = ko.observableArray();
+        
+        this.searchParam = ko.observable({
+       	  	vdcUuid: ko.observable(""),
+            azUuid: ko.observable(""),
+            name: ko.observable("")
+        });
+          
+        this.init = function(){
+      	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
+      	  $.VDC.getVDCs({},function(data){
+      			if(data && data.results){
+      				data.results.unshift({"name": "全部", "uuid": ""});
+      				self.searchVdcList(data.results);
+      			}
+      	  });
+      	  
+      	  self.searchAzList([{"name": "全部", "uuid": ""}]);
+      	  $.AZ.getAzs({}, function(data){
+   			if(data && data.results){
+   				data.results.unshift({"name": "全部", "uuid": ""});
+   				self.searchAzList(data.results);
+   			}
+   		  });
+      	  
+        }();
+        
+        
+      	//搜索
+        this.searchLb = function(){
+        	var p = {
+        		 "vdcUuid": self.searchParam().vdcUuid(),
+        		 "azUuid": self.searchParam().azUuid(),
+        		 "name": self.searchParam().name()
+        	};
+        	self.loadBalancerTable.params(p);
+        }
+        
+        /**********************  搜索栏 END   **********************/
+    	
+    	/**********************  负载均衡器列表   **********************/
+    	
+        this.loadBalancerTable = new DataTable({
+      		  perPage: 10,
+                path: 'api/v5.0.0/loadBalancers',
+                loader: function(result){
+                    //result.userName_ = "超级管理员"; 
+                    return result;
+                }
+        });
+    	
+    	
+    	/********  负载均衡器列表  END *********/
+    	
+    	
+    	/********  创建负载均衡器   *********/
+    	
+      	this.showCreatePage = ko.observable(false);
+      	
+      	this.showCreatePageFun = function(){
+        	this.showCreatePage(true);
+        	
+      	};
+      	/********  创建负载均衡器 END   *********/
+      	
+      	/********  添加VIP   *********/
+      	this.showAddVipPage = ko.observable(false);
+      	
+      	this.addVipPageFun = function(row, event){
+        	this.showAddVipPage(true);
+        	
+      	};
+      	/********  添加VIP END  *********/
+      
+      
     };
     ko.applyBindings(new ViewModel_Balancer(), $('#partition_balancer')[0]);
   })
