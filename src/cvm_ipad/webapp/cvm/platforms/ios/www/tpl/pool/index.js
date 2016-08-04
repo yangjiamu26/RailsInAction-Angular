@@ -299,6 +299,7 @@ function initPool_storage_chart(data) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
           self.pools_count(data.data.length);

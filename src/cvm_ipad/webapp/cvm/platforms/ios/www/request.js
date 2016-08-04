@@ -1,7 +1,9 @@
 
 function RestServiceJs(newurl) {
+  var url = newurl;
+  if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
   var self = {};
-  self.myurl = newurl;  
+  self.myurl = url;  
    
   self.post = function(model, callback) {  
       $.ajax({  
@@ -9,6 +11,7 @@ function RestServiceJs(newurl) {
           url: self.myurl,  
           data: JSON.stringify(model),
           processData: false,  
+          dataType: 'json',
           contentType: 'application/json',
           success: callback,  
           error: function(req, status, ex) {
@@ -28,6 +31,7 @@ function RestServiceJs(newurl) {
           url: self.myurl,  
           data: JSON.stringify(params), 
           processData: false,  
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -42,10 +46,16 @@ function RestServiceJs(newurl) {
   };  
    
   self.get = function(id, params, callback) {
+    var end = '';
+      if(self.myurl.indexOf('demoapi')>-1){
+        self.myurl = self.myurl.replace('.json','');
+        end = '.json';
+      }
       $.ajax({  
           type: 'GET',  
-          url: self.myurl + '/' + id,
+          url: self.myurl + '/' + id +end,
           data: params, 
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -65,6 +75,7 @@ function RestServiceJs(newurl) {
           type: 'GET',  
           url: self.myurl,
           data: params, 
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
@@ -82,6 +93,7 @@ function RestServiceJs(newurl) {
       $.ajax({  
           type: 'DELETE',  
           url: self.myurl + '/' + id,  
+          dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {

@@ -65,20 +65,20 @@
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr> 
                 <td>
-               	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid+'&vmId='+$row.id}"></a>
+               	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid}"></a>
                	</td>
                 <td>
-	                <span class="label label-success" data-bind="if: state == 'ACTIVE'">运行中</span>
-	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF'">已关机</span>
-	                <span class="label label-info" data-bind="if: state == 'SUSPENDED'">已挂起</span>
-	                <span class="label label-warning" data-bind="if: state == 'POWERING_OFF'">正在关机</span>
-	                <span class="label label-warning" data-bind="if: state == 'POWERING_ON'">正在启动</span>
-	                <span class="label label-warning" data-bind="if: state == 'REBOOTING'">正在重启</span>
-	                <span class="label label-warning" data-bind="if: state == 'REBOOTING_HARD'">正在强制重启</span>
-	                <span class="label label-warning" data-bind="if: state == 'SUSPENDING'">正在挂起</span>
-	                <span class="label label-warning" data-bind="if: state == 'RESUMING'">正在恢复</span>
-	                <span class="label label-warning" data-bind="if: state == 'DELETING'">正在删除</span>
-	                <span class="label label-warning" data-bind="if: state == 'RESIZING'">正在调整</span>
+	                <span class="label label-success" data-bind="if: state == 'ACTIVE' && taskState == null">运行中</span>
+	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF' && taskState == null">已关机</span>
+	                <span class="label label-info" data-bind="if: state == 'SUSPENDED' && taskState == null">已挂起</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'POWERING_OFF'">正在关机</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'POWERING_ON'">正在启动</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING'">正在重启</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING_HARD'">正在强制重启</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'SUSPENDING'">正在挂起</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'RESUMING'">正在恢复</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'DELETING'">正在删除</span>
+	                <span class="label label-warning" data-bind="if: taskState == 'RESIZING'">正在调整</span>
                 </td>
                 <td data-bind="text: azName"></td>
                 <td data-bind="text: vdcName"></td>
@@ -468,8 +468,6 @@
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_VM(){
-    	//系统当前登录用户标识
-      var account = "";
     	//当前用户所辖VDC列表（包括VDC对应的可用分区信息）
       var vdcList = [];
     	//当前用户所辖可用分区列表

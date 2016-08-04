@@ -227,13 +227,13 @@ function initTotal_storage_chart(data) {
     });
 
     this.loading = false;
+    var self = this;
     this.loadData = function(){
       //在这里实现总览数据的加载
       if(this.loading) return;
       this.loading = true;
-      var self = this;
       RestServiceJs(BASE_URL+"/overallDetails").query({},function(data){
-        this.loading = false;
+        self.loading = false;
         self.infos(data);
         initTotal_cpu_chart(data);
         initTotal_memory_chart(data);

@@ -45,7 +45,7 @@
 			 *  @param  uuid
 			 */
 			deleteObject:function(objectStorageUuid,name,callback){
-				csc.rest.del('api/v5.0.0/objectStorages/'+containerUuid+'/objects/'+name,function(data){
+				csc.rest.del('api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name,function(data){
 					 callback(data)
    		        })
 			}

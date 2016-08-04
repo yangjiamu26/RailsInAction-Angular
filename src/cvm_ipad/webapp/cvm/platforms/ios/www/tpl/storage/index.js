@@ -21,11 +21,13 @@ myApp.onPageInit("storage-index", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $.ajax("tpl/storage/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
+      $$.getJSON("tpl/storage/index.json?id="+page.query.id+"&page="+self.page,function(data){
+      //$.ajax("tpl/storage/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.infos(data);
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
           initStorage_share_chart(data.share,data.local);

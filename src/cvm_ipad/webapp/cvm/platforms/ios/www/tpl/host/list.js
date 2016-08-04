@@ -32,6 +32,7 @@ myApp.onPageInit("host-list", function(page) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
         }
         for(var i=0; i<data.data.length; i++){

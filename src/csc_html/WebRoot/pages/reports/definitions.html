@@ -3,10 +3,11 @@
 	<ol class="breadcrumb">
 	  <li>当前位置：</li>
 	  <li>报表</li>
-	  <li class="active">自定义报表</li>
+	  <li class="active" id="li3">自定义报表</li>
+	  <li class="active" style="display: none" id="li4">报表</li>
 	</ol>
 </div>
-<div class='wrapper-md'>
+<div id="main_body" class='wrapper-md'>
 	<div class="panel panel-default">
 		<div class="row wrapper">
 			<div class="col-xs-8">
@@ -44,10 +45,11 @@
 					<tr>
 						<td data-bind="text:$index()+1"></td>
 						<td data-bind="text:name"></td>
-						<td data-bind="text:reportShowFile"><a href="#" class="text-info"></a></td>
-						<td data-bind="text:paramShowFile"><a href="#" class="text-info"></a></td>
+						
+						<td><a data-bind="text:reportShowFile, attr:{href:'javascript:downloadFile(\''+reportSaveFile+'\',\''+reportShowFile+'\',\''+downloadUrl+'\')'}"></a></td>
+						<td><a data-bind="text:paramShowFile, attr:{href:'javascript:downloadFile(\''+paramSaveFile+'\',\''+paramShowFile+'\',\''+downloadUrl+'\')'}"></a></td>
 						<td data-bind="text:remark"></td>
-						<td><a data-bind="click: $root.edit">修改</a> | <a data-bind="click: $root.remove">删除</a> | <a href="#pages/reports/show">预览</a></td>
+						<td><a data-bind="click: $root.edit">修改</a> | <a data-bind="click: $root.remove">删除</a> | <a data-bind="attr:{href:'javascript:viewReport(\''+reportSaveFile+'\',\''+paramSaveFile+'\',\''+previewUrl+'\')'}">预览</a></td>
 					</tr>
 		          	<!-- /ko -->
 				</tbody>
@@ -69,6 +71,9 @@
 		    </ul>
     	</footer>
 	</div>		
+</div>
+
+<div id="preview_body" class='wrapper-md'>
 </div>
 
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
@@ -166,7 +171,6 @@
       		var self = this;
       		
       		this.setFile = function(type, value){
-      			console.log(type, value);
       			if(type == 'report'){
       				this.currentVO().defineFile(value);
       			}
@@ -277,14 +281,13 @@
 	        	if(self.currentVO().id){
 	        		csc.rest.get('api/v5.0.0/reports/customReports/check?id='+self.currentVO().id+'&name='+self.currentVO().name(),function(data){
 	        			if(data == 0){
-	        				csc.rest.get('api/v5.0.0/reports/upload',self.currentVO.toJSON(),function(data){
-	        					console.log('upload');
+	        				self.uploadDfile(function(){
+	        					csc.rest.put('api/v5.0.0/reports/customReports/'+self.currentVO().id,self.currentVO.toJSON(),function(data){
+							 		systemMsg.alert('修改自定义报表成功！');
+							 		self.isAdd(false);
+						        	self.table.refreshData();
+							    });
 	        				});
-	        				csc.rest.put('api/v5.0.0/reports/customReports/'+self.currentVO().id,self.currentVO.toJSON(),function(data){
-						 		systemMsg.alert('修改自定义报表成功！');
-						 		self.isAdd(false);
-					        	self.table.refreshData();
-						    });
 	        			}else{
 	        				$('#nameError').text('报表名称已经存在！');
 	        			}
@@ -292,7 +295,7 @@
 	        	}else{
 	        		csc.rest.get('api/v5.0.0/reports/customReports/check?name='+self.currentVO().name(),function(data){
 	        			if(data == 0){
-	        				self.uploadDfile(self,function(){
+	        				self.uploadDfile(function(){
 	        					csc.rest.post('api/v5.0.0/reports/customReports',self.currentVO.toJSON(),function(data){
 							 		systemMsg.alert('添加自定义报表成功！');
 							 		self.isAdd(false);
@@ -313,6 +316,8 @@
             		name: object.name,
             		defineFile: object.reportShowFile,
           			paramFile: object.paramShowFile,
+          			reportSaveFile: object.reportSaveFile,
+          			paramSaveFile: object.paramSaveFile,
       	  			remark: object.remark
 	        	});
 	        	self.isAdd(true); 
@@ -334,59 +339,130 @@
 	        	this.table.params(this.searchParam());
 	      	}
 	      	this.table = new DataTable([], {path: 'api/v5.0.0/reports/customReports'});
-	      	this.uploadDfile = function(obj, callback){
+	      	// 报表定义文件上传
+	      	this.uploadDfile = function(callback){
+	      		if(!self.isSetDfile()){
+	      			self.uploadPfile(callback);
+	      			return;
+	      		}
 	      		var options  = {    
-// 	      		    	url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
-	      		    	url: 'https://localhost:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
-	      		        type:'post',    
-	      		        success:function(result)    
-	      		        {    
-	      		        	var data = result;
-	      		            if(data['code'] == "0"){  
-	      		            	self.currentVO().reportSaveFile(data['filename']);
-	      		            	//上传参数模板文件
-	      		            	self.uploadPfile(obj,callback);
-	      		            }else{  
-	      		                systemMsg.alert('报表定义'+data['msg']);  
-	      		            }  
-	      		        },
-	      		        error:function(data){
-	      		        	systemMsg.alert('上传文件异常'); 
-	      		        }
-	      		    };    
-	      		    var form = $("form[name=uploadDFileForm]");  
-	      			form.ajaxSubmit(options);
+// 	      		    url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
+      		    	url: 'https://i.iwinhong.com:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',
+      		        type:'post',    
+      		        success:function(result)    
+      		        {    
+      		        	var data = result;
+      		            if(data['code'] == "0"){  
+      		            	self.currentVO().reportSaveFile(data['filename']);
+      		            	//上传参数模板文件
+      		            	self.uploadPfile(callback);
+      		            }else{  
+      		                systemMsg.alert('报表定义'+data['msg']);  
+      		            }  
+      		        },
+      		        error:function(data){
+      		        	systemMsg.alert('上传文件异常'); 
+      		        }
+      		    };    
+      		    var form = $("form[name=uploadDFileForm]");  
+      			form.ajaxSubmit(options);
 	      	}
-	      	this.uploadPfile = function(obj, callback){
-	      		if(self.getFileName(self.currentVO().paramFile())==''){
-	    			self.currentVO().paramSaveFile('');
+	      	// 参数模板文件上传
+	      	this.uploadPfile = function(callback){
+	      		if(!self.isSetPfile()){
 	    			callback();
-	    		}else{
-	    			if($('#h_pfile').val()!=''){
-	    			    var options  = {    
-// 	    			        url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
-	    			        url: 'https://localhost:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
-	    			        type:'post',    
-	    			        success:function(result)    
-	    			        {    
-	    			        	var data = result;
-	    			            if(data['code'] == "0"){  
-	    			            	obj.currentVO().paramSaveFile(data['filename']);
-	    			            	callback();
-	    			            }else{  
-	    			                systemMsg.alert('参数模板'+data['msg']);  
-	    			            }  
-	    			        },
-	    			        error:function(data){
-	    			        	systemMsg.alert('上传文件异常'); 
-	    			        }
-	    			    };    
-	    				form = $("form[name=uploadPFileForm]");  
-	    				form.ajaxSubmit(options);  
-	    			}
+	    			return;
 	    		}
+  			    var options  = {    
+//   			        url: 'file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
+  			        url: 'https://i.iwinhong.com:8099/file/uploadServlet?handler=cscReport&handlerKey=cscReport&actionKey=&dataKey=',    
+  			        type:'post',    
+  			        success:function(result)    
+  			        {    
+  			        	var data = result;
+  			            if(data['code'] == "0"){  
+  			            	self.currentVO().paramSaveFile(data['filename']);
+  			            	callback();
+  			            }else{  
+  			                systemMsg.alert('参数模板'+data['msg']);  
+  			            }  
+  			        },
+  			        error:function(data){
+  			        	systemMsg.alert('上传文件异常'); 
+  			        }
+  			    };    
+  				form = $("form[name=uploadPFileForm]");  
+  				form.ajaxSubmit(options);  
+	      	}
+	      	// 是否修改了报表定义文件
+	      	this.isSetDfile = function(){
+	      		if(self.currentVO().defineFile() == self.getFileName(self.currentVO().defineFile())){
+	      			return false;
+	      		}
+	      		return true;
+	      	}
+	      	// 是否修改了参数模板文件
+	      	this.isSetPfile = function(){
+	      		if(self.currentVO().paramFile() == self.getFileName(self.currentVO().paramFile())){
+	      			return false;
+	      		}
+	      		return true;
 	      	}
     	}
     	ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
   	});
+	
+	// 文件下载
+  	function downloadFile(filename, savename, downloadUrl){
+  		csc.rest.get('api/v5.0.0/reports/customReports/fileCheck?filename='+filename,function(result){
+			if(result.code == '0'){
+			//	var downloadUrl='https://192.168.207.9:8443/report/fileapi/download.do?username=csc&key=7131A1225DE042EDD23D75740626D888';
+					jQuery('<form action="'+ downloadUrl +'" method="post">'+'<input type="hidden" name="filename" value="'+filename+'" />'+
+							'<input type="hidden" name="savename" value="'+savename+'" />'+'</form>').appendTo('body').submit().remove();
+			}else{
+				systemMsg.alert('文件检查失败：'+result.msg);
+			}
+    	});
+  	}
+	
+  	// 报表预览
+  	function viewReport(dfSaveName, pfSaveName ,previewUrl){
+  		csc.rest.get('api/v5.0.0/reports/customReports/fileCheck?filename='+dfSaveName,function(result){
+  			if(result.code == '0'){
+  				if(pfSaveName!=null && pfSaveName!='' && pfSaveName!='null'){
+  					csc.rest.get('api/v5.0.0/reports/customReports/fileCheck?filename='+pfSaveName,function(result){
+  						if(result.code == '0'){
+  							//报表预览
+  							previewUrl = previewUrl+'&reportfilename='+dfSaveName+'&paramfilename='+pfSaveName;
+  							$('#main_body').hide();
+  							$('#preview_body').show();
+  							$('#li4').show();
+  							$('#li3').removeClass('active');
+							$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="500px" width="100%"></iframe>');
+  						}else{
+  							jf.error('报表定义文件检查失败：'+result.msg);
+  						}
+  					});
+  				}else{
+  					//报表预览
+					previewUrl = previewUrl+'&reportfilename='+dfSaveName+'&paramfilename=';
+					$('#main_body').hide();
+					$('#preview_body').show();
+					$('#li4').show();
+					$('#li3').removeClass('active');
+					$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="500px" width="100%"></iframe>');
+  				}
+  			}else{
+  				systemMsg.alert('报表定义文件检查失败：'+result.msg);
+  			}
+  		});
+  	}
+  	
+    //返回上一页
+  	function goback(){
+  		$('#main_body').show();
+		$('#preview_body').hide();
+		$('#preview_body').html('')
+		$('#li4').hide();
+  	}
 </script>
