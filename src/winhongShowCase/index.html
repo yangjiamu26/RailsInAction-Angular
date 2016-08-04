@@ -3,13 +3,9 @@
   <head>
     <meta charset="utf-8">
     <title>云宏信息产品演示平台</title>
-    <link rel="stylesheet" type="text/css" href="css/styles.css" />
-    <script src="js/jquery-1.6.4.js"></script>
-    <script type="text/javascript" src="js/jquery.path.js"></script>
-    <script type="text/javascript" src="js/circle_3.js"></script>      
     <style>
       * {padding:0; margin:0;}
-      body {background:#550000;}
+      body {background:#000000;overflow: hidden;}
       img {border:none;}
       li {list-style:none;}
       a { text-decoration:none;}
@@ -28,9 +24,55 @@
 
       #div6 {width:40px; height:40px; position:absolute; left:100%; top:650px; margin: -150px;}
       #div6 img {position: absolute; left: 0; top: 0;}                  
+
+      #div7 {width:100px; height:100px; position:absolute; left:590px; top:120px; }
+      #div7 img {position: absolute; left: 0; top: 0;}  
     </style>
     <script>
-      function animateGroup(divId, baseWidth, speed){
+      function animateGroup(divId, speed){
+        var oDiv=document.getElementById(divId);
+        var aImg=oDiv.children;
+        setInterval(function (){
+          for(var i=0; i<aImg.length; i++){
+            aImg[i].style.WebkitTransform='rotate('+aImg[i].I+'deg)';
+            aImg[i].style.MozTransform='rotate('+aImg[i].I+'deg)';
+            aImg[i].style.msTransform='rotate('+aImg[i].I+'deg)';
+            aImg[i].I+=aImg[i]._I;
+          }
+        },speed);
+      }
+      var current = 0;
+      function stepAnimateGroup(divId, speed, target){
+        var oDiv=document.getElementById(divId);
+        var aImg=oDiv.children;
+        var start = 0;
+        var step = 3;
+        var end = target - current;
+        var direction = end > 0;
+        current = target;
+
+        var timer = setInterval(function (){
+          for(var i=0; i<aImg.length; i++){
+            aImg[i].style.WebkitTransform='rotate('+aImg[i].I+'deg)';
+            aImg[i].style.MozTransform='rotate('+aImg[i].I+'deg)';
+            aImg[i].style.msTransform='rotate('+aImg[i].I+'deg)';
+            if(direction){
+              aImg[i].I+=step;
+            }else{
+              aImg[i].I-=step;
+            }
+          }
+          if(direction){
+            start += step;
+          }else{
+            start -= step;
+          }
+          if(direction && start >= end || !direction && start <= end){
+            clearInterval(timer);
+          }
+        }, speed);     
+      }
+      function renderGroup(divId, baseWidth, speed, static){
         var oDiv=document.getElementById(divId);
         var aImg=oDiv.children;
         for(var i=0; i<aImg.length; i++){
@@ -41,83 +83,19 @@
           aImg[i].style.width=baseWidth+i*20+'px';
           aImg[i].style.margin=-10*i+'px';
         }
-        setInterval(function (){
-          for(var i=0; i<aImg.length; i++){
-            aImg[i].style.WebkitTransform='rotate('+aImg[i].I+'deg)';
-            aImg[i].style.MozTransform='rotate('+aImg[i].I+'deg)';
-            aImg[i].style.msTransform='rotate('+aImg[i].I+'deg)';
-            aImg[i].I+=aImg[i]._I;
-          }
-        },speed);
-      }
-      var box = document.querySelector('.menu_moving_stick');
-      var previos_selected_id = "distributor";
-          
-      function stick_animate(obj)
-      {
-          // Animate
-          if(previos_selected_id!= obj.id)
-          {
-              box.classList.toggle('move');
-              // Change Div
-              change_div(obj);
-          }
-          previos_selected_id = obj.id;
-      }
-
-      function change_div(obj)
-      {
-          if(previos_selected_id!= obj.id)
-          {
-              if(obj.id=="product")
-              {
-                  $("#right_container_journey").css("display","none");    
-                  $("#right_container_product").css("display","block");    
-                  $("#right_container_distrubutor").css("display","none");        
-              }
-              else if(obj.id=="distributor")
-              {
-                  $("#right_container_journey").css("display","none");    
-                  $("#right_container_product").css("display","none");    
-                  $("#right_container_distrubutor").css("display","block");    
-              }
-              else if(obj.id=="journey")
-              {
-                  document.getElementById("right_container_journey").innerHTML='<object type="text/html" class="right_sub_container" data="http://noreturnsblog.wordpress.com/" ></object>';
-                  $("#right_container_journey").css("display","block");    
-                  $("#right_container_product").css("display","none");    
-                  $("#right_container_distrubutor").css("display","none");    
-              }
-          }
-          previos_selected_id = obj.id;    
-      }
-      window.onload=function (){
-        animateGroup("div1", 100, 30);
-        animateGroup("div2", 30, 50);
-        animateGroup("div3", 40, 40);
-        animateGroup("div4", 800, 50);
-        animateGroup("div5", 100, 100);
-        animateGroup("div6", 60, 200);
-
-        /*var height = $(window).height()/10;
-        var width = ((($(window).width()/100)*75)/10);
-        if(height>width)
-        {
-          $("#outer").css("left",width*2);
-          $("#outer").css("top",height*2);
-          $("#outer").css("width",width*6);
-          $("#outer").css("height",width*6);
+        if(!static){
+          animateGroup(divId, speed);
         }
-        else
-        {
-          $("#outer").css("left",width*3);
-          $("#outer").css("top",height*2);
-          $("#outer").css("width",height*6);
-          $("#outer").css("height",height*6);
-        } */   
-        $("#right_container_journey").css("display","none");    
-        $("#right_container_product").css("display","none");    
-        $("#right_container_distrubutor").css("display","block"); 
+      }
+      
+      window.onload=function (){
+        renderGroup("div1", 100, 30);
+        renderGroup("div2", 30, 50);
+        renderGroup("div3", 40, 40);
+        renderGroup("div4", 800, 50);
+        renderGroup("div5", 100, 100);
+        renderGroup("div6", 60, 200);
+        renderGroup("div7", 400, 2000, true);
       };
       function rndNum(m, n){
         n++;
@@ -160,57 +138,19 @@
       <img src="images/cycle.png">
     </div>
 
+    <div id="div7">
+      <img src="images/cycle.png">
+    </div>
+
     <div style="text-align:center;clear:both">
     </div>
-    <div class="main_container">
-        <div class="right_container">
-            <div class="right_sub_container" id="right_container_distrubutor">
-            
-              <div class="wrapper">
-                <div id="image_circle_1" class="images" style="display:block;">
-                    <ul><li> Menu 1 Detail</li><li>Menu 1 Detail</li><li>Menu 1 Detail</li><li>Menu 1 Detail</li><li>Menu 1 Detail</li></ul>
-                  </div>
-                  <div id="image_circle_2" class="images">
-                      <ul><li> Menu 2 Detail</li><li>Menu 2 Detail</li><li>Menu 2 Detail</li><li>Menu 2 Detail</li><li>Menu 2 Detail</li></ul>
-                  </div>
-                  <div id="image_circle_3" class="images">
-                      <ul><li> Menu 3 Detail</li><li>Menu 3 Detail</li><li>Menu 3 Detail</li><li>Menu 3 Detail</li><li>Menu 3 Detail</li></ul>
-                  </div>
-                  <div id="image_circle_4" class="images">
-                      <ul><li> Menu 4 Detail</li><li>Menu 4 Detail</li><li>Menu 4 Detail</li><li>Menu 4 Detail</li><li>Menu 4 Detail</li></ul>
-                  </div>
-                  <div id="image_circle_5" class="images">
-                      <ul><li> Menu 5 Detail</li><li>Menu 5 Detail</li><li>Menu 5 Detail</li><li>Menu 5 Detail</li><li>Menu 5 Detail</li></ul>
-                  </div>
-                  <div id="image_circle_6" class="images">
-                      <ul><li> Menu 6 Detail</li><li>Menu 6 Detail</li><li>Menu 6 Detail</li><li>Menu 6 Detail</li><li>Menu 6 Detail</li></ul>
-                  </div>
-              </div>
-          
-              <div class="right_container_main_circle_1" id="outer">
-                  <img class="right_moving_circle_1" src="images/0.png"/>
-                  <img class="right_moving_circle_2" src="images/1.png"/>
-                  <img class="right_moving_circle_1" src="images/2.png"/>                    
-              </div>
-              
-              <div class="right_container_main_circle_2">
-                  <button class="button circle" id="circle_1">Menu 1</button>
-                  <button class="button circle" id="circle_2">Menu 2</button>
-                  <button class="button circle" id="circle_3">Menu 3</button>
-                  <button class="button circle" id="circle_4">Menu 4</button>
-                  <button class="button circle" id="circle_5">Menu 5</button>
-                  <button class="button circle" id="circle_6">Menu 6</button>
 
-              </div>
-                
-            </div>      
-            <div class="right_sub_container" id="right_container_product">
-                    right_container_product
-            </div>      
-            <div class="right_sub_container" id="right_container_journey">
-                    right_container_journey
-            </div>              
-        </div>        
+    <div style="position:absolute; top: 90%; left: 0%; margin-left: 50px;">
+    <button onclick="stepAnimateGroup('div7', 10, 30)">Animate</button>
+    <button onclick="stepAnimateGroup('div7', 10, 90)">Animate</button>
+    <button onclick="stepAnimateGroup('div7', 10, 150)">Animate</button>
+    <button onclick="stepAnimateGroup('div7', 10, 90)">Animate</button>
+    <button onclick="stepAnimateGroup('div7', 10, 30)">Animate</button>
     </div>
   </body>
 </html>
