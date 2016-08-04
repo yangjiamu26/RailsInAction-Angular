@@ -11,8 +11,8 @@ var initialStart = 0;
 
 $( document ).ready(function() {
                    
-    $circle = [$('#circle_1'),$('#circle_2'),$('#circle_3'),$('#circle_4'),$('#circle_5')];
-    
+    $circle = [$('#circle_1'),$('#circle_2'),$('#circle_3'),$('#circle_4'),$('#circle_5'),$('#circle_6')];
+
     var count = 360/$circle.length;                
     
     for(i=0;i<$circle.length;i++)
@@ -240,6 +240,12 @@ function applyCssEffect()
     {
         $circle[4].removeClass("circleBeforeClick");
         $circle[4].addClass("circleAfterClick");
+    }  
+    else
+    if(selectedCircle== 'circle_6')
+    {
+        $circle[4].removeClass("circleBeforeClick");
+        $circle[4].addClass("circleAfterClick");
     }         
 }
 
@@ -283,5 +289,10 @@ function getPosition(circle)
     if(circle=='circle_5')
     {
         return position[4];    
+    }
+    else
+    if(circle=='circle_6')
+    {
+        return position[5];    
     }
 }
