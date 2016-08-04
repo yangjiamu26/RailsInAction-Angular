@@ -346,15 +346,15 @@
     	
     	
         $(".applyModeShow").on("shown.bs.modal", function() {
-            $('.applyDateFormat').daterangepicker({
-                startDate: moment(),
-                singleDatePicker: true,
-                endDate: moment(),
-            });
+        	$('.applyDateFormat').each(function(n,v){
+        		$(this).daterangepicker({
+                	startDate: $(this).val(), 
+                    endDate: false, 
+                    singleDatePicker:true
+                });
+        	})
+            
         })
-
-
-
 
         function ViewModel() {
             var self = this;
@@ -1370,10 +1370,23 @@
     	    }
             
     	    this.sizeChange = function(arg,data,event){
-    	    	if(typeof(type)=="undefined"){
+    	    	var size;
+    	    	var unitPrice;
+    	    	var type;
+    	    	if(arg=='DISK'){
+    	    		size=data.vdiskCartInfo().size();
+    	    		unitPrice=data.vdiskCartInfo().unitPrice();
+    	    		type=data.vdiskCartInfo().billRuleUuid();
+    	    	}else if(arg=='OBJECT_STORAGE'){
+    	    		size=data.objectStorageCartInfo().size();
+    	    		unitPrice=data.objectStorageCartInfo().unitPrice();
+    	    		type=data.objectStorageCartInfo().billRuleUuid();
+    	    	}
+    	    	
+    	    	if(typeof(type)=="undefined"||typeof(unitPrice)=="undefined"){
     	    		return;
     	    	}
-    	    	var price = data.unitPrice()*data.size();
+    	    	var price = size*unitPrice;
         		if(type=="DAY"){
         			price+="元/天";
         		}else if(type=="MONTH"){
@@ -1383,7 +1396,11 @@
         		}else{
         			price+="元/年";
         		}
-        		data.price(price);
+    	    	if(arg=='DISK'){
+    	    		data.vdiskCartInfo().price(price);
+    	    	}else if(arg=='OBJECT_STORAGE'){
+    	    		data.objectStorageCartInfo().price(price);
+    	    	}
     	    }
             
             this.chargeChangeCart = function(arg,data,event){//vm
@@ -1608,7 +1625,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">存储大小(GB)：</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control w" data-bind="value:vdiskCartInfo().size">
+                                <input type="text" class="form-control w" data-bind="value:vdiskCartInfo().size,event:{change:function(data, event){ $root.sizeChange('DISK',data,event) }">
                             </div>
                         </div>
                     </div>
@@ -1792,7 +1809,7 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">存储大小(GB)：</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control w" data-bind="value:objectStorageCartInfo().size">
+                                <input type="text" class="form-control w" data-bind="value:objectStorageCartInfo().size,event:{change:function(data, event){ $root.sizeChange('OBJECT_STORAGE',data,event) }}">
                             </div>
                         </div>
                     </div>

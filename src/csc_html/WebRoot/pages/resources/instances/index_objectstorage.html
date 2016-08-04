@@ -96,7 +96,7 @@
   <div class="row wrapper">
     <div class="col-xs-7 m-b-xs">
       <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-      <button class="btn btn-sm btn-primary">上传</button>
+      <button class="btn btn-sm btn-info">上传</button>
     </div>
     <div class="col-xs-3">
       <div class="input-group">
@@ -116,7 +116,7 @@
           <thead>
             <tr>
               <th>名称</th>
-              <th>大小(GB)</th>
+              <th>大小</th>
               <th>修改时间</th>
               <th>操作</th>
             </tr>
@@ -590,10 +590,52 @@
         	  });
     	  });
       }
-      this.fileTable = new DataTable([]); 
+      var i = 0;
+      this.fileTable = new DataTable([],{loader:function(result){
+    	  var name = result.name;    	  
+    	  if(name.substring(name.length-1)=='/'){//斜杠结尾是虚拟目录
+    		  result.sizeInBytes = "虚拟目录";
+    	  }else{
+        	  result.sizeInBytes = renderSize(result.sizeInBytes);
+    	  }
+    	 
+    	  
+    	  return result;
+      }}); 
       
       
     }
      ko.applyBindings(new ViewModel_ObjectStorage(), $('#partition_object_storages')[0]);
   })
+  
+  
+  
+  
+/*
+      四舍五入保留小数位数
+  numberRound 被处理的数
+  roundDigit  保留几位小数位
+*/
+function  roundFun(numberRound,roundDigit)
+{   
+   if(numberRound>=0) {   
+         var   tempNumber   =   parseInt((numberRound   *   Math.pow(10,roundDigit)+0.5))/Math.pow(10,roundDigit);   
+         return   tempNumber;   
+    }else{   
+     numberRound1=-numberRound   
+     var   tempNumber   =   parseInt((numberRound1   *   Math.pow(10,roundDigit)+0.5))/Math.pow(10,roundDigit);   
+     return   -tempNumber;   
+    }   
+} 
+/*附件大小格式处理*/
+function renderSize(value, p, record){
+  if(null==value||value==''){
+    return "0 Bytes";
+  }
+  var unitArr = new Array("Bytes","KB","MB","GB","TB","PB","EB","ZB","YB");
+  var index=0;
+  var srcsize = parseFloat(value); 
+  var size =roundFun(srcsize/Math.pow(1024,(index=Math.floor(Math.log(srcsize)/Math.log(1024)))),2); 
+  return size+unitArr[index];
+}
 </script>

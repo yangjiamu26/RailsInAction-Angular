@@ -20,9 +20,6 @@
 			<li role="presentation">
 				<a aria-controls="vm" data-toggle="tab" href="#vm" role="tab">云主机</a>
 			</li>
-			<li role="presentation">
-				<a aria-controls="defined1" data-toggle="tab" href="#defined1" role="tab">自定义一</a>
-			</li>
 		</ul>
 
 		<div class="tab-content">
@@ -682,98 +679,7 @@
 				</div>					
 			</div>
 			
-			<div class="tab-pane" id="defined1" role="tabpanel">
-				<div class="panel panel-default">
-
-					<div class="row wrapper">
-					  <div class="col-xs-3">
-					      <div class="input-group">
-					         <span class="input-group-addon">云主机名称</span>
-					         <input type="text" value="" class="form-control input-sm">
-					      </div>      
-					  </div>
-					  <div class="col-xs-3">
-					      <div class="input-group">
-					         <span class="input-group-addon">IP地址</span>
-					         <input type="text" value="" class="form-control input-sm">
-					      </div>        
-					  </div>
-					  <div class="col-xs-2">
-					  	  <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
-					      <button class="btn btn-default btn-sm" type="submit">搜索</button>       
-					  </div>
-
-					</div>					
-					<div class="table-responsive">
-						<table class="table table-striped">
-							<thead>
-								<tr>
-									<th class="sorting">云主机名称</th>
-									<th class="sorting">服务状态</th>
-									<th class="sorting">IP地址</th>
-									<th class="sorting">CPU(个)</th>
-									<th class="sorting">内存(GB)</th>
-									<th class="sorting">存储(GB)</th>
-									<th class="sorting">操作系统</th>
-									<th class="sorting">申请人</th>
-									<th class="sorting">生效日期</th>
-									<th class="sorting">失效日期</th>
-									<th class="sorting">所属物理机</th>
-									<th class="sorting">所属业务系统</th>
-									<th class="sorting">所属VDC</th>
-									<th class="sorting">业务系统负责人</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>yztg-power</td>
-									<td>正常</td>
-									<td>192.168.206.21</td>
-									<td>1</td>
-									<td>2</td>
-									<td>46</td>
-									<td>aix6.1</td>
-									<td>张明</td>
-									<td>2016-06-21 17:15:58</td>
-									<td>2017-06-21 17:16:08</td>
-									<td>192.168.20.1</td>
-									<td>业务系统一</td>
-									<td>VDC1</td>
-									<td>范冰冰</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<footer class="panel-footer">
-						<div class="pull-left text-muted">数据时间：2016-06-21 16:28:30</div>
-						<ul class="pagination">
-							<li class="page active">
-								<a href="#pages/javascript:void(0)">1</a>
-							</li>
-							<li class="page">
-								<a>2</a>
-							</li>
-							<li class="page">
-								<a>3</a>
-							</li>
-							<li class="page">
-								<a>4</a>
-							</li>
-							<li class="page">
-								<a >5</a>
-							</li>
-							<li class="page gap disabled">
-								<a href="#pages/javascript:void(0)">…</a>
-							</li>
-							<li class="next">
-								<a>下页 ›</a>
-							</li>
-							<li class="last">
-								<a>末页 »</a>
-							</li>
-						</ul>
-					</footer>
-				</div>
+			<div class="tab-pane" id="preview_body" role="tabpanel">
 			</div>
 
 		</div>
@@ -1209,4 +1115,49 @@
 
     ); 
   });
+  
+	// 初始化自定义报表菜单
+	$(function(){
+		$.ajax({
+			url: 'api/v5.0.0/reports/customReports?maxResult=10000&firstResult=0',
+			type: 'GET',
+			dataType: 'JSON',
+			success: function(result){
+				var results = result.results;
+				for(var i=0;i<results.length;i++){
+					var report = results[i];
+					var clickStr= 'viewReport(\"'+report.reportSaveFile+'\",\"'+report.paramSaveFile+'\",\"'+report.previewUrl+'\")' ;
+					$('#page-content ul').append($('<li role="presentation"><a aria-controls="preview_body" data-toggle="tab" onClick='+clickStr+' href="#preview_body" role="tab">'+report.name+'</a></li>'));
+				}
+			},
+			error: function(result){
+				systemMsg.alert('网络连接失败');
+		 	}
+		});
+	});
+  
+	//报表预览
+	function viewReport(dfSaveName, pfSaveName ,previewUrl){
+		csc.rest.get('api/v5.0.0/reports/customReports/fileCheck?filename='+dfSaveName,function(result){
+			if(result.code == '0'){
+				if(pfSaveName!=null && pfSaveName!='' && pfSaveName!='null'){
+					csc.rest.get('api/v5.0.0/reports/customReports/fileCheck?filename='+pfSaveName,function(result){
+						if(result.code == '0'){
+							//报表预览
+							previewUrl = previewUrl+'&reportfilename='+dfSaveName+'&paramfilename='+pfSaveName;
+							$('#preview_body').html('').html('<iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="570px" width="100%"></iframe>');
+						}else{
+							systemMsg.alert('报表定义文件检查失败：'+result.msg);
+						}
+					});
+				}else{
+					//报表预览
+					previewUrl = previewUrl+'&reportfilename='+dfSaveName+'&paramfilename=';
+					$('#preview_body').html('').html('<iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="570px" width="100%"></iframe>');
+				}
+			}else{
+				systemMsg.alert('报表定义文件检查失败：'+result.msg);
+			}
+		});
+	}
 </script>

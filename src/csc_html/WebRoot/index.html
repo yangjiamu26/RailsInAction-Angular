@@ -78,45 +78,45 @@
                 <i class='fa fa-bell'></i> 通知
                 <span class='badge badge-sm up bg-info'>2</span></a>
             </li>
-            <li><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger'>10</span></a></li>
+            <li><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li class='dropdown'>
               <a class='dropdown-toggle clear' data-toggle='dropdown'>
                 <i class='fa fa-user'></i>
-                <span class='hidden-sm hidden-md'>admin@winhong.com</span>
+                <span class='hidden-sm hidden-md' data-bind="text:$root.user().name"></span>
                 <b class='caret'></b>
               </a>
               <!-- dropdown -->
               <ul class='dropdown-menu animated fadeInRight w-lg bg-light'>
                 <li>
                     <table class="table text-xs">
-                        <tbody>
+                        <tbody data-bind="with:user">
                             <tr>
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_profile.html')" class="btn btn-info btn-xs">修改信息</a></td>
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_password.html')" class="btn btn-primary btn-xs">修改密码</a></td>
                             </tr>
                             <tr>
                                 <td>账号：</td>
-                                <td>test</td>
+                                <td data-bind="text:account"></td>
                             </tr>
                             <tr>
                                 <td>角色：</td>
-                                <td>普通用户</td>
+                                <td data-bind="text:$root.roleVO().currentRole()"></td>
                             </tr>
                             <tr>
                                 <td>组织：</td>
-                                <td>研发中心</td>
+                                <td data-bind="text:organizationName"></td>
                             </tr>
                             <tr>
                                 <td>手机：</td>
-                                <td>13612345678</td>
+                                <td data-bind="text:mobile">13612345678</td>
                             </tr>
                             <tr>
                                 <td>邮箱：</td>
-                                <td>admin@winhong</td>
+                                <td data-bind="text:email">admin@winhong</td>
                             </tr>
                             <tr>
                                 <td>用户状态：</td>
-                                <td><span class='label bg-success'>有效</span></td>
+                                <td><span class='label bg-success' data-bind="css:$root.userStatusCss(status),text:status==1?'有效':'无效'"></span></td>
                             </tr>
                         </tbody>
                     </table>                
@@ -862,6 +862,7 @@
     <div class="modal fade modal-draggable" id="ajax_modal_1" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_2" tabindex="-1" role="dialog"></div>
 	<script src="api/v5.0.0/homepage/roles"></script>
+	<script src="api/vdc/vdc.js"></script>
     <script src='assets/js/jquery.min.js'></script>
 
     <script src="assets/js/underscore.js"></script>
@@ -892,6 +893,8 @@
 
     <script src='assets/js/ajax-pushlet-client.js'></script>
     <script src='assets/js/common.js'></script>
+    <script src='assets/lib/moment/moment.js'></script>
+    <script src='assets/lib/bootstrap-daterangepicker/daterangepicker.js'></script>
     <script>
 
     /* PL.webRoot = "";
@@ -908,7 +911,6 @@
 	    function onPushLetData(event) {
 	    	console.log(event)
 	    } */
-	    
 	    function ViewModel(){
 	    	var self = this;
 	    	
@@ -966,6 +968,107 @@
 		   	    });
 		    }
 		    this.loadAlarmStat();
+		    
+		    /* ------------------ 用户信息模块  ---------------start */
+			var cscUser = function() {
+				this.account = ko.observable("");
+				this.name = ko.observable("").extend({required: true});
+				this.mobile = ko.observable("").extend({phoneUS:true});
+				this.email = ko.observable("").extend({email:true});;
+				this.status = ko.observable("");
+				this.roleName = ko.observable("");
+				this.organizationName = ko.observable("");
+			}
+				
+			this.user = ko.validatedObservable(new cscUser());
+			this.editUser = ko.validatedObservable(new cscUser());
+			
+			//加载用户信息
+			csc.rest.get("api/v5.0.0/homepage/user", function(data){
+				self.user.fromJSON(data);
+				self.editUser.fromJSON(data);
+			}); 
+			
+			//修改用户信息
+			this.editAction = function(){
+				ko.validation.group(self.editUser).showAllMessages();
+	    	    if(self.editUser.isValid()){
+					csc.rest.post("api/v5.0.0/homepage/user",self.user() ,function(data){
+						if("success" == data.result){
+							hideModal();
+							systemMsg.alert("修改用户信息成功！");
+							self.user.fromJSON(self.editUser.toJSON());
+						}else{
+							systemMsg.alert("修改失败");
+							self.editUser.fromJSON(self.user.toJSON());
+						}
+					});
+	    	    }
+			}
+			//不同用户状态，使用不同颜色显示
+		    this.userStatusCss = function(status){
+				switch(status){
+					case '1':
+						return "bg-success";
+					default :
+						return "bg-danger";
+				}
+			};
+			//点击取消，隐藏对话框后，初始化表单值
+			this.editCancel = function(){
+				self.editUser.fromJSON(self.user.toJSON());
+				hideModal();
+			}
+		    /* ------------------ 用户信息模块  ---------------end */
+		    
+	        /* ------------------ 修改用户密码模块  ---------------start */
+			var userPassword = function() {
+		    	_upSelf = this;
+				this.oldPassword = ko.observable("").extend({required: true});
+				this.password = ko.observable("").extend({required: true});
+				this.passwordRepeat = ko.observable("").extend({required: true,equal:{params:_upSelf.password,message:"两次输入的密码不一样"}});
+			}
+			this.userPasswordObj = ko.validatedObservable(new userPassword());
+			
+			this.userPasswordObj.fromJSON({
+				oldPassword:"",
+				password:"",
+				passwordRepeat:""
+			});
+			
+			//修改用户密码
+			this.editPasswordAction = function(){
+				ko.validation.group(self.userPasswordObj).showAllMessages();
+	    	    if(self.userPasswordObj.isValid()){
+					self.userPasswordObj().oldPassword = self.userPasswordObj().oldPassword();
+					self.userPasswordObj().password = self.userPasswordObj().password();
+					self.userPasswordObj().passwordRepeat = self.userPasswordObj().passwordRepeat();
+					
+					csc.rest.post("api/v5.0.0/homepage/user/password",self.userPasswordObj() ,function(data){
+						if("success" == data.result){
+							hideModal();
+							systemMsg.alert("修改用户密码成功！");
+						}else{
+							systemMsg.alert("修改用户密码失败");
+						}
+						self.userPasswordObj(new userPassword());
+					});
+	    	    }
+			}
+			
+			//点击取消，隐藏对话框后，初始化表单值
+			this.editPasswordCancel = function(){
+				self.userPasswordObj(new userPassword());
+				hideModal();
+			}
+		    /* ------------------ 修改用户密码模块  ---------------end */
+		    
+		    /* ------------------ 购物车 -------------------------start */
+		    this.cartNum = ko.observable("");
+		    csc.rest.get("api/v5.0.0/homepage/cart",function(data){
+		    	self.cartNum(data);
+			});
+		    /* ------------------ 购物车 -------------------------end */
 	    }
 	    var viewModel = new ViewModel();
 	    ko.applyBindings(viewModel,$('.app-header')[0]);
