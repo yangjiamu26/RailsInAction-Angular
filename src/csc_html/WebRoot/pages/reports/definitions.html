@@ -203,6 +203,20 @@
       			else
       				return path.substring(pos + 1);
       		}
+      		//获取文件大小   target为dom对象
+      		this.getFileSize = function(target){
+      			var isIE = /msie/i.test(navigator.userAgent) && !window.opera;   
+      		    var fileSize = 0;        
+      		    if (isIE && !target.files) {    
+      		      var filePath = target.value;    
+      		      var fileSystem = new ActiveXObject("Scripting.FileSystemObject");       
+      		      var file = fileSystem.GetFile (filePath);    
+      		      fileSize = file.Size;
+      		    } else {   
+      		     	fileSize = target.files[0].size;
+      		    }  
+      		    return fileSize / 1024;//以kb 为单位   
+      		}
       		// 判断str1是否以str2结尾
       		this.endWith = function(str1, str2) {
       			if (str1 == null || str2 == null) {
@@ -264,16 +278,23 @@
 	        		$("#dfileError").text("报表定义文件名称后缀名必须为.rpx！");
 	        		return;
 	        	}
-	        	
+	        	if(self.getFileSize($("#defineFile")[0]) > 1024){
+	        		$("#dfileError").text("报表定义文件大小不能大于1M！");
+	        		return;
+	        	}
 	        	if(pfShowName!='' && pfShowName.length>32){
 	        		$("#pfileError").text("参数模板文件名称最长为32个字符！");
 	        		return;
 	        	}
-	        	
 	        	if(pfShowName!='' && !self.endWith(pfShowName,'.rpx')){
 	        		$("#pfileError").text("参数模板文件名称后缀名必须为.rpx！");
 	        		return;
 	        	}
+	        	if(pfShowName!='' && self.getFileSize($("#paramFile")[0]) > 1024){
+	        		$("#pfileError").text("参数模板文件大小不能大于1M！");
+	        		return;
+	        	}
+	        	
 	        	self.currentVO().reportShowFile(dfShowName);
 	        	self.currentVO().paramShowFile(pfShowName);
 	        	
@@ -438,9 +459,9 @@
   							$('#preview_body').show();
   							$('#li4').show();
   							$('#li3').removeClass('active');
-							$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="500px" width="100%"></iframe>');
+							$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="570px" width="100%"></iframe>');
   						}else{
-  							jf.error('报表定义文件检查失败：'+result.msg);
+  							systemMsg.alert('报表定义文件检查失败：'+result.msg);
   						}
   					});
   				}else{
@@ -450,7 +471,7 @@
 					$('#preview_body').show();
 					$('#li4').show();
 					$('#li3').removeClass('active');
-					$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="500px" width="100%"></iframe>');
+					$('#preview_body').html('').html('<div><button type="button" class="btn btn-sm btn-default pull-right" id="backBtn" onclick=goback();>返回</button></div><iframe id="frame_content" name="frame_content" src='+previewUrl+' frameborder="0" height="570px" width="100%"></iframe>');
   				}
   			}else{
   				systemMsg.alert('报表定义文件检查失败：'+result.msg);

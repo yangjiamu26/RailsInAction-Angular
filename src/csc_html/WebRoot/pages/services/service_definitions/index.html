@@ -127,7 +127,7 @@
 													<td data-bind="text: $row.createUserName"></td>
 													<td data-bind="text: $row.effectTime"></td>
 													<td><a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.release">发布&nbsp;&nbsp;</a> 
-													 <a data-bind="if: $row.state == 0 || $row.state == 2" onclick="showModal('pages/services/service_definitions/addService_pkl.html')">修改&nbsp;&nbsp;</a>
+													 <a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.editService">修改&nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 0,click: $root.deleteService">删除 &nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 1,click: $root.offline">下线&nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 2,click: $root.destory">销毁 </a>													
@@ -326,14 +326,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     }
 	<!-- vdc -->
     //初始化操作系统类型下拉框
-    function loadVdcOsType(){
+    function loadVdcOsType(bool){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VDC&configCodeName=osType&urlType=getSource',function(data){      		
       		viewModel.osList(data);
-      		if(data.length > 0){   	      			
-   	      		for(var i = 0;i < data.length;i++){
-          			viewModel.serviceVO().serviceVDC.osTypeList.push(data[i].value);
-            	}
-	      	}
+      		if(bool){
+      			if(data.length > 0){   	      			
+       	      		for(var i = 0;i < data.length;i++){
+              			viewModel.serviceVO().serviceVDC.osTypeList.push(data[i].value);
+                	}
+    	      	}
+      		}      		
          });
     }
     <!-- 云主机   -->
@@ -344,35 +346,41 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
          });
     }
     //初始化云主机CPU
-    function loadVmCpu(){
+    function loadVmCpu(bool){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
       		viewModel.cpuList(data);
-      		if(data.length > 0){   	      			
-   	      		for(var i = 0;i < data.length;i++){
-          			viewModel.cpuCheckList.push(data[i].value);
-            	}
-	      	}
+      		if(bool){
+      			if(data.length > 0){   	      			
+       	      		for(var i = 0;i < data.length;i++){
+              			viewModel.cpuCheckList.push(data[i].value);
+                	}
+    	      	}
+      		}      		
          });
     }
     //初始化云主机内存
-    function loadVmMemory(){
+    function loadVmMemory(bool){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource',function(data){
       		viewModel.memoryList(data);
-      		if(data.length > 0){   	      			
-   	      		for(var i = 0;i < data.length;i++){
-          			viewModel.memoryCheckList.push(data[i].value);
-            	}
-	      	}
+      		if(bool){
+      			if(data.length > 0){   	      			
+       	      		for(var i = 0;i < data.length;i++){
+              			viewModel.memoryCheckList.push(data[i].value);
+                	}
+    	      	}
+      		}
          });
     }
     //初始化发布范围VDC
-    function loadReleaseVdc(azUuids){
+    function loadReleaseVdc(azUuids, bool){
       	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
       		viewModel.vdcList(data);
-      		if(data.length > 0){
-      			for(var i = 0;i < data.length;i++){
-          			viewModel.releaseRange.push(data[i].uuid);
-            	}
+      		if(bool){
+      			if(data.length > 0){
+          			for(var i = 0;i < data.length;i++){
+              			viewModel.releaseRange.push(data[i].uuid);
+                	}
+          		}
       		}
         });
     } 
@@ -548,6 +556,56 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.productList = ko.observableArray();            
       <!--服务信息列表end-->
       
+      <!-- 修改服务弹窗-->
+      this.editService = function(object, event){
+    	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+object.uuid, function(data){
+    		  loadServiceTree();//加载服务目录树
+    		  self.serviceVO.fromJSON({
+     			 uuid : data.uuid,
+   	     		 name : data.name,
+   	   	  		 dirName : data.dirName,
+   	   	  		 dirUUID : data.dirUUID,
+   	   	  		 productId : data.productId,
+   	   	  		 imageUrl : data.imageUrl,
+   	   	  		 desc : data.desc,
+   	   	  		 validTimeType : data.validTimeType+"",
+   	   	  		 charge : data.charge/* ,
+   	   	  		 serviceVDC : {
+   	   	  			 isLimit : 'no',
+   	   	  			 osTypeList : ko.observableArray()
+   	   	  		 }  */  	  		 
+   	     	  });
+    		  if(data.productId == "VDC"){
+    			  loadVdcOsType(false);
+    			  self.showItems(data.serviceVDC.isLimit);
+    			  var vdcOsType = data.serviceVDC.osType;
+    			  if(vdcOsType.indexOf(",") != -1){
+    				  self.serviceVO().serviceVDC.osTypeList(vdcOsType.split(","));
+        		  }else{
+        			  self.serviceVO().serviceVDC.osTypeList(vdcOsType);
+        		  }
+    		  }else{
+    			  loadReleaseVdc(false);//加载发布范围列表
+    			  getAzsByUser(viewModel,false);
+        		  var vdcUuid = data.servicePartition[0].vdcUuid;//初始化已选择的范围
+        		  var azUuid = data.servicePartition[0].azUuid;//初始化可用分区
+        		  if(vdcUuid.indexOf(",") != -1){
+        			  self.releaseRange(vdcUuid.split(","));
+        		  }else{
+        			  self.releaseRange(vdcUuid);
+        		  }
+        		  
+        		  if(azUuid.indexOf(",") != -1){
+        			  self.azUuidList(azUuid.split(","));
+        		  }else{
+        			  self.azUuidList(azUuid);
+        		  }
+    		  }    		  
+    		  
+    		  debugger
+        	  self.isCreateService(true);
+          });
+      }
       
       <!-- 创建服务弹窗 -->
       //创建服务弹窗
@@ -557,6 +615,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  //初始化数据start
           this.step(1);
     	  this.serviceVO.fromJSON({
+    		 uuid : "",
      		 name : "",
    	  		 dirName : "",
    	  		 dirUUID : "",
@@ -566,13 +625,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
    	  		 validTimeType : "1",
    	  		 charge : "1",
    	  		 serviceVDC : {
-   	  			 isLimit : 'no',
+   	  			 isLimit : this.showItems,
    	  			 osTypeList : ko.observableArray()
    	  		 }   	  		 
      	  });
     	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
-    	  loadVdcOsType();  //获取VDC操作系统数据
+    	  loadVdcOsType(true);  //获取VDC操作系统数据
     	  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
 	        format:'YYYY-MM-DD',
 	        startDate: moment().subtract( 29, 'days'),
@@ -595,7 +654,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     			  return;
     		  }
     		  //debugger
-    		  loadReleaseVdc(azStrs);
+    		  loadReleaseVdc(azStrs,true);
     		  console.log(azStrs);
     	  }
     	  this.step(this.step()+1);
@@ -626,28 +685,30 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         	  
           }else if(viewModel.selected_product()=='VM'){//选择云主机
         	  loadVirtualPlatform();//获取虚拟化平台数据
-        	  loadVmCpu();//获取虚拟机CPU
-        	  loadVmMemory();//获取虚拟机内存
+        	  loadVmCpu(true);//获取虚拟机CPU
+        	  loadVmMemory(true);//获取虚拟机内存
           }else if(viewModel.selected_product()=='DISK'){//选择云盘
         	  loadDiskType();//初始化云盘类型
-        	  getAzsByUser(viewModel);
+        	  getAzsByUser(viewModel,true);
           }else{
-        	  getAzsByUser(viewModel);
+        	  getAzsByUser(viewModel,true);
           }
         }
         //
-     	function getAzsByUser(viewModel){
+     	function getAzsByUser(viewModel,bool){
     	   if(viewModel.azUuidList().length > 0){
      		   viewModel.azUuidList.removeAll();
      	   }
        	   //根据当前用户获取可用分区
        	   csc.rest.get('api/v5.0.0/azs',function(data1){
-         		viewModel.azList(data1.results);          		
-         		if(data1.results.length > 0){          			
-         			for(var i = 0;i < data1.results.length;i++){
-             			viewModel.azUuidList.push(data1.results[i].uuid);
-               		}
-         		}
+         		viewModel.azList(data1.results);
+         		if(bool){
+         			if(data1.results.length > 0){          			
+             			for(var i = 0;i < data1.results.length;i++){
+                 			viewModel.azUuidList.push(data1.results[i].uuid);
+                   		}
+             		}
+         		}         		
             });
      	}
      	
@@ -672,7 +733,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         //费用规则列表
         this.feeList = new DataTable([], {path: "api/v5.0.0/billing/rules"});
         
-        this.addFeeDay = function(package,event){    	  
+        this.addFeeDay = function(package,event){
+          debugger
       	  self.package_current = package;
       	  self.feeList.params({
       		  attrType: self.selected_product(),
@@ -802,11 +864,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	      this.serviceVO().charge(this.isFee());//是否计费
   		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
   		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
-  		
+
   		  if(this.selected_product()=='VDC'){//VDC保存时的数据
   			  this.serviceVO().serviceVm = null;
   			  this.serviceVO().serviceDisk = null;
   			  this.serviceVO().serviceIP = null;
+//  			  this.serviceVO().serviceVDC.isLimit(this.showItems());
   	      }else if(this.selected_product()=='VM'){//云主机保存时的数据
 	  	      var releaseRange = getReleaseRanges(this.releaseRange());
 	  	      if(releaseRange == ""){
@@ -848,12 +911,21 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
   	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
   	      }
-  		  //debugger
-  		  csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
+  		  debugger
+  		  if(this.serviceVO().uuid){
+  			csc.rest.put('api/v5.0.0/service/updateService'+this.serviceVO().uuid,this.serviceVO.toJSON(),function(data){
+  				self.table.refreshData();
+  				self.isCreateService(false);
+                alert('修改成功！');
+            });
+  		  }else{
+  			csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
   				self.table.refreshData();
   				self.isCreateService(false);
                 alert('创建成功！');
-            });
+            });  
+  		  }
+  		  
   	    }
   	     
         //产品列表
@@ -1077,7 +1149,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   <div class='modal-dialog modal-lg' style="width:800px;">
     <div class='modal-content'>
       <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建服务</h3>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title' data-bind="ifnot: serviceVO().uuid">创建服务</h3>
+		<h3 class='modal-title' data-bind="if: serviceVO().uuid">修改服务</h3>
       </div>
       <div class='modal-body no-padder'>
         <ul class="nav nav-tabs service-step-select">
@@ -1153,7 +1227,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                       <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType"> 
                       <select class="form-control" data-bind="value: serviceVO().validTimeNum">
                       <option value="1">1</option>
-                      <option value="1">2</option>
+                      <option value="2">2</option>
                       </select> 个月
                     </label>
                   </div>

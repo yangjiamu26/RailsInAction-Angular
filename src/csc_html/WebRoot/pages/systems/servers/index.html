@@ -276,7 +276,7 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   
-  var scripts = [ null, "api/systems/serverconf/serverconf.js" ]
+  var scripts = [ "api/systems/serverconf/repoConf.js" , "api/systems/serverconf/ftpConf.js", "api/systems/serverconf/chefConf.js" ]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
     	var self = this;	
@@ -385,130 +385,102 @@
  	  this.initData();
 	
 	
-      this.checkCollRepoConnect = function(object){
-          console.log(object);
+      this.checkCollRepoConnect = function(repoVO){
 
     	  var param = {
-                  "urlAddr": this.urlAddr,
-                  "userName": this.userName,
-                  "userPwd": this.userPwd
+                  urlAddr: repoVO.urlAddr,
+                  "userName": repoVO.userName,
+                  "userPwd": repoVO.userPwd
                 }; 
-    	  //alert(object);
-    	  $.REPO_CONF.checkCollRepoIsConnect(param , function(data){
-        		if(data && data.msg) {
-        			alert(data.msg + '！');
-        		}
-        	});
+    	  if($.REPO_CONF.checkFormat(repoVO)){
+    		  $.REPO_CONF.checkCollRepoIsConnect(param , function(data){
+          		if(data && data.msg) {
+          			alert(data.msg + '！');
+          		}
+          	});
+          }   
     	  
       }
 
       this.reportTest = function(object){
-          console.log(object);
           self.checkCollRepoConnect(object);
         
       }
       this.reportSave = function(reportVO){
-        console.log(reportVO);
         var param = {
                 "urlAddr": reportVO.urlAddr,
                 "userName": reportVO.userName,
                 "userPwd": reportVO.userPwd
               }; 
-        if(this.urlAddr==""){
-        	alert("请输入正确的url地址！");
-        }else if(this.userName==""||this.userPwd==""){
-        	alert("请输入用户名或密码！");
-        }else{
+        if($.REPO_CONF.checkFormat(reportVO)){
         	csc.rest.post('api/v5.0.0/severconfsrepo',param , function(){
-                 self.isAdd(false);
-                 alert("保存配置成功！");
-               })
-               //alert("保存配置成功！");
+                self.isAdd(false);
+                alert("保存配置成功！");
+                })
         }   
         
       }
-      self.checkFtpIsConnect = function(object){
+      self.checkFtpConnect = function(ftpVO){
     	  var param={
-                  "serverAddr": this.serverAddr,
-                  "portNum": this.portNum,
-                  "softWareAddr": this.softWareAddr,
-                  "scriptAddr": this.scriptAddr,
-                  "username": this.username,
-                  "userPwd": this.userPwd
+                  "serverAddr": ftpVO.serverAddr,
+                  "portNum": ftpVO.portNum,
+                  "softWareAddr": ftpVO.softWareAddr,
+                  "scriptAddr": ftpVO.scriptAddr,
+                  "username": ftpVO.username,
+                  "userPwd": ftpVO.userPwd
                 };
-          $.FTP_CONF.checkFtpIsConnect(param , function(data){
-      		if(data && data.msg) {
-      			alert(data.msg + '！');
-      		}
-      	});
+    	  if($.FTP_CONF.checkFtpFormat(ftpVO)){
+    		  $.FTP_CONF.checkFtpIsConnect(param , function(data){
+    	      		if(data && data.msg) {
+    	      			alert(data.msg + '！');
+    	      		}
+    	      	});
+    	  }
       }
      
 
       this.ftpTest = function(object){
-        console.log(object);
-        self.checkFtpIsConnect(object);
+        self.checkFtpConnect(object);
         
       }
-      this.ftpSave = function(ftpVo){
-        console.log(ftpVo);
-        var param={
-                "serverAddr": ftpVo.serverAddr,
-                "portNum": ftpVo.portNum,
-                "softWareAddr": ftpVo.softWareAddr,
-                "scriptAddr": ftpVo.scriptAddr,
-                "username": ftpVo.username,
-                "userPwd": ftpVo.userPwd
-              };
-        if(this.serverAddr == ""){
-        	alert("请输入服务器地址！");
-        }else if(this.portNum == ""){
-        	alert("请输入端口号！");
-        }else if(this.softWareAddr == ""){
-        	alert("请输入软件库地址！");
-        }else if(this.scriptAddr == ""){
-        	alert("请输入脚本库地址！");
-        }else if(this.userName == ""||this.userPwd == ""){
-        	alert("请输入用户名或密码！");
-        }else{
-        	csc.rest.post('api/v5.0.0/severconfsftp', param , function(){
-                self.isAdd(false);
-                alert("保存配置成功！");
-
-              })
-        }
-        
+      this.ftpSave = function(ftpVO){
+    	  var param={
+                  "serverAddr": ftpVO.serverAddr,
+                  "portNum": ftpVO.portNum,
+                  "softWareAddr": ftpVO.softWareAddr,
+                  "scriptAddr": ftpVO.scriptAddr,
+                  "username": ftpVO.username,
+                  "userPwd": ftpVO.userPwd
+                };
+          //url 正则表达式  var check = @"((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?";
+         // var ipReg =  "^(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])){3}$";//ip地址的正则表达式
+         // var portPatt = new RegExp(port);
+      	if($.FTP_CONF.checkFtpFormat(ftpVO)){
+      		csc.rest.post('api/v5.0.0/severconfsftp', param , function(){
+                  self.isAdd(false);
+                  alert("保存配置成功！");
+                })
+      	}    	 
       }
       
       
 
       this.chefTest = function(object){
-        console.log(object);        
+        //console.log(object);        
       }
       this.chefSave = function(chefVO){
-        console.log(chefVO);
         var param = {
                 "ipAddr": chefVO.ipAddr,
                 "portNum": chefVO.portNum,
                 "username": chefVO.username,
                 "userPwd": chefVO.userPwd
               };
-        var ipReg =  "^(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5])){3}$";//ip地址的正则表达式
-    	var ipPatt = new RegExp(ipReg);
-        alert(param);
-       if(chefVO.ipAddr == ""||!ipPatt.test(chefVO.ipAddr)){
-    	   alert("请输入正确的ip地址！");
-       }else if(chefVO.portNum == ""){
-    	   alert("请输入端口号！");
-       }else if(chefVO.userName == ""||chefVO.userPwd == ""){
-    	   alert("请输入用户名或密码！");
-       }else{
-    	   csc.rest.post('api/v5.0.0/severconfschef', param, function(data){
-               self.isAdd(false);
-               alert("保存配置成功！");
-           })
-             
-       }        
-        
+    	if($.CHEF_CONF.checkChefFormat(chefVO)){
+    		csc.rest.post('api/v5.0.0/severconfschef', param, function(data){
+                self.isAdd(false);
+                alert("保存配置成功！");
+            })
+    	}        
       }
 
       this.emailTest = function(object){
