@@ -377,24 +377,139 @@
                 value: 'YES'
             }];
             this.sshIsMountList = ko.observableArray(sshIsMounts);
+            
+     	   this.orders_vdisk=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+     	   
+     	   this.orders_objectStorage=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+     	   
+     	   this.orders_publicNetwork=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+    	  
+    	   function items(e){
+    		   this.instanceName = ko.observable(e.name);
+    		   this.serviceUuid = ko.observable(e.serviceUuid);
+    		   this.isBill = ko.observable(e.charge);
+    		   this.expireType =  ko.observable(e.applyType);
+    		   var expireValue="";
+	    	   if(e.applyType == "2"){
+	    		   expireValue = e.applyNum;
+	    	   }else if(e.applyType == "3"){
+	    		   expireValue = e.applyTime;
+	    	   }
+    		   this.expireValue = ko.observable(expireValue);
+    		   this.billCycle = ko.observable(e.billRuleUuid);
+    		   this.fee = ko.observable(e.price);
+    		   this.metaData = ko.observable();
+    		   this.desc = ko.observable(e.remark);
+    		   this.azUuid = ko.observable(e.azUuid);
+    		   this.resourceType = ko.observable();
+    		   this.relateUuid = ko.observable();
+    		   this.vdcUuid = ko.observable(e.vdcUuid);
+    	   }
+    	   
+    	   function metaData(){
+    		   this.resBaseInfo = ko.observable();
+    	   }
+    	   
+    	   function DISK_baseInfo(){
+    		   this.volumeSize = ko.observable();
+    		   this.vmUuid = ko.observable();
+    	   }
+    	   
+		   function OBJECT_STORAGE_baseInfo(){
+			   this.applySize = ko.observable();
+		   }
+		   
+		   function PUBLICIP_baseInfo(){
+			   this.vpcUuid = ko.observable();
+			   this.networkUuid = ko.observable();
+		   }
 
-            this.generateOrder = function() {
-                var vdiskJson = {};
-                var objectStorageJson = {};
-                var publicNetworkJson = {};
-                if (self.vdiskList_chosens().length > 0) {
-                    vdiskJson["vdiskCartInfo"] = changeToJson(self.vdiskList_chosens());
+            this.generateOrder = function() {       
+                var chose_length = self.vdiskList_chosens().length+self.objectStorageList_chosens().length
+                +self.publicNetworkList_chosens().length+self.loadbalancerList_chosens().length
+                +self.sshKeytList_chosens().length+self.vmList_chosens().length;
+                if(chose_length==0){
+                	systemMsg.alert('请先选择需要提交的申请！');	
+                	 return;
                 }
-                if (self.objectStorageList_chosens().length > 0) {
-                	self.objectStorageList_chosens().forEach(function (e){
-                		console.log(e);
-                		console.log(e.uuid());
-                	})
-                	objectStorageJson["objectStorageCartInfo"] = changeToJson(self.objectStorageList_chosens());
-                }
-                if (self.publicNetworkList_chosens().length > 0) {
-                    publicNetworkJson["vdiskCartInfo"] = changeToJson(self.publicNetworkList_chosens());
-                }
+                
+                csc.rest.get('api/v5.0.0/cart', function(data) {
+                    if (self.vdiskList_chosens().length > 0) {
+                    	self.orders_vdisk().orderItems([]);
+                    	self.orders_vdisk().resourceType("DISK");
+                    	self.vdiskList_chosens().forEach(function (e){
+                            data['vdiskCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new DISK_baseInfo();
+                    	    	   item.resourceType("DISK");
+                    	    	   baseInfo.volumeSize(f.size);
+                    	    	   baseInfo.vmUuid(f.mountVmUuid);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_vdisk().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vdisk.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    }); 
+                    }
+                    if(self.objectStorageList_chosens().length > 0){
+                    	self.orders_objectStorage().orderItems([]);
+                    	self.orders_objectStorage().resourceType("OBJECT_STORAGE");
+                    	self.objectStorageList_chosens().forEach(function (e){
+                            data['objectStorageCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
+                    	    	   item.resourceType("OBJECT_STORAGE");
+                    	    	   baseInfo.applySize(f.size);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_objectStorage().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_objectStorage.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    });
+                    }
+                    
+                    if(self.publicNetworkList_chosens().length > 0){
+                    	self.orders_publicNetwork().orderItems([]);
+                    	self.orders_publicNetwork().resourceType("PUBLICIP");
+                    	self.objectStorageList_chosens().forEach(function (e){
+                            data['publicNetworkCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new PUBLICIP_baseInfo();
+                    	    	   item.resourceType("PUBLICIP");
+                    	    	   baseInfo.vpcUuid(f.vpcUuid);
+                    	    	   baseInfo.networkUuid(f.netWorkId);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_publicNetwork().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_publicNetwork.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    });
+                    }
+                });
             };
 
             function changeToJson(list) {
