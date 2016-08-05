@@ -112,6 +112,17 @@ var DrapCommon = {
         DrapCommon.delCookie("configArr");
         //format like: [['dragDiv3','dragDiv5'],['dragDiv4','dragDiv1'],['dragDiv2']]
         DrapCommon.setCookie("configArr", "[" + configArr + "]");  
+        
+        //更改的顺序 放入数据库中
+        var dataList = window.localStorage.index_list;
+        var re = new RegExp('"', "g");
+        dataList = dataList.replace(re, '\"');
+        csc.rest.post("api/v5.0.0/homepage/display", {
+            displayVisible:dataList,
+            dispalySequence:DrapCommon.getCookie("configArr")
+          }, function(data){
+          console.info("更新成功");
+        });
     }
 }
 
@@ -150,6 +161,7 @@ Drag.prototype = {
         var dragTbl = document.getElementById("dragTable");
 
         titleBar.onmousedown = function(e) {
+        	//debugger;
             var ev = e || window.event || DrapCommon.getEvent();
             //只允许通过鼠标左键进行拖拽,IE鼠标左键为1 FireFox为0
             if (DrapCommon.isIE && ev.button == 1 || !DrapCommon.isIE && ev.button == 0) {

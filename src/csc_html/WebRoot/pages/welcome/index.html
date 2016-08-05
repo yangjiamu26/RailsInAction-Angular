@@ -1112,60 +1112,51 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       });
     }
 
-  var userId = "D1553321141";
-  //var userId = "D155332115";
-  //var userId = "D155332116";
-  // var defalutHtml=[];
-  // for(var i=1;i<14;i++){ 
-  //   defalutHtml.push($("#index_list_"+i));
-  // }
-  $("#index_list_box").css("opacity",1);
-  //localStorage 操作 start
-  var myList;
-  if(window.localStorage.index_list){
-     $.each(JSON.parse(window.localStorage.index_list).data,function(index,value){
-      if(value.userId == userId){
-        myList = value;
-        return;
-      };
+  	//浮动配置窗 開始
+    var userId = "";
+    var roleId = null;
+    $("#index_list_box").css("opacity",1);
+    
+    //一开始应该从数据库中获取   异步获取方法
+      var myList = null;
+      var index_LocalStorage = null;
+      csc.rest.get("api/v5.0.0/homepage/user",function(data){
+      	if(data == null || data == "" ){
+        	return ;
+      	}
+      	userId = data.account + "_" + data.roleName;
+      	roleId = data.roleName;
+        csc.rest.get("api/v5.0.0/homepage/display", function(data){
+          if(data != null && data != ""){
+            myList = data.displayVisible;
+          }
+            //localStorage 初始化       start
+            if(myList){
+              myList = myList
+            }else{//初始化
+              myList = '{\"data\":[{\"userId\":\"'+userId+'\",\"list\":[{\"index\":1,\"select\":true},{\"index\":2,\"select\":true},{\"index\":3,\"select\":true},{\"index\":4,\"select\":true},{\"index\":5,\"select\":true},{\"index\":6,\"select\":true},{\"index\":7,\"select\":true},{\"index\":8,\"select\":true},{\"index\":9,\"select\":true}]}]}';
+              csc.rest.post("api/v5.0.0/homepage/display", {
+                  displayVisible:myList,
+                  dispalySequence:DrapCommon.getCookie("configArr")
+                }, function(data){
+                console.info("保存成功");
+              });
+            }
+            window.localStorage.removeItem("index_list");
+          	window.localStorage.setItem("index_list",myList);
+          	index_LocalStorage = JSON.parse(window.localStorage.index_list);
+            var MY_List = JSON.parse(myList).data[0].list;  
+            //配置栏 start
+            var settingOptoins = [];
+            for(var i=0;i<MY_List.length;i++){
+              if(MY_List[i].select){
+                $("#setting_box .checkbox").eq(MY_List[i].index-1).find("input").attr("checked",true);
+                //settingOptoins.push($("#setting_box .checkbox").eq(MY_List[i].index-1));
+              }
+            }
+            enterList(MY_List);
+        });
     });
-    if(myList){
-      myList = myList;
-    }else{
-      myList = {"userId":userId.toString(),"list":[{"index":1,"select":true},{"index":2,"select":true},{"index":3,"select":true},{"index":4,"select":true},{"index":5,"select":true},{"index":6,"select":true},{"index":7,"select":true},{"index":8,"select":true},{"index":9,"select":true}]};
-      //var index_list = eval('(' + window.localStorage.index_list + ')');
-      var index_list = JSON.parse(window.localStorage.index_list);
-      index_list.data.push(myList);
-      window.localStorage.removeItem("index_list");
-      window.localStorage.setItem("index_list",JSON.stringify(index_list));
-    }
-  }else{
-    var index_list = '{"data":[{"userId":"'+userId+'","list":[{"index":1,"select":true},{"index":2,"select":true},{"index":3,"select":true},{"index":4,"select":true},{"index":5,"select":true},{"index":6,"select":true},{"index":7,"select":true},{"index":8,"select":true},{"index":9,"select":true}]}]}';
-    //myList=eval('(' + index_list + ')');
-    myList = JSON.parse(index_list).data[0];
-    window.localStorage.setItem("index_list",index_list);
-  }
-  var index_LocalStorage = JSON.parse(window.localStorage.index_list);
-  var MY_List = myList.list;
-  //localStorage 操作 end
-
-  //配置栏 start
-  var settingOptoins = [];
-  for(var i=0;i<MY_List.length;i++){
-    if(MY_List[i].select){
-      $("#setting_box .checkbox").eq(MY_List[i].index-1).find("input").attr("checked",true);
-      //settingOptoins.push($("#setting_box .checkbox").eq(MY_List[i].index-1));
-    }
-  }
-  // for(var i=0;i<MY_List.length;i++){
-  //   if(!MY_List[i].select){
-  //     settingOptoins.push($("#setting_box .checkbox").eq(MY_List[i].index-1));
-  //   }
-  // }
-  // $("#setting_box").html('');
-  // for(var i=0;i<settingOptoins.length;i++){
-  //   $("#setting_box").append(settingOptoins[i]);
-  // }
   //配置栏 end
 
   //解决highchart图标溢出div问题
@@ -1212,7 +1203,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     //   }
     // }
   }
-  enterList(MY_List);
   //列表渲染 end
 
   function updateList(){
@@ -1231,8 +1221,19 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     });
     window.localStorage.removeItem("index_list");
     window.localStorage.setItem("index_list",JSON.stringify(index_LocalStorage));
-    //location.reload();
     enterList(list);
+    
+    //添加到数据库中
+    var dataList = JSON.stringify(index_LocalStorage);
+    var re = new RegExp('"', "g");
+    dataList = dataList.replace(re, '\"');
+    //debugger;
+      csc.rest.post("api/v5.0.0/homepage/display", {
+          displayVisible:dataList,
+          dispalySequence:DrapCommon.getCookie("configArr")
+        }, function(data){
+        console.info("更新成功");
+      });
   }
 
   $("#ace-settings-btn").click(function(){ 
@@ -1268,15 +1269,22 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   //   }
   //   });
 
-  var dragTbl = document.getElementById("dragTable");
-  if (DrapCommon.getCookie("configArr")) {
-      var configArr = eval("(" + DrapCommon.getCookie("configArr") + ")");
-      for (i = 0; i < dragTbl.rows[0].cells.length; i++) {
-          for (j = 0; j < configArr[i].length; j++) {
-              dragTbl.rows[0].cells[i].appendChild(document.getElementById(configArr[i][j]));
-          }
-      }
-  }
+   //从数据库中数据库中
+   csc.rest.get("api/v5.0.0/homepage/display", function(data){
+	  if(data != null){
+		  DrapCommon.setCookie("configArr", data.dispalySequence);  
+	  }
+	  var dragTbl = document.getElementById("dragTable");
+	  if (DrapCommon.getCookie("configArr")) {
+	      var configArr = eval("(" + DrapCommon.getCookie("configArr") + ")");
+	      for (i = 0; i < dragTbl.rows[0].cells.length; i++) {
+	          for (j = 0; j < configArr[i].length; j++) {
+	              dragTbl.rows[0].cells[i].appendChild(document.getElementById(configArr[i][j]));
+	          }
+	      }
+	  }
+   });
+  
   new Drag("titleBar1", "dragDiv1");
   new Drag("titleBar2", "dragDiv2");
   new Drag("titleBar3", "dragDiv3");

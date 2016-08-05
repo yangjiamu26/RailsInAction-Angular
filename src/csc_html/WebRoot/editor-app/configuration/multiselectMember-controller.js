@@ -22,10 +22,11 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 				nodeName = node.name;
 				nodeId = node.id;
 				usersArr = [];
-				var param ="orgcode="+node.code;
+				var param ="orgId="+node.code+"&userType="+0;//暂时拿本地用户
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
-			       success(function (data, status, headers, config) {					    	   
+			       success(function (data, status, headers, config) {	
+			    	   var users = data[0].data;
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl").html();
 						for(var i=0; i<data.users.length; i++){

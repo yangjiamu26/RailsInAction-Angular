@@ -226,7 +226,7 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">指定IP</label>
                       <div class="col-xs-2">
-                        <select class="form-control" data-bind="optionsCaption: '请选择IP',value: currentVO().ip, options: $root.add_isIps, optionsText: 'text', optionsValue: 'ip'">
+                        <select class="form-control" data-bind="optionsCaption: '请选择IP',value: currentVO().ip, options: $root.add_isIps, optionsText: 'ip', optionsValue: 'ip'">
                         </select>
                       </div>
                        <div class="col-xs-1">
@@ -828,9 +828,13 @@
       //网络->IP
       this.onchange_add_networks = function(){
     	  var networkUuid = self.currentVO().network();
-    	  csc.rest.get('api/v5.0.0/vpcNetworks/'+networkUuid+'/availableIp',function(data){
-    		  self.add_isIps(data);
-    	  }); 
+    	  if(csc.util.isNotNull(networkUuid)){
+    		  csc.rest.get('api/v5.0.0/vpcNetworks/'+networkUuid+'/availableIp',function(data){
+        		  self.add_isIps(data);
+        	  });
+    	  }else{
+    		  self.add_isIps([]);
+    	  }
       }
       //选择IP
       this.add_isIps = ko.observableArray([]);
@@ -857,10 +861,9 @@
 	    				  break;
 	    			  }
 	    		  }
-	    		  networkInfo.ip = self.currentVO().network();
-	    	  }else{
-		    	  networkInfo.networkId = self.currentVO().network();
+	    		  networkInfo.ip = self.currentVO().ip();
 	    	  }
+		      networkInfo.networkId = self.currentVO().network();
 		      networkList.push(networkInfo);
 		      postBody.networkList = networkList;
 	    	  postBody.sshKeyUuid = self.currentVO().sshKey();

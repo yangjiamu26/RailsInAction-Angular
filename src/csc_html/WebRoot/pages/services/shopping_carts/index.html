@@ -741,33 +741,39 @@
             });
 
             this.loadbalancerCartInfo = ko.validatedObservable({
-                id: "",
-                name: "",
-                vdcUuid: "",
-                azUuid: "",
-                applyTime: "",
-                applyType: "",
-                applyNum: "",
-                applyText: "",
-                remark: "",
-                billRuleUuid: "",
+                id: ko.observable(),
+                name: ko.observable(),
+                vdcUuid: ko.observable(),
+                azUuid: ko.observable(),
+                serviceUuid:ko.observable(),
+                applyTime: ko.observable(),
+                applyType: ko.observable(),
+                applyNum: ko.observable(),
+                applyText: ko.observable(),
+                remark: ko.observable(),
+                billRuleUuid: ko.observable(),
+                charge:ko.observable(),
                 vdcList: ko.observableArray([]),
-                azList: ko.observableArray([])
+                azList: ko.observableArray([]),
+                billRuleList: ko.observableArray([])
             });
 
             this.sshKeytCartInfo = ko.validatedObservable({
-                id: "",
-                name: "",
-                vdcUuid: "",
-                azUuid: "",
-                applyTime: "",
-                applyType: "",
-                applyNum: "",
-                applyText: "",
-                remark: "",
-                billRuleUuid: "",
+            	id: ko.observable(),
+                name: ko.observable(),
+                vdcUuid: ko.observable(),
+                azUuid: ko.observable(),
+                serviceUuid:ko.observable(),
+                applyTime: ko.observable(),
+                applyType: ko.observable(),
+                applyNum: ko.observable(),
+                applyText: ko.observable(),
+                remark: ko.observable(),
+                billRuleUuid: ko.observable(),
+                charge:ko.observable(),
                 vdcList: ko.observableArray([]),
-                azList: ko.observableArray([])
+                azList: ko.observableArray([]),
+                billRuleList: ko.observableArray([])
             });
 
 
@@ -809,6 +815,7 @@
                 projectUuid: ko.observable(""),
                 mountDiskNum:ko.observable(),
                 softwareNum:ko.observable(),
+                charge:ko.observable(),
                 vdcText: ko.pureComputed(function() {
                 	if(self.vdcList!=null){
                 		var item = _.findWhere(self.vdcList(), {
@@ -985,37 +992,43 @@
                                 }
                                 });
                       }else if(arg=="loadbalancerCartInfo"){
-                        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
-                            self.loadbalancerCartInfo().vdcList(result1);
-                            csc.rest.get("api/v5.0.0/cart/getAzList/1/"+data.vdcUuid, function(result2){//需修改为服务UUID作为参数传递
-                                self.loadbalancerCartInfo().azList(result2);
-                                self.loadbalancerCartInfo.fromJSON(data);
-                                if(dis=='view'){
-                                    self.isView_loadbalancer(true);
-                                }else{
-                                    self.loadbalancerCartInfo().id = object.id();
-                                    self.isEdit_loadbalancer(true); 
-                                    editObject = object;
-                                }
-                                
-                            });
-                        });
+                    	  var serviceUuid=data.serviceUuid;
+                          var vdcUuid=data.vdcUuid;
+                          var azUuid=data.azUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	 self.loadbalancerCartInfo().vdcList(result.vdcList);
+                        	 self.loadbalancerCartInfo().azList(result.azList);
+                        	 self.loadbalancerCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                             self.loadbalancerCartInfo.fromJSON(data);
+                             if(dis=='view'){
+                                 self.isView_loadbalancer(true);
+                             }else{
+                                 self.isEdit_loadbalancer(true); 
+                                 editObject = object;
+                             }
+                          });
+                    	  
                       }else if(arg=="sshKeytCartInfo"){
-                            csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
-                                self.sshKeytCartInfo().vdcList(result1);
-                                csc.rest.get("api/v5.0.0/cart/getAzList/1/"+data.vdcUuid, function(result2){//需修改为服务UUID作为参数传递
-                                    self.sshKeytCartInfo().azList(result2);
-                                    self.sshKeytCartInfo.fromJSON(data);
-                                    if(dis=='view'){
-                                        self.isView_sshKeyt(true);
-                                    }else{
-                                        self.sshKeytCartInfo().id = object.id();
-                                        self.isEdit_sshKeyt(true);  
-                                        editObject = object;
-                                    }
-                                    
-                                });
-                            });
+                    	  var serviceUuid=data.serviceUuid;
+                          var vdcUuid=data.vdcUuid;
+                          var azUuid=data.azUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	 self.sshKeytCartInfo().vdcList(result.vdcList);
+                        	 self.sshKeytCartInfo().azList(result.azList);
+                        	 self.sshKeytCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                        	 debugger;
+                             self.sshKeytCartInfo.fromJSON(data);
+                             if(dis=='view'){
+                                 self.isView_sshKeyt(true);
+                             }else{
+                                 self.sshKeytCartInfo().id = object.id();
+                                 self.isEdit_sshKeyt(true);  
+                                 editObject = object;
+                             }
+                          });
+                    	  
                       }else if(arg=="vmCartInfo"){
                           var serviceUuid=data.serviceUuid;
                           var vdcUuid=data.vdcUuid;
@@ -1066,8 +1079,8 @@
                                    	self.vmCartInfo().sshUuid(data.sshUuid);
                                    	self.vmCartInfo().networkType(data.networkType);
                                    	
-                                    self.vmCartInfo().price(data.price)    
-                                    
+                                    self.vmCartInfo().price(data.price);    
+                                    self.vmCartInfo().charge(data.charge);
                                     data.mountDisks.forEach(function(e){
                                         csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+e.serviceUuid, function(res){
                                         	var vo=new MountDiskVO();
@@ -1257,7 +1270,7 @@
 			                        self.isEdit_loadbalancer(false);
 			                        var vdcItem = _.findWhere(self.loadbalancerCartInfo().vdcList(), {uuid: data.vdcUuid});
 			                        var azItem = _.findWhere(self.loadbalancerCartInfo().azList(), {uuid: data.azUuid});
-			                        editObject.name(self.loadbalancerCartInfo().name);
+			                        editObject.name(data.name);
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
 			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
@@ -1265,7 +1278,7 @@
 			                        self.isEdit_sshKeyt(false);
 			                        var vdcItem = _.findWhere(self.sshKeytCartInfo().vdcList(), {uuid: data.vdcUuid});
 			                        var azItem = _.findWhere(self.sshKeytCartInfo().azList(), {uuid: data.azUuid});
-			                        editObject.name(self.sshKeytCartInfo().name);
+			                        editObject.name(data.name);
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
 			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
@@ -1425,7 +1438,14 @@
                }else if(arg=='DISK'){
             	   serviceUuid=data.vdiskCartInfo().serviceUuid();
             	   cycle=data.vdiskCartInfo().billRuleUuid(); 
+               }else if(arg=="SSH"){
+            	   serviceUuid=data.sshKeytCartInfo().serviceUuid();
+            	   cycle=data.sshKeytCartInfo().billRuleUuid(); 
+               }else if(arg=="LB"){
+            	   serviceUuid=data.loadbalancerCartInfo().serviceUuid();
+            	   cycle=data.loadbalancerCartInfo().billRuleUuid(); 
                }
+               
     	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
     	    		var price = 0;
     	    		var cpu=0;
@@ -1469,7 +1489,20 @@
 	 	            	   data.vdiskCartInfo().price("");
 	 	   	    			return;
 	 	               }
+   	               }else if(arg=='SSH'){
+   	            	   type = data.sshKeytCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined"){
+	 	            	   data.sshKeytCartInfo().price("");
+	 	   	    			return;
+	 	               }
+   	               }else if(arg=='LB'){
+   	            	   type = data.loadbalancerCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined"){
+	 	            	   data.loadbalancerCartInfo().price("");
+	 	   	    			return;
+	 	               }
    	               }
+    	    	   
     	    	   
     	    		result.ruleList.forEach(function(e){
     	    			if(e.attrType=='CPU'){
@@ -1488,7 +1521,11 @@
     	    			}else if(e.attrType=='OBJECT_STORAGE'){
     	    				data.objectStorageCartInfo().unitPrice(e.unitPrice);
     	    				price += size * e.unitPrice;
-    	    			}
+    	    			}else if(e.attrType=='LOAD_BALANCING'){
+     	    				price +=e.unitPrice;
+     	    			}else if(e.attrType=='SECRET_KEY'){
+     	    				price +=e.unitPrice;
+     	    			}
     	    		});
     	    		if(type=="DAY"){
     	    			price+="元/天";
@@ -1510,6 +1547,10 @@
    	            		data.objectStorageCartInfo().price(price);
    	               }else if(arg=='DISK'){
    	            		data.vdiskCartInfo().price(price);
+   	               }else if(arg=='SSH'){
+   	            	    data.sshKeytCartInfo().price(price);
+   	               }else if(arg=='LB'){
+   	            	    data.loadbalancerCartInfo().price(price);
    	               }
     	    		
     	    	});	    	
@@ -2165,18 +2206,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: loadbalancerCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('LB',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:loadbalancerCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2256,18 +2292,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: loadbalancerCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('LB',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:loadbalancerCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2348,18 +2379,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
-                        <div class="row">
-                            <label class="col-sm-4 control-label">套餐：</label>
+                    <div class="form-group col-md-6" data-bind="visible: sshKeytCartInfo().charge()=='true'">
+                       <div class="row">
+                            <label class="col-sm-4 control-label" >套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: sshKeytCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('SSH',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:sshKeytCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2439,18 +2465,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: sshKeytCartInfo().charge()=='true'">
                         <div class="row">
-                            <label class="col-sm-4 control-label">套餐：</label>
+                            <label class="col-sm-4 control-label" >套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: sshKeytCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('SSH',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:sshKeytCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2635,7 +2656,7 @@
                   
                 </div>
                 <div class="clearfix"></div>
-                <div class="form-group col-md-3">
+                <div class="form-group col-md-3" data-bind="visible:vmCartInfo().charge()=='true'">
                     <div class="row">
                         <label class="col-xs-5 control-label">套餐：</label>
                         <div class="col-xs-7">
@@ -2942,7 +2963,7 @@
                                 </div>
                             </div>
                             <div class="clearfix"></div>
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-3"  data-bind="visible:vmCartInfo().charge()=='true'">
                                 <div class="row">
                                     <label class="col-xs-5 control-label">套餐：</label>
                                     <div class="col-xs-7">
