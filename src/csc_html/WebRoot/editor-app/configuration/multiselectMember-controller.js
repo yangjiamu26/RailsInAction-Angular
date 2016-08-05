@@ -29,10 +29,13 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			    	   var users = data[0].data;
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl").html();
-						for(var i=0; i<data.users.length; i++){
-							data.users[i].nodeName = node.name;					
-							if(data.users[i].id != $scope.assignment.assignee){
-								result += zy_tmpl_s(listTmpl,data.users[i],null);
+						for(var i=0; i<users.length; i++){
+							users[i].nodeName = node.name;					
+							if(users[i].id != $scope.assignment.assignee){
+								//result += zy_tmpl_s(listTmpl,users[i],null);
+								result += "<tr><td><input type='checkbox' name='orgUserId' value='"+users[i].id+"'"
+									+"sname='"+users[i].name+"' /></td>"
+									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 							}							
 						}
 						jQuery("#org_user_list").html(result);						
@@ -63,14 +66,14 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 	var orgUrl = KISBPM.URL.getOrgs();
 	$http({method: 'GET', url: orgUrl}).
        success(function (data, status, headers, config) {	    	   
-    	   for(var i=0; i<data.orgs.length; i++){
+    	   /*for(var i=0; i<data.orgs.length; i++){
 				data.orgs[i] = data.orgs[i];
 				data.orgs[i].iconSkin="zz";
 				data.orgs[i].open = true;
 			}
 			var rootNode = {code:"0",parentorgcode:"",name:"组织结构",iconSkin:"zzml",open:true};
-			data.orgs.push(rootNode);				
-			jQuery.fn.zTree.init(jQuery("#role_org_tree"), settingRoleOrg, data.orgs);
+			data.orgs.push(rootNode);*/				
+			jQuery.fn.zTree.init(jQuery("#role_org_tree"), settingRoleOrg, data);
 			jQuery("#role_org_tree a:eq(0)").trigger("mouseover").trigger("click");
         }).error(function (data, status, headers, config) {
             console.log('Error loading orgs');

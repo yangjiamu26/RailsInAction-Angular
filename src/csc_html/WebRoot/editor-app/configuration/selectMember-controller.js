@@ -78,7 +78,6 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 	var orgUrl = KISBPM.URL.getOrgs();
 	$http({method: 'GET', url: orgUrl}).
        success(function (data, status, headers, config) {
-    	   console.log(data)
     	   /*for(var i=0; i<data.orgs.length; i++){
 				data.orgs[i] = data.orgs[i];
 				data.orgs[i].iconSkin="zz";

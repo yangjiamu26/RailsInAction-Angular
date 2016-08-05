@@ -57,6 +57,7 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     var selectMemberId = [];
     var usersArr = new Array();
     //给候选人赋值
+    console.log(allUsers)
     for(var i = 0;i < allUsers.length;i++){
     	for(var j = 0;j < assignUser.length;j++){
     		if(assignUser[j].value == allUsers[i].id){
