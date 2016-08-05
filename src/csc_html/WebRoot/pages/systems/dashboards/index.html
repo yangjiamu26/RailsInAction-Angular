@@ -1,9 +1,9 @@
 <div class="bg-light lter b-b wrapper-sm">
-  <ol class="breadcrumb">
-    <li>当前位置：</li>
-    <li>系统</li>
-    <li class="active">首页配置</li>
-  </ol>
+	<ol class="breadcrumb">
+		<li>当前位置：</li>
+		<li>系统</li>
+		<li class="active">首页配置</li>
+	</ol>
 </div>
 <div class='wrapper-md'>
     <div class="panel panel-default b-blue">
@@ -12,106 +12,159 @@
           <button class="btn btn-sm btn-info">保存</button>
         </div>        
       </div>
+		<!-- 数据列表DIV -->
+		<div class="table-responsive" data-bind="with: table">
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>首页模块名称</th>
+						<th>已配置的角色</th>
+						<th>是否显示</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-bind="visible: showNoData">
+						<td colspan=4 class="aligncenter">暂无数据</td>
+					</tr>
+					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+					<tr>
+						<td data-bind="text: $row.homeModleName"></td>
+						<td data-bind="text: $row.configRoles"></td>
+						<td><label class="i-switch v-middle"> <input
+								type="checkbox" data-bind=""> <i></i>
+						</label></td>
+						<td><a data-bind="click:$root.edit">角色配置</a></td>
+					</tr>
+					<!-- /ko -->
+				</tbody>
 
-      <!-- 数据列表DIV -->
-      <div class="table-responsive" data-bind="with: table">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>首页模块名称</th>
-              <th>显示顺序</th>
-              <th>已配置的角色</th>
-              <th>是否显示</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr data-bind="visible: showNoData">
-              <td colspan=5 class="aligncenter">
-               	 暂无数据
-              </td>
-            </tr>
-            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-            <tr>
-              <td data-bind="text: $row.homeModleName"></td>
-              <td data-bind="text: $row.displayOrder"></td>
-              <td data-bind="text: $row.configRoles"></td>
-              <td>
-                   <label class="i-switch v-middle">
-                      <input type="checkbox" checked>
-                      <i></i>
-                   </label>                
-              </td>
-              <td>
-                  <a href="#" onclick="showModal('pages/systems/dashboards/users.html')">角色配置</a> | <a href="#" onclick= >上移</a> | <a href="#" onclick=>下移</a>
-              </td>
-            </tr>
-            <!-- /ko -->
-          </tbody>
-            
-        </table>
-      </div>
-      <footer class="panel-footer">
-        <ul class="pagination">
-          <li class="page active">
-            <a href="#pages/javascript:void(0)">1</a>
-          </li>
-          <li class="page">
-            <a>2</a>
-          </li>
-          <li class="page">
-            <a>3</a>
-          </li>
-          <li class="page">
-            <a>4</a>
-          </li>
-          <li class="page">
-            <a >5</a>
-          </li>
-          <li class="page gap disabled">
-            <a href="#pages/javascript:void(0)">…</a>
-          </li>
-          <li class="next">
-            <a>下一页 ›</a>
-          </li>
-          <li class="last">
-            <a>末页 »</a>
-          </li>
-        </ul>
-      </footer>
-    </div>    
-    
+			</table>
+		</div>
+		<footer class="panel-footer"
+			data-bind="with: table, visible: table.pages() > 1">
+			<ul class="pagination">
+				<li data-bind="css: leftPagerClass, click: prevPage"><a
+					href="#">&laquo;</a></li>
+				<!-- ko foreach: {data: (new Array(pages()))} -->
+				<li data-bind="css: $parent.pageClass($index() + 1)"><a
+					href="#"
+					data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				</li>
+				<!-- /ko -->
+				<li data-bind="css: rightPagerClass, click: nextPage"><a
+					href="#">&raquo;</a></li>
+			</ul>
+		</footer>
+		<div role="dialog" aria-hidden="true" class="modal fade"
+			data-bind="modal:{show:isEdit}">
+			<div class='modal-dialog modal-md'>
+				<div class='modal-content'>
+					<div class='modal-header'>
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h3 class='modal-title'>角色配置</h3>
+					</div>
+					<div class='modal-body row'>
+						<div class="form-group">
+							<label class="col-xs-2 control-label">角色选择：</label>
+							<div class="col-xs-10 form-inline row" style="top: -5px;">
+								<div class="col-xs-12">
+									<div class="checkbox">
+										<label class="i-checks">
+										<input type = "text" value = "" data-bind = "value:uuid">
+										 <input type="checkbox"
+											data-bind="checked:fields_all"> <i></i>
+										</label> <span class="control-label">全选</span>
+									</div>
+								</div>
+								<div data-bind="foreach: fields">
+									<div class="col-xs-4">
+										<div class="checkbox">
+											<label class="i-checks">
+											
+											 <input type="checkbox"
+												data-bind="checkedValue: $data.name, checked: $parent.fields_selected_ids">
+												<i></i> <a data-bind="text: name"></a>
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class='modal-footer' style="text-align: center;">
+						<a class="btn btn-default btn-info"
+							data-bind="click: $root.configSave">确定</a>
+						<a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
+
+
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = ["api/systems/log/loginLog.js", "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	var scripts = [ "api/systems/log/loginLog.js",
+			"assets/lib/moment/moment.js",
+			"assets/lib/bootstrap-daterangepicker/daterangepicker.js" ]
+	$('.page-content-area').ace_ajax(
+			'loadScripts',
+			scripts,
+			function(args) {
+				function LogViewModel() {
+					var self = this;
+					csc.rest.get('api/v5.0.0/roles', function(data) {
+						self.fields(data.results);
+					})
+					this.fields = ko.observableArray([]);
+					this.fields_selected_ids = ko.observableArray([]);
+					this.fields_all = ko.pureComputed({
+						read : function() {
+							return this.fields_selected_ids().length === this
+									.fields().length;
+						},
+						write : function(value) {
+							console.log(value);
+							this.fields_selected_ids(value ? _.pluck(this
+									.fields(), 'name') : []);
+							console.log(this.fields_selected_ids());
+						},
+						owner : this
+					});
+					//vdc报表定义页面操作
+					this.isEdit = ko.observable(false);
+					
+					this.uuid = ko.observable("");
+					
+					this.configSave = function() {
+						var params = {
+							configRoles : "" + self.fields_selected_ids() + "",
+						} 
+						csc.rest.put('api/v5.0.0/homeConfigs/' + self.uuid(), params,
+								function(data) {
+									self.isEdit(false);
+									alert("角色配置修改成功！");
+									self.table.refreshData();
+								});
+					}
+					//显示编辑字典页面
+					this.edit = function(object,event) {
+						console.log(self.uuid());
+						self.uuid(object.uuid);
+						
+						self.isEdit(true);
+					};
+					self.table = new DataTable({
+						perPage : 5,
+						path : 'api/v5.0.0/homeConfigs',
+					})
+				}
+				ko.applyBindings(new LogViewModel(), $('#page-content')[0]);
 
-    function LogViewModel(){
-      var self = this;
-    	
-      self.searchParam = ko.observable({
-    	homeModleName:"",
-        displayOrder:"",
-        configRoles:"",
-      })
-
-      self.search = function(){
-    	  var p = self.searchParam();
-    	  
-    	  self.table.params();
-      }
-      
-      self.table = new DataTable({
-          perPage: 10,
-          path: 'api/v5.0.0/homeConfigs',
-        })
-    }
-
-    ko.applyBindings(new LogViewModel(), $('#page-content')[0]);
-
-  });
-  
+			});
 </script>
