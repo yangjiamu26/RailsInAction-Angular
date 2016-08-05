@@ -387,7 +387,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
               <a href="#pages/systems/notices/index" class="pull-right" >更多</a>
             </div>
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'310px'}">
-              <!-- <div class='media'>
+               <!-- <div class='media'>
                 <div class='media-body'>
                   <div class='pull-right text-right text-muted'>
                     <strong>12:18</strong>
@@ -428,21 +428,21 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                   <div class='block m-t-sm'>云主机在2016-09-09将会过期.云主机在2016-09-09将会过期.云主机在2016-09-09将会过期.</div>
                 </div>
               </div>
-              <div class='line'></div> -->
+              <div class='line'></div>  -->
               <div data-bind="visible:(noticeList().length>0),foreach:noticeList">
 				  <div class='media'>
 	                <div class='media-body'>
 	                  <div class='pull-right text-right text-muted'>
-	                    <strong>12:18</strong>
+	                    <strong data-bind="text:moment(noticeTime).format('HH:mm')"></strong>
 	                    <br>
-	                    <small class='label bg-light m-l-sm' data-bind="text:date"></small>
+	                    <small class='label bg-light m-l-sm' data-bind="text:moment(noticeTime).format('YYYY-MM-DD')"></small>
 	                  </div>
-	                  <span class='label bg-light pull-left' data-bind="text:status"></span>
-	                  <a class="w-xl text-ellipsis" href='#' data-bind="css:$root.noticeClass(title),text:title">
-	                  </a>
-	                  <div class='block m-t-sm' data-bind="text:content"></div>
+	                  <span class='label bg-light pull-left' data-bind="css:$root.noticeStateClass(noticeState),text:$root.noticeStateShow(noticeState)"></span>
+	                  <span class="w-xl text-ellipsis text-info" data-bind="text:noticeTitle">
+	                  </span>
+	                  <div class='block m-t-sm' data-bind="text:noticeContent"></div>
 	                </div>
-	              </div>
+	              </div> 
               </div>
               
               <div data-bind="visible:(noticeList().length==0),text:'当前没有最新通知'">
@@ -542,10 +542,10 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             <div id="titleBar7" class='panel-heading text-base'>我的任务</div>
             <div class='panel-body'>
               <div class='list-group list-group-lg m-b-none'>
-                <a class='list-group-item'>
-                  <span class='pull-right label bg-danger inline'>7</span>我的待办</a>
-                <a class='list-group-item'>
-                  <span class='pull-right label bg-info inline'>2</span>我的已办</a>
+                <a href='#pages/workflows/tasks?type=work&showTab=doingTab' class='list-group-item'>
+                  <span class='pull-right label bg-danger inline' data-bind="text:taskStat().todoCount"></span>我的待办</a>
+                <a href='#pages/workflows/tasks?type=work&showTab=didTab' class='list-group-item'>
+                  <span class='pull-right label bg-info inline' data-bind="text:taskStat().finishCount"></span>我的已办</a>
               </div>
             </div>
           </div>
@@ -589,7 +589,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js"];
+  var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js","assets/lib/moment/moment.js",];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
 
     function doHighchartsVDC(){
@@ -1332,18 +1332,28 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 	  //--------------------最新通知模块start--------------//
       this.noticeList = ko.observableArray([]);
       //加载通知列表
-      csc.rest.get("api/v5.0.0/homepage/notice", function(data){
-    	  self.noticeList(data);
+      csc.rest.get("api/v5.0.0/homepage/notice?firstResult=0&maxResult=5", function(data){
+    	  self.noticeList(data.results);
       });
-      //不同通知类型显示不同颜色
-      this.noticeClass = function(title){
-         if(title=="通知1")
-        	 return "text-info";
-         else if(title=="通知2")
-        	 return "text-success";
-         else if(title=="通知3")
-        	 return "text-danger";
-      };
+      
+      this.noticeStateShow = function(noticeState){
+    	  switch(noticeState){
+	    	  case 1:
+	    		  return "已阅";
+	    	  case 2:
+	    		  return "未阅";
+    	  }
+      }
+      
+      //通知状态颜色
+      this.noticeStateClass = function(noticeState){
+    	  switch(noticeState){
+	    	  case 1:
+	    		  return "bg-light";
+	    	  case 2:
+	    		  return "bg-dark";
+    	  }
+      }
 	  //--------------------最新通知模块end--------------//
       
       //--------------------数据中心资源模块start--------------//
@@ -1444,19 +1454,28 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
    	  this.alarmStateCss = function(index){
     	  var state = index%5;
        	  switch(state){
-       	  case 1:
-       		  return "";
-       	  case 2:
-       		  return "b-warning";
-       	  case 3:
-     		  return "b-primary";
-       	  case 4:
-     		  return "b-success";
-       	  case 0:
-     		  return "b-info";
+	       	  case 1:
+	       		  return "";
+	       	  case 2:
+	       		  return "b-warning";
+	       	  case 3:
+	     		  return "b-primary";
+	       	  case 4:
+	     		  return "b-success";
+	       	  case 0:
+	     		  return "b-info";
        	  }
       };
    	  //--------------------最新告警模块end--------------//
+   	  
+   	  //--------------------我的任务模块start--------------//
+   	  this.taskStat = ko.observableArray();
+   	  //加载我的任务统计信息
+      csc.rest.get("api/v5.0.0/workflows/tasks/counts", function(data){
+     	 self.taskStat(data);
+      });
+   	  
+   	  //--------------------我的任务模块end--------------//
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);

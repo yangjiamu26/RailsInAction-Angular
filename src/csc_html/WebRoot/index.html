@@ -782,11 +782,31 @@
 			this.user = ko.validatedObservable(new cscUser());
 			this.editUser = ko.validatedObservable(new cscUser());
 			
+			//加载次数
+			this.loadUserInfoCount = 0;
 			//加载用户信息
-			csc.rest.get("api/v5.0.0/homepage/user", function(data){
-				self.user.fromJSON(data);
-				self.editUser.fromJSON(data);
-			});
+			this.loadUserInfo = function(){
+				csc.rest.get("api/v5.0.0/homepage/user", function(data){
+					var loadedFlag = false;
+					for(var attr in data){
+						loadedFlag = true;
+						break;
+					}
+					if(loadedFlag){
+						//还原加载次数
+						self.loadUserInfoCount = 0;
+						self.user.fromJSON(data);
+						self.editUser.fromJSON(data);
+					} else {
+						if(self.loadUserInfoCount < 3){
+							self.loadUserInfoCount++;
+							self.loadUserInfo();
+						}
+					}
+					
+				});
+			}
+			this.loadUserInfo();
 			
 			//修改用户信息
 			this.editAction = function(){
