@@ -554,37 +554,35 @@
                 <button class="btn btn-sm btn-primary" data-bind="click: addISO">添加</button>
                 <button class="btn btn-sm btn-primary" data-bind="click: collectISO">收集</button>
               </div>
-              <div class="col-xs-3">
-                <div class="input-group">
-                  <span class="input-group-addon">类别</span>
-                  <select class="form-control input-sm">
-                    <option value="0">OpenStack分区</option>
-                    <option value="1">CNware分区</option>
-                  </select>
-                </div> 
-              </div>              
               <div class="col-xs-2">
                 <div class="input-group">
                   <span class="input-group-addon">镜像格式</span>
-                  <select class="form-control input-sm">
-                    <option value="0">ISO</option>
+                  <select class="form-control input-sm" data-bind="value:searchParam().diskFormat">
+                    <option value="">全部</option>
+                    <option value="ISO">ISO</option>
+                    <option value="QCOW2">QCOW2</option>
                   </select>
                 </div> 
               </div>              
               <div class="col-xs-2">
                 <div class="input-group">
                   <span class="input-group-addon">状态</span>
-                  <select class="form-control input-sm">
-                    <option value="0">可用</option>
-                    <option value="0">弃用</option>
+                  <select class="form-control input-sm" data-bind="value:searchParam().status">
+                    <option value="">全部</option>
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="QUEUED">QUEUED</option>
+                    <option value="SAVING">SAVING</option>
+                    <option value="KILLED">KILLED</option>
+                    <option value="DELETED">DELETED</option>
+                    <option value="PENDING_DELETE">PENDING_DELETE</option>
                   </select>
                 </div> 
               </div>              
               <div class="col-xs-3">
                 <div class="input-group">
-                  <input type="text" class="input-sm form-control" placeholder="请输入镜像名称">
+                  <input type="text" class="input-sm form-control" placeholder="请输入镜像名称" data-bind="value:searchParam().imageName">
                   <span class="input-group-btn">
-                    <button class="btn btn-sm btn-default" type="button">搜索</button>
+                    <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
                   </span>
                 </div>
               </div>
@@ -622,10 +620,10 @@
                     <td data-bind="text:diskFormat"><span class="label label-success"></span></td>
                     <td data-bind="text:imageSize"></td>
                     <td data-bind="text:opSysType"></td>
-                    <td data-bind="text:opSysType"></td>
+                    <td data-bind="text:opSysVersion"></td>
                     <td data-bind="text:minDisk"></td>
                     <td data-bind="text:minRam"></td>
-                    <td><a href="#">删除</a></td>
+                    <td><a data-bind="click:$root.editImage">修改</a> | <a data-bind="click:$root.deleteImage">删除</a></td>
                   </tr>
                   <!-- /ko -->
                 </tbody>
@@ -647,7 +645,49 @@
             </footer>
           </div>
         </div>
+      
+      	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEditISO }">
+		  <div class='modal-dialog modal-lg' style="width:600px;">
+		    <div class='modal-content'>
+		      <div class='modal-header'>
+		        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改镜像</h3>
+		      </div>
+		      <div class='modal-body form-horizontal row' data-bind="with:currentVO">
+		        <div class="form-group">
+		          <label class="col-xs-3 control-label">镜像名称：</label>
+		          <div class="col-xs-5">
+		            <input type="text" class="form-control" data-bind="value:imageName">
+		          </div>
+		        </div>
+		        <div class="form-group">
+		          <label class="col-xs-3 control-label">操作系统类型：</label>
+		          <div class="col-xs-5">
+		            <select class="form-control" data-bind="value:opSysType, options: $root.opSysTypes, optionsText: 'value', optionsValue: 'value',event: {change: $root.onchange_opSysType}">
+		              <option value="1">Linux</option>
+		              <option value="2">2</option>
+		            </select>
+		          </div>
+		        </div>
+		        <div class="form-group">
+		          <label class="col-xs-3 control-label">操作系统版本：</label>
+		          <div class="col-xs-5">
+		            <select class="form-control" data-bind="value:opSysVersion, options: $root.opSysVersions, optionsText: 'value', optionsValue: 'value'">
+		              <option value="1">快照</option>
+		              <option value="2">模板</option>
+		            </select>
+		          </div>
+		        </div>
+		        
+		      </div>
+		      <div class='modal-footer' style="text-align:center;">
+		        <a class="btn btn-default btn-info" data-bind="click:saveImage">确定</a>
+		        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+		      </div>
+		    </div>
+		  </div>
+		</div>
       </div>
+      
       <div class='tab-pane' id='partition_network_externals' role='tabpanel'>
         <div class='panel panel-default'>
           <div id='resource_network_externals'>
@@ -1196,6 +1236,8 @@
   </div>
 </div>
 
+
+
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isCutoverBatch }">
   <div class='modal-dialog modal-lg' style="width:600px;">
     <div class='modal-content'>
@@ -1340,6 +1382,8 @@
 	var azUuid = args.azUuid;
     /**虚拟化云平台 **/
     var cloudPlatform = args.cloudPlatform;
+    /** 可用分区的底层虚拟化类型 **/
+    var virtualHypervisor = args.virtualHypervisor;
    	if(csc.util.isNull(azUuid)){
 	    return;
 	}
@@ -1569,7 +1613,7 @@
       /***********************Network end*****************************/
       
       
-      /****************************可用分区 START*********************************/
+      /****************************可用分区 摘要START*********************************/
       function AZViewModel(){
     	  //数据中心基础信息VO
           this.azInfoVO = ko.observable({});
@@ -1600,23 +1644,106 @@
           this.loadAzInfoVO();
       }
       ko.applyBindings(new AZViewModel(), $('#partition_summary')[0]);
-      /****************************可用分区 START*********************************/
+      /****************************可用分区 摘要END*********************************/
       
-      /****************************可用分区 START*********************************/
+      /****************************镜像 START*********************************/
       function imageViewModel(){
-    	  this.addISO = false;
+    	  this.isAddISO = ko.observable(false);
+    	  this.isEditISO = ko.observable(false);
     	  var self = this;
+    	  
+    	  var CurrentVO = function(){
+   	        return ko.validatedObservable({
+   	            "imageName": ko.observable().extend({required:true})
+   	        });
+   	      };
+   	      this.currentVO = new CurrentVO();
+    	      
           this.table = new DataTable([], {path: 'api/v5.0.0/images?azUuid=' + azUuid});
-          //console.log(this.table);
+          
+          /****************************查询开始********************************/
+          this.searchParam = ko.observable({
+        	  imageName:"",
+        	  diskFormat: "",
+        	  status:""
+          });
+
+          this.search = function(){
+          	this.table.params(this.searchParam());
+          };
+          /****************************查询结束********************************/
+          
+          /****************************新增开始********************************/
+          // TODO镜像新增 
+          
+          /****************************新增结束********************************/
+          this.addISO = function(){
+              
+              self.isAddISO(true);        
+           };
+          
+          /****************************编辑开始********************************/
+          this.editImage = function(object, event){
+        	  //console.log(object);
+              self.currentVO.fromJSON(object);
+              //console.log(self.currentVO.toJSON().imageName);
+              //加载操作系统类型下拉
+              self.loadOpSysTypes();
+              self.isEditISO(true);        
+           };
+           
+           //加载操作系统类型，下拉值
+           this.opSysTypes = ko.observableArray([]);
+           this.loadOpSysTypes = function(){
+             $.ajax("api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue=" + virtualHypervisor).done(function(data){
+               self.opSysTypes(data);
+               self.onchange_opSysType();
+             });
+           };
+           //操作系统类型下拉值onchange事件
+           this.onchange_opSysType = function(){
+        	   var versionSourceValue = self.currentVO.toJSON().opSysType;
+        	   self.loadOpSysVersions(versionSourceValue);
+           }
+           
+           //加载操作系统版本，下拉值
+           this.opSysVersions = ko.observableArray([]);
+           this.loadOpSysVersions = function(versionSourceValue){
+             $.ajax("api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=osType&urlType=getTarget&sourceValue="+versionSourceValue).done(function(data){
+                self.opSysVersions(data);
+             });
+           };
+           
+           //镜像修改保存
+           this.saveImage = function(){
+        	   ko.validation.group(self.currentVO).showAllMessages();
+        	   var imageUuid = self.currentVO.toJSON().uuid;
+        	   if(self.currentVO.isValid()){
+       	   		if(!imageUuid){
+       	   			// TODO 镜像新增
+       	   		}else{
+       	   			csc.rest.put('api/v5.0.0/images/'+imageUuid, this.currentVO.toJSON(), function(){
+       	   	            self.isEditISO(false);
+       	   	            self.table.refreshData();
+       	   			});
+       	   		}
+               }
+           }
+          
+          /****************************编辑结束********************************/
+          
+          
+          /****************************收集开始********************************/
           this.collectISO = function(){
        	    csc.rest.get('api/v5.0.0/images/collect?azUuid='+azUuid, function(data){
        	    	alert("镜像收集成功");
    		 		self.table.refreshData();
    		    });
           }
+          /****************************收集结束********************************/
       }
       ko.applyBindings(new imageViewModel(), $('#partition_images')[0]);
-      /****************************可用分区 START*********************************/
+      /****************************镜像 START*********************************/
     
   });
 </script>

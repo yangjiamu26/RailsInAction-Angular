@@ -7,7 +7,7 @@
   </ol>
 </div>
 
-<div class='wrapper-md'>
+<div class='wrapper-md' id="approveContent">
     <div class="panel panel-info">
         <div class="panel-heading">基本信息</div>
         <div class="panel-body">
@@ -40,7 +40,7 @@
 
 	<div id="orderContent"></div>
 
-      <div class="panel panel-info">
+      <div class="panel panel-info" id="approveMsgs">
         <div class="panel-heading">审批信息</div>
         <div class="wrapper">
           <h4>审批意见:</h4>
@@ -48,7 +48,7 @@
           <input id="commentId" type="hidden">
           <hr />
           <div>
-	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" onclick="save()">保存数据</button>
+	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" data-bind="click: save">保存数据</button>
 	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
 	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="transfer()">转发</button>
 	        <button name="button" id="btn_task_complete" class="btn btn-default btn btn-default" onclick="next()">转交下一步</button>
@@ -69,9 +69,10 @@
     if(!args.type){
       $(".order-base-info").remove();
     }else{
-      if(args.type == 'order')
+      if(args.type == 'order'){    	  
         $("#orderBaseInfoType").html('订单号');
-      else
+        $("#approveMsgs").hide();
+      }else
         $("#orderBaseInfoType").html('任务ID');
     };
     
@@ -80,6 +81,8 @@
     		var info = data.taskInfo[0];
     		var taskNode = data.taskActivity[0];
     		var formKey = info.formKey;
+    		var isBatch = args.isBatch;
+    		var state = args.state;
     		
     		$("#taskId").append(info.id);
     		$("#taskName").append(info.name);
@@ -117,7 +120,7 @@
 	    		var productType = order.resourceType;
 	    		var url = '';
 	    		if(flowType=='VDC_APPLY'){//VDC申请
-	    			if(formKey=='approve'){
+	    			if(args.type == 'order' || formKey=='approve'){
 	    				url = "pages/workflows/vdc_apply_single.html";
 	    			}else if(formKey=='construct'){
 	    				url = "pages/workflows/vdc_apply_construct.html";
@@ -129,12 +132,14 @@
 	    				url = "pages/workflows/vdc_change.html";
 	    			}
 	    		}else if(flowType=='RESOURCE_APPLY'){
-	    			if(formKey=='approve'){
-		    			url = setApproveUrl(flowType,productType,null);
+	    			if(state=='UNSUBMIT'){
+	    				url = setUnsubmitUrl(flowType,productType,isBatch);
+	    			}else if(formKey=='approve'){
+		    			url = setApproveUrl(flowType,productType,isBatch);
 		    		}else if(formKey=='construct'){
-		    			url = setConstructUrl(flowType,productType,null);
+		    			url = setConstructUrl(flowType,productType,isBatch);
 		    		}else if(formKey=='resure'){
-		    			url = setResureUrl(flowType,productType,null);
+		    			url = setResureUrl(flowType,productType,isBatch);
 		    		}
 	    		}
 	    		
@@ -164,17 +169,26 @@
         );
   });
   
-   //审批url
-  function setApproveUrl(flowType,productType,isBatch){
+   //未提交url
+  function setUnsubmitUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
-			url = "pages/workflows/modal2.html";
+		url = "pages/workflows/modal2.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
 		url = "pages/workflows/modal3.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
 		url = "pages/workflows/modal5.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='SECRET_KEY'){
 		url = "pages/workflows/modal6.html";
+	}
+	return url;
+  }
+   
+  //审批url
+  function setApproveUrl(flowType,productType,isBatch){
+	var url = '';
+	if(flowType=='RESOURCE_APPLY'){
+		url = "pages/workflows/handle_others.html";
 	}
 	
 	return url;
@@ -183,14 +197,8 @@
   //施工url
   function setConstructUrl(flowType,productType,isBatch){
 	var url = '';
-	if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
-			url = "pages/workflows/modal2.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
-		url = "pages/workflows/modal3.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
-		url = "pages/workflows/modal5.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='SECRET_KEY'){
-		url = "pages/workflows/modal6.html";
+	if(flowType=='RESOURCE_APPLY'){
+		url = "pages/workflows/handle_1_others.html";
 	}
 	
 	return url;
@@ -199,14 +207,8 @@
   //施工确认url
   function setResureUrl(flowType,productType,isBatch){
 	var url = '';
-	if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
-			url = "pages/workflows/modal2.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
-		url = "pages/workflows/modal3.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
-		url = "pages/workflows/modal5.html";
-	}else if(flowType=='RESOURCE_APPLY'&&productType=='SECRET_KEY'){
-		url = "pages/workflows/modal6.html";
+	if(flowType=='RESOURCE_APPLY'){
+		url = "pages/workflows/handle_2_others.html";
 	}
 	
 	return url;

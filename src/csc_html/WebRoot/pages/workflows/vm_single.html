@@ -187,7 +187,7 @@
 	                         <td><input type="text" class="form-control" data-bind="value:name"/></td>
 	                         <td><input type="text" class="form-control" data-bind="value:size"/></td>
 	                         <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
-	                         <td><span ></span></td>
+	                         <td><span data-bind="text:$root.currentVO().expireText" ></span></td>
 	                         <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select></td>
 	                         <td><span data-bind="text: price"></span></td>
 	                         <td><a class="btn btn-xs btn-danger" data-bind="click:$root.delMountDisks">删除</a></td>
@@ -457,11 +457,24 @@
 		  //选择云硬盘服务
           this.selectVdiskService = ko.observable(false);
           this.table_Vdisk_VM = null;
+          var  diskEditObject;//用于临时存储磁盘对象
           this.selectVdiskService_VM = function(object){
               self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK',perPage:6});
               self.selectVdiskService(true);
-             // editObject = object;
+              diskEditObject = object;
           } 
+          
+          this.submitVdiskService = function(){
+        	  diskEditObject.serviceName(self.table_Vdisk_VM.chosenItems().serviceName);
+        	  diskEditObject.serviceUuid(self.table_Vdisk_VM.chosenItems().serviceUuid);
+              var attr;
+              if(self.table_Vdisk_VM.chosenItems().feeType !=null && self.table_Vdisk_VM.chosenItems().feeType!=""){
+              	attr=self.table_Vdisk_VM.chosenItems().feeType.split(",")
+              }
+              diskEditObject.billRuleList(setArrayCharge(attr));
+              self.selectVdiskService(false);
+          }
+          
 		  
 		  var vmOrderItems = [];
 		  var diskOrderItems= [];
@@ -508,25 +521,25 @@
                     	expireType:vmOrderItemVO.expireType,
                     	expireValue:vmOrderItemVO.expireValue
                     });
-                    console.log("currentVO",self.currentVO.toJSON())
+                   
                    
                     diskOrderItems.forEach(function(e){
                     	var metaDataJson = JSON.parse(e.metaData);
                     	var diskData = metaDataJson.resBaseInfo;
-                    	
-                    	
-                    	
-                        csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+e.serviceUuid, function(res){
-                        	var vo=new MountDiskVO();
-                        	vo.name(e.instanceName);
-                            vo.size(diskData.volumeSize);
-                            vo.serviceUuid(e.serviceUuid);
-                            vo.serviceName(e.serviceName);
-                            vo.billRuleUuid(e.billcycle);
-                            vo.billRuleList(setArrayCharge(res.chargeList));
-                            vo.price(e.price);
-                            self.currentVO().mountDisks.push(vo);
-                        });
+                    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+e.serviceUuid, function(serviceVO){
+                    		 csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+e.serviceUuid, function(res){
+                    			console.log("---",serviceVO)
+                             	var vo=new MountDiskVO();
+                             	vo.name(e.instanceName);
+                                 vo.size(diskData.volumeSize);
+                                 vo.serviceUuid(e.serviceUuid);
+                                 vo.serviceName(serviceVO.name);
+                                 vo.billRuleUuid(e.billcycle);
+                                 vo.billRuleList(setArrayCharge(res.chargeList));
+                                 vo.price(e.price);
+                                 self.currentVO().mountDisks.push(vo);
+                             });
+                    	})
                     });
                     
                     console.log(self.currentVO.toJSON())
@@ -542,7 +555,7 @@
                     self.currentVO().expireText(v);
                     self.currentVO().billRuleList(setArrayCharge(result.chargeList));
                    
-                 
+                    console.log("currentVO",self.currentVO.toJSON())
                    
                  });                             
              });

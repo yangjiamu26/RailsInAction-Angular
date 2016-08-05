@@ -60,7 +60,7 @@
                 </label>
               </div>                     
             </td>
-            <td><a href="#pages/resources/partitions/partition_detail" data-bind="text:name,attr:{href:'#pages/resources/partitions/partition_detail?azUuid=' + $row.uuid + '&cloudPlatform='+$row.cloudPlatform}"></a></td>
+            <td><a href="#pages/resources/partitions/partition_detail" data-bind="text:name,attr:{href:'#pages/resources/partitions/partition_detail?azUuid=' + $row.uuid + '&cloudPlatform='+$row.cloudPlatform + '&virtualHypervisor='+$row.virtualHypervisor}"></a></td>
             <td data-bind="text:resourcePoolNum==null?0:resourcePoolNum"></td>
             <td data-bind="text:datacenterName"></td>
             <td data-bind="text:cloudplatformName"></td>
@@ -125,7 +125,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">云管理平台</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:cloudplatformUuid, options: $root.cloudPlatforms, optionsText: 'name', optionsValue: 'uuid'">
+            <select class="form-control" data-bind="value:cloudplatformUuid, options: $root.cloudPlatforms, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_cloudPlatforms}">
               <option value="1">1</option>
               <option value="2">2</option>
             </select>
@@ -226,54 +226,68 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       };
       this.currentVO = new CurrentVO();
 	  
-      //数据中心，下拉列表
+      //数据中心,下拉列表
       this.dcs = ko.observableArray([]);
-      //可用分区，下拉列表
+      //云平台,下拉列表
       this.cloudPlatforms = ko.observableArray([]);
-      //虚拟化类型
+      //虚拟化类型,下拉列表
       this.virtualHypervisors = ko.observableArray([]);
+      //加载数据中心方法
       this.loadDcs = function(){
         $.ajax("api/v5.0.0/datacenters").done(function(data){
           self.dcs(data.results);
-          //var dcsDef = {name:"全部",uuid:''};
-  		  //var cloudPlatformDef = {name:"全部",uuid:''}
-  		  //self.dcs.unshift(dcsDef);
-  		  //self.cloudPlatforms.unshift(cloudPlatformDef);
           self.onchange_dcs();
         });
       };
-      
+      //加载云平台方法
       this.loadCloudPlatforms = function(dcId, isFilterHasAz){
     	if(isFilterHasAz){
     		$.ajax("api/v5.0.0/cloudPlatforms?isFilterHasAz=true&dataCenterUUID=" + dcId).done(function(data){
-    	          self.cloudPlatforms(data.results);
-    	        });    		
+   	          self.cloudPlatforms(data.results);
+   	        });    		
     	}else{
     		$.ajax("api/v5.0.0/cloudPlatforms?dataCenterUUID=" + dcId).done(function(data){
-    	          self.cloudPlatforms(data.results);
-    	        });
+   	          self.cloudPlatforms(data.results);
+   	        });
     	}
       };
-      this.loadVirtualHypervisors = function(){
-		self.virtualHypervisors.unshift({name:"WinServer",cloudPlatform:'WinServer'});
-		self.virtualHypervisors.unshift({name:"Xen",cloudPlatform:'Xen'});
-		self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});
-		self.virtualHypervisors.unshift({name:"Kvm",cloudPlatform:'Kvm'});
-		self.virtualHypervisors.unshift({name:"PowerVM",cloudPlatform:'PowerVM'});
-		self.virtualHypervisors.unshift({name:"Docker",cloudPlatform:'Docker'});
+      //加载虚拟化类型方法
+      this.loadVirtualHypervisors = function(type){
+    	  if(type == "OpenStack"){
+    		  self.virtualHypervisors.unshift({name:"Kvm",cloudPlatform:'Kvm'});
+    		  self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});
+    	  }else{
+    		  self.virtualHypervisors.unshift({name:"Xen",cloudPlatform:'Xen'});
+   			  self.virtualHypervisors.unshift({name:"WinServer",cloudPlatform:'WinServer'});
+   			  self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});		
+   			  self.virtualHypervisors.unshift({name:"PowerVM",cloudPlatform:'PowerVM'});
+    	  }
+		
       };
       
-      this.loadVirtualHypervisors();
-      
+      //数据中心下拉框onChange
       this.onchange_dcs = function(){
-    	  var dcId = self.currentVO.toJSON().datacenterUuid;
-    	  self.loadCloudPlatforms(dcId, true);
+    	  var dcUuid = self.currentVO.toJSON().datacenterUuid;
+    	  var azUuid = self.currentVO.toJSON().uuid;
+    	  //结合可用分区UUID判断是新增还是修改
+    	  if(azUuid){//修改 
+    		self.loadCloudPlatforms(dcUuid, false);
+    	  }else{//新增
+	    	self.loadCloudPlatforms(dcUuid, true);
+    	  }
+      }
+      //虚拟化云平台下拉框onChange
+      this.onchange_cloudPlatforms = function(){
+    	  //TODO 根据选中虚拟化云平台类型来联动加载
+    	  
+    	  self.loadVirtualHypervisors("OpenStack");
       }
       
       //console.log(this.dcs.toJSON());
       
       this.add = function(){
         this.currentVO.fromJSON({
+          uuid:'',
           name:'',
           datacenterUuid:'',
           cloudplatformUuid:'',
