@@ -86,7 +86,7 @@
 			 * 删除负载均衡器成员
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerMember:function(uuid,name,callback){
+			deleteLoadBalancerMember:function(uuid,callback){
 				csc.rest.del('api/v5.0.0/loadBalancerMembers/' + uuid,function(data){
 					 callback(data)
    		        })
@@ -126,7 +126,7 @@
 			 * 删除负载均衡器监控
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerMonitor:function(uuid,name,callback){
+			deleteLoadBalancerMonitor:function(uuid, callback){
 				csc.rest.del('api/v5.0.0/loadBalancerMonitors/' + uuid,function(data){
 					 callback(data)
    		        })
@@ -165,7 +165,7 @@
 			 * 删除负载均衡器VIP
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerVip:function(uuid,name,callback){
+			deleteLoadBalancerVip:function(uuid,callback){
 				csc.rest.del('api/v5.0.0/loadBalancerVips/' + uuid,function(data){
 					 callback(data)
    		        })

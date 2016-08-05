@@ -168,7 +168,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">网络</label>
                 <div class="col-sm-8">
-                  <select class="form-control" data-bind="options:$root.subnetList,optionsText:'cidr',optionsValue:'originalSubId',value: subnetId, disable: vpcUuid==null">
+                  <select class="form-control" data-bind="options:$root.vpcNetworkList,optionsText:'name',optionsValue:'uuid',value: vpcNetworkUuid, disable: vpcUuid==null">
                     <option>192.168.0.0/24</option>
                   </select>
                 </div>
@@ -479,13 +479,13 @@
 	            </tr>
 	            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td data-bind="text: $row.name">VM1</td>
+                  <td data-bind="text: $row.vmName">VM1</td>
                   <td data-bind="text: $row.address">192.169.22.56</td>
                   <td><span class="label label-success" data-bind="text: $row.state">运行中</span></td>
                   <td data-bind="text: $row.protocolPort">8080</td>
                   <td data-bind="text: $row.weight">20</td>
                   <td data-bind="text: $row.lbName">负载均衡器1</td>
-                  <td><a data-bind="click: $root.showAddMember">修改</a> | <a>删除</a></td>
+                  <td><a data-bind="click: $root.showAddMember">修改</a> | <a data-bind="click: $root.deleteLbMember">删除</a></td>
                 </tr>
                 <!-- /ko -->
               </tbody>
@@ -498,11 +498,11 @@
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>监控列表</h5>
           <p class="form-inline">
-            <a class="btn btn-sm btn-info" data-bind="click: addMonitor">添加监控</a>
+            <a class="btn btn-sm btn-info" data-bind="click: showAddMonitor">添加监控</a>
             <a class="text-info pull-right m-t-sm">刷新</a>
           </p>
           <div class='table-responsive no-height'>
-            <table class="table table-striped">
+            <table class="table table-striped" data-bind="with: lbMonitorTable">
               <thead>
                 <tr>
                   <th>监控类型</th>
@@ -514,22 +514,21 @@
                 </tr>
               </thead>
               <tbody>
+              	<tr data-bind="visible: showNoData">
+	              <td colspan=13 class="aligncenter">
+	             	 暂无数据
+	              </td>
+	            </tr>
+	            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td>TCP</td>
-                  <td>7</td>
-                  <td>10</td>
-                  <td>5</td>
-                  <td>GET/192.168.1.1:8090=>200</td>
-                  <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
+                  <td data-bind="text: $row.type">TCP</td><!-- 监控类型 -->
+                  <td data-bind="text: $row.delay">7</td><!-- 延迟 -->
+                  <td data-bind="text: $row.timeout">10</td><!-- 超时 -->
+                  <td data-bind="text: $row.maxRetries">5</td><!-- 最大重试次数 -->
+                  <td data-bind="text: $row.detail">GET/192.168.1.1:8090=>200</td><!-- 详情 -->
+                  <td><a data-bind="click: $root.showAddMonitor">修改</a> | <a data-bind="click: $root.delMonitor">删除</a></td>
                 </tr>
-                <tr>
-                  <td>TCP</td>
-                  <td>7</td>
-                  <td>10</td>
-                  <td>5</td>
-                  <td>GET/192.168.1.1:8090=>200</td>
-                  <td><a data-bind="click: addMonitor">修改</a> | <a>删除</a></td>
-                </tr>
+                 <!-- /ko -->
               </tbody>
             </table>
           </div>
@@ -599,23 +598,19 @@
     <!-- 添加成员 END -->
 
     <!-- 添加监控页面 -->
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddMonitor }">
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowAddMonitor}">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
           <div class='modal-header'>
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             <h3 class='modal-title'>添加监控</h3>
           </div>
-          <div class='modal-body form-horizontal'>
+          <div class='modal-body form-horizontal' data-bind="with: currentMonitorVo">
             <div class="tab-pane active">
               <div class="form-group">
                 <label class="col-xs-4 control-label">监控类型：</label>
                 <div class="col-xs-5">
-                  <select class="form-control">
-                    <option value="TCP">TCP</option>
-                    <option value="http">http</option>
-                    <option value="https">https</option>
-                  </select>
+                  <input class="form-control" type="text" data-bind="value: type" disabled/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -624,7 +619,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">延迟：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" />
+                  <input class="form-control" type="text" data-bind="value: delay"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -633,7 +628,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">超时：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" />
+                  <input class="form-control" type="text" data-bind="value: timeout"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -642,37 +637,35 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">最大重试次数：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" />
+                  <input class="form-control" type="text" data-bind="value: maxRetries"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
                   <span>(1~10)</span>
                 </div>          
               </div>
-              <div class="form-group">
+              <div class="form-group" data-bind="visible: !$root.isTcpHide()">
                 <label class="col-xs-4 control-label">http方式：</label>
                 <div class="col-xs-5">
-                  <select class="form-control">
-                    <option value="">GET</option>
-                  </select>
+                  <input class="form-control" type="text" data-bind="value: httpMethod" disabled/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
                 </div>          
               </div>
-              <div class="form-group">
+              <div class="form-group" data-bind="visible: !$root.isTcpHide()">
                 <label class="col-xs-4 control-label">URL：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" value="/" />
+                  <input class="form-control" type="text" data-bind="value: urlPath"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
                 </div>          
               </div>
-              <div class="form-group">
+              <div class="form-group" data-bind="visible: !$root.isTcpHide()">
                 <label class="col-xs-4 control-label">期待http状态代码：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" value="200" />
+                  <input class="form-control" type="text" data-bind="value: expectedCodes"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -682,7 +675,7 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.addMonitor"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
@@ -691,26 +684,6 @@
     <!-- 添加监控END -->
 
   </div>
-<!--   <script type="text/javascript">
-    var scripts = [null,null]
-    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-      function ViewModel(){
-        var self = this;
-
-        this.isShowAddMember = ko.observable(false);
-        this.showAddMember = function(){
-          this.isShowAddMember(true);
-        }
-        this.isAddMonitor = ko.observable(false);
-        this.addMonitor = function(){
-          this.isAddMonitor(true);
-        }
-      }
-      var viewModel = new ViewModel();
-      ko.applyBindings(viewModel, $("#instance_balancer_details")[0]);
-    });
-  </script> -->
-
   <!-- 负载均衡器详情 end -->
 
 <script type="text/javascript">
@@ -801,7 +774,7 @@
     		vdcUuid: 	ko.observable("").extend({required: true}),
     		azUuid:		ko.observable("").extend({required: true}),
     		vpcUuid: 	ko.observable("").extend({required: true}),
-    		subnetId: ko.observable("").extend({required: true}),
+    		vpcNetworkUuid: ko.observable("").extend({required: true}),
     		protocol: 	ko.observable("").extend({required: true}),
     		lbMethod: 	ko.observable("").extend({required: true}),
     		timeType: 	ko.observable("").extend({required: true}),
@@ -812,7 +785,7 @@
     	this.vdcList = ko.observableArray();
         this.azList = ko.observableArray();
         this.vpcList = ko.observableArray();
-        this.subnetList = ko.observableArray();
+        this.vpcNetworkList = ko.observableArray();
         this.protocolList = ko.observableArray();
         this.lbMethodList = ko.observableArray();
       	
@@ -824,7 +797,7 @@
         		vdcUuid:	"",
         		azUuid:		"",
         		vpcUuid: 	"",
-        		subnetId:	"",
+        		vpcNetworkUuid:	"",
         		protocol: 	"",
         		lbMethod: 	"",
         		timeType: 	"",
@@ -874,14 +847,14 @@
     	    	
     	    });
 			
-			//VPC获取subnetList
+			//VPC获取vpcNetworkList
 			subscriptionVpc = self.createBlVo().vpcUuid.subscribe(function(val){
-			    self.subnetList([{"name": "", "uuid": ""}]);
+			    self.vpcNetworkList([{"name": "", "uuid": ""}]);
 			    if(csc.util.isNotNull(val)){
 			    	$.VPC.getVpcNet({vpcUuid:val,type:"INNER"},function(data){
 		   				 if(data && data.results){
-		   					 self.subnetList(data.results);
-		   					 self.subnetList.unshift({"name": "", "uuid": ""});
+		   					 self.vpcNetworkList(data.results);
+		   					 self.vpcNetworkList.unshift({"name": "", "uuid": ""});
 		   				 }
 		   			});
 			    }
@@ -918,6 +891,7 @@
     				"lbUuid": 	row.uuid
     			};
     			self.lbMemberTable.params(p);
+    			self.lbMonitorTable.params(p);
     		}
     		
     	}
@@ -937,6 +911,19 @@
       	};
       	/********  添加VIP END  *********/
       	
+      	
+      	/********************  成员列表   ************************/
+        
+        this.lbMemberTable = new DataTable({
+  		  perPage: 10,
+            path: 'api/v5.0.0/loadBalancerMembers',
+            loader: function(result){
+                //result.userName_ = "超级管理员"; 
+                return result;
+            }
+    	});
+        
+        /********************  成员列表  END ************************/
       	/********************  添加成员   ************************/
       	this.isShowAddMember = ko.observable(false);
       	this.currentMemberVo = ko.observable();
@@ -976,29 +963,81 @@
         }
         
         
-        /********************  添加成员  END ************************/
-        /********************  成员列表   ************************/
+        /********************  修改成员  ************************/
         
-        this.lbMemberTable = new DataTable({
-  		  perPage: 10,
-            path: 'api/v5.0.0/loadBalancerMembers',
+        
+        
+        /********************  删除成员  ************************/
+        this.deleteLbMember = function(vo){
+      	  var name = vo.vmName;
+  		  confirm("确定删除负载均衡器成员[" + name + "]？", function(arg){
+  			$.LOAD_BALANCER.deleteLoadBalancerMember(vo.uuid, function(data){
+  				self.lbMemberTable.refreshData();
+  				alert("删除负载均衡器成员[" + name + "]成功！")
+       		});
+  		  });
+        }
+        
+        /********************  负载均衡器监听模块   ************************/
+        /********************  添加列表   ************************/
+        this.lbMonitorTable = new DataTable({
+  		  	perPage: 10,
+            path: 'api/v5.0.0/loadBalancerMonitors',
             loader: function(result){
-                //result.userName_ = "超级管理员"; 
+                result.detail = result.httpMethod + result.urlPath + " => " + result.expectedCodes; 
                 return result;
             }
     	});
         
-        /********************  成员列表  END ************************/
-        
-        
-        
         /********************  添加监控   ************************/
-        this.isAddMonitor = ko.observable(false);
-        this.addMonitor = function(){
-          this.isAddMonitor(true);
+        this.isShowAddMonitor = ko.observable(false);
+        this.currentMonitorVo = ko.validatedObservable();
+        
+        this.isTcpHide = ko.observable();//当协议类型为TCP时，需要隐藏的字段
+        
+        this.showAddMonitor = function(){
+        	self.isShowAddMonitor(true);
+        	//初始化currentMonitorVo数据
+        	var protocolType = self.currentLbVo().protocol;
+        	if("TCP" == protocolType){
+        		self.isTcpHide(true);
+        	}else{
+        		self.isTcpHide(false);
+        	}
+        	self.currentMonitorVo({
+        		azUuid:		self.currentLbVo().azUuid,
+        		lbUuid:		self.currentLbVo().uuid,
+        		type: 	self.currentLbVo().protocol,
+        		delay:		20,
+        		timeout:	10,
+        		maxRetries:	1,
+        		httpMethod: "GET",
+        		urlPath:	"/",
+        		expectedCodes:"200"
+        	});
+        	
         }
         
-        /********************  添加监控   ************************/
+        this.addMonitor = function(){
+        	var p = self.currentMonitorVo();
+        	$.LOAD_BALANCER.createLoadBalancerMonitor(p, function(data){
+        		self.isShowAddMonitor(false);
+        		self.lbMonitorTable.refreshData();
+				alert("创建监听成功！")
+        	});
+        }
+        
+        /********************  删除模块   ************************/
+        this.delMonitor = function(vo){
+    		  confirm("确定删除该负载均衡器监听？", function(arg){
+    			$.LOAD_BALANCER.deleteLoadBalancerMonitor(vo.uuid, function(data){
+    				self.lbMonitorTable.refreshData();
+    				alert("删除负载均衡器监听成功！")
+         		});
+    		  });
+        }
+        
+        /********************  监控模块   ************************/
     };
     ko.applyBindings(new ViewModel_Balancer(), $('#partition_balancer')[0]);
   })
