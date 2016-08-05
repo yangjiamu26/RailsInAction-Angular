@@ -724,7 +724,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		}
 	    
 	    function nameCheck(jsonArray,type,callback){
-	    	var count = 0;
+	    	var orderCount = 0;
+	    	var instanceCount = 0;
 			for(var i=0;i<jsonArray.length;i++){
 				var name_i;
 				if(type == "VM"){
@@ -745,19 +746,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					}
 				}
 			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name_i,function(result){
-			 		 if(result.result==true){
-			 			  systemMsg.alert(result.message);
+			 		 if(result.isExist==true){
+			 			  systemMsg.alert("已存在名称为"+result.name+"的购物车申请");
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result.name,function(result1){	
-						 		if(result1.isExist=="true"){
-									  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+result.name,function(result1){	
+						 		if(result1.isExist==true){
+									  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
 									  callback(false);
 								  }else{
-									  count = count+1;
-									  if(count==jsonArray.length){
-										  callback(true);
-									  }
+									   orderCount = orderCount+1;
+									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result1.name,function(result2){	
+									 		if(result2.isExist=="true"){
+												  systemMsg.alert("已存在名称为"+result2.name+"的资源实例");
+												  callback(false);
+											  }else{
+												  instanceCount = instanceCount+1;
+												  if((instanceCount==jsonArray.length)&&(orderCount==jsonArray.length)){
+													  callback(true);
+												  }
+											  }
+									    });
 								  }
 						    });
 					  }
