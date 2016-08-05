@@ -1,5 +1,6 @@
-<!-- 负载均衡器列表 -->
 <div>
+<!-- 负载均衡器列表 -->
+<div data-bind="visible: !isShowDetail()">
   <!-- 负载均衡器搜索栏 -->
   <div class="row wrapper">
     <div class="col-xs-1">
@@ -62,7 +63,7 @@
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td><a onclick="$('#instance_balancer_details').show().siblings().hide();" data-bind="text: $row.name">负载均衡器1</a></td><!-- 负载均衡器名称 -->
+            <td><a data-bind="click: $root.showDetailFun"><span data-bind="text: $row.name"></span></a></td><!-- 负载均衡器名称 -->
             <td data-bind="text: $row.vdcName">VDC1</td> <!-- 所属VDC -->
             <td data-bind="text: $row.azName">AZ1</td>  <!-- 可用分区 -->
             <td data-bind="text: $row.vpcName">VPC1</td><!-- 所属VPC -->
@@ -355,10 +356,10 @@
 <!-- 添加VIP页面 END -->
 
   <!-- 负载均衡器详情 -->
-  <div id="instance_balancer_details" style="display: none ">
-
+  <div id="instance_balancer_details" data-bind="visible: isShowDetail()">
+		<!-- 负载均衡器基本信息 -->
         <div class="wrapper">
-          <a class="btn btn-sm btn-default" onclick="$('#instance_balancers').show().siblings().hide();$('#instance_balancers').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
+          <a class="btn btn-sm btn-default" data-bind="click: $root.showDetailFun"><i class="fa fa-arrow-left"></i> 返回</a>
           <a class="btn btn-sm btn-info">编辑VIP</a>
           <a class="btn btn-sm btn-info">有效时间变更</a>
           <a class="btn btn-sm btn-info">终止</a>
@@ -367,34 +368,34 @@
 
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
-          <div class="bg-light b-t b-b wrapper-sm text-nowarp">
+          <div class="bg-light b-t b-b wrapper-sm text-nowarp" data-bind="with: $root.currentLbVo">
             <div class="row m-b">
               <div class="col-xs-1 font-bold">负载均衡器名称：</div>
-              <div class="col-xs-3">负载均衡器1</div>
+              <div class="col-xs-3" data-bind="text: name">负载均衡器</div>
               <div class="col-xs-1 font-bold">所属VDC：</div>
-              <div class="col-xs-3">VDC1</div>
+              <div class="col-xs-3" data-bind="text: vdcName">VDC1</div>
               <div class="col-xs-1 font-bold">可用分区：</div>
-              <div class="col-xs-3">可用分区1</div>
+              <div class="col-xs-3" data-bind="text: azName">可用分区1</div>
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">所属VPC：</div>
-              <div class="col-xs-3">VPC1</div>
+              <div class="col-xs-3" data-bind="text: vpcName">VPC1</div>
               <div class="col-xs-1 font-bold">网络：</div>
-              <div class="col-xs-3">208</div>
+              <div class="col-xs-3" data-bind="text: cidr">208</div>
               <div class="col-xs-1 font-bold">协议：</div>
-              <div class="col-xs-3">TCP</div>
+              <div class="col-xs-3" data-bind="text: protocol">TCP</div>
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">负载方式：</div>
-              <div class="col-xs-3">SOURCE_IP</div>
+              <div class="col-xs-3" data-bind="text: lbMethod">SOURCE_IP</div>
               <div class="col-xs-1 font-bold">状态：</div>
-              <div class="col-xs-3"><span class="label label-success">运行中</span></div>
+              <div class="col-xs-3"><span class="label label-success" data-bind="text: state">运行中</span></div>
               <div class="col-xs-1 font-bold">创建人：</div>
-              <div class="col-xs-3">admin</div>
+              <div class="col-xs-3" data-bind="text: userName">admin</div>
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">备注：</div>
-              <div class="col-xs-11"></div>
+              <div class="col-xs-11" data-bind="text: desc"></div>
             </div>
           </div>
         </div>
@@ -404,13 +405,13 @@
           <div class="col-xs-4">
             <div class="clear bg-success wrapper">
               <div class="detail-others-img img-serverinfo">服务信息</div>
-              <div class="detail-others-text h-xs">
+              <div class="detail-others-text h-xs" data-bind="with: $root.currentLbVo">
                 <p>服务状态：
-                    <span class="label label-info">正常</span>
+                    <span class="label label-info" data-bind="text: serviceState">正常</span>
                 </p>
-                <p>创建时间：<span>2016-08-04 14:28:50</span></p>
-                <p>生效时间：<span>2016-08-04 14:28:54</span></p>
-                <p>失效时间：<span>2016-08-04 14:28:54</span></p>
+                <p>创建时间：<span data-bind="text: createTime">2016-08-04 14:28:50</span></p>
+                <p>生效时间：<span data-bind="text: expiredDate">2016-08-04 14:28:54</span></p>
+                <p>失效时间：<span data-bind="text: expiredDate">2016-08-04 14:28:54</span></p>
               </div> 
             </div>             
           </div>
@@ -448,15 +449,17 @@
             </div>
           </div>
         </div>
-          
+        <!-- 负载均衡器基本信息  END -->
+        
+        <!-- 负载均衡器成员列表 -->  
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>成员列表</h5>
           <p class="form-inline">
-            <a class="btn btn-sm btn-info" data-bind="click: addMember">添加成员</a>
+            <a class="btn btn-sm btn-info" data-bind="click: showAddMember">添加成员</a>
             <a class="text-info pull-right m-t-sm">刷新</a>
           </p>
           <div class='table-responsive no-height'>
-            <table class="table table-striped">
+            <table class="table table-striped" data-bind="with: lbMemberTable">
               <thead>
                 <tr>
                   <th>云主机名称</th>
@@ -469,29 +472,29 @@
                 </tr>
               </thead>
               <tbody>
+                <tr data-bind="visible: showNoData">
+	              <td colspan=13 class="aligncenter">
+	             	 暂无数据
+	              </td>
+	            </tr>
+	            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                 <tr>
-                  <td>VM1</td>
-                  <td>192.169.22.56</td>
-                  <td><span class="label label-success">运行中</span></td>
-                  <td>TCP</td>
-                  <td>20</td>
-                  <td>负载均衡器1</td>
-                  <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
+                  <td data-bind="text: $row.name">VM1</td>
+                  <td data-bind="text: $row.address">192.169.22.56</td>
+                  <td><span class="label label-success" data-bind="text: $row.state">运行中</span></td>
+                  <td data-bind="text: $row.protocolPort">8080</td>
+                  <td data-bind="text: $row.weight">20</td>
+                  <td data-bind="text: $row.lbName">负载均衡器1</td>
+                  <td><a data-bind="click: $root.showAddMember">修改</a> | <a>删除</a></td>
                 </tr>
-                <tr>
-                  <td>VM2</td>
-                  <td>192.169.22.56</td>
-                  <td><span class="label label-success">运行中</span></td>
-                  <td>TCP</td>
-                  <td>20</td>
-                  <td>负载均衡器1</td>
-                  <td><a data-bind="click: addMember">修改</a> | <a>删除</a></td>
-                </tr>
+                <!-- /ko -->
               </tbody>
             </table>
           </div>
         </div>
-
+		<!-- 负载均衡器成员列表  END-->  
+		
+		<!-- 负载均衡器监控列表 -->  
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>监控列表</h5>
           <p class="form-inline">
@@ -531,24 +534,24 @@
             </table>
           </div>
         </div>
-
+		<!-- 负载均衡器成员列表 -->  
   </div> 
   <!-- 负载均衡器详情 END -->
 
     <!-- 添加成员页面 -->
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddMember }">
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowAddMember }">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
           <div class='modal-header'>
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             <h3 class='modal-title'>添加成员</h3>
           </div>
-          <div class='modal-body form-horizontal'>
-        <div class="tab-pane active">
-          <div class="form-group">
+          <div class='modal-body form-horizontal' data-bind="with: currentMemberVo">
+        	<div class="tab-pane active">
+          	  <div class="form-group">
                 <label class="col-xs-4 control-label">负载均衡器名称：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" value="负载均衡器1" disabled/>
+                  <input class="form-control" type="text" value="负载均衡器1" data-bind="value: lbName" disabled/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -557,9 +560,8 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">云主机：</label>
                 <div class="col-xs-5">
-                  <select class="form-control">
+                  <select class="form-control" data-bind="options: $root.memberVmList, optionsText:'vmName',value: vm">
                     <option value="">VM1</option>
-                    <option value="">VM2</option>
                   </select>
                 </div>
                 <div class="col-xs-3">
@@ -569,7 +571,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">协议端口：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" />
+                  <input class="form-control" type="text" data-bind="value: port"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -578,7 +580,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">权重：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" />
+                  <input class="form-control" type="text" data-bind="value: weight"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -588,7 +590,7 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.addMember"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
@@ -695,9 +697,9 @@
       function ViewModel(){
         var self = this;
 
-        this.isAddMember = ko.observable(false);
-        this.addMember = function(){
-          this.isAddMember(true);
+        this.isShowAddMember = ko.observable(false);
+        this.showAddMember = function(){
+          this.isShowAddMember(true);
         }
         this.isAddMonitor = ko.observable(false);
         this.addMonitor = function(){
@@ -903,6 +905,29 @@
       	}
       	/********  创建负载均衡器 END   *********/
       	
+      	/********  创建负载均衡器基本信息   *********/
+      	
+      	this.currentLbVo = ko.observable();
+      	this.isShowDetail = ko.observable(false);
+      	
+      	this.showDetailFun = function(row,event){
+    		self.isShowDetail(!self.isShowDetail());
+    		if(self.isShowDetail()){
+    			self.currentLbVo(row);
+    			var p = {
+    				"lbUuid": 	row.uuid
+    			};
+    			self.lbMemberTable.params(p);
+    		}
+    		
+    	}
+      	
+      	
+      	/********  创建负载均衡器基本信息 END   *********/
+      	
+      	
+      	
+      	
       	/********  添加VIP   *********/
       	this.showAddVipPage = ko.observable(false);
       	
@@ -913,11 +938,59 @@
       	/********  添加VIP END  *********/
       	
       	/********************  添加成员   ************************/
-      	this.isAddMember = ko.observable(false);
-        this.addMember = function(){
-          this.isAddMember(true);
+      	this.isShowAddMember = ko.observable(false);
+      	this.currentMemberVo = ko.observable();
+      	this.memberVmList = ko.observableArray();
+      	
+        this.showAddMember = function(){
+          	self.isShowAddMember(true);
+          	
+          	self.currentMemberVo({
+          		"azUuid": self.currentLbVo().azUuid,
+          		"lbId": self.currentLbVo().originalId,
+          		"lbUuid": self.currentLbVo().uuid,
+          		"lbName": self.currentLbVo().name,
+          		"vm":"",
+          		"port":80,
+          		"weight":1
+          	});
+          	var vmList = $.LOAD_BALANCER.getMemberVms;
+          	self.memberVmList(vmList);
         }
+        this.addMember = function(){
+        	var p = {
+        		"azUuid": self.currentMemberVo().azUuid,
+        		"lbId": 	self.currentMemberVo().lbId,
+        		"lbUuid": 	self.currentMemberVo().lbUuid,
+        		"address":	self.currentMemberVo().vm.address,
+          		"protocolPort":self.currentMemberVo().port,
+          		"weight":   self.currentMemberVo().weight,
+          		"vmName":	self.currentMemberVo().vm.vmName
+        	};
+        	var memName = self.currentMemberVo().lbName;
+        	$.LOAD_BALANCER.createLoadBalancerMember(p, function(data){
+        		self.isShowAddMember(false);
+        		self.lbMemberTable.refreshData();
+				alert("创建成员[" + memName + "]成功！")
+        	});
+        }
+        
+        
         /********************  添加成员  END ************************/
+        /********************  成员列表   ************************/
+        
+        this.lbMemberTable = new DataTable({
+  		  perPage: 10,
+            path: 'api/v5.0.0/loadBalancerMembers',
+            loader: function(result){
+                //result.userName_ = "超级管理员"; 
+                return result;
+            }
+    	});
+        
+        /********************  成员列表  END ************************/
+        
+        
         
         /********************  添加监控   ************************/
         this.isAddMonitor = ko.observable(false);

@@ -331,7 +331,7 @@
       <div class="form-inline m-l-xs pull-right">
           <div class="checkbox">
               <label class="i-checks">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" data-bind="checked: isSelectedAll">
                   <i></i>全选
               </label>
           </div>
@@ -386,7 +386,11 @@
                     vdiskJson["vdiskCartInfo"] = changeToJson(self.vdiskList_chosens());
                 }
                 if (self.objectStorageList_chosens().length > 0) {
-                    objectStorageJson["objectStorageCartInfo"] = changeToJson(self.objectStorageList_chosens());
+                	self.objectStorageList_chosens().forEach(function (e){
+                		console.log(e);
+                		console.log(e.uuid());
+                	})
+                	objectStorageJson["objectStorageCartInfo"] = changeToJson(self.objectStorageList_chosens());
                 }
                 if (self.publicNetworkList_chosens().length > 0) {
                     publicNetworkJson["vdiskCartInfo"] = changeToJson(self.publicNetworkList_chosens());
@@ -620,7 +624,7 @@
             this.isView_vm = ko.observable(false);
 
             this.vdcChange = function(arg, data, event) { //根据变化的vdc及服务ID查找其下的可用分区
-                csc.rest.get("api/v5.0.0/cart/getAzList/1/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                csc.rest.get("api/v5.0.0/cart/getAzList/"+data[arg]().serviceUuid()+"/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().azList(result);
                 });
             };
@@ -1175,12 +1179,12 @@
             function nameCheck(name,type,uuid,callback){
 			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name+'&uuid='+uuid,function(result){
 			 		 if(result.result==true){
-						  alert(result.message);
+			 			  systemMsg.alert(result.message);
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/orders/item/instance-name?type='+type+'&name='+result.name,function(result1){	
-						 		 if(result1.result==true){
-									  systemMsg.alert(result1.message);
+						 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result.name,function(result1){	
+						 		 if(result1.isExist=="true"){
+									  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
 									  callback(false);
 								  }else{
 									  callback(true);
@@ -1585,7 +1589,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1673,7 +1677,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1769,7 +1773,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1864,7 +1868,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1969,7 +1973,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -2074,7 +2078,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">

@@ -50,9 +50,9 @@
           <div>
 	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" onclick="save()">保存数据</button>
 	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
-	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal">转发</button>
+	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="transfer()">转发</button>
 	        <button name="button" id="btn_task_complete" class="btn btn-default btn btn-default" onclick="next()">转交下一步</button>
-	        <a  class="btn btn-default btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">取消</a>
+	        <a  class="btn btn-default btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">返回</a>
 	      </div>    
         </div>
     </div>
@@ -64,7 +64,7 @@
 <script type="text/javascript">
   var isLast = false;
   var isFirst = false;
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", "api/vdc/vdc.js", "api/resource/network/network.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     if(!args.type){
       $(".order-base-info").remove();
@@ -105,20 +105,30 @@
 			get_task_comment(args.taskId);
 			
 			//$("#orderContent").load("pages/workflows/vm_single.html");
+			
+			if(args.state){
+				
+			}
+			
 			//加载订单信息
-			csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
-				console.log(data);
+			csc.rest.get('api/v5.0.0/order/byFlowInstanceUuid/'+processInstanceId,function(data){
 	    		var order = data.order;
 	    		var flowType = order.type;
 	    		var productType = order.resourceType;
 	    		var url = '';
-	    		if(flowType=='VDC_APPLY'&&productType=='VDC'){
-	    			url = "pages/workflows/vdc_apply_single.html";
-	    		}else if(flowType=='RESOURCE_APPLY'&&productType=='VM'){
-	    			url = "pages/workflows/vm_apply_batch.html";
-	    		}
-	    		
-	    		if(flowType=='RESOURCE_APPLY'){
+	    		if(flowType=='VDC_APPLY'){//VDC申请
+	    			if(formKey=='approve'){
+	    				url = "pages/workflows/vdc_apply_single.html";
+	    			}else if(formKey=='construct'){
+	    				url = "pages/workflows/vdc_apply_construct.html";
+	    			}
+	    		}else if(flowType=='VDC_CHANGE'){//VDC变更
+	    			if(formKey=='approve'){
+	    				url = "pages/workflows/vdc_change.html";
+	    			}else if(formKey=='construct'){
+	    				url = "pages/workflows/vdc_change.html";
+	    			}
+	    		}else if(flowType=='RESOURCE_APPLY'){
 	    			if(formKey=='approve'){
 		    			url = setApproveUrl(flowType,productType,null);
 		    		}else if(formKey=='construct'){
@@ -217,6 +227,10 @@
   function saveComment(taskId,callback){
   	var message = $("#commentMsg").val();
   	var id = $("#commentId").val();
+  	if(message==''){
+  		alert("请填写审批意见！");
+  		return;
+  	}
   	csc.rest.post('api/v5.0.0/workflows/tasks/'+taskId+'/comments?message='+message+'&id='+id,'',function(data){
   		callback();
 	});
@@ -235,6 +249,11 @@
 	  }else{		  
 		  showModal("pages/workflows/next.html?taskId="+taskId);
 	  }
+  }
+  
+  function transfer(){
+	  var taskId = $("#taskId").text();
+	  showModal("pages/workflows/transfer.html?taskId="+taskId);
   }
   
   function back(){

@@ -82,7 +82,7 @@
             <li class='dropdown'>
               <a class='dropdown-toggle clear' data-toggle='dropdown'>
                 <i class='fa fa-user'></i>
-                <span class='hidden-sm hidden-md' data-bind="text:$root.user().name"></span>
+                <span class='hidden-sm hidden-md' data-bind="text:$root.user().account"></span>
                 <b class='caret'></b>
               </a>
               <!-- dropdown -->
@@ -114,10 +114,10 @@
                                 <td>邮箱：</td>
                                 <td data-bind="text:email">admin@winhong</td>
                             </tr>
-                            <tr>
+                            <!-- <tr>
                                 <td>用户状态：</td>
                                 <td><span class='label bg-success' data-bind="css:$root.userStatusCss(status),text:status==1?'有效':'无效'"></span></td>
-                            </tr>
+                            </tr> -->
                         </tbody>
                     </table>                
                 </li>
@@ -861,8 +861,11 @@
     <div class="modal fade modal-draggable" id="ajax_modal_0" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_1" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_2" tabindex="-1" role="dialog"></div>
-	<script src="api/v5.0.0/homepage/roles"></script>
-	<script src="api/vdc/vdc.js"></script>
+	<!-- 解决接口跨域的问题 -->
+	<script src="api/v5.0.0/uap/register"></script>
+	<!-- 解决js跨域的问题 -->
+	<script src="api/register.js"></script>  
+	<!-- 解决调用servlet跨域问题 -->
 	<script src="api/file/uploadServlet"></script>
     <script src='assets/js/jquery.min.js'></script>
 
@@ -994,7 +997,7 @@
 			this.editAction = function(){
 				ko.validation.group(self.editUser).showAllMessages();
 	    	    if(self.editUser.isValid()){
-					csc.rest.post("api/v5.0.0/homepage/user",self.user() ,function(data){
+					csc.rest.post("api/v5.0.0/homepage/user",self.editUser.toJSON() ,function(data){
 						if("success" == data.result){
 							hideModal();
 							systemMsg.alert("修改用户信息成功！");
@@ -1041,16 +1044,14 @@
 			this.editPasswordAction = function(){
 				ko.validation.group(self.userPasswordObj).showAllMessages();
 	    	    if(self.userPasswordObj.isValid()){
-					self.userPasswordObj().oldPassword = self.userPasswordObj().oldPassword();
-					self.userPasswordObj().password = self.userPasswordObj().password();
-					self.userPasswordObj().passwordRepeat = self.userPasswordObj().passwordRepeat();
-					
-					csc.rest.post("api/v5.0.0/homepage/user/password",self.userPasswordObj() ,function(data){
+					csc.rest.post("api/v5.0.0/homepage/user/password",self.userPasswordObj.toJSON() ,function(data){
 						if("success" == data.result){
 							hideModal();
 							systemMsg.alert("修改用户密码成功！");
-						}else{
+						}else if("fail" == data.result){
 							systemMsg.alert("修改用户密码失败");
+						}else{
+							systemMsg.alert(data.result);
 						}
 						self.userPasswordObj(new userPassword());
 					});

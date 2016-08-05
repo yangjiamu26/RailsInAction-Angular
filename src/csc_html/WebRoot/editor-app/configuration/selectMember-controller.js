@@ -22,7 +22,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				nodeName = node.name;
 				nodeId = node.id;
 				usersArr = [];
-				var param ="orgcode="+node.code;
+				var param ="orgId="+node.code+"&userType";
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
 			       success(function (data, status, headers, config) {					    	   
@@ -71,14 +71,14 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 	var orgUrl = KISBPM.URL.getOrgs();
 	$http({method: 'GET', url: orgUrl}).
        success(function (data, status, headers, config) {
-    	   for(var i=0; i<data.orgs.length; i++){
+    	   /*for(var i=0; i<data.orgs.length; i++){
 				data.orgs[i] = data.orgs[i];
 				data.orgs[i].iconSkin="zz";
 				data.orgs[i].open = true;
 			}
 			var rootNode = {code:"0",parentorgcode:"",name:"组织结构",iconSkin:"zzml",open:true};
-			data.orgs.push(rootNode);				
-			jQuery.fn.zTree.init(jQuery("#role_org_tree1"), settingRoleOrg, data.orgs);
+			data.orgs.push(rootNode);*/			
+			jQuery.fn.zTree.init(jQuery("#role_org_tree1"), settingRoleOrg, data);
 			jQuery("#role_org_tree1 a:eq(0)").trigger("mouseover").trigger("click");
         }).error(function (data, status, headers, config) {
             console.log('Error loading orgs');

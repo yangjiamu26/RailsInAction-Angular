@@ -5,7 +5,7 @@
           <div class="form-group">
             <label class="col-xs-2 control-label">VDC名称：</label>
             <div class="col-xs-7">
-              <input type="text" class="form-control col-xs-5" placeholder="请输入名称" id="vdcName">
+              <input type="text" class="form-control col-xs-5" placeholder="请输入名称" data-bind="value: currentVO().instanceName">
             </div>
           </div>
           <div class="form-group">
@@ -147,6 +147,22 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	function currentVO(){
+	  var self = this;
+	  
+	  this.vdc = ko.observable("");
+	  this.order = ko.observable("");
+	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+		 //获取订单数据
+      	 csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
+      		self.vdc(data.vms);
+      		sellf.order();
+      	 })
+	  })
+	}
+	ko.applyBindings(new currentVO(), $('#applyContent')[0]); 
+	  
     if(args.taskId){
     	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
     		var processInstanceId = data.taskInfo[0].processInstanceId;
