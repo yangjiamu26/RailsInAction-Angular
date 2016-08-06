@@ -560,6 +560,51 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.editService = function(object, event){
     	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+object.uuid, function(data){
     		  loadServiceTree();//加载服务目录树
+    		  var isfee = data.charge;    		  
+    		  self.isFee(isfee+"");
+    		  if(isfee == 0){
+    			  var feeType = data.chargeType;
+    			  var feeTypeList = new Array();
+    			  if(feeType.indexOf(",") != -1){
+    				  feeTypeList = feeType.split(",");
+        		  }else{
+        			  feeTypeList.push(feeType);
+        		  }
+//    			  self.packages_chosen(feeTypeList);
+debugger
+    			  var billRuleList = data.billRules;
+    			  if(feeTypeList.length > 0){
+    				  if(self.packages_chosen().length > 0){
+    					  self.packages_chosen.removeAll();
+    				  }
+    				  for(var i = 0;i < feeTypeList.length;i++){
+    					  var feeList1 = new Array();
+    					  var package1;
+    					  if(feeTypeList[i] == "DAY"){
+    						  package1 = new Package("按天","DAY");
+    						  //package1 = new Package("DAY");
+        				  }else if(feeTypeList[i] == "MONTH"){
+        					  package1 = new Package("按月","MONTH");
+        					  //package1 = new Package("MONTH");
+        				  }else if(feeTypeList[i] == "QUARTER"){
+        					  package1 = new Package("按季度","QUARTER");
+        					  //package1 = new Package("QUARTER");
+        				  }else if(feeTypeList[i] == "YEAR"){
+        					  package1 = new Package("按年","YEAR");
+        					  //package1 = new Package("YEAR");
+        				  }
+    					  if(billRuleList.length > 0){
+    						  for(var j = 0;j < billRuleList.length; j++){
+    							  if(feeTypeList[i] == billRuleList[j].cycle){
+    								  feeList1.push(billRuleList[j]);
+    							  }
+    						  }
+    					  }
+    					  package1.feeList = feeList1;
+    					  self.packages_chosen.push(package1);
+    				  }
+    			  }
+    		  }
     		  self.serviceVO.fromJSON({
      			 uuid : data.uuid,
    	     		 name : data.name,
@@ -569,21 +614,32 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
    	   	  		 imageUrl : data.imageUrl,
    	   	  		 desc : data.desc,
    	   	  		 validTimeType : data.validTimeType+"",
-   	   	  		 charge : data.charge/* ,
-   	   	  		 serviceVDC : {
-   	   	  			 isLimit : 'no',
-   	   	  			 osTypeList : ko.observableArray()
-   	   	  		 }  */  	  		 
+   	   	  		 charge : data.charge+""  	  		 
    	     	  });
     		  if(data.productId == "VDC"){
     			  loadVdcOsType(false);
-    			  self.showItems(data.serviceVDC.isLimit);
+    			  var limit = data.serviceVDC.isLimit;
+    			  self.showItems(limit);
     			  var vdcOsType = data.serviceVDC.osType;
     			  if(vdcOsType.indexOf(",") != -1){
     				  self.serviceVO().serviceVDC.osTypeList(vdcOsType.split(","));
         		  }else{
         			  self.serviceVO().serviceVDC.osTypeList(vdcOsType);
         		  }
+    			  if(limit == "yes"){
+    				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
+    				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
+    				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
+    				  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
+    				  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
+    				  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
+    				  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
+    				  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
+    				  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
+    				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
+    				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
+    				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
+    			  }
     		  }else{
     			  loadReleaseVdc(false);//加载发布范围列表
     			  getAzsByUser(viewModel,false);
@@ -626,7 +682,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
    	  		 charge : "1",
    	  		 serviceVDC : {
    	  			 isLimit : this.showItems,
-   	  			 osTypeList : ko.observableArray()
+   	  			 osTypeList : ko.observableArray(),
+	   	  		 maxCpu : ko.observable(),
+	 			 maxVmNum : ko.observable(),
+	 			 maxMemory : ko.observable(),
+	 			 maxDiskNum : ko.observable(),
+	 			 maxStorager : ko.observable(),
+	 			 maxIpNum : ko.observable(),
+	 			 maxVPC : ko.observable(),
+	 			 maxRouterNum : ko.observable(),
+	 			 maxObjStorageNum : ko.observable(),
+	 			 maxFireWallNum : ko.observable(),
+	 			 maxSSHNum : ko.observable(),
+	 			 maxLoadBalanceNum : ko.observable()
    	  		 }   	  		 
      	  });
     	  //初始化数据end
@@ -715,18 +783,28 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         <!--选择产品end-->  	    
         
         <!--  添加计费规则start -->
-        function Package(type,value){
+        function Package(type,value,feeList){
       	  this.type = ko.observable(type);
       	  this.value = ko.observable(value);
-      	  this.feeList = ko.observableArray();
+      	  this.feeList = ko.observableArray(feeList);
         }
+        /* function Package(value){
+       	  this.value = ko.observable(value);
+       	  this.feeList = ko.observableArray();
+        } */
         this.packages = ko.observableArray([
-      		  new Package("按天","DAY"),
-      		  new Package("按月","MONTH"),
-      		  new Package("按季度","QUARTER"),
-      		  new Package("按年","YEAR")
-        ]);
-        this.packages_chosen = ko.observableArray()
+      		  new Package("按天","DAY",[]),
+      		  new Package("按月","MONTH",[]),
+      		  new Package("按季度","QUARTER",[]),
+      		  new Package("按年","YEAR",[])
+        ]); 
+        /* this.packages = ko.observableArray([
+      		  new Package("DAY"),
+      		  new Package("MONTH"),
+      		  new Package("QUARTER"),
+      		  new Package("YEAR")
+        ]); */
+        this.packages_chosen = ko.observableArray();
         this.package_current = null;
         
         this.isAdd_Fee = ko.observable(false);
@@ -913,7 +991,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	      }
   		  debugger
   		  if(this.serviceVO().uuid){
-  			csc.rest.put('api/v5.0.0/service/updateService'+this.serviceVO().uuid,this.serviceVO.toJSON(),function(data){
+  			csc.rest.put('api/v5.0.0/service/updateService/'+this.serviceVO().uuid,this.serviceVO.toJSON(),function(data){
   				self.table.refreshData();
   				self.isCreateService(false);
                 alert('修改成功！');

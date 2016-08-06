@@ -22,25 +22,32 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				nodeName = node.name;
 				nodeId = node.id;
 				usersArr = [];
-				var param ="orgcode="+node.code;
+				var param ="orgId="+node.code+"&userType="+0;//暂时拿本地用户
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
-			       success(function (data, status, headers, config) {					    	   
+			       success(function (data, status, headers, config) {
+			    	   var users = data[0].data;
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl1").html();
-						for(var i=0; i<data.users.length; i++){
-							data.users[i].nodeName = node.name;							
+						for(var i=0; i<users.length; i++){
+							users[i].nodeName = node.name;							
 							var selUserList = $scope.assignment.candidateUsers;
 							var cc = "";
 							for(var j = 0;j < selUserList.length;j++){
 								cc += selUserList[j].value + ",";
 							}
 							if(cc != ""){
-								if(cc.indexOf(data.users[i].id+',') == -1){
-									result += zy_tmpl_s(listTmpl,data.users[i],null);
+								if(cc.indexOf(users[i].id+',') == -1){
+									//result += zy_tmpl_s(listTmpl,users[i],null);
+									result += "<tr><td><input type='radio' name='orgRadioId' value='"+users[i].id+"'"
+										+"sname='"+users[i].name+"' /></td>"
+										+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 								}
 							}else{
-								result += zy_tmpl_s(listTmpl,data.users[i],null);
+								//result += zy_tmpl_s(listTmpl,users[i],null);
+								result += "<tr><td><input type='radio' name='orgRadioId' value='"+users[i].id+"'"
+									+"sname='"+users[i].name+"' /></td>"
+									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 							}				
 						}
 						jQuery("#org_user_list1").html(result);						
@@ -71,14 +78,14 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 	var orgUrl = KISBPM.URL.getOrgs();
 	$http({method: 'GET', url: orgUrl}).
        success(function (data, status, headers, config) {
-    	   for(var i=0; i<data.orgs.length; i++){
+    	   /*for(var i=0; i<data.orgs.length; i++){
 				data.orgs[i] = data.orgs[i];
 				data.orgs[i].iconSkin="zz";
 				data.orgs[i].open = true;
 			}
 			var rootNode = {code:"0",parentorgcode:"",name:"组织结构",iconSkin:"zzml",open:true};
-			data.orgs.push(rootNode);				
-			jQuery.fn.zTree.init(jQuery("#role_org_tree1"), settingRoleOrg, data.orgs);
+			data.orgs.push(rootNode);*/			
+			jQuery.fn.zTree.init(jQuery("#role_org_tree1"), settingRoleOrg, data);
 			jQuery("#role_org_tree1 a:eq(0)").trigger("mouseover").trigger("click");
         }).error(function (data, status, headers, config) {
             console.log('Error loading orgs');

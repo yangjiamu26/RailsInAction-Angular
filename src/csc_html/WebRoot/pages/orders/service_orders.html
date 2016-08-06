@@ -2,13 +2,13 @@
   <ol class="breadcrumb">
     <li>当前位置：</li>
     <li>订单</li>
-    <li class="active">订单管理--开发中....</li>
+    <li class="active">订单管理</li>
   </ol>
 </div>
 
 <div class='wrapper-md'>
 
-		<div class="panel panel-default b-blue">
+		<div class="panel panel-default b-blue" id="workflow_content">
 
 		<div class="wrapper bg-white-only">
 			<div class="row">
@@ -136,7 +136,7 @@
 								<span data-bind="visible: resourceType=='VDC'">VDC</span>
 							</td>
 							<td data-bind="text:resourceNames"></td>
-							<td ><a href="#">查看</a></td>
+							<td ><a data-bind="click: $root.review">查看</a></td>
 							<td>
 								<a data-bind="attr:{href:'#pages/orders/show?items=' + resourceType+'&uuid='+uuid}">查看</a> <span data-bind="visible: state=='UNSUBMIT'">| <a data-url="pages/orders/tasks" href="#pages/orders/modal1">办理</a> | <a onclick="systemMsg.alert('确定删除吗？')">删除</a></span>
 							</td>
@@ -161,7 +161,10 @@
 	      </ul>
 	    </footer>
 		</div>
-
+		<div id="workflow_edit" class="main_content_container" style="display:none;"></div>
+	    <input id="editModelId" type="hidden">
+	    <input id="editModelType" type="hidden">
+	    <input id="editProcessinstanceId" type="hidden">
 </div>
 
 <!-- page specific plugin scripts -->
@@ -231,8 +234,27 @@
       }
       this.loadVdcs();
       this.loadCatelogs();
+      
+	    this.review = function(object, event){
+	    	console.log(object)
+			showModelView(this.processDefinitionId,this.flowInstanceId,'processInst');
+	    }
     }
+    
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+    
+    function showModelView(processDefinitionId,processinstanceId,type){
+    	console.log(processDefinitionId)
+    	console.log(processinstanceId)
+    	console.log(type)
+    	$("#workflow_content").hide();
+        $("#workflow_edit").show();
+        $("#workflow_edit").html();
+        $("#workflow_edit").load("pages/systems/workflows/workflow_edit_index.html");
+        $("#editModelId").val(processDefinitionId);
+        $("#editModelType").val(type);
+        $("#editProcessinstanceId").val(processinstanceId);
+    }
   });
 </script>

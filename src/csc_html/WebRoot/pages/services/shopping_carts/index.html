@@ -331,7 +331,7 @@
       <div class="form-inline m-l-xs pull-right">
           <div class="checkbox">
               <label class="i-checks">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" data-bind="checked: isSelectedAll">
                   <i></i>全选
               </label>
           </div>
@@ -377,20 +377,139 @@
                 value: 'YES'
             }];
             this.sshIsMountList = ko.observableArray(sshIsMounts);
+            
+     	   this.orders_vdisk=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+     	   
+     	   this.orders_objectStorage=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+     	   
+     	   this.orders_publicNetwork=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+    	  
+    	   function items(e){
+    		   this.instanceName = ko.observable(e.name);
+    		   this.serviceUuid = ko.observable(e.serviceUuid);
+    		   this.isBill = ko.observable(e.charge);
+    		   this.expireType =  ko.observable(e.applyType);
+    		   var expireValue="";
+	    	   if(e.applyType == "2"){
+	    		   expireValue = e.applyNum;
+	    	   }else if(e.applyType == "3"){
+	    		   expireValue = e.applyTime;
+	    	   }
+    		   this.expireValue = ko.observable(expireValue);
+    		   this.billCycle = ko.observable(e.billRuleUuid);
+    		   this.fee = ko.observable(e.price);
+    		   this.metaData = ko.observable();
+    		   this.desc = ko.observable(e.remark);
+    		   this.azUuid = ko.observable(e.azUuid);
+    		   this.resourceType = ko.observable();
+    		   this.relateUuid = ko.observable();
+    		   this.vdcUuid = ko.observable(e.vdcUuid);
+    	   }
+    	   
+    	   function metaData(){
+    		   this.resBaseInfo = ko.observable();
+    	   }
+    	   
+    	   function DISK_baseInfo(){
+    		   this.volumeSize = ko.observable();
+    		   this.vmUuid = ko.observable();
+    	   }
+    	   
+		   function OBJECT_STORAGE_baseInfo(){
+			   this.applySize = ko.observable();
+		   }
+		   
+		   function PUBLICIP_baseInfo(){
+			   this.vpcUuid = ko.observable();
+			   this.networkUuid = ko.observable();
+		   }
 
-            this.generateOrder = function() {
-                var vdiskJson = {};
-                var objectStorageJson = {};
-                var publicNetworkJson = {};
-                if (self.vdiskList_chosens().length > 0) {
-                    vdiskJson["vdiskCartInfo"] = changeToJson(self.vdiskList_chosens());
+            this.generateOrder = function() {       
+                var chose_length = self.vdiskList_chosens().length+self.objectStorageList_chosens().length
+                +self.publicNetworkList_chosens().length+self.loadbalancerList_chosens().length
+                +self.sshKeytList_chosens().length+self.vmList_chosens().length;
+                if(chose_length==0){
+                	systemMsg.alert('请先选择需要提交的申请！');	
+                	 return;
                 }
-                if (self.objectStorageList_chosens().length > 0) {
-                    objectStorageJson["objectStorageCartInfo"] = changeToJson(self.objectStorageList_chosens());
-                }
-                if (self.publicNetworkList_chosens().length > 0) {
-                    publicNetworkJson["vdiskCartInfo"] = changeToJson(self.publicNetworkList_chosens());
-                }
+                
+                csc.rest.get('api/v5.0.0/cart', function(data) {
+                    if (self.vdiskList_chosens().length > 0) {
+                    	self.orders_vdisk().orderItems([]);
+                    	self.orders_vdisk().resourceType("DISK");
+                    	self.vdiskList_chosens().forEach(function (e){
+                            data['vdiskCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new DISK_baseInfo();
+                    	    	   item.resourceType("DISK");
+                    	    	   baseInfo.volumeSize(f.size);
+                    	    	   baseInfo.vmUuid(f.mountVmUuid);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_vdisk().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vdisk.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    }); 
+                    }
+                    if(self.objectStorageList_chosens().length > 0){
+                    	self.orders_objectStorage().orderItems([]);
+                    	self.orders_objectStorage().resourceType("OBJECT_STORAGE");
+                    	self.objectStorageList_chosens().forEach(function (e){
+                            data['objectStorageCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
+                    	    	   item.resourceType("OBJECT_STORAGE");
+                    	    	   baseInfo.applySize(f.size);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_objectStorage().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_objectStorage.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    });
+                    }
+                    
+                    if(self.publicNetworkList_chosens().length > 0){
+                    	self.orders_publicNetwork().orderItems([]);
+                    	self.orders_publicNetwork().resourceType("PUBLICIP");
+                    	self.objectStorageList_chosens().forEach(function (e){
+                            data['publicNetworkCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new PUBLICIP_baseInfo();
+                    	    	   item.resourceType("PUBLICIP");
+                    	    	   baseInfo.vpcUuid(f.vpcUuid);
+                    	    	   baseInfo.networkUuid(f.netWorkId);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_publicNetwork().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_publicNetwork.toJSON(),function(data){
+						 		systemMsg.alert('成功提交订单！');
+						    });
+                    }
+                });
             };
 
             function changeToJson(list) {
@@ -620,7 +739,7 @@
             this.isView_vm = ko.observable(false);
 
             this.vdcChange = function(arg, data, event) { //根据变化的vdc及服务ID查找其下的可用分区
-                csc.rest.get("api/v5.0.0/cart/getAzList/1/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                csc.rest.get("api/v5.0.0/cart/getAzList/"+data[arg]().serviceUuid()+"/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().azList(result);
                 });
             };
@@ -737,33 +856,39 @@
             });
 
             this.loadbalancerCartInfo = ko.validatedObservable({
-                id: "",
-                name: "",
-                vdcUuid: "",
-                azUuid: "",
-                applyTime: "",
-                applyType: "",
-                applyNum: "",
-                applyText: "",
-                remark: "",
-                billRuleUuid: "",
+                id: ko.observable(),
+                name: ko.observable(),
+                vdcUuid: ko.observable(),
+                azUuid: ko.observable(),
+                serviceUuid:ko.observable(),
+                applyTime: ko.observable(),
+                applyType: ko.observable(),
+                applyNum: ko.observable(),
+                applyText: ko.observable(),
+                remark: ko.observable(),
+                billRuleUuid: ko.observable(),
+                charge:ko.observable(),
                 vdcList: ko.observableArray([]),
-                azList: ko.observableArray([])
+                azList: ko.observableArray([]),
+                billRuleList: ko.observableArray([])
             });
 
             this.sshKeytCartInfo = ko.validatedObservable({
-                id: "",
-                name: "",
-                vdcUuid: "",
-                azUuid: "",
-                applyTime: "",
-                applyType: "",
-                applyNum: "",
-                applyText: "",
-                remark: "",
-                billRuleUuid: "",
+            	id: ko.observable(),
+                name: ko.observable(),
+                vdcUuid: ko.observable(),
+                azUuid: ko.observable(),
+                serviceUuid:ko.observable(),
+                applyTime: ko.observable(),
+                applyType: ko.observable(),
+                applyNum: ko.observable(),
+                applyText: ko.observable(),
+                remark: ko.observable(),
+                billRuleUuid: ko.observable(),
+                charge:ko.observable(),
                 vdcList: ko.observableArray([]),
-                azList: ko.observableArray([])
+                azList: ko.observableArray([]),
+                billRuleList: ko.observableArray([])
             });
 
 
@@ -805,6 +930,7 @@
                 projectUuid: ko.observable(""),
                 mountDiskNum:ko.observable(),
                 softwareNum:ko.observable(),
+                charge:ko.observable(),
                 vdcText: ko.pureComputed(function() {
                 	if(self.vdcList!=null){
                 		var item = _.findWhere(self.vdcList(), {
@@ -981,37 +1107,43 @@
                                 }
                                 });
                       }else if(arg=="loadbalancerCartInfo"){
-                        csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
-                            self.loadbalancerCartInfo().vdcList(result1);
-                            csc.rest.get("api/v5.0.0/cart/getAzList/1/"+data.vdcUuid, function(result2){//需修改为服务UUID作为参数传递
-                                self.loadbalancerCartInfo().azList(result2);
-                                self.loadbalancerCartInfo.fromJSON(data);
-                                if(dis=='view'){
-                                    self.isView_loadbalancer(true);
-                                }else{
-                                    self.loadbalancerCartInfo().id = object.id();
-                                    self.isEdit_loadbalancer(true); 
-                                    editObject = object;
-                                }
-                                
-                            });
-                        });
+                    	  var serviceUuid=data.serviceUuid;
+                          var vdcUuid=data.vdcUuid;
+                          var azUuid=data.azUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	 self.loadbalancerCartInfo().vdcList(result.vdcList);
+                        	 self.loadbalancerCartInfo().azList(result.azList);
+                        	 self.loadbalancerCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                             self.loadbalancerCartInfo.fromJSON(data);
+                             if(dis=='view'){
+                                 self.isView_loadbalancer(true);
+                             }else{
+                                 self.isEdit_loadbalancer(true); 
+                                 editObject = object;
+                             }
+                          });
+                    	  
                       }else if(arg=="sshKeytCartInfo"){
-                            csc.rest.get("api/v5.0.0/cart/getVdcList/1", function(result1){//需修改为服务UUID作为参数传递
-                                self.sshKeytCartInfo().vdcList(result1);
-                                csc.rest.get("api/v5.0.0/cart/getAzList/1/"+data.vdcUuid, function(result2){//需修改为服务UUID作为参数传递
-                                    self.sshKeytCartInfo().azList(result2);
-                                    self.sshKeytCartInfo.fromJSON(data);
-                                    if(dis=='view'){
-                                        self.isView_sshKeyt(true);
-                                    }else{
-                                        self.sshKeytCartInfo().id = object.id();
-                                        self.isEdit_sshKeyt(true);  
-                                        editObject = object;
-                                    }
-                                    
-                                });
-                            });
+                    	  var serviceUuid=data.serviceUuid;
+                          var vdcUuid=data.vdcUuid;
+                          var azUuid=data.azUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	 self.sshKeytCartInfo().vdcList(result.vdcList);
+                        	 self.sshKeytCartInfo().azList(result.azList);
+                        	 self.sshKeytCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                        	 debugger;
+                             self.sshKeytCartInfo.fromJSON(data);
+                             if(dis=='view'){
+                                 self.isView_sshKeyt(true);
+                             }else{
+                                 self.sshKeytCartInfo().id = object.id();
+                                 self.isEdit_sshKeyt(true);  
+                                 editObject = object;
+                             }
+                          });
+                    	  
                       }else if(arg=="vmCartInfo"){
                           var serviceUuid=data.serviceUuid;
                           var vdcUuid=data.vdcUuid;
@@ -1055,15 +1187,14 @@
                                    	self.vmCartInfo().password(data.password);
                                    	self.vmCartInfo().repeatPassword(data.repeatPassword);
                                    	self.vmCartInfo().sshIsMount(data.sshIsMount);
-                                       
                                    	self.vmCartInfo().projectUuid(data.projectUuid);
                                    	self.vmCartInfo().uuid(data.uuid);
                                    	self.vmCartInfo().serviceUuid(data.serviceUuid);
                                    	self.vmCartInfo().sshUuid(data.sshUuid);
                                    	self.vmCartInfo().networkType(data.networkType);
                                    	
-                                    self.vmCartInfo().price(data.price)    
-                                    
+                                    self.vmCartInfo().price(data.price);    
+                                    self.vmCartInfo().charge(data.charge);
                                     data.mountDisks.forEach(function(e){
                                         csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+e.serviceUuid, function(res){
                                         	var vo=new MountDiskVO();
@@ -1175,15 +1306,22 @@
             function nameCheck(name,type,uuid,callback){
 			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name+'&uuid='+uuid,function(result){
 			 		 if(result.result==true){
-						  alert(result.message);
+			 			  systemMsg.alert(result.message);
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/orders/item/instance-name?type='+type+'&name='+result.name,function(result1){	
-						 		 if(result1.result==true){
-									  systemMsg.alert(result1.message);
+						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+name,function(result1){	
+						 		 if(result1.isExist==true){
+						 			  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
 									  callback(false);
 								  }else{
-									  callback(true);
+									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+name,function(result1){	
+									 		 if(result1.isExist=="true"){
+												  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+												  callback(false);
+											  }else{
+												  callback(true);
+											  }
+									    });
 								  }
 						    });
 					  }
@@ -1253,7 +1391,7 @@
 			                        self.isEdit_loadbalancer(false);
 			                        var vdcItem = _.findWhere(self.loadbalancerCartInfo().vdcList(), {uuid: data.vdcUuid});
 			                        var azItem = _.findWhere(self.loadbalancerCartInfo().azList(), {uuid: data.azUuid});
-			                        editObject.name(self.loadbalancerCartInfo().name);
+			                        editObject.name(data.name);
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
 			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
@@ -1261,7 +1399,7 @@
 			                        self.isEdit_sshKeyt(false);
 			                        var vdcItem = _.findWhere(self.sshKeytCartInfo().vdcList(), {uuid: data.vdcUuid});
 			                        var azItem = _.findWhere(self.sshKeytCartInfo().azList(), {uuid: data.azUuid});
-			                        editObject.name(self.sshKeytCartInfo().name);
+			                        editObject.name(data.name);
 			                        editObject.vdcName(vdcItem.name);
 			                        editObject.azName(azItem.name);
 			                        self.convertApplyText(data.applyType,data.applyNum,data.applyTime)
@@ -1421,7 +1559,14 @@
                }else if(arg=='DISK'){
             	   serviceUuid=data.vdiskCartInfo().serviceUuid();
             	   cycle=data.vdiskCartInfo().billRuleUuid(); 
+               }else if(arg=="SSH"){
+            	   serviceUuid=data.sshKeytCartInfo().serviceUuid();
+            	   cycle=data.sshKeytCartInfo().billRuleUuid(); 
+               }else if(arg=="LB"){
+            	   serviceUuid=data.loadbalancerCartInfo().serviceUuid();
+            	   cycle=data.loadbalancerCartInfo().billRuleUuid(); 
                }
+               
     	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
     	    		var price = 0;
     	    		var cpu=0;
@@ -1465,7 +1610,20 @@
 	 	            	   data.vdiskCartInfo().price("");
 	 	   	    			return;
 	 	               }
+   	               }else if(arg=='SSH'){
+   	            	   type = data.sshKeytCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined"){
+	 	            	   data.sshKeytCartInfo().price("");
+	 	   	    			return;
+	 	               }
+   	               }else if(arg=='LB'){
+   	            	   type = data.loadbalancerCartInfo().billRuleUuid();
+	   	               if(typeof(type)=="undefined"){
+	 	            	   data.loadbalancerCartInfo().price("");
+	 	   	    			return;
+	 	               }
    	               }
+    	    	   
     	    	   
     	    		result.ruleList.forEach(function(e){
     	    			if(e.attrType=='CPU'){
@@ -1484,7 +1642,11 @@
     	    			}else if(e.attrType=='OBJECT_STORAGE'){
     	    				data.objectStorageCartInfo().unitPrice(e.unitPrice);
     	    				price += size * e.unitPrice;
-    	    			}
+    	    			}else if(e.attrType=='LOAD_BALANCING'){
+     	    				price +=e.unitPrice;
+     	    			}else if(e.attrType=='SECRET_KEY'){
+     	    				price +=e.unitPrice;
+     	    			}
     	    		});
     	    		if(type=="DAY"){
     	    			price+="元/天";
@@ -1506,6 +1668,10 @@
    	            		data.objectStorageCartInfo().price(price);
    	               }else if(arg=='DISK'){
    	            		data.vdiskCartInfo().price(price);
+   	               }else if(arg=='SSH'){
+   	            	    data.sshKeytCartInfo().price(price);
+   	               }else if(arg=='LB'){
+   	            	    data.loadbalancerCartInfo().price(price);
    	               }
     	    		
     	    	});	    	
@@ -1585,7 +1751,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1673,7 +1839,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:vdiskCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1769,7 +1935,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1864,7 +2030,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:objectStorageCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -1969,7 +2135,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -2074,7 +2240,7 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='YES'">
+                    <div class="form-group col-md-6" data-bind="visible:publicNetworkCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -2161,18 +2327,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: loadbalancerCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('LB',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:loadbalancerCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2252,18 +2413,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: loadbalancerCartInfo().charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('LB',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:loadbalancerCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2344,18 +2500,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
-                        <div class="row">
-                            <label class="col-sm-4 control-label">套餐：</label>
+                    <div class="form-group col-md-6" data-bind="visible: sshKeytCartInfo().charge()=='true'">
+                       <div class="row">
+                            <label class="col-sm-4 control-label" >套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs" disabled>
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: sshKeytCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('SSH',data,event) }},optionsCaption:'请选择'" disabled></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:sshKeytCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2435,18 +2586,13 @@
                         </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible: sshKeytCartInfo().charge()=='true'">
                         <div class="row">
-                            <label class="col-sm-4 control-label">套餐：</label>
+                            <label class="col-sm-4 control-label" >套餐：</label>
                             <div class="col-sm-3">
-                                <select class="form-control w-xs">
-                                    <option value="1">按天</option>
-                                    <option value="1">包月</option>
-                                    <option value="1">按季度</option>
-                                    <option value="1">包年</option>
-                                </select>
+                                 <select class="form-control w-xs" data-bind="options: sshKeytCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('SSH',data,event) }},optionsCaption:'请选择'"></select>
                             </div>
-                            <span class="control-label col-sm-5 text-left" style="height:34px;">费用：100元/月</span>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:sshKeytCartInfo().price"></span>
                         </div>
                     </div>
                 </div>
@@ -2631,7 +2777,7 @@
                   
                 </div>
                 <div class="clearfix"></div>
-                <div class="form-group col-md-3">
+                <div class="form-group col-md-3" data-bind="visible:vmCartInfo().charge()=='true'">
                     <div class="row">
                         <label class="col-xs-5 control-label">套餐：</label>
                         <div class="col-xs-7">
@@ -2754,7 +2900,7 @@
                   <div class="row">
                     <label class="col-sm-4 control-label">备注：</label>
                     <div class="col-sm-8">
-                    <textarea class="form-control" cols="30" rows="5" data-bind="vmCartInfo().remark" disabled></textarea>
+                    <textarea class="form-control" cols="30" rows="5" data-bind="value: vmCartInfo().remark" disabled></textarea>
                     </div>
                   </div>
                 </div>
@@ -2938,7 +3084,7 @@
                                 </div>
                             </div>
                             <div class="clearfix"></div>
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-3"  data-bind="visible:vmCartInfo().charge()=='true'">
                                 <div class="row">
                                     <label class="col-xs-5 control-label">套餐：</label>
                                     <div class="col-xs-7">
@@ -3065,7 +3211,7 @@
                                 <div class="row">
                                     <label class="col-sm-4 control-label">备注：</label>
                                     <div class="col-sm-8">
-                                        <textarea class="form-control" cols="30" rows="5" data-bind="vmCartInfo().remark"></textarea>
+                                        <textarea class="form-control" cols="30" rows="5" data-bind="value: vmCartInfo().remark"></textarea>
                                     </div>
                                 </div>
                             </div>

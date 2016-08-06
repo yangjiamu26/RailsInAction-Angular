@@ -5,11 +5,11 @@
 		<li>流程管理</a></li>
 	</ol>
 </div>
-<div class="wrapper-md nav-tabs-alt">
+<div class="wrapper-md nav-tabs-alt b b-blue">
 	<div id="workflow_content">
 	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a href="#tab1" aria-controls="home" role="tab" data-toggle="tab">待办工作</a></li>
-		<li role="presentation"><a href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">已办工作</a></li>
+		<li role="presentation" class="active"><a id="doingTab" href="#tab1" aria-controls="home" role="tab" data-toggle="tab">待办工作</a></li>
+		<li role="presentation"><a id="didTab" href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">已办工作</a></li>
 	</ul>
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="tab1">
@@ -18,7 +18,7 @@
 				<div class="wrapper" >
 					<div class="row">
 						<div class="col-xs-1">
-							<button class="btn btn-sm btn-primary" onclick="showModal('pages/workflows/approval.html')">批量审批</button>
+							<button class="btn btn-sm btn-info" onclick="showModal('pages/workflows/approval.html')">批量审批</button>
 						</div>
 						<div class="col-xs-3">
 				            <div class="input-group">
@@ -153,11 +153,20 @@
 							
 								<td data-bind="text: $row.applyTime"></td>
 								<td data-bind="text: $row.vdcName"></td>
-								<td data-bind="text: $row.productTypes"></td>
-								<td>VM01,VM02</td>
+								<td >
+									<span data-bind="visible: $row.productTypes=='VM'">云主机</span>
+									<span data-bind="visible: $row.productTypes=='DISK'">云硬盘</span>
+									<span data-bind="visible: $row.productTypes=='ROUTER'">路由器</span>
+									<span data-bind="visible: $row.productTypes=='PUBLICIP'">公网IP</span>
+									<span data-bind="visible: $row.productTypes=='LOAD_BALANCING'">负载均衡</span>
+									<span data-bind="visible: $row.productTypes=='SECRET_KEY'">SSH密钥对</span>
+									<span data-bind="visible: $row.productTypes=='OBJECT_STORAGE'">对象存储</span>
+									<span data-bind="visible: $row.productTypes=='VDC'">VDC</span>
+								</td>
+								<td data-bind="text: $row.instanceNames"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
-									<a data-url="pages/workflows/tasks" data-bind="click:$root.dealwith">办理</a> | <a onclick="systemMsg.alert('确定删除吗？')">删除</a>
+									<a data-url="pages/workflows/tasks" data-bind="click:$root.dealwith">办理</a> | <a data-bind="click:$root.deleteTask">删除</a>
 								</td>
 							</tr>
 							<!-- /ko -->
@@ -254,17 +263,26 @@
 								</td>
 								<td data-bind="text: $row.id"></td>
 								<td data-bind="text: $row.processTypeName"></td>
-								<td><span class="label label-warning">未提交</span></td>
+								<td><span class="label label-success">已审批</span></td>
 								<td data-bind="text: $row.name"></td>
-								<td>hgk</td>
+								<td data-bind="text: $row.applyUser"></td>
 							
-								<td>2016-5-23 13:48:00</td>
-								<td>研发部，财务部</td>
-								<td>类型1</td>
-								<td>VM01,VM02</td>
+								<td data-bind="text: $row.applyTime"></td>
+								<td data-bind="text: $row.vdcName"></td>
+								<td >
+									<span data-bind="visible: $row.productTypes=='VM'">云主机</span>
+									<span data-bind="visible: $row.productTypes=='DISK'">云硬盘</span>
+									<span data-bind="visible: $row.productTypes=='ROUTER'">路由器</span>
+									<span data-bind="visible: $row.productTypes=='PUBLICIP'">公网IP</span>
+									<span data-bind="visible: $row.productTypes=='LOAD_BALANCING'">负载均衡</span>
+									<span data-bind="visible: $row.productTypes=='SECRET_KEY'">SSH密钥对</span>
+									<span data-bind="visible: $row.productTypes=='OBJECT_STORAGE'">对象存储</span>
+									<span data-bind="visible: $row.productTypes=='VDC'">VDC</span>
+								</td>
+								<td data-bind="text: $row.instanceNames"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
-									<a data-url="pages/workflows/tasks" href="#pages/workflows/modal1">撤回</a>
+									<a data-bind="click: $root.recall, visible:$row.isRecall">撤回</a>
 								</td>
 							</tr>
 							<!-- /ko -->
@@ -317,10 +335,20 @@
 			
 			this.review = function(object, event){
 				showModelView(this.processDefinitionId,this.processInstanceId,'processInst');
-		    }
+		    }	
+			
 			this.dealwith = function(object, event){
-				var url = "#pages/workflows/modal?taskId="+object.id;
+				var url = "#pages/workflows/modal?taskId="+object.id+"&items="+object.productTypes+"&state=1122"+"&isBatch="+object.isBatch;
 				location.href = url;
+			}
+			
+			this.deleteTask = function(object, event){
+				confirm("确定删除吗？", function(){
+					csc.rest.del('api/v5.0.0/workflows/tasks/'+object.id,function(data){
+		        		alert('删除成功！');
+			          	self.table.refreshData();
+	    		    },function(){alert('删除失败！')});
+				});
 			}
 			
 			this.table = new DataTable([], {path: 'api/v5.0.0/workflows/tasks'});
@@ -352,6 +380,12 @@
 				showModelView(this.processDefinitionId,this.processInstanceId,'processInst');
 		    }
 			
+			this.recall = function(object, event){
+				confirm("确认撤回任务？", function(){
+					console.log("iiii")
+				});
+			}
+			
 			this.table = new DataTable([], {path: 'api/v5.0.0/workflows/history/historic-task-instances'});
 			
 			this.processTypes = ko.observableArray();
@@ -371,7 +405,7 @@
 			$(this).addClass('active').siblings().removeClass('active');
 		})
 		
-		function showModelView(processDefinitionId,processinstanceId,type){	
+		function showModelView(processDefinitionId,processinstanceId,type){
 	    	$("#workflow_content").hide();
 	        $("#workflow_edit").show();
 	        $("#workflow_edit").html();
@@ -381,5 +415,18 @@
 	        $("#editProcessinstanceId").val(processinstanceId);
 	    }
 		
+		//获取url参数，用于首页传参，初始化时显示不同的tab
+		function getUrlParam(name) {
+		　　var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+		　　var r = window.location.href.match(reg);
+		　　if (r != null)
+		　　return unescape(r[2]);
+	　　}
+		
+		//显示不同的tab，待办/已办
+		if(getUrlParam('showTab') == 'didTab' || getUrlParam('showTab') == 'doingTab'){
+			$("#"+getUrlParam('showTab')).tab("show");
+		}
+
 	});
 </script>

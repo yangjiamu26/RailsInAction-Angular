@@ -5867,6 +5867,31 @@ ko.exportSymbol('nativeTemplateEngine', ko.nativeTemplateEngine);
 }());
 })();
 
+ko.constants = {
+		'alarmSource': {
+			'1': '系统告警',
+			'2': '云主机告警',
+			'3': 'VDC配额告警'
+		}
+}
+ko.bindingHandlers.translate = {
+	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        // This will be called when the binding is first applied to an element
+	        // Set up any initial state, event handlers, etc. here
+	    },
+	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        // This will be called once when the binding is first applied to an element,
+	        // and again whenever any observables/computeds that are accessed change
+	        // Update the DOM element based on the supplied values here.
+	        var self = $(element);
+	        var value = valueAccessor();
+	        
+	        var text = ko.constants[value.type][""+value.key];
+	        self.text(text);
+
+	    }
+	  };
+
 ko.bindingHandlers.ui = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         // This will be called when the binding is first applied to an element

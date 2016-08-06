@@ -67,12 +67,13 @@ KISBPM.URL = {
     },
     //获取用户
     getUsers: function(params) {
-    	return ACTIVITI.CONFIG.contextRoot+"csc/api/v5.0.0/workflows/tasks/identitylinks";
+    	return ACTIVITI.CONFIG.contextRoot+"csc/api/v5.0.0/uap/users?"+params;
     	//return CscRest.getBaseUrl("pc.sys.getUsers",params);
     },
     //获取组织
     getOrgs: function() {
-    	return CscRest.getBaseUrl("pc.sys.getOrgs","remainOrgsTree=0");
+    	return ACTIVITI.CONFIG.contextRoot+"csc/api/v5.0.0/uap/organizations";
+    	//return CscRest.getBaseUrl("pc.sys.getOrgs","remainOrgsTree=0");
     },
     //获取组织用户
     queryBusDomainUsers: function(params) {

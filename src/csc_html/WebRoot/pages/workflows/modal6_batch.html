@@ -1,43 +1,3 @@
-<div class="bg-light lter b-b wrapper-sm">
-  <ol class="breadcrumb">
-    <li>当前位置：</li>
-    <li>工作</li>
-    <li><a href="#pages/workflows/tasks?type=work">我的工作</a></li>
-    <li class="active">任务办理</li>
-  </ol>
-</div>
-
-<div class="wrapper-md">
-  <div class="panel panel-info">
-    <div class="panel-heading">基本信息</div>
-    <div class="panel-body">
-      <div class="row">
-        <div class="col-xs-4">
-          <p><strong>任务ID：</strong>11500</p>
-        </div>
-        <div class="col-xs-4">
-          <p><strong>流程节点：</strong>申请节点</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-4">
-          <p><strong>流程类型：</strong>资源申请</p>
-        </div>
-        <div class="col-xs-4">
-          <p><strong>流程状态：</strong><span class="label label-warning">未提交</span></p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-4">
-          <p><strong>申请人：</strong>admin</p>
-        </div>
-        <div class="col-xs-4">
-          <p><strong>申请日期：</strong>2016-08-08 18:08:08</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="panel panel-info">
     <div class="panel-heading">申请信息</div>
     <div id="orderDetailedList" class="wrapper">
@@ -255,16 +215,7 @@
               </tbody>
           </table>
       </div>
-
-
     </div>
-    <div class="wrapper">
-      <div>
-        <button name="button"  class="btn btn-primary" onclick="showModal('pages/workflows/next.html')">转交下一步</button>
-        <a  class="btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">返回</a>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script type="text/javascript">
@@ -279,6 +230,24 @@
         $("#orderBaseInfoType").html('任务ID');
     };
 
+    if(args.taskId){
+		function ViewModel(){
+		  var self = this;
+		  
+		  this.currentVO = ko.observable("");
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
+	      		debugger
+	      		 self.currentVO(data.order);
+	      	 })
+		  })
+		}
+		
+		ko.applyBindings(new ViewModel(), $('#diskContent')[0]); 
+    }
+    
     $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
           {
             format:'YYYY/MM/DD',

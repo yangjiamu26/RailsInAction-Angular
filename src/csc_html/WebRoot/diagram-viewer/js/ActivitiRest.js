@@ -92,7 +92,7 @@ var ActivitiRest = {
 		var processInstanceId_ = processInstanceId;
 		if(isIE()) { processInstanceId_ = encodeURIComponent(processInstanceId); }
 		var url = Lang.sub(this.options.processTasksUrl, {processInstanceId: processInstanceId_});
-		
+		console.log(url);
 		$.ajax({
 			url: url,
 			type: 'GET',
