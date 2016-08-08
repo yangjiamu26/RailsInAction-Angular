@@ -1205,7 +1205,7 @@
         },
 
         hoverDate: function(e) {
-
+            return false;//去掉hover效果
             //ignore mouse movements while an above-calendar text input has focus
             if (this.container.find('input[name=daterangepicker_start]').is(":focus") || this.container.find('input[name=daterangepicker_end]').is(":focus"))
                 return;
