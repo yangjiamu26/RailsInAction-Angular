@@ -1,26 +1,43 @@
 myApp.onPageInit("pool-list-search", function(page) {
   function ViewModel(){
+    var self = this;
     this.dataList = ko.observableArray([]);
+
+    this.hypervisor = ko.observable(page.query.hypervisor);
+    this.poolSelected = ko.observable("全部");
+    this.setPoolSelected = function(object,event){
+      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue;
+      var val = event.currentTarget.attributes["toselect"].nodeValue;
+      self.poolSelected(val);
+      var hype = hypervisor ? hypervisor : "";
+      var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
+      if(page.query.forPage == 'vm'){
+        window.vm_index_viewModel.loadData(false, hype, id);
+      }
+      if(page.query.forPage == 'storage'){
+        window.storage_index_viewModel.loadData(false, hype);
+      }
+    }
 
     this.loading = false;
     this.page = 1;
     this.loadData = function(is_loadMore){
-      var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $.ajax("tpl/pool/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+        //$.ajax("tpl/pool/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
         }
-        for(var i=0; i<data.dataList.length; i++){       
-          self.dataList.push(data.dataList[i]);
+        for(var i=0; i<data.data.length; i++){
+          self.dataList.push(data.data[i]);
         }
         self.page++;
-        if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }
