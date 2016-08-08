@@ -1,3 +1,6 @@
+<link href="assets/lib/webuploader/webuploader.css" rel="stylesheet"
+	type="text/css" />
+	
 <div class="row wrapper">
   <div class="col-xs-1">
     <button class="btn btn-sm  btn-info" data-bind="click:createDisk">创建</button>
@@ -96,7 +99,7 @@
   <div class="row wrapper">
     <div class="col-xs-7 m-b-xs">
       <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-      <button class="btn btn-sm btn-info">上传</button>
+      <button class="btn btn-sm btn-info" data-bind="click: showUploadDialog">上传</button>
     </div>
     <div class="col-xs-3">
       <div class="input-group">
@@ -132,13 +135,13 @@
               <td data-bind="text:name">centos7.iso</td>
               <td data-bind="text:sizeInBytes">1G</td>
               <td data-bind="text:lastModified">2016-06-29 13:56</td>
-              <td><a>下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
+              <td><a data-bind="attr:{href:'api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name+'/download'}">下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
             </tr>
             <!-- /ko -->
           </tbody>
         </table>           
       </div>
-      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+      <footer class="panel-footer" data-bind="with: fileTable, visible: fileTable.pages() > 1">
         <ul class="pagination">
           <li data-bind="css: leftPagerClass, click: prevPage">
             <a href="#">&laquo;</a>
@@ -160,7 +163,7 @@
 
 
 <!--  创建对象存储 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isCreateDisk}">
+<div role="dialog" aria-hidden="true" id="modal_addObjectStorage" class="modal fade" data-bind="modal:{show:isCreateDisk}">
   <div class='modal-dialog' role='document'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -222,16 +225,17 @@
             <div>
               <label class="radio-inline">
                 <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                <input type="text" class="form-control input-sm inline w-xxs">
-                <select class="form-control inline w-xs input-sm">
-                  <option value="">月</option>
-                </select>  
+                <input type="text" class="form-control inline w-xxs" id="resource_instance_objectStorage_limit_option2">
+                <select class="form-control inline w-xs" id="resource_instance_objectStorage_limit_option2_unit">
+                  <option value="MONTH">月</option>
+                  <option value="YEAR">年</option>
+                </select>   
               </label>
             </div>
             <div>
               <label class="radio-inline">
                 <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                <input type="text" value="" class="form-control inline w input-sm" id="vm_duration">
+                <input type="text" value="" class="form-control inline w input-sm" id="resource_instance_objectStorage_limit_option3">
               </label> 
             </div>                                   
           </div>
@@ -277,12 +281,152 @@
           </div>
         </div>
       </div>
+      
+<!-- 上传文件 -->
+<div role="dialog" aria-hidden="true" id="fileUploadDialog" class="modal fade" data-bind="modal: { show: isUpload }">
+        <div class='modal-dialog modal-md'>
+          <div class='modal-content'>
+            <div class='modal-header'>
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传文件</h3>
+            </div>
+            <div class='modal-body form-horizontal row'>
+              <div class="form-group">
+                <label class="col-sm-3 control-label">文件：</label>
+                <div class="col-sm-8">
+                  <input type="hidden" data-bind="value:currentUploadContainerUuid">
+                  <input type="text" value="" name="file2" class="form-control inline w" data-bind="value: uploadFileName" ><div id="picker" class="btn"></div>
+                </div>
+              </div>
+              <div class="form-group" data-bind="visible:uploading()">
+              	
+                <label class="col-sm-3 control-label">进度：</label>
+                <div class="col-sm-8">
+	                <div class="progress">
+					  <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"
+					  	 style="width: 20%;" data-bind="text:progressText,style:{width: progressText}">
+					    20%
+					  </div>
+					</div>
+				</div>
+                <!-- <div class="col-sm-8" data-bind="text:currentPercentage"></div> -->
+              </div>
+            </div>
+            <div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click:uploadFile">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+            </div>
+          </div>
+        </div>
+      </div>
   
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDeleteProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源删除</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源删除</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: deleteProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: deleteProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
 
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: deleteProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：对象存储</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content' style="width:700px;">
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>有效时间变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: validateProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: validateProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: validateProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：对象存储</p></div>
+		          </div>
+		          <div class="row">
+		            <div class="col-xs-6"><p>调整前失效时间：<input type="text" value="" class="form-control inline w" data-bind="value: validateProcessVO().validateTime" disabled="disabled"></p></div>
+		            <div class="col-xs-6"><p>调整后失效时间：<input type="text" value="" class="form-control inline w" id="resource_instance_storage_validate_process" data-bind="value: validateProcessVO().targetValidateTime"></p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: validateProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js",
                  "assets/lib/bootstrap-daterangepicker/daterangepicker.js",
                  "api/vdc/vdc.js",
+                 "assets/lib/webuploader/webuploader.js",
+                 "api/progress/progress.js",
                  "api/resourceInstance/objectStorage/objectStorage.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_ObjectStorage(){
@@ -336,6 +480,27 @@
         self.isCreateDisk(true);
       };
       
+      $("#modal_addObjectStorage").on("shown.bs.modal",function(){
+
+          // daterange             
+          $('#resource_instance_objectStorage_limit_option3').val(moment().format('YYYY/MM/DD')).daterangepicker(
+            {
+              format:'YYYY/MM/DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+
+          ); 
+
+      })
+      
       //保存
       this.save = function(){
     	  ko.validation.group(this.currentVO).showAllMessages();
@@ -358,7 +523,7 @@
 	    	    		 expiryTime = "2099-12-30 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
 	    	    		 if($("#resource_instance_vm_limit_option2_unit").val() == "MONTH"){
-	    	    			 var plusMonth = parseInt($("#resource_instance_vm_limit_option2").val());
+	    	    			 var plusMonth = parseInt($("#resource_instance_objectStorage_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
 	    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
@@ -370,7 +535,7 @@
 	    	    				 m = selfM;
 	    	    			 }
 	    	    		 }else if($("#resource_instance_vm_limit_option2_unit").val() == "YEAR"){
-	    	    			 var plusYear = parseInt($("#resource_instance_vm_limit_option2").val());
+	    	    			 var plusYear = parseInt($("#resource_instance_objectStorage_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
 	    	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
@@ -379,15 +544,13 @@
 	    	    		 }
 	    	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
 	    	    	 }else{
-	    	    		 var timeStr = $("#resource_instance_vm_limit_option3").val();
+	    	    		 var timeStr = $("#resource_instance_objectStorage_limit_option3").val();
 	    	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
 	    	    	 }
 	    	     }
 	    	  }
 	    	  postBody.expiryDate = expiryTime;
-	    	 
-	    	  //console.log(postBody);
-	    	  //return;
+	    	  
 	    	  $.OBJECT_STORAGE.createObjectStorage(postBody,function(data){
 	    		  //成功
 	    		  if(data.id){
@@ -398,30 +561,166 @@
 	    			  alert('创建失败！');
 	    		  }	    		  	    		  
 	    	  },function(data){
-	    		  console.log(data);
 	    		  alert('创建失败！');
 	    	  })
 	      }
       }
       
+      
+      //上传文件
+      this.isUpload = ko.observable(false);
+      this.currentUploadContainerUuid = ko.observable("");
+      this.uploadFileName =  ko.observable("");
+      
+      //进度
+      this.uploading = ko.observable(false);
+      this.progressText = ko.observable("");
+      //this.currentPercentage =  ko.observable("");
+      
+      this.isFileView = false;//是否是在文件页面点击上传，如果是上传成功要刷新，默认不是
       this.upload = function(object, event){
-
+    	  //设置当前的容器uuid
+    	  self.currentUploadContainerUuid(object.uuid);
+    	  self.isUpload(true);
+    	  self.isFileView = false;//不是在file页面上传
       }
+      
+      this.showUploadDialog = function(){
+    	  //设置当前的容器uuid
+    	  self.currentUploadContainerUuid( self.containerVO().uuid);
+    	  self.isUpload(true);
+    	  self.isFileView = true;//在file页面上传，上传成功要刷新fileTable
+      }
+      
+      this.uploader = null;
+      
+      /** 构建文件上传器 **/
+     this.initUploader = function () {
+    		self.uploader = WebUploader.create({
+				// 文件接收服务端。
+				threads : 1,
+				fileNumLimit : 1,
+				chunked : true,
+				chunkSize : 1024*1024,
+				resize : false
+			});
+    		self.uploader.on('beforeFileQueued', function(file) {
+				//重置上传队列
+				self.uploader.reset();
+			});
+    		self.uploader.addButton({
+				id : '#picker',
+				label:'浏览',
+				multiple : false
+			});
+    		
+    		self.uploader.on('fileQueued', function(file) {
+				self.uploadFileName(file.name);
+			});
+    	}
+     
+      //model显示的时候初始化webupload
+      $("#fileUploadDialog").on("shown.bs.modal",function(){
+    	  self.initUploader();
+      });
+      var p;
+      this.run = function run(){
+			
+	   }
+      this.uploadFile = function() {
+    	  //显示进度条
+    	  self.uploading(true);
+    	  /* 
+    	  var i = 10;
+    	  setInterval(function(){
+    		  i = i+10
+    		  if(i<110){
+    			  self.progressText(i+"%")
+    		  }
+    	  },2000); */
+    	  
+    	 // return ;
+    	  
+    	  var myUuid = self.currentUploadContainerUuid();
+    		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + myUuid;
+    		self.uploader.on('startUpload', function() {
+    			//console.log('开始上传');
+    			 var intervalId = setInterval(function() {
+					$.PROGRESS.getProgress(myUuid, function(data) {
+						//console.log(data);
+						if (data.progress.indexOf('%') != -1) {
+							//self.currentPercentage(data.progress)
+						}
+						if (data.progress == 'success' || data.progress == 'N/A') {
+							clearInterval(intervalId);	
+							if(data.progress == 'success'){
+								self.progressText("100%");
+							}
+						}
+					});
+				}, 3500); 
+    		});
+    		
+    		
+    		self.uploader.on('uploadProgress', function(file, percentage) {
+    			console.log(percentage);
+    			var currentToCsc = percentage * 100;
+    			currentToCsc = currentToCsc.toFixed(0);
+    			var show = currentToCsc;
+    			if(currentToCsc>90 && currentToCsc<100){
+    				show = 90;
+    			}else if(currentToCsc == 100){//上传到csc 100%
+    				show = 90;
+    			}
+    			self.progressText(show+"%");
+    		}); 
+    		
+			self.uploader.on('uploadFinished', function() {
+				csc.uploader.unbind(myUuid);
+			});
+    		
+    		self.uploader.on('uploadSuccess', function(file, response) {
+    			//console.log('触发uploadSuccess');
+    			//console.log(file);
+    			//console.log(response);
+    			
+    			if (response.message) {
+    				systemMsg.alert(response.message);
+    				if(response.message=='上传成功'){   					
+    					self.progressText(100+"%");//100%
+    					if(self.isFileView){//在文件列表页面上传成功，刷新fileTable
+        					self.fileTable.refreshData();
+        				}
+    				}
+
+    			}
+			});
+
+    		self.uploader.upload();
+			csc.uploader.bind(myUuid, self.uploader);
+    	}
+
       
       //删除
       this.removeOne = function(object, event){
-    	  confirm("您确定要删除该对象存储["+object.name+"]吗？",function(){    
-    		  $.OBJECT_STORAGE.deleteObjectStorage(object.uuid,function(data){
-    			  if(data.result == 'success'){
-    				  alert('删除成功');
-            		  self.table.refreshData();
-    			  }else if(data.result == 'faile'){
-    				  alert('删除底层数据失败');
-    			  }else{
-    				  alert('没有发现对象存储！');
-    			  }
-        	  });
-    	  });
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+     		  //走流程
+     		  self.doDeleteProcessPost(object);
+     	  }else{
+     		  //不走流程
+	    	  confirm("您确定要删除该对象存储["+object.name+"]吗？",function(){    
+	    		  $.OBJECT_STORAGE.deleteObjectStorage(object.uuid,function(data){
+	    			  if(data.result == 'success'){
+	    				  alert('删除成功');
+	            		  self.table.refreshData();
+	    			  }else if(data.result == 'faile'){
+	    				  alert('删除底层数据失败');
+	    			  }else{
+	    				  alert('没有发现对象存储！');
+	    			  }
+	        	  });
+	    	  });
+     	  }
       }
       
       this.searchParam = ko.observable({
@@ -451,8 +750,10 @@
       
       this.table = new DataTable([], {path: 'api/v5.0.0/objectStorages?account='+account,loader:function(result){
     	  //将时间转换一下
-    	  var expiryDate = result.expiryDate;    	  
-    	  result.expiryDate = expiryDate.substring(0,10);
+    	  if(result.expiryDate){
+    		  var expiryDate = result.expiryDate;    	  
+        	  result.expiryDate = expiryDate.substring(0,10);
+    	  }
     	  return result;
       }});
 
@@ -528,10 +829,15 @@
     	  uuid: ko.observable()
       });
       this.editValidateTime = function(object, event){
-    	  self.isValidateTime(true);
-    	  self.validateTimeVO().uuid(object.uuid);
-    	  console.log(object.expiryDate)
-    	  self.validateTimeVO().time(object.expiryDate);
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+     		  //走流程
+     		  self.doValidateProcessPost(object);
+     	  }else{
+     		  //不走流程
+	    	  self.isValidateTime(true);
+	    	  self.validateTimeVO().uuid(object.uuid);
+	    	  self.validateTimeVO().time(object.expiryDate);
+     	  }
       }
       //修改有效期
       this.validateTime = function(){
@@ -560,15 +866,15 @@
       //-------------------对象-------------------------------------------
       //选择的容器名称
       this.containerVO = ko.observable({
-    	  containerName:""	  
+    	  containerName:"",
+    	  uuid:""
       });  
       this.objectSearchParam = ko.observable({   	  
     	  name:""    	  
       }); 
       this.showFileTable = function(object,event){
-    	  //console.log(object); 
-    	  //显示当前的容器名称
-    	  self.containerVO({containerName:object.name});
+    	  //显示当前的容器名称和uuid
+    	  self.containerVO({containerName:object.name,uuid:object.uuid});
     	  $('#instance_object_storage_detail').show().siblings().hide();
     	  self.fileTable.path('api/v5.0.0/objectStorages/'+object.uuid+'/objects');
       }
@@ -584,9 +890,9 @@
 
       this.removeOneObject = function(object,event){
     	  confirm("您确定要删除该对象["+object.name+"]吗？",function(){    
-    		  $.OBJECT_STORAGE.deleteObject(object.objcetStorageUuid,object.name,function(data){
+    		  $.OBJECT_STORAGE.deleteObject(object.objectStorageUuid,object.name,function(data){
         		  alert('删除成功');
-        		  self.table.refreshData();
+        		  self.fileTable.refreshData();
         	  });
     	  });
       }
@@ -598,11 +904,118 @@
     	  }else{
         	  result.sizeInBytes = renderSize(result.sizeInBytes);
     	  }
-    	 
-    	  
     	  return result;
       }}); 
       
+    //------------------------------------------删除-流程开始--------------------------------
+      this.isDeleteProcess = ko.observable(false);
+      
+      this.doDeleteProcessPost = function(object){
+    	  self.isDeleteProcess(true);
+		  self.deleteProcessVO().name(object.name);
+		  self.deleteProcessVO().uuid(object.uuid);
+		  var myDate = new Date();
+		  self.deleteProcessVO().time(myDate.toLocaleString());
+		  self.deleteProcessVO().user("");
+      }
+  
+      this.deleteProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable()
+      });
+      
+      this.deleteProcessPost = function(){
+       	  var orderItem = {};
+       	  orderItem.instanceName = self.deleteProcessVO().name();
+       	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+       	  orderItem.resourceType = self.deleteProcessVO().type;
+       	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+       	  
+       	  var orderItems = [];
+       	  orderItems.push(orderItem);
+       	  
+       	  var postBody = {}; 
+       	  postBody.resourceType = self.deleteProcessVO().type;;
+       	  postBody.orderItems = orderItems;
+       	  
+       	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+       		  if(data.code){
+       			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+     		 		self.isValidateProcess(false);
+       		  }
+       	  });
+ 		}
+      
+      //------------------------------------------删除-流程结束--------------------------------
+    
+
+    //------------------------------------------有效期-流程开始--------------------------------
+	  this.isValidateProcess = ko.observable(false);
+      
+      this.doValidateProcessPost = function(object){
+    	  self.isValidateProcess(true);
+		  self.validateProcessVO().name(object.name);
+		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  var myDate = new Date();
+		  self.validateProcessVO().time(myDate.toLocaleString());
+		  self.validateProcessVO().user("");
+		  
+		  self.validateProcessVO().validateTime(object.expiryTime);
+		  self.validateProcessVO().targetValidateTime("");
+		  
+		  $('#resource_instance_storage_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
+		            {
+		              format:'YYYY/MM/DD',
+		              minDate:moment(),
+		              singleDatePicker: true,
+		              locale:{
+		                applyLabel: '确认',
+		                cancelLabel: '取消',
+		                weekLabel: '周',
+		                daysOfWeek:["日","一","二","三","四","五","六"],
+		                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+		              }
+		            }
+		  ); 
+      }
+  
+      this.validateProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable(),
+    	  
+    	  validateTime: ko.observable(),
+    	  targetValidateTime: ko.observable()
+      });
+      
+      //申请
+      this.validateProcessPost = function(){
+    	  var orderItem = {};
+    	  orderItem.instanceName = self.validateProcessVO().name();
+    	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
+    	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
+    	  orderItem.resourceType = "OBJECT_STORAGE";
+    	  
+    	  var orderItems = [];
+    	  orderItems.push(orderItem);
+    	  
+    	  var postBody = {};
+    	  postBody.resourceType = "OBJECT_STORAGE";
+    	  postBody.orderItems = orderItems;
+    	  
+    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+    		  if(data.code){
+    			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+  		 		self.isValidateProcess(false);
+    		  }
+    	  });
+      }
+      //------------------------------------------有效期-流程结束--------------------------------
       
     }
      ko.applyBindings(new ViewModel_ObjectStorage(), $('#partition_object_storages')[0]);
@@ -630,9 +1043,9 @@ function  roundFun(numberRound,roundDigit)
 /*附件大小格式处理*/
 function renderSize(value, p, record){
   if(null==value||value==''){
-    return "0 Bytes";
+    return "0 B";
   }
-  var unitArr = new Array("Bytes","KB","MB","GB","TB","PB","EB","ZB","YB");
+  var unitArr = new Array("B","KB","MB","GB","TB","PB","EB","ZB","YB");
   var index=0;
   var srcsize = parseFloat(value); 
   var size =roundFun(srcsize/Math.pow(1024,(index=Math.floor(Math.log(srcsize)/Math.log(1024)))),2); 

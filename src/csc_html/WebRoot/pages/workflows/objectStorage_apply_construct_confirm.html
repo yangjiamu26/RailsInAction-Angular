@@ -1,0 +1,77 @@
+	<div class="panel panel-info">
+		<div class="panel-heading">申请信息</div>
+		<div id="orderDetailedList" class="wrapper">
+			<div item="orderdetailed-objstorage">
+				<h5 class="text-info">对象存储数：<span data-bind="text:itemListNum"></span></h5>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>对象存储名称</th>
+							<th>存储大小(G)</th>
+							<th>所属VDC</th>
+							<th>可用分区</th>
+							<th>申请时长</th>
+							<th>收费标准</th>
+							<th>施工状态</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody data-bind="foreach: orderList">
+						<tr>
+							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:size"></td>
+							<td data-bind="text:vdcName"></td>
+							<td data-bind="text:azName"></td>
+							<td data-bind="text:applyTime"></td>
+							<td data-bind="text:fee"></td>
+							<td>
+								<span class="label label-success" data-bind="if: itemState == 'CONSTRUCTION_SUCCESS'">施工成功</span>
+				                  <span class="label label-danger" data-bind="if: itemState == 'CONSTRUCTION_FAILED'">施工失败</span>
+				                  <span class="label label-info" data-bind="if: itemState == 'READY_CONSTRUCTION'">待施工</span>
+				                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
+							</td>
+							<td>
+	                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED'">重施工|</a>  
+	                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>                    
+<script type="text/javascript">
+    var scripts = [null,null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+    	   	     //获取订单数据
+    	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){
+    	      		var itemList = orderData.orderItems;
+    	      	  function ViewModel(){
+    	      	      var self = this;
+	    	      	  this.orderList = ko.observableArray([]);
+	    	      	  this.itemListNum = itemList.length;
+	    	      	  
+	    	      	  itemList.forEach(function (e){
+	    	      		  var metaData = JSON.parse(e.metaData);
+	    	      		  var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	    	      		  var applyTime;
+	    	      		  if(e.expireType=='1'){
+		    	      			applyTime = "永久";
+		    	      		  }else if(e.expireType=='2'){
+		    	      			applyTime = e.expireValue+"个月";
+		    	      		  }else{
+		    	      			applyTime = "有效期至"+e.expireValue;
+		    	      	  }
+	    	      		  e.applyTime = applyTime;
+	    	      		  e.size = resBaseInfo.applySize;
+	    	      		  self.orderList.push(e);
+	    	      	  })
+    	      	   }
+    	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+    	      	 });
+    	  });
+  	  
+    });//
+   </script>

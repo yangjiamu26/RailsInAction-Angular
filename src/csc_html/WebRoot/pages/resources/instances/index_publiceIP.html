@@ -68,19 +68,27 @@
             <td data-bind="text: $row.vpcName"></td><!-- 所属VPC -->
             <td data-bind="text: $row.routerName"></td><!-- 路由器 -->
             <td data-bind="text: $row.vmName"></td><!-- 云主机 -->
-            <td><label class="label label-success">
-            	<span data-bind="text: $row.state"></span><!-- 服务状态 -->
-            	</label>
+            <td>
+            	<span class="label label-success" data-bind="if: $row.isValidate == true">正常</span>
+	            <span class="label label-danger" data-bind="if: $row.isValidate == false">已过期</span>
             </td>
             <td data-bind="text: $row.createTime"></td><!-- 创建时间 -->
-            <td data-bind="text: $row.validTime"></td><!-- 有效期 -->
+            <td data-bind="text: $row.expiredDate"></td><!-- 有效期 -->
             <td data-bind="text: $row.userName"></td><!-- 创建人 -->
             <td><!-- 操作 -->
-            	<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a> 
-            	| <a href="#" data-bind="click: $root.unbindVm">解绑</a>  
-            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a>  
-            	| <a href="#" data-bind="click: $root.terminateService">终止</a>  
-            	| <a href="#" data-bind="click: $root.deleteIp">删除</a>
+            	<span data-bind="if: csc.util.isNull($row.vmUuid)">
+            		<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a>
+            	</span>
+            	<span data-bind="if: csc.util.isNotNull($row.vmUuid)">
+            		<a href="#" data-bind="click: $root.unbindVm">解绑</a>
+            	</span>
+            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |
+            	<span data-bind="if: $row.isValidate == true">
+            		<a href="#" data-bind="click: $root.terminateService">终止</a>
+            	</span>
+            	<span data-bind="if: $row.isValidate == false">
+            		<a href="#" data-bind="click: $root.deleteIp">删除</a>
+            	</span> 
             </td>
         	</tr>
         	<!-- /ko -->
@@ -105,7 +113,7 @@
     </footer>
 
 <!-- 创建公网IP页面 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowCreatePage}">
+  <div role="dialog" aria-hidden="true" id="modal_addPublicIp" class="modal fade" data-bind="modal:{show:isShowCreatePage}">
     <div class='modal-dialog' role='document'>
       <div class='modal-content'>
         <div class='modal-header'>
@@ -144,7 +152,6 @@
             <div class="col-sm-8">
               <select class="form-control" data-bind="options:$root.azList,optionsText:'name',optionsValue:'uuid',value: azUuid, disable: vdcUuid==null">
                 <option>可用分区1</option>
-                <option>可用分区2</option>
               </select>
             </div>
             <div class="col-sm-1">
@@ -177,32 +184,37 @@
               <span class="text-danger inline m-l-n m-t-sm">*</span>
             </div>
           </div>
-
-          <div class="form-group">
-            <label class="col-sm-3 control-label">申请时长</label>
-            <div class="col-sm-9">
-              <div>
-                <label class="radio-inline" style="padding-top: 2px">
-                  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 永久
-                </label>
-              </div>
-              <div>
-                <label class="radio-inline">
-                  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                  <input type="text" class="form-control input-sm inline w-xxs">
-                  <select class="form-control inline w-xs input-sm">
-                    <option value="">月</option>
-                  </select>  
-                </label>
-              </div>
-              <div>
-                <label class="radio-inline">
-                  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                  <input type="text" value="" class="form-control inline w input-sm" id="ip_duration">
-                </label> 
-              </div>                                   
-            </div>
+          <!-- 有效期 -->
+		  <div class="form-group">
+               <label class="col-sm-3 control-label no-padder-h">申请时长</label>
+               <div class="col-sm-9">
+               	 <div>
+	                 <label class="radio-inline" style="padding-top: 2px">
+	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option1" checked="checked"> 永久
+	                 </label>
+               	 </div>
+               	 <div>
+	               	 <label class="radio-inline">
+	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option2" style="margin-top:10px"> 
+	                   <input type="text" class="form-control inline w-xxs" id="resource_public_ip_time_value">
+	                   <select class="form-control inline w-xs" id="resource_public_ip_time_unit">
+	                     <option value="MONTH">月</option>
+	                     <option value="YEAR">年</option>
+	                   </select>  
+	                 </label>
+               	 </div>
+                 <div>
+	                 <label class="radio-inline">
+	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option3" style="margin-top:10px"> 有效期至
+	                   <input type="text" value="" class="form-control inline w" id="resource_public_ip_datePicker">
+	                 </label>
+               	 </div>
+               </div>
+               <div class="col-xs-1">
+                 <span class="text-danger inline m-l-n m-t-sm">*</span>
+               </div>
           </div>
+          
 
           <div class="form-group">
             <label class="col-sm-3 control-label">备注</label>
@@ -256,7 +268,7 @@
   </div>  
   
   <!-- 修改有效期 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateTime }">
+  <div role="dialog" aria-hidden="true" class="modal fade"  id="modal_publicIp_valiTime" data-bind="modal: { show: isValidateTime }">
      <div class='modal-dialog modal-md'>
        <div class='modal-content'>
          <div class='modal-header'>
@@ -266,7 +278,7 @@
            <div class="form-group">
              <label class="col-sm-3 control-label">有效期：</label>
              <div class="col-sm-8">
-               <input type="email" class="form-control" data-bind="value: validateTimeVO().time">
+               <input type="text" value="" class="form-control inline w" id="resource_publicIp_validate_edit" data-bind="value: validateTimeVO().time">
              </div>
            </div>
          </div>
@@ -279,6 +291,109 @@
    </div>
 
 </div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDeleteProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源删除</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源删除</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: deleteProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: deleteProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: deleteProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：公网IP</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content' style="width:700px;">
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>有效时间变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: validateProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: validateProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: validateProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：公网IP</p></div>
+		          </div>
+		          <div class="row">
+		            <div class="col-xs-6"><p>调整前失效时间：<input type="text" value="" class="form-control inline w" data-bind="value: validateProcessVO().validateTime" disabled="disabled"></p></div>
+		            <div class="col-xs-6"><p>调整后失效时间：<input type="text" value="" class="form-control inline w" id="resource_instance_ip_validate_process" data-bind="value: validateProcessVO().targetValidateTime"></p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: validateProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
 <script type="text/javascript">
   var scripts = ["api/vpc/vpc.js", 
                  "api/vdc/vdc.js",
@@ -288,25 +403,6 @@
                  "assets/lib/moment/moment.js",
                  "assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	  var vdcUuid = "f91c14a2-5981-405c-bcba-5170f5b3a86d";
-	  var azUuid = "461b37d4-4b37-45d2-82b0-10b057da255d";
-	  var vpcUuid = "vpcUuid";
-	  var networkUuid = "f01ddf2a-7791-40ba-bbdd-84bd57b6153e"; //外部网络
-	  
-	  $('#ip_duration').val(moment().subtract('days', 29).format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD'))
-	    .daterangepicker({
-	        startDate: moment().subtract('days', 29),
-	        endDate: moment(),
-	        ranges: {
-	         '当天': [moment(), moment()],
-	         '昨天': [moment().subtract('days', 1), moment().subtract('days', 1)],
-	         '近7天': [moment().subtract('days', 6), moment()],
-	         '近30天': [moment().subtract('days', 29), moment()],
-	         '当月': [moment().startOf('month'), moment().endOf('month')],
-	         '上月': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
-	        }
-	      }
-	    ); 
 	  
     function ViewModel_PublicIP(){
       var self = this;
@@ -314,12 +410,29 @@
       this.searchVdcList = ko.observableArray();
       this.searchAzList = ko.observableArray();
       
-      
+      /************************** 创建公网IP ********************************/
       //创建页面
       this.vdcList = ko.observableArray();
       this.azList = ko.observableArray();
       this.vpcList = ko.observableArray();
       this.networkList = ko.observableArray();
+      
+      $("#modal_addPublicIp").on("shown.bs.modal",function(){
+          // daterange             
+          $('#resource_public_ip_datePicker').val(moment().format('YYYY-MM-DD')).daterangepicker(
+            {
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+          ); 
+      })
       
       this.isShowCreatePage = ko.observable(false);
       
@@ -418,6 +531,7 @@
       this.createPublicIp = function(object, event){
     	  //console.log(self.currentIpVo());
     	  ko.validation.group(self.currentIpVo).showAllMessages();
+    	  
           if(self.currentIpVo.isValid()){
         	  var p = {
    	    		"name": self.currentIpVo().name(),
@@ -427,6 +541,45 @@
    	    		"networkUuid": self.currentIpVo().networkUuid(),
    	    		"desc": self.currentIpVo().desc
    	    	  };
+        	  
+        	  var expiryTime = "";
+      	  	  var temp = document.getElementsByName("publicIpExpiredRadioOptions");
+      	  	  for(var i=0;i<temp.length;i++){
+      	      if(temp[i].checked){
+      	    	 if(temp[i].value == "option1"){
+      	    		 expiryTime = "2099-12-30 23:59:59";
+      	    	 }else if(temp[i].value == "option2"){
+      	    		 if($("#resource_public_ip_time_unit").val() == "MONTH"){
+      	    			 var plusMonth = parseInt($("#resource_public_ip_time_value").val());
+      	    			 var dd = new Date();
+      	    			 var y = dd.getFullYear(); 
+      	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
+      	    			 var selfM = dd.getMonth()+1;
+      	    			 var d = dd.getDate();
+      	    			 y = y + parseInt(m/12);
+      	    			 m = m%12;
+      	    			 if(m == 0){
+      	    				 m = selfM;
+      	    			 }
+      	    		 }else if($("#resource_public_ip_time_unit").val() == "YEAR"){
+      	    			 var plusYear = parseInt($("#resource_public_ip_time_value").val());
+      	    			 var dd = new Date();
+      	    			 var y = dd.getFullYear(); 
+      	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
+      	    			 var d = dd.getDate();
+      	    			 y = y + plusYear;
+      	    		 }
+      	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
+      	    	 }else{
+      	    		 var timeStr = $("#resource_public_ip_datePicker").val();
+      	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
+      	    	 }
+      	       }
+      	  	  }
+        	  p.timeType = "0";
+        	  p.timeValue = "0";
+        	  p.expiryTime = expiryTime;
+        	  
    	    	  $.PUBLIC_IP.createPublicIp(p, function(data){
    	    		  self.isShowCreatePage(false);
    	    		  self.publicIpTable.refreshData();
@@ -459,21 +612,19 @@
            self.vmList([]);
            $.PORT.getBindableVmList(p, function(data){
         	   if(data && data.results){
-        		   //self.vmList(data.results);
-        		   self.vmList({
-        			   vmUuid: "9c0cd5c0-7360-40f8-8381-1a69a69bdde7",
-        			   vmName: "crnName"
-        		   });
+        		   self.vmList(data.results);
         	   }
            })
       };
 	  
       this.bindVm = function(){
     	  var uuid = self.bindingVo().uuid;
-    	  var portId = self.bindingVo().vm.vmUuid;
-    	  var vmName = self.bindingVo().vm.vmName
+    	  var portId = self.bindingVo().vm.portId;
+    	  var vmUuid = self.bindingVo().vm.vmUuid;
+    	  var vmName = self.bindingVo().vm.vmName;
     	  var p = {
-    			"vmUuid":portId,
+    			"portId":portId,
+    			"vmUuid":vmUuid,
     			"vmName":vmName
     	  };
     	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
@@ -498,6 +649,23 @@
       }
       
       //修改有效时间
+      //修改有效时间
+      $("#modal_publicIp_valiTime").on("shown.bs.modal",function(){
+          // daterange             
+          $('#resource_publicIp_validate_edit').val(self.validateTimeVO().time()).daterangepicker(
+            {
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+          ); 
+      });
       this.isValidateTime = ko.observable(false);
       this.validateTimeVO = ko.validatedObservable({
     	  uuid: ko.observable(),
@@ -505,17 +673,23 @@
     	  time: ko.observable()
       });
       this.showChangeValiTimePage = function(object, event){
-    	  self.isValidateTime(true);
-    	  //设置修改对象的uuid
-    	  self.validateTimeVO().uuid(object.uuid);
-    	  self.validateTimeVO().name(object.name);
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+     		  //走流程
+     		  self.doDeleteProcessPost(object);
+     	  }else{
+     		  //不走流程
+	    	  self.isValidateTime(true);
+	    	  //设置修改对象的uuid
+	    	  self.validateTimeVO().uuid(object.uuid);
+	    	  self.validateTimeVO().name(object.name);
+     	  }
       }
       
       this.changeExpiredTime = function(){
     	  var uuid = self.validateTimeVO().uuid();
     	  var name = self.validateTimeVO().name();
     	  var p = {
-    		  expiryDate : self.validateTimeVO().time()
+    		  expiryDate : self.validateTimeVO().time() + " 23:59:59"
     	  };
     	  $.INSTANCE.setExpiredDate(uuid, p, function(data){
     		  self.publicIpTable.refreshData();
@@ -537,13 +711,19 @@
       
       //删除公网IP
       this.deleteIp = function(vo){
-    	  var name = vo.name;
-		  confirm("确定删除公网IP[" + name + "]？", function(arg){
-			$.PUBLIC_IP.delPublicIp(vo.uuid, function(data){
-				self.publicIpTable.refreshData();
-				alert("删除公网IP[" + name + "]成功！")
-     		});
-		  });
+    	  if(csc.util.isNotNull(vo.serviceInstanceUuid)){
+     		  //走流程
+     		  self.doDeleteProcessPost(vo);
+     	  }else{
+     		  //不走流程
+	    	  var name = vo.name;
+			  confirm("确定删除公网IP[" + name + "]？", function(arg){
+				$.PUBLIC_IP.delPublicIp(vo.uuid, function(data){
+					self.publicIpTable.refreshData();
+					alert("删除公网IP[" + name + "]成功！")
+	     		});
+			  });
+     	  }
       }
 
       this.searchParam = ko.observable({
@@ -554,21 +734,34 @@
       
       //初始化查询参数
       var subSearchVdc;//subscription.dispose();
-      var subSearchAz;
       this.init = function(){
     	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
     	  $.VDC.getVDCs({},function(data){
     			if(data && data.results){
-    				data.results.push({"name": "全部", "uuid": ""});
+    				data.results.unshift({"name": "全部", "uuid": ""});
     				self.searchVdcList(data.results);
     			}
     	  });
+    	  self.searchAzList([{"name": "全部", "uuid": ""}]);
+    	  $.AZ.getAzs({},function(data){
+			 if(data && data.results){
+				 data.results.unshift({"name": "全部", "uuid": ""});
+				 self.searchAzList(data.results);
+			 }
+		 });
     	  subSearchVdc = self.searchParam().vdcUuid.subscribe(function(val){
 			    self.searchAzList([{"name": "全部", "uuid": ""}]);
 			    if(csc.util.isNotNull(val)){
 			    	$.VDC.getVdcAzs(val,{},function(data){
 		   				 if(data && data.results){
-		   					 data.results.push({"name": "全部", "uuid": ""});
+		   					 data.results.unshift({"name": "全部", "uuid": ""});
+		   					 self.searchAzList(data.results);
+		   				 }
+		   			});
+			    }else{
+			    	$.AZ.getAzs({},function(data){
+		   				 if(data && data.results){
+		   					 data.results.unshift({"name": "全部", "uuid": ""});
 		   					 self.searchAzList(data.results);
 		   				 }
 		   			});
@@ -606,6 +799,116 @@
                   return result;
               }
       });
+      
+    //------------------------------------------删除-流程开始--------------------------------
+      this.isDeleteProcess = ko.observable(false);
+      
+      this.doDeleteProcessPost = function(object){
+    	  self.isDeleteProcess(true);
+		  self.deleteProcessVO().name(object.name);
+		  self.deleteProcessVO().uuid(object.uuid);
+		  var myDate = new Date();
+		  self.deleteProcessVO().time(myDate.toLocaleString());
+		  self.deleteProcessVO().user("");
+      }
+  
+      this.deleteProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable()
+      });
+      
+      this.deleteProcessPost = function(){
+       	  var orderItem = {};
+       	  orderItem.instanceName = self.deleteProcessVO().name();
+       	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+       	  orderItem.resourceType = self.deleteProcessVO().type;
+       	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+       	  
+       	  var orderItems = [];
+       	  orderItems.push(orderItem);
+       	  
+       	  var postBody = {}; 
+       	  postBody.resourceType = self.deleteProcessVO().type;;
+       	  postBody.orderItems = orderItems;
+       	  
+       	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+       		  if(data.code){
+       			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+     		 		self.isValidateProcess(false);
+       		  }
+       	  });
+ 		}
+      
+      //------------------------------------------删除-流程结束--------------------------------
+    
+
+    //------------------------------------------有效期-流程开始--------------------------------
+	  this.isValidateProcess = ko.observable(false);
+      
+      this.doValidateProcessPost = function(object){
+    	  self.isValidateProcess(true);
+		  self.validateProcessVO().name(object.name);
+		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  var myDate = new Date();
+		  self.validateProcessVO().time(myDate.toLocaleString());
+		  self.validateProcessVO().user("");
+		  
+		  self.validateProcessVO().validateTime(object.expiryTime);
+		  self.validateProcessVO().targetValidateTime("");
+		  
+		  $('#resource_instance_ip_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
+		            {
+		              format:'YYYY/MM/DD',
+		              minDate:moment(),
+		              singleDatePicker: true,
+		              locale:{
+		                applyLabel: '确认',
+		                cancelLabel: '取消',
+		                weekLabel: '周',
+		                daysOfWeek:["日","一","二","三","四","五","六"],
+		                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+		              }
+		            }
+		  ); 
+      }
+  
+      this.validateProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable(),
+    	  
+    	  validateTime: ko.observable(),
+    	  targetValidateTime: ko.observable()
+      });
+      
+      //申请
+      this.validateProcessPost = function(){
+    	  var orderItem = {};
+    	  orderItem.instanceName = self.validateProcessVO().name();
+    	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
+    	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
+    	  orderItem.resourceType = "PUBLICIP";
+    	  
+    	  var orderItems = [];
+    	  orderItems.push(orderItem);
+    	  
+    	  var postBody = {};
+    	  postBody.resourceType = "PUBLICIP";
+    	  postBody.orderItems = orderItems;
+    	  
+    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+    		  if(data.code){
+    			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+  		 		self.isValidateProcess(false);
+    		  }
+    	  });
+      }
+      //------------------------------------------有效期-流程结束--------------------------------
       
     }
      ko.applyBindings(new ViewModel_PublicIP(), $('#partition_publicips')[0]);

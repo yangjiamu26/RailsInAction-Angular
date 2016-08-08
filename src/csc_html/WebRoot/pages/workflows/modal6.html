@@ -1,4 +1,4 @@
-  <div class="panel panel-info">
+  <div class="panel panel-info" id="sshContent">
     <div class="panel-heading">申请信息</div>
     <div id="orderDetailedList" class="wrapper form-horizontal">
       <div class="row">
@@ -6,7 +6,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label" style="white-space:nowrap">SSH密钥名称<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <input type="text" class="form-control"  placeholder="SSH密钥名称">
+              <input type="text" class="form-control"  placeholder="SSH密钥名称" data-bind="value: sshKeytCartInfo().instanceName">
             </div>
           </div>
         </div>
@@ -16,7 +16,8 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">所属VDC<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <input type="text" class="form-control"  placeholder="所属VDC">
+              <select type="text" class="form-control"  placeholder="所属VDC" data-bind="options:sshKeytCartInfo().vdcList,optionsText:'name',optionsValue:'uuid',value: sshKeytCartInfo().vdcUuid,event:{change:function(data, event){ $root.vdcChange('sshKeytCartInfo',data,event) }},optionsCaption:'请选择'">
+              </select>
             </div>
           </div>
         </div>
@@ -24,7 +25,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control">
+              <select class="form-control" data-bind="options: sshKeytCartInfo().azList,optionsText:'name',optionsValue:'uuid',value:sshKeytCartInfo().azUuid,optionsCaption:'请选择'">
                 <option>可用分区1</option>
                 <option>可用分区2</option>
               </select>
@@ -37,7 +38,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <textarea class="form-control"></textarea>
+              <textarea class="form-control" data-bind="value: sshKeytCartInfo().desc"></textarea>
             </div>
           </div>
         </div>
@@ -49,22 +50,22 @@
             <div class="col-sm-10">
               <div class="radio">
                 <label class="form-inline">
-                  <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked data-bind="checked: serviceVO().validTimeType"> 永久
+                  <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked data-bind="checked: sshKeytCartInfo().expireType"> 永久
                 </label>
               </div>
               <div class="radio">
                 <label class="form-inline">
-                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType"> 
-                  <select class="form-control" data-bind="value: serviceVO().validTimeNum">
-                  <option value="1">1</option>
-                  <option value="1">2</option>
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: sshKeytCartInfo().expireType"> 
+                  <select class="form-control" data-bind="options:applyList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().applyNum">
+	                  <option value="1">1</option>
+	                  <option value="1">2</option>
                   </select> 个月
                 </label>
               </div>
               <div class="radio disabled">
                 <label class="form-inline">
-                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: serviceVO().validTimeType">
-                  有效期至 <input type="text" class="form-control" id="timerange" style="display:inline-block;"  />
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: sshKeytCartInfo().expireType">
+                  有效期至 <input type="text" class="form-control" id="timerange" style="display:inline-block;"  data-bind="value: sshKeytCartInfo().expireTime"/>
                 </label>
               </div>
               
@@ -73,14 +74,15 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-xs-6">
+        <div class="col-xs-6" data-bind="visible: sshKeytCartInfo().isBill()=='true'">
           <div class="form-group">
             <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" style="width:150px;display:inline-block;">
+              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options: sshKeytCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value: sshKeytCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('SSH',data,event) }},optionsCaption:'请选择'">
                 <option>包月</option>
                 <option>包年</option>
-              </select> 费用：100元/月
+              </select> 
+			  <span class="control-label col-sm-5 text-left" style="height:34px;"  data-bind="text:sshKeytCartInfo().price"></span>
             </div>
           </div>
         </div>
@@ -100,27 +102,10 @@
         $("#orderBaseInfoType").html('任务ID');
     };
     
-    if(args.taskId){
-		function ViewModel(){
-		  var self = this;
-		  
-		  this.currentVO = ko.observable("");
-		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-    	     var processInstanceId = data.taskInfo[0].processInstanceId;
-			 //获取订单数据
-	      	 csc.rest.get('api/v5.0.0/orders/flow/'+processInstanceId+'/items',function(data){
-	      		debugger
-	      		 self.currentVO(data.order);
-	      	 })
-		  })
-		}
-		
-		ko.applyBindings(new ViewModel(), $('#diskContent')[0]); 
-    }
     
-    $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+    $('#timerange').val(moment().subtract('days', 29).format('YYYY-MM-DD HH:mm:ss') + ' 至 ' + moment().format('YYYY-MM-DD HH:mm:ss')).daterangepicker(
           {
-            format:'YYYY/MM/DD',
+            format:'YYYY-MM-DD HH:mm:ss',
             startDate: moment().subtract('days', 29),
             endDate: moment(),
             singleDatePicker:true,
@@ -137,5 +122,257 @@
             }
           }
         );
+    
+    function setArrayCharge(attr){
+    	var arrayCharge = [];
+    	if(attr !=null){
+    		for(var i=0;i<attr.length;i++){
+	    		if(attr[i]=="DAY"){
+	    			arrayCharge.push({name:"按天",value:"DAY"});
+	    		}else if(attr[i]=="MONTH"){
+	    			arrayCharge.push({name:"按月",value:"MONTH"});
+	    		}else if(attr[i]=="QUARTER"){
+	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+	    		}else{
+	    			arrayCharge.push({name:"按年",value:"YEAR"});
+	    		}
+	    	}
+    	}
+    	return arrayCharge;
+    }
+    
+    if(args.taskId){
+		function ViewModel(){
+		  var self = this;
+		  var diskChargeType;
+		  var countries = [{
+              name: '1',
+              value: '1'
+          }, {
+              name: '2',
+              value: '2'
+          }, {
+              name: '3',
+              value: '3'
+          }];
+          this.applyList = ko.observableArray(countries);
+          this.order = ko.observable("");
+          this.sshKeytCartInfo = ko.validatedObservable({
+          	  id: ko.observable(),
+          	  instanceName: ko.observable(),
+              vdcUuid: ko.observable(),
+              azUuid: ko.observable(),
+              serviceUuid:ko.observable(),
+              expireTime: ko.observable(),
+              expireType: ko.observable(),
+              applyNum: ko.observable(),
+              applyText: ko.observable(),
+              desc: ko.observable(),
+              billRuleUuid: ko.observable(),
+              isBill:ko.observable(),
+              vdcList: ko.observableArray([]),
+              azList: ko.observableArray([]),
+              billRuleList: ko.observableArray([]),
+              uuid:ko.observable("")
+          });
+		  
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+				 //获取订单数据
+		      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+		      		var item = data.orderItems[0];
+		      		var order = data;
+		      		self.order(order);
+		      		
+		      		var vdcUuid = item.vdcUuid;
+		      		var azUuid = item.azUuid;	
+		      		var serviceUuid = item.serviceUuid;
+		      		var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+		      		csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+		      			
+		      			 self.sshKeytCartInfo().vdcList(result.vdcList);
+	                   	 self.sshKeytCartInfo().azList(result.azList);
+	                   	 self.sshKeytCartInfo().billRuleList(setArrayCharge(result.chargeList));
+	                   	 
+	                   	  if(item.expireType == "2"){ 
+                        	item.applyNum = item.expireValue; 
+                          } 
+	                   	
+                         self.sshKeytCartInfo.fromJSON(item);
+                       });
+		      	 })
+			  })
+			  
+			  this.vdcChange = function(arg, data, event) { //根据变化的vdc及服务ID查找其下的可用分区
+              csc.rest.get("api/v5.0.0/cart/getAzList/"+data[arg]().serviceUuid()+"/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                  data[arg]().azList(result);
+              });
+			  
+              this.azChangeGetVm = function(arg, data, event) {
+                  csc.rest.get("api/v5.0.0/vms?vdcUuid=" + data[arg]().vdcUuid() + "&azUuid=" + data[arg]().azUuid(), function(result) {
+                      data[arg]().vmList(result.results);
+                  });
+              }
+              
+              this.save = function(){
+                	if(args.state=='UNSUBMIT'){
+                		
+      				var itemUuid = self.sshKeytCartInfo().uuid();
+      			    var itemResults = {"instanceName":self.sshKeytCartInfo().instanceName(),"vdcUuid":self.sshKeytCartInfo().vdcUuid(),"azUuid":self.sshKeytCartInfo().azUuid(),
+      			    		"desc":self.sshKeytCartInfo().desc(),"expireType":self.sshKeytCartInfo().expireType(),"expireValue":self.sshKeytCartInfo().expireType()=='2'?self.sshKeytCartInfo().applyNum():null,
+      			    		"expireTime":self.sshKeytCartInfo().expireType()=='3'?self.sshKeytCartInfo().expireTime()+" 23:59:59":null};
+      				
+      			    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+itemUuid,itemResults,function(data){
+      	          		alert('保存成功！');
+        		    	});
+                	}else{
+                		saveComment(args.taskId,function(){
+                			alert("保存成功！");
+                		});
+                	}
+        		 }
+              
+              this.chargeChangeCart = function(arg,data,event){//vm
+                  var serviceUuid;
+                  var cycle;
+                  if(arg=='VM'){
+               	   serviceUuid=data.vmCartInfo().serviceUuid();
+               	   cycle=data.vmCartInfo().billRuleUuid();
+                  }else if(arg=='vdisk_VM'){
+               	   serviceUuid=data.serviceUuid();
+               	   cycle=data.billRuleUuid();
+                  }else if(arg=="PUBLICIP"){
+               	   serviceUuid=data.publicNetworkCartInfo().serviceUuid();
+               	   cycle=data.publicNetworkCartInfo().billRuleUuid();   
+                  }else if(arg=="OBJECT_STORAGE"){
+               	   serviceUuid=data.objectStorageCartInfo().serviceUuid();
+               	   cycle=data.objectStorageCartInfo().billRuleUuid();
+                  }else if(arg=='DISK'){
+               	   serviceUuid=data.vdiskCartInfo().serviceUuid();
+               	   cycle=data.vdiskCartInfo().billRuleUuid(); 
+                  }else if(arg=="SSH"){
+               	   serviceUuid=data.sshKeytCartInfo().serviceUuid();
+               	   cycle=data.sshKeytCartInfo().billRuleUuid(); 
+                  }else if(arg=="LB"){
+               	   serviceUuid=data.loadbalancerCartInfo().serviceUuid();
+               	   cycle=data.loadbalancerCartInfo().billRuleUuid(); 
+                  }
+                  
+       	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+       	    		var price = 0;
+       	    		var cpu=0;
+       	    		var memory=0;
+       	    		var storage=0;
+       	    		var size=0;
+       	    		var type;
+       	    	   if(arg=='VM'){
+       	    		   cpu=data.vmCartInfo().cpu();
+       	               memory=data.vmCartInfo().memory();
+       	               storage=data.vmCartInfo().storage();
+       	               type = data.vmCartInfo().billRuleUuid();
+       	               if(typeof(type)=="undefined"  || typeof(cpu)=="undefined" || typeof(memory)=="undefined" || typeof(storage)=="undefined"){
+       	            	   data.vmCartInfo().price("");
+       	   	    			return;
+       	               }
+      	               }else if(arg=='vdisk_VM'){
+    	                   size=data.size();
+      	            	   type = data.billRuleUuid();
+   	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+   	 	            	   data.price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='PUBLICIP'){
+      	            		type=data.publicNetworkCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.publicNetworkCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='OBJECT_STORAGE'){
+      	            	   size=data.objectStorageCartInfo().size();
+     	            	   type=data.objectStorageCartInfo().billRuleUuid();
+    	   	               if(typeof(type)=="undefined"){
+    	 	            	   data.objectStorageCartInfo().price("");
+    	 	   	    			return;
+    	 	               }
+      	               }else if(arg=='DISK'){
+    	                   size=data.vdiskCartInfo().size();
+      	            	   type = data.vdiskCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+   	 	            	   data.vdiskCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='SSH'){
+      	            	   type = data.sshKeytCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.sshKeytCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='LB'){
+      	            	   type = data.loadbalancerCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.loadbalancerCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }
+       	    	   
+       	    	   
+       	    		result.ruleList.forEach(function(e){
+       	    			if(e.attrType=='CPU'){
+       	    				price += cpu * e.unitPrice;
+       	    			}else if(e.attrType=='MEMORY'){
+       	    				price += memory * e.unitPrice;
+       	    			}else if(e.attrType=='STORAGE'){
+       	    				price += storage * e.unitPrice;
+       	    			}else if(e.attrType=='DISK'){
+       	    				price += size * e.unitPrice;
+       	    				if(arg=='DISK'){
+       	    					data.vdiskCartInfo().unitPrice(e.unitPrice);
+       	    				}
+       	    			}else if(e.attrType=='PUBLICIP'){
+       	    				price += e.unitPrice;
+       	    			}else if(e.attrType=='OBJECT_STORAGE'){
+       	    				data.objectStorageCartInfo().unitPrice(e.unitPrice);
+       	    				price += size * e.unitPrice;
+       	    			}else if(e.attrType=='LOAD_BALANCING'){
+        	    				price +=e.unitPrice;
+        	    			}else if(e.attrType=='SECRET_KEY'){
+        	    				price +=e.unitPrice;
+        	    			}
+       	    		});
+       	    		if(type=="DAY"){
+       	    			price+="元/天";
+       	    		}else if(type=="MONTH"){
+       	    			price+="元/月";
+       	    		}else if(type=="QUARTER"){
+       	    			price+="元/季度";
+       	    		}else{
+       	    			price+="元/年";
+       	    		}
+       	    		
+       	    		   if(arg=='VM'){
+       	    			data.vmCartInfo().price(price);
+      	               }else if(arg=='vdisk_VM'){
+      	            	    data.price(price);
+      	               }else if(arg=='PUBLICIP'){
+      	            		data.publicNetworkCartInfo().price(price);
+      	               }else if(arg=='OBJECT_STORAGE'){
+      	            		data.objectStorageCartInfo().price(price);
+      	               }else if(arg=='DISK'){
+      	            		data.vdiskCartInfo().price(price);
+      	               }else if(arg=='SSH'){
+      	            	    data.sshKeytCartInfo().price(price);
+      	               }else if(arg=='LB'){
+      	            	    data.loadbalancerCartInfo().price(price);
+      	               }
+       	    		
+       	    	});	    	
+       	    }
+              
+          };
+		  
+		}
+		
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+    }
   })
 </script>

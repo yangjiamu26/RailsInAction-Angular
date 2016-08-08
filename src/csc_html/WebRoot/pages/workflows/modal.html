@@ -41,12 +41,14 @@
 	<div id="orderContent"></div>
 
       <div class="panel panel-info" id="approveMsgs">
-        <div class="panel-heading">审批信息</div>
+        <div class="panel-heading" id="approveTitle">审批信息</div>
         <div class="wrapper">
-          <h4>审批意见:</h4>
-          <textarea id="commentMsg" class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>    
-          <input id="commentId" type="hidden">
-          <hr />
+          <div id="commentDiv">
+	          <h4>审批意见:</h4>
+	          <textarea id="commentMsg" class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>    
+	          <input id="commentId" type="hidden">
+	          <hr />
+          </div>
           <div>
 	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" data-bind="click: save">保存数据</button>
 	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
@@ -64,6 +66,7 @@
 <script type="text/javascript">
   var isLast = false;
   var isFirst = false;
+  var state = '';
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", "api/vdc/vdc.js", "api/resource/network/network.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     if(!args.type){
@@ -81,19 +84,25 @@
     		var info = data.taskInfo[0];
     		var taskNode = data.taskActivity[0];
     		var formKey = info.formKey;
-    		var isBatch = args.isBatch;
-    		var state = args.state;
-    		
+    		var isBatchBol = args.isBatch;
+    		var isBatch;
+    		if(isBatchBol=="true"){
+    			isBatch = true;
+    		}else{
+    			isBatch = false;
+    		}
+    		state = args.state;
     		$("#taskId").append(info.id);
     		$("#taskName").append(info.name);
     		$("#processType").append(info.processTypeName);
     		$("#applyTime").append(info.applyTime);
+    		$("#applier").append(info.applyUser);
     		
     		var processInstanceId = info.processInstanceId;
     		//判断是否有前面节点
 			if(taskNode.previousStartEvent){
 				isFirst = true;
-				$("#btn_task_fallback").hide();
+				//$("#btn_task_fallback").hide();
 				$("#btn_task_delegate").hide();
 			}
 			
@@ -104,23 +113,33 @@
 				$("#btn_task_complete").attr("title","完成审核");
 			}
 			
+			//未提交节点
+			if(state == 'UNSUBMIT'){
+				$("#commentDiv").hide();
+				$("#approveMsgs").removeClass("panel panel-info");
+				$("#approveTitle").hide();
+				$("#btn_task_fallback").hide();
+				$("#btn_task_delegate").hide();
+			}
+			
+			//施工确认节点不能回退
+			if(formKey=='resure'){
+				$("#btn_task_fallback").hide();
+			}
+			
 			//加载意见信息
 			get_task_comment(args.taskId);
 			
 			//$("#orderContent").load("pages/workflows/vm_single.html");
 			
-			if(args.state){
-				
-			}
-			
 			//加载订单信息
 			csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
-	    		var order = data.order;
+	    		var order = data;
 	    		var flowType = order.type;
 	    		var productType = order.resourceType;
 	    		var url = '';
 	    		if(flowType=='VDC_APPLY'){//VDC申请
-	    			if(args.type == 'order' || formKey=='approve'){
+	    			if(state=='UNSUBMIT' || args.type == 'order' || formKey=='approve'){
 	    				url = "pages/workflows/vdc_apply_single.html";
 	    			}else if(formKey=='construct'){
 	    				url = "pages/workflows/vdc_apply_construct.html";
@@ -141,6 +160,18 @@
 		    		}else if(formKey=='resure'){
 		    			url = setResureUrl(flowType,productType,isBatch);
 		    		}
+	    		}else if(flowType=='RESOURCE_CHANGE'){
+	    			
+	    		}else if(flowType=='RESOURCE_DELETE'){
+	    		    if(productType=='VM'){
+	    		        url = "pages/workflows/resource_delete.html";
+	    		    }
+	    		}else if(flowType=='RESOURCE_RECYCLE'){
+	    		    if(productType=='VM'){
+	    		        url = "pages/workflows/resource_recovery.html";
+	    		    }
+	    		}else if(flowType=='VALIDTIME_CHANGE'){
+	    			url = "";
 	    		}
 	    		
 				$("#orderContent").load(url);
@@ -172,7 +203,13 @@
    //未提交url
   function setUnsubmitUrl(flowType,productType,isBatch){
 	var url = '';
-	if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
+	if(flowType=='RESOURCE_APPLY'&&productType=='VM'){
+		if(isBatch){
+			url = "pages/workflows/vm_apply_unsubmit.html";
+		}else{
+			url = "";
+		}
+	}else if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
 		if(isBatch){
 			url = "pages/workflows/modal2_batch.html";
 		}else{
@@ -180,9 +217,9 @@
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
 		if(isBatch){
-			url = "pages/workflows/modal3_batch.html";
+			url = "pages/workflows/objectStorage_apply_unsubmit_batch.html";
 		}else{
-			url = "pages/workflows/modal3.html";
+			url = "pages/workflows/objectStorage_apply_unsubmit.html";
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
 		if(isBatch){
@@ -196,6 +233,12 @@
 		}else{
 			url = "pages/workflows/modal6.html";
 		}
+	}else if(flowType=='RESOURCE_APPLY'&&productType=='PUBLICIP'){
+		if(isBatch){
+			url = "";
+		}else{
+			url = "pages/workflows/ip_apply_unsubmit.html";
+		}
 	}
 	return url;
   }
@@ -204,7 +247,16 @@
   function setApproveUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_approve.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_approve.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_approve.html";
+		}
+		else{			
+			url = "pages/workflows/handle_others.html";
+		}
 	}
 	
 	return url;
@@ -214,7 +266,16 @@
   function setConstructUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_1_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_construct.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_construct.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_construct.html";
+		}
+		else{			
+			url = "pages/workflows/handle_1_others.html";
+		}
 	}
 	
 	return url;
@@ -224,7 +285,15 @@
   function setResureUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_2_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_construct_confirm.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_construct_confirm.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_construct_confirm.html";
+		}else{			
+			url = "pages/workflows/handle_2_others.html";
+		}
 	}
 	
 	return url;
@@ -256,7 +325,14 @@
   
   function next(){
 	  var taskId = $("#taskId").text();
-	  if(isLast){
+	  
+	  if(state == 'UNSUBMIT'){
+		var databody = {"action":"reSubmit"};
+		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+		  alert("提交成功！");
+		  location.href = "#pages/workflows/tasks?type=work";
+		},function(){alert("操作失败！")});
+	  }else if(isLast){
 		  saveComment(taskId,function(){
 			var databody = {"userId":"","action":"designated"};
 			csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){

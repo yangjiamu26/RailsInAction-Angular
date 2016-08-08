@@ -70,13 +70,29 @@
             <td data-bind="text: $row.cidr">192.168.208.0/24</td><!-- 网络 -->
             <td data-bind="text: $row.protocol">TCP</td><!-- 协议 -->
             <td data-bind="text: $row.lbMethod">ROUNB_ROBIN</td><!-- 负载方式 -->
-            <td data-bind="text: $row.state">运行中</td><!-- 状态 -->
+            <td>
+            	<span class="label label-success" data-bind="if: $row.state == 'ACTIVE'">运行中</span>
+	            <span class="label label-danger" data-bind="if: $row.state == 'ERROR'">异常</span>
+	            <span class="label label-warning" data-bind="if: $row.state == 'PENDING_CREATE'">正在创建</span>
+	            <span class="label label-warning" data-bind="if: $row.state == 'PENDING_UPDATE'">正在修改</span>
+            </td><!-- 状态 -->
+            
             <td data-bind="text: $row.vipName">VIP1</td><!-- VIP名称 -->
             <td data-bind="text: $row.vipAddress">1</td><!-- VIP地址 -->
-            <td data-bind="text: $row.serviceState">正常</td><!-- 服务状态 -->
-            <td data-bind="text: $row.createTime">20160605</td><!-- 有效期 -->
-            <td data-bind="text: $row.account">admin</td><!-- 创建人 -->
-            <td><a data-bind="click: $root.addVipPageFun">添加VIP</a> |<a data-bind="click:$root.addVipPageFun">编辑VIP</a> | <a href="#">有效时间变更</a> | <a>终止</a> | <a>删除</a></td>
+            <td>
+            	<span class="label label-success" data-bind="if: $row.isValidate == true">正常</span>
+	            <span class="label label-danger" data-bind="if: $row.isValidate == false">已过期</span>
+            </td><!-- 服务状态 -->
+            <td data-bind="text: $row.expiredDate">20160605</td><!-- 有效期 -->
+            <td data-bind="text: $row.userName">admin</td><!-- 创建人 -->
+            <td>
+            	<span data-bind="visible: csc.util.isNull($row.vipUuid)"><a data-bind="click: $root.showAddVip">添加VIP</a> |</span> 
+            	<span data-bind="visible: csc.util.isNotNull($row.vipUuid)"><a data-bind="click:$root.showEditVip">编辑VIP</a> |</span>
+            	<span data-bind="visible: csc.util.isNotNull($row.vipUuid)"><a data-bind="click:$root.delVip">删除VIP</a> |</span>
+            	<a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |
+            	<span data-bind="if: isValidate == true"><a data-bind="click: $root.terminateService">终止</a></span>
+            	<span data-bind="if: isValidate == false"><a data-bind="click: $root.delLoadBalancer">删除</a></span>
+            </td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -101,7 +117,7 @@
   </div>
 </div>
 <!-- 创建负载均衡器页面 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:showCreatePage}">
+  <div role="dialog" aria-hidden="true"  id="modal_addLoadBalancer" class="modal fade" data-bind="modal:{show:showCreatePage}">
     <div class='modal-dialog modal-lg' role='document'>
       <div class='modal-content'>
         <div class='modal-header'>
@@ -216,15 +232,38 @@
             </div>
           </div>
           <div class="row">
-            <div class="col-sm-12">
+   			<div class="form-group">
+               <label class="col-xs-1 control-label no-padder-h">申请时长</label>
+               <div class="col-xs-10">
+                 <label class="radio-inline" style="padding-top: 2px">
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio1" value="option1" checked="checked"> 永久
+                 </label>
+                 <label class="radio-inline">
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
+                   <input type="text" class="form-control inline w-xxs" id="resource_load_balancer_time_value">
+                   <select class="form-control inline w-xs" id="resource_load_balancer_time_unit">
+                     <option value="MONTH">月</option>
+                     <option value="YEAR">年</option>
+                   </select>  
+                 </label>
+                 <label class="radio-inline">
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
+                   <input type="text" value="" class="form-control inline w" id="resource_load_balancer_datePicker">
+                 </label>                                    
+               </div>
+               <div class="col-xs-1">
+                 <span class="text-danger inline m-l-n m-t-sm">*</span>
+               </div>
+             </div>
+            <!-- <div class="col-sm-12">
               <div class="form-group">
                 <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                 <div class="col-xs-10">
                   <label class="radio-inline" style="padding-top: 2px">
-                    <input type="radio" name="inlineRadioOptions" value="option1" checked="checked"> 永久
+                    <input type="radio" name="lbExpiredRadioOptions" value="option1" checked="checked"> 永久
                   </label>
                   <label class="radio-inline">
-                    <input type="radio" name="inlineRadioOptions"  value="option2" style="margin-top:10px"> 
+                    <input type="radio" name="lbExpiredRadioOptions"  value="option2" style="margin-top:10px"> 
                     <input type="text" class="form-control inline w-xxs" >
                     <select class="form-control inline w-xs">
                       <option value="DAY">日</option>
@@ -232,7 +271,7 @@
                     </select>  
                   </label>
                   <label class="radio-inline">
-                    <input type="radio" name="inlineRadioOptions"  value="option3" style="margin-top:10px"> 有效期至
+                    <input type="radio" name="lbExpiredRadioOptions"  value="option3" style="margin-top:10px"> 有效期至
                     <input type="text" value="" class="form-control inline w">
                   </label>                                    
                 </div>
@@ -240,7 +279,7 @@
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class='modal-footer'>
@@ -253,20 +292,21 @@
 <!-- 创建负载均衡器页面 END -->
 
 <!-- 添加VIP页面 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:showAddVipPage}">
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowAddVip}">
     <div class='modal-dialog' role='document'>
       <div class='modal-content'>
         <div class='modal-header'>
           <button type="button" class="close" data-dismiss="modal">
             <span aria-hidden="true">&times;</span>
           </button>
-          <h3 class='modal-title'>添加VIP</h3>
+          <h3 class='modal-title' data-bind="visible: !isVipEditFlag()">添加VIP</h3>
+          <h3 class='modal-title' data-bind="visible: isVipEditFlag()">编辑VIP</h3>
         </div>
-        <div class='modal-body form-horizontal' >
+        <div class='modal-body form-horizontal' data-bind="with: currentVipVo">
           <div class="form-group">
             <label class="col-xs-3 control-label">VIP名称</label>
             <div class="col-xs-8">
-              <input type="text" class="form-control" >
+              <input type="text" class="form-control" data-bind="value: name">
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -275,9 +315,10 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">网络</label>
             <div class="col-xs-8">
-              <select class="form-control">
+            	<input type="text" class="form-control" data-bind="value: cidr" disabled>
+              <!-- <select class="form-control">
                 <option>192.168.0.0/24</option>
-              </select>
+              </select> -->
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -286,9 +327,10 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">指定IP</label>
             <div class="col-xs-8">
-              <select class="form-control">
+            	<input type="text" class="form-control" data-bind="value: address, enable: !$root.isVipEditFlag()">
+              <!-- <select class="form-control">
                 <option>192.168.0.7</option>
-              </select>
+              </select> -->
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -297,9 +339,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">协议</label>
             <div class="col-xs-8">
-              <select class="form-control">
-                <option>TCP</option>
-              </select>
+              <input type="text" class="form-control" data-bind="value: protocol" disabled>
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -308,9 +348,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">协议端口</label>
             <div class="col-xs-8">
-              <select class="form-control">
-                <option>TCP</option>
-              </select>
+              <input type="text" class="form-control" data-bind="value: protocolPort, enable: !$root.isVipEditFlag()">
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -319,27 +357,27 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">会话持久性</label>
             <div class="col-xs-8">
-              <select class="form-control">
+              <select class="form-control" data-bind="options:$root.spTypeList, value: sessionPersistenceType">
                 <option>SOURCE_IP</option>
               </select>
             </div>
-            <div class="col-xs-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>
+          <div class="form-group" data-bind="visible: sessionPersistenceType()=='APP_COOKIE'">
+            <label class="col-xs-3 control-label">APP_COOKIE</label>
+            <div class="col-xs-8">
+              <input type="text" class="form-control" data-bind="value: cookieName">
             </div>
           </div>
           <div class="form-group">
             <label class="col-xs-3 control-label">连接限制</label>
             <div class="col-xs-8">
-              <input type="text" class="form-control" >
-            </div>
-            <div class="col-xs-1">
-              <span class="text-danger inline m-l-n m-t-sm">*</span>
+              <input type="text" class="form-control"  data-bind="value: connectionLimit">
             </div>
           </div>
           <div class="form-group">
             <label class="col-xs-3 control-label">备注</label>
             <div class="col-xs-8">
-              <textarea class="form-control"></textarea>
+              <textarea class="form-control" data-bind="value: desc"></textarea>
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -347,7 +385,7 @@
           </div>
         </div>
         <div class='modal-footer'>
-          <button name="button" class="btn btn-primary " >确定</button>
+          <button name="button" class="btn btn-primary " data-bind="click: $root.updateVip">确定</button>
           <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
         </div>
       </div>
@@ -355,15 +393,42 @@
   </div>
 <!-- 添加VIP页面 END -->
 
+<!-- 修改有效时间 -->
+<div role="dialog" aria-hidden="true" id="modal_balancer_valiTime" class="modal fade" data-bind="modal: { show: isValidateTime}">
+   <div class='modal-dialog modal-md'>
+     <div class='modal-content'>
+       <div class='modal-header'>
+         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+       </div>
+       <div class='modal-body form-horizontal row'>
+         <div class="form-group">
+           <label class="col-sm-3 control-label">有效期：</label>
+           <div class="col-sm-8">
+             <input type="text" value="" class="form-control inline w" id="resource_loadBalancer_validate_edit" data-bind="value: validateTimeVO().time">
+           </div>
+         </div>
+       </div>
+       <div class='modal-footer' style="text-align:center;">
+         <a class="btn btn-default btn-info" data-bind="click: changeExpiredTime">确定</a>
+         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+       </div>
+     </div>
+   </div>
+ </div>
+
   <!-- 负载均衡器详情 -->
   <div id="instance_balancer_details" data-bind="visible: isShowDetail()">
 		<!-- 负载均衡器基本信息 -->
-        <div class="wrapper">
+        <div class="wrapper" data-bind="with: $root.currentLbVo">
           <a class="btn btn-sm btn-default" data-bind="click: $root.showDetailFun"><i class="fa fa-arrow-left"></i> 返回</a>
-          <a class="btn btn-sm btn-info">编辑VIP</a>
-          <a class="btn btn-sm btn-info">有效时间变更</a>
-          <a class="btn btn-sm btn-info">终止</a>
-          <a class="btn btn-sm btn-info">删除</a>
+          <a class="btn btn-sm btn-info" data-bind="visible: csc.util.isNotNull(vipUuid), click:$root.showEditVip">编辑VIP</a>
+          <a class="btn btn-sm btn-info" data-bind="click: $root.showChangeValiTimeInDetail">有效时间变更</a>
+          <span data-bind="if: isValidate == true">
+          	<a class="btn btn-sm btn-info" data-bind="click: $root.terminateService">终止</a>
+          </span>
+          <span data-bind="if: isValidate == false">
+          	<a class="btn btn-sm btn-info" data-bind="click: $root.delLoadBalancerInDetail">删除</a>
+          </span>
         </div>
 
         <div class="wrapper">
@@ -407,7 +472,8 @@
               <div class="detail-others-img img-serverinfo">服务信息</div>
               <div class="detail-others-text h-xs" data-bind="with: $root.currentLbVo">
                 <p>服务状态：
-                    <span class="label label-info" data-bind="text: serviceState">正常</span>
+                    <span class="label" data-bind="if: isValidate == true">正常</span>
+	            	<span class="label" data-bind="if: isValidate == false">已过期</span>
                 </p>
                 <p>创建时间：<span data-bind="text: createTime">2016-08-04 14:28:50</span></p>
                 <p>生效时间：<span data-bind="text: expiredDate">2016-08-04 14:28:54</span></p>
@@ -415,34 +481,34 @@
               </div> 
             </div>             
           </div>
-          <div class="col-xs-8">
-            <div class="clear bg-primary wrapper">
+          <div class="col-xs-8" data-bind="visible: isShowVipInfo()">
+            <div class="clear bg-primary wrapper" data-bind="with: $root.currentVipVo">
               <div class="detail-others-img img-settings">VIP信息</div>
               <div class="detail-others-text h-xs" style="width:85%">
                 <div class="row">
                   <div class="col-xs-6">
-                    <p>VIP名称：<span>负载均衡器1</span></p>
+                    <p>VIP名称：<span data-bind="text: lbName">负载均衡器1</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>网络：<span>208</span></p>
+                    <p>网络：<span data-bind="text: networkName">208</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>IP地址：<span>192.1.1.1</span></p>
+                    <p>IP地址：<span data-bind="text: address">192.1.1.1</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>协议：<span>TCP</span></p>
+                    <p>协议：<span data-bind="text: protocol">TCP</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>协议端口：<span>8080</span></p>
+                    <p>协议端口：<span data-bind="text: protocolPort">8080</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>会话持久性：<span>是</span></p>
+                    <p>会话持久性：<span data-bind="text: sessionPersistenceType">是</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>连接限制：<span>5000</span></p>
+                    <p>连接限制：<span data-bind="text: connectionLimit">5000</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>备注：<span>XXXX</span></p>
+                    <p>备注：<span data-bind="text: desc">XXXX</span></p>
                   </div>
                 </div>
               </div>                
@@ -456,7 +522,7 @@
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>成员列表</h5>
           <p class="form-inline">
             <a class="btn btn-sm btn-info" data-bind="click: showAddMember">添加成员</a>
-            <a class="text-info pull-right m-t-sm">刷新</a>
+            <a class="text-info pull-right m-t-sm" data-bind="click: refreshMemberList">刷新</a>
           </p>
           <div class='table-responsive no-height'>
             <table class="table table-striped" data-bind="with: lbMemberTable">
@@ -485,7 +551,7 @@
                   <td data-bind="text: $row.protocolPort">8080</td>
                   <td data-bind="text: $row.weight">20</td>
                   <td data-bind="text: $row.lbName">负载均衡器1</td>
-                  <td><a data-bind="click: $root.showAddMember">修改</a> | <a data-bind="click: $root.deleteLbMember">删除</a></td>
+                  <td><a data-bind="click: $root.showEditMember">修改</a> | <a data-bind="click: $root.deleteLbMember">删除</a></td>
                 </tr>
                 <!-- /ko -->
               </tbody>
@@ -499,7 +565,7 @@
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>监控列表</h5>
           <p class="form-inline">
             <a class="btn btn-sm btn-info" data-bind="click: showAddMonitor">添加监控</a>
-            <a class="text-info pull-right m-t-sm">刷新</a>
+            <a class="text-info pull-right m-t-sm" data-bind="click: refreshMonitorList">刷新</a>
           </p>
           <div class='table-responsive no-height'>
             <table class="table table-striped" data-bind="with: lbMonitorTable">
@@ -526,7 +592,7 @@
                   <td data-bind="text: $row.timeout">10</td><!-- 超时 -->
                   <td data-bind="text: $row.maxRetries">5</td><!-- 最大重试次数 -->
                   <td data-bind="text: $row.detail">GET/192.168.1.1:8090=>200</td><!-- 详情 -->
-                  <td><a data-bind="click: $root.showAddMonitor">修改</a> | <a data-bind="click: $root.delMonitor">删除</a></td>
+                  <td><a data-bind="click: $root.showEditMonitor">修改</a> | <a data-bind="click: $root.delMonitor">删除</a></td>
                 </tr>
                  <!-- /ko -->
               </tbody>
@@ -543,7 +609,8 @@
         <div class='modal-content'>
           <div class='modal-header'>
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-            <h3 class='modal-title'>添加成员</h3>
+            <h3 class='modal-title' data-bind="visible: !isEditMemberFlag()">添加成员</h3>
+            <h3 class='modal-title' data-bind="visible: isEditMemberFlag()">修改成员</h3>
           </div>
           <div class='modal-body form-horizontal' data-bind="with: currentMemberVo">
         	<div class="tab-pane active">
@@ -559,7 +626,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">云主机：</label>
                 <div class="col-xs-5">
-                  <select class="form-control" data-bind="options: $root.memberVmList, optionsText:'vmName',value: vm">
+                  <select class="form-control" data-bind="options: $root.memberVmList, optionsText:'vmName',value: vm, enable:!$root.isEditMemberFlag()">
                     <option value="">VM1</option>
                   </select>
                 </div>
@@ -570,7 +637,7 @@
               <div class="form-group">
                 <label class="col-xs-4 control-label">协议端口：</label>
                 <div class="col-xs-5">
-                  <input class="form-control" type="text" data-bind="value: port"/>
+                  <input class="form-control" type="text" data-bind="value: protocolPort, enable:!$root.isEditMemberFlag()"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -589,7 +656,7 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.addMember"/>
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.updateMember"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
@@ -603,7 +670,8 @@
         <div class='modal-content'>
           <div class='modal-header'>
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-            <h3 class='modal-title'>添加监控</h3>
+            <h3 class='modal-title' data-bind="visible: !isEditMonitorFlag()">添加监控</h3>
+            <h3 class='modal-title' data-bind="visible: isEditMonitorFlag()">修改监控</h3>
           </div>
           <div class='modal-body form-horizontal' data-bind="with: currentMonitorVo">
             <div class="tab-pane active">
@@ -675,7 +743,7 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.addMonitor"/>
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.updateMonitor"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
@@ -685,11 +753,115 @@
 
   </div>
   <!-- 负载均衡器详情 end -->
+  
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDeleteProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源删除</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源删除</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: deleteProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: deleteProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
 
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: deleteProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：负载均衡器</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content' style="width:700px;">
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>有效时间变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: validateProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: validateProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: validateProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：负载均衡器</p></div>
+		          </div>
+		          <div class="row">
+		            <div class="col-xs-6"><p>调整前失效时间：<input type="text" value="" class="form-control inline w" data-bind="value: validateProcessVO().validateTime" disabled="disabled"></p></div>
+		            <div class="col-xs-6"><p>调整后失效时间：<input type="text" value="" class="form-control inline w" id="resource_instance_balancer_validate_process" data-bind="value: validateProcessVO().targetValidateTime"></p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: validateProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
 <script type="text/javascript">
   var scripts = ["api/resource/az/az.js", 
                  "api/vdc/vdc.js", 
                  "api/vpc/vpc.js", 
+                 "api/resource/network/port.js",
+                 "api/resourceInstance/instance.js",
                  "api/resourceInstance/loadBalancer/loadBalancer.js", 
                  "assets/lib/moment/moment.js",
                  "assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
@@ -707,23 +879,44 @@
             azUuid: ko.observable(""),
             name: ko.observable("")
         });
-          
+        
+        var subSearchVdc;//subscription.dispose();
         this.init = function(){
-      	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
-      	  $.VDC.getVDCs({},function(data){
-      			if(data && data.results){
-      				data.results.unshift({"name": "全部", "uuid": ""});
-      				self.searchVdcList(data.results);
-      			}
-      	  });
-      	  
-      	  self.searchAzList([{"name": "全部", "uuid": ""}]);
-      	  $.AZ.getAzs({}, function(data){
-   			if(data && data.results){
-   				data.results.unshift({"name": "全部", "uuid": ""});
-   				self.searchAzList(data.results);
-   			}
-   		  });
+	      	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
+	      	  $.VDC.getVDCs({},function(data){
+	      			if(data && data.results){
+	      				data.results.unshift({"name": "全部", "uuid": ""});
+	      				self.searchVdcList(data.results);
+	      			}
+	      	  });
+	      	  
+	      	  self.searchAzList([{"name": "全部", "uuid": ""}]);
+	      	  $.AZ.getAzs({}, function(data){
+	   			if(data && data.results){
+	   				data.results.unshift({"name": "全部", "uuid": ""});
+	   				self.searchAzList(data.results);
+	   			}
+	   		  });
+	      	  
+	      	subSearchVdc = self.searchParam().vdcUuid.subscribe(function(val){
+			    self.searchAzList([{"name": "全部", "uuid": ""}]);
+			    if(csc.util.isNotNull(val)){
+			    	$.VDC.getVdcAzs(val,{},function(data){
+		   				 if(data && data.results){
+		   					 data.results.unshift({"name": "全部", "uuid": ""});
+		   					 self.searchAzList(data.results);
+		   				 }
+		   			});
+			    }else{
+			    	$.AZ.getAzs({},function(data){
+		   				 if(data && data.results){
+		   					 data.results.unshift({"name": "全部", "uuid": ""});
+		   					 self.searchAzList(data.results);
+		   				 }
+		   			});
+			    }
+    	    	
+    	    });
       	  
         }();
         
@@ -766,6 +959,23 @@
     	
     	
     	/********  创建负载均衡器   *********/
+    	$("#modal_addLoadBalancer").on("shown.bs.modal",function(){
+	          // daterange             
+	          $('#resource_load_balancer_datePicker').val(moment().format('YYYY-MM-DD')).daterangepicker(
+	            {
+	              minDate:moment(),
+	              singleDatePicker: true,
+	              locale:{
+	                applyLabel: '确认',
+	                cancelLabel: '取消',
+	                weekLabel: '周',
+	                daysOfWeek:["日","一","二","三","四","五","六"],
+	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+	              }
+	            }
+	          ); 
+        })
+    	
     	
       	this.showCreatePage = ko.observable(false);
     	//创建的负载均衡器对象
@@ -866,9 +1076,44 @@
       	this.createLoadBalancer = function(){
       		//console.log(self.createBlVo.toJSON());
       		var p = self.createBlVo.toJSON();
+      		
+      		var expiryTime = "";
+    	  	var temp = document.getElementsByName("lbExpiredRadioOptions");
+    	  	for(var i=0;i<temp.length;i++){
+    	     if(temp[i].checked){
+    	    	 if(temp[i].value == "option1"){
+    	    		 expiryTime = "2099-12-30 23:59:59";
+    	    	 }else if(temp[i].value == "option2"){
+    	    		 if($("#resource_load_balancer_time_unit").val() == "MONTH"){
+    	    			 var plusMonth = parseInt($("#resource_load_balancer_time_value").val());
+    	    			 var dd = new Date();
+    	    			 var y = dd.getFullYear(); 
+    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
+    	    			 var selfM = dd.getMonth()+1;
+    	    			 var d = dd.getDate();
+    	    			 y = y + parseInt(m/12);
+    	    			 m = m%12;
+    	    			 if(m == 0){
+    	    				 m = selfM;
+    	    			 }
+    	    		 }else if($("#resource_load_balancer_time_unit").val() == "YEAR"){
+    	    			 var plusYear = parseInt($("#resource_load_balancer_time_value").val());
+    	    			 var dd = new Date();
+    	    			 var y = dd.getFullYear(); 
+    	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
+    	    			 var d = dd.getDate();
+    	    			 y = y + plusYear;
+    	    		 }
+    	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
+    	    	 }else{
+    	    		 var timeStr = $("#resource_load_balancer_datePicker").val();
+    	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
+    	    	 }
+    	     }
+    	  	}
       		p.timeType = "0";
       		p.timeValue = "0";
-      		p.expiryTime = "2020-12-30 23:59:59";
+      		p.expiryTime = expiryTime;
       		$.LOAD_BALANCER.createLoadBalancer(p, function(data){
       			self.showCreatePage(false);
  	    		self.loadBalancerTable.refreshData();
@@ -881,6 +1126,22 @@
       	/********  创建负载均衡器基本信息   *********/
       	
       	this.currentLbVo = ko.observable();
+      	/* {
+    		name: 		"",
+    		vdcUuid:	"",
+    		vdcName:	"",
+    		azUuid:		"",
+    		azName:		"",
+    		vpcUuid: 	"",
+    		vpcNetworkUuid:	"",
+    		protocol: 	"",
+    		lbMethod: 	"",
+    		timeType: 	"",
+    		timeValue: 	"",
+    		vipUuid:	"",
+    		desc: 		"",
+    		isValidate: ""
+    	} */
       	this.isShowDetail = ko.observable(false);
       	
       	this.showDetailFun = function(row,event){
@@ -892,24 +1153,206 @@
     			};
     			self.lbMemberTable.params(p);
     			self.lbMonitorTable.params(p);
+    			
+    			loadVipInfo(row.vipUuid);
     		}
     		
     	}
+      	this.isShowVipInfo = ko.observable(false);
+      	function loadVipInfo(vipUuid){
+      		if(csc.util.isNotNull(vipUuid)){
+      			self.isShowVipInfo(true);
+      			$.LOAD_BALANCER.getLoadBalancerVip(vipUuid, function(data){
+            		self.currentVipVo({
+                		"uuid": data.uuid,
+                		"azUuid": data.azUuid,
+                  		"lbId": data.originalId,
+                  		"lbUuid": data.uuid,
+                  		"lbName":  data.lbName,
+                  		"name":  data.name,
+                  		"vpcNetworkUuid":  data.vpcNetworkUuid,
+                  		"networkName": data.networkName,
+                  		"cidr": data.cidr,
+                  		"address":  data.address,
+                  		"protocol": data.protocol,
+                  		"protocolPort":  data.protocolPort,
+                  		"sessionPersistenceType":  ko.observable(data.sessionPersistenceType),
+                  		"cookieName":  data.cookieName,
+                  		"connectionLimit":data.connectionLimit,
+                  		"desc":data.desc
+                	});
+          		});
+      		}else{
+      			self.isShowVipInfo(false);
+      		}
+      	}
       	
       	
       	/********  创建负载均衡器基本信息 END   *********/
+      	this.delLoadBalancer = function(row){
+      		if(csc.util.isNotNull(row.serviceInstanceUuid)){
+         		  //走流程
+         		  self.doDeleteProcessPost(row);
+         	  }else{
+         		  //不走流程
+	      		var name = row.name;
+	      		confirm("确定删除负载均衡器[" + name + "]？", function(arg){
+	      			$.LOAD_BALANCER.deleteLoadBalancer(row.uuid, function(data){
+	      				self.loadBalancerTable.refreshData();
+	      				alert("删除负载均衡器[" + name + "]成功！")
+	           		});
+	      		});
+         	  }
+      	}
+      	
+      	this.delLoadBalancerInDetail = function(){
+      		if(csc.util.isNotNull(self.currentLbVo().serviceInstanceUuid)){
+       		  //走流程
+       		  self.doDeleteProcessPost(self.currentLbVo());
+       	  }else{
+       		  //不走流程
+      		var name = self.currentLbVo().name;
+      		var uuid = self.currentLbVo().uuid;
+      		confirm("确定删除负载均衡器[" + name + "]？", function(arg){
+      			$.LOAD_BALANCER.deleteLoadBalancer(uuid, function(data){
+      				self.isShowDetail(false);
+      				self.loadBalancerTable.refreshData();
+      				alert("删除负载均衡器[" + name + "]成功！")
+           		});
+      		});
+       	  }
+      	}
       	
       	
-      	
-      	
+      	/********************  VIP模块   ************************/
       	/********  添加VIP   *********/
-      	this.showAddVipPage = ko.observable(false);
-      	
-      	this.addVipPageFun = function(row, event){
-        	this.showAddVipPage(true);
+      	this.isShowAddVip = ko.observable(false);
+      	this.isVipEditFlag = ko.observable(false);
+      	this.currentVipVo = ko.validatedObservable();
+      	this.spTypeList = ko.observableArray();
+      	this.showAddVip = function(row, event){
+        	self.isShowAddVip(true);
+			self.isVipEditFlag(false);//添加页面
+			//
+			self.spTypeList([]);
+        	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
+        	//self.spTypeList.unshift("");
+        	
+        	//初始化VIP参数
+        	self.currentVipVo({
+        		"uuid": "",
+        		"azUuid": row.azUuid,
+          		"lbId": row.originalId,
+          		"lbUuid": row.uuid,
+          		"lbName": row.lbName,
+          		"name":  "",
+          		"vpcNetworkUuid":  row.vpcNetworkUuid,
+          		"networkName": row.networkName,
+          		"cidr": row.cidr,
+          		"address":  "",
+          		"protocol": row.protocol,
+          		"protocolPort":  80,
+          		"sessionPersistenceType":  ko.observable(),
+          		"cookieName":  "",
+          		"connectionLimit":"",
+          		"desc":""
+        	});
         	
       	};
-      	/********  添加VIP END  *********/
+      	
+      	this.addVip = function(){
+      		var p = self.currentVipVo();
+      		$.LOAD_BALANCER.createLoadBalancerVip(p, function(data){
+      			self.isShowAddVip(false);
+ 	    		self.loadBalancerTable.refreshData();
+ 				alert("创建负载均衡器VIP成功！");
+      		})
+      	}
+      	var oldEditVip = {};
+      	
+      	this.showEditVip = function(row, event){
+        	self.isShowAddVip(true);
+        	self.isVipEditFlag(true);//编辑页面
+        	//
+        	self.spTypeList([]);
+        	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
+        	//self.spTypeList.unshift("");
+        	//初始化VIP参数
+        	$.LOAD_BALANCER.getLoadBalancerVip(row.vipUuid, function(data){
+        		oldEditVip.name = data.name;
+        		oldEditVip.desc = data.desc;
+        		oldEditVip.sessionPersistenceType = data.sessionPersistenceType == null?"":data.sessionPersistenceType;
+        		oldEditVip.cookieName = data.cookieName == null ? "": data.cookieName;
+        		oldEditVip.connectionLimit = data.connectionLimit;
+        			
+        		self.currentVipVo({
+            		"uuid": data.uuid,
+            		"azUuid": data.azUuid,
+              		"lbId": data.originalId,
+              		"lbUuid": data.uuid,
+              		"lbName": data.lbName,
+              		"name":  data.name,
+              		"vpcNetworkUuid":  data.vpcNetworkUuid,
+              		"networkName": data.networkName,
+              		"cidr": data.cidr,
+              		"address":  data.address,
+              		"protocol": data.protocol,
+              		"protocolPort":  data.protocolPort,
+              		"sessionPersistenceType":  ko.observable(data.sessionPersistenceType),
+              		"cookieName":  data.cookieName,
+              		"connectionLimit":data.connectionLimit,
+              		"desc":data.desc
+            	});
+      		});
+        	
+      	};
+      	//VIP是否修改
+      	var isVipChange = function(o, n){
+      		n.cookieName = n.cookieName == null ? "":n.cookieName;
+      		if(o.name.trim() != n.name.trim()
+      		 || o.desc.trim() != n.desc.trim()
+      		 || o.sessionPersistenceType != n.sessionPersistenceType()
+      		 || o.cookieName.trim() != n.cookieName.trim()
+      		 || o.connectionLimit != n.connectionLimit
+      		 ){
+      			return true;
+      		}
+      		return false;
+      	}
+      	
+      	this.editVip = function(){
+      		var p = self.currentVipVo();
+      		if(isVipChange(oldEditVip, p)){
+      			$.LOAD_BALANCER.editLoadBalancerVip(p.uuid, p, function(data){
+          			self.isShowAddVip(false);
+     	    		self.loadBalancerTable.refreshData();
+     				alert("修改负载均衡器VIP成功！");
+          		})
+      		}else{
+      			self.isShowAddVip(false);
+      		}
+      		
+      	}
+      	
+      	this.updateVip = function(){
+      		if(self.isVipEditFlag()){
+      			self.editVip();
+      		}else{
+      			self.addVip();
+      		}
+      	}
+      	
+      	this.delVip = function(row){
+	      		var name = row.vipName;
+	      		confirm("确定删除负载均衡器VIP[" + name + "]？", function(arg){
+	      			$.LOAD_BALANCER.deleteLoadBalancerVip(row.vipUuid, function(data){
+	      				self.loadBalancerTable.refreshData();
+	      				alert("删除负载均衡器VIP[" + name + "]成功！")
+	           		});
+	      		});
+      	}
+      	
+      	/********************  VIP模块 END  ************************/
       	
       	
       	/********************  成员列表   ************************/
@@ -926,31 +1369,53 @@
         /********************  成员列表  END ************************/
       	/********************  添加成员   ************************/
       	this.isShowAddMember = ko.observable(false);
+        this.isEditMemberFlag = ko.observable(false);
+        
       	this.currentMemberVo = ko.observable();
       	this.memberVmList = ko.observableArray();
       	
         this.showAddMember = function(){
           	self.isShowAddMember(true);
+          	self.isEditMemberFlag(false);
+          	
+          	self.memberVmList([]);
+          	var p = {
+             	   tenantId: 	self.currentLbVo().tenantId,
+             	   networkUuid:	self.currentLbVo().vpcNetworkUuid,
+             	   azUuid: 		self.currentLbVo().azUuid
+            };
+            self.memberVmList([]);
+            $.PORT.getLbMemberVmList(p, function(data){
+         	   if(data && data.results){
+         		   self.memberVmList(data.results);
+         		   /* self.vmList({
+         			   vmUuid: "9c0cd5c0-7360-40f8-8381-1a69a69bdde7",
+         			   vmName: "crnName"
+         		   }); */
+         	   }
+            })
+          	//var vmList = $.LOAD_BALANCER.getMemberVms;
+          	//self.memberVmList(vmList);
           	
           	self.currentMemberVo({
-          		"azUuid": self.currentLbVo().azUuid,
+          		"vpcUuid": self.currentLbVo().vpcUuid,
           		"lbId": self.currentLbVo().originalId,
           		"lbUuid": self.currentLbVo().uuid,
           		"lbName": self.currentLbVo().name,
           		"vm":"",
-          		"port":80,
+          		"protocolPort":80,
           		"weight":1
           	});
-          	var vmList = $.LOAD_BALANCER.getMemberVms;
-          	self.memberVmList(vmList);
+          	
         }
+        
         this.addMember = function(){
         	var p = {
-        		"azUuid": self.currentMemberVo().azUuid,
+        		"vpcUuid": self.currentMemberVo().vpcUuid,
         		"lbId": 	self.currentMemberVo().lbId,
         		"lbUuid": 	self.currentMemberVo().lbUuid,
         		"address":	self.currentMemberVo().vm.address,
-          		"protocolPort":self.currentMemberVo().port,
+          		"protocolPort":self.currentMemberVo().protocolPort,
           		"weight":   self.currentMemberVo().weight,
           		"vmName":	self.currentMemberVo().vm.vmName
         	};
@@ -962,10 +1427,65 @@
         	});
         }
         
-        
         /********************  修改成员  ************************/
+        var oldEditMember = {};
+        this.showEditMember = function(row, event){
+        	self.isShowAddMember(true);
+        	self.isEditMemberFlag(true);
+        	
+        	self.memberVmList([]);
+          	var vmList = $.LOAD_BALANCER.getMemberVms;
+          	self.memberVmList(vmList);
+          	
+          	oldEditMember.weight = row.weight;
+          	//将数据行的数据传入currentMemberVo
+          	self.currentMemberVo({
+          		"uuid":			row.uuid,
+          		"vpcUuid": 		row.vpcUuid,
+        		"lbId": 		row.lbId,
+        		"lbUuid": 		row.lbUuid,
+        		"lbName":		row.lbName,
+        		"address":		row.address,
+          		"protocolPort":	row.protocolPort,
+          		"weight":   	row.weight,
+          		"vmName":		row.vmName,
+          		"vm":	{"address":row.address, "vmName": row.vmName}
+          	});
+        }
+        
+        this.editMember = function(){
+        	var p = {
+            		"vpcUuid": self.currentMemberVo().vpcUuid,
+            		"lbId": 	self.currentMemberVo().lbId,
+            		"lbUuid": 	self.currentMemberVo().lbUuid,
+            		"address":	self.currentMemberVo().vm.address,
+              		"protocolPort":self.currentMemberVo().protocolPort,
+              		"weight":   self.currentMemberVo().weight,
+              		"vmName":	self.currentMemberVo().vm.vmName
+            	};
+        	var uuid = self.currentMemberVo().uuid;
+        	if(oldEditMember.weight == p.weight){
+        		//没有修改，则只是隐藏页面
+        		self.isShowAddMember(false);
+        	}else{
+        		$.LOAD_BALANCER.editLoadBalancerMember(uuid, p, function(data){
+               		self.isShowAddMember(false);
+               		self.lbMemberTable.refreshData();
+       				alert("修改成员成功！")
+               	});
+        	}
+        	
+        }
         
         
+        this.updateMember = function(){
+        	if(self.isEditMemberFlag()){
+        		self.editMember();
+        	}else{
+        		self.addMember();
+        	}
+        	
+        }
         
         /********************  删除成员  ************************/
         this.deleteLbMember = function(vo){
@@ -976,6 +1496,10 @@
   				alert("删除负载均衡器成员[" + name + "]成功！")
        		});
   		  });
+        }
+        
+        this.refreshMemberList = function(){
+        	self.lbMemberTable.refreshData();
         }
         
         /********************  负载均衡器监听模块   ************************/
@@ -991,12 +1515,15 @@
         
         /********************  添加监控   ************************/
         this.isShowAddMonitor = ko.observable(false);
+        this.isEditMonitorFlag = ko.observable(false);
+        
         this.currentMonitorVo = ko.validatedObservable();
         
         this.isTcpHide = ko.observable();//当协议类型为TCP时，需要隐藏的字段
         
         this.showAddMonitor = function(){
         	self.isShowAddMonitor(true);
+        	self.isEditMonitorFlag(false);
         	//初始化currentMonitorVo数据
         	var protocolType = self.currentLbVo().protocol;
         	if("TCP" == protocolType){
@@ -1005,12 +1532,12 @@
         		self.isTcpHide(false);
         	}
         	self.currentMonitorVo({
-        		azUuid:		self.currentLbVo().azUuid,
+        		vpcUuid:		self.currentLbVo().vpcUuid,
         		lbUuid:		self.currentLbVo().uuid,
         		type: 	self.currentLbVo().protocol,
-        		delay:		20,
-        		timeout:	10,
-        		maxRetries:	1,
+        		delay:		"",
+        		timeout:	"",
+        		maxRetries:	"",
         		httpMethod: "GET",
         		urlPath:	"/",
         		expectedCodes:"200"
@@ -1026,8 +1553,61 @@
 				alert("创建监听成功！")
         	});
         }
+        /********************  修改监听   ************************/
+        var oldMonitorVo = {};
+        this.showEditMonitor = function(row){
+        	self.isShowAddMonitor(true);
+        	self.isEditMonitorFlag(true);
+        	
+        	oldMonitorVo.delay = row.delay;
+        	oldMonitorVo.timeout = row.timeout;
+        	oldMonitorVo.maxRetries = row.maxRetries;
+        	oldMonitorVo.urlPath = row.urlPath;
+        	oldMonitorVo.expectedCodes = row.expectedCodes;
+        	if("TCP" == row.type){
+        		self.isTcpHide(true);
+        	}else{
+        		self.isTcpHide(false);
+        	}
+        	self.currentMonitorVo(row);
+        }
         
-        /********************  删除模块   ************************/
+        var isMonitorChange = function(o, n){
+        	if(o.delay != n.delay
+        	|| o.timeout != n.timeout
+         	|| o.maxRetries != n.maxRetries
+         	|| o.urlPath != n.urlPath
+         	|| o.expectedCodes != n.expectedCodes
+   			){
+        		return true;
+        	}else{
+        		return false;
+        	}
+        }
+        
+        this.editMonitor = function(){
+        	var p = self.currentMonitorVo();
+        	if(isMonitorChange(oldMonitorVo, p)){
+        		$.LOAD_BALANCER.editLoadBalancerMonitor(p.uuid, p, function(data){
+            		self.isShowAddMonitor(false);
+            		self.lbMonitorTable.refreshData();
+    				alert("修改监听成功！")
+            	});
+        	}else{
+        		self.isShowAddMonitor(false);
+        	}
+        	
+        }
+        
+        this.updateMonitor = function(){
+        	if(self.isEditMonitorFlag()){
+        		self.editMonitor();
+        	}else{
+        		self.addMonitor();
+        	}
+        }
+        
+        /********************  删除监听   ************************/
         this.delMonitor = function(vo){
     		  confirm("确定删除该负载均衡器监听？", function(arg){
     			$.LOAD_BALANCER.deleteLoadBalancerMonitor(vo.uuid, function(data){
@@ -1037,7 +1617,199 @@
     		  });
         }
         
-        /********************  监控模块   ************************/
+        this.refreshMonitorList = function(){
+        	self.lbMonitorTable.refreshData();
+        }
+        /********************  监听模块   ************************/
+        /********************  服务模块   ************************/
+        //修改有效时间
+        $("#modal_balancer_valiTime").on("shown.bs.modal",function(){
+          // daterange             
+          $('#resource_loadBalancer_validate_edit').val(self.validateTimeVO().time()).daterangepicker(
+            {
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+          ); 
+        })
+        
+        this.isValidateTime = ko.observable(false);
+        this.validateTimeVO = ko.validatedObservable({
+      	  uuid: ko.observable(),
+      	  name: ko.observable(),
+      	  time: ko.observable()
+        });
+        this.showChangeValiTimePage = function(object, event){
+        	if(csc.util.isNotNull(object.serviceInstanceUuid)){
+         		  //走流程
+         		  self.doValidateProcessPost(object);
+         	  }else{
+         		  //不走流程
+		      	  self.isValidateTime(true);
+		      	  //设置修改对象的uuid
+		      	  self.validateTimeVO().uuid(object.uuid);
+		      	  self.validateTimeVO().name(object.name);
+         	  }
+        }
+        
+        this.showChangeValiTimeInDetail = function(){
+        	if(csc.util.isNotNull(self.currentLbVo().serviceInstanceUuid)){
+       		  //走流程
+       		  	self.doValidateProcessPost(self.currentLbVo());
+       	  	}else{
+       		  //不走流程
+	        	self.isValidateTime(true);
+	        	//设置修改对象的uuid
+	        	self.validateTimeVO().uuid(self.currentLbVo().uuid);
+	        	self.validateTimeVO().name(self.currentLbVo().name);
+       	  	}
+        }
+        
+        this.changeExpiredTime = function(){
+      	  var uuid = self.validateTimeVO().uuid();
+      	  var name = self.validateTimeVO().name();
+      	  var p = {
+      		  expiryDate : self.validateTimeVO().time() + " 23:59:59"
+      	  };
+      	  $.INSTANCE.setExpiredDate(uuid, p, function(data){
+      		  self.loadBalancerTable.refreshData();
+  		 	  self.isValidateTime(false);
+  		 	  alert('修改负载均衡器['+ name+ ']服务的有效期成功！');
+      	  });
+        }
+        
+        
+      	//终止服务
+        this.terminateService = function(vo){
+      	  var name = vo.name;
+  		  confirm("确定终止负载均衡器[" + name + "]的服务？", function(arg){
+  			  $.INSTANCE.terminalService(vo.uuid, function(data){
+  				self.loadBalancerTable.refreshData();
+  				alert("终止负载均衡器[" + name + "]的服务成功！")
+       		});
+  		  });
+        }
+        
+        
+        
+        /********************  服务模块   ************************/
+        
+      //------------------------------------------删除-流程开始--------------------------------
+        this.isDeleteProcess = ko.observable(false);
+        
+        this.doDeleteProcessPost = function(object){
+      	  self.isDeleteProcess(true);
+  		  self.deleteProcessVO().name(object.name);
+  		  self.deleteProcessVO().uuid(object.uuid);
+  		  var myDate = new Date();
+  		  self.deleteProcessVO().time(myDate.toLocaleString());
+  		  self.deleteProcessVO().user("");
+        }
+    
+        this.deleteProcessVO = ko.observable({
+      	  name: ko.observable(),
+      	  uuid: ko.observable(),
+      	  time: ko.observable(),
+      	  user: ko.observable()
+        });
+        
+        this.deleteProcessPost = function(){
+         	  var orderItem = {};
+         	  orderItem.instanceName = self.deleteProcessVO().name();
+         	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+         	  orderItem.resourceType = self.deleteProcessVO().type;
+         	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+         	  
+         	  var orderItems = [];
+         	  orderItems.push(orderItem);
+         	  
+         	  var postBody = {}; 
+         	  postBody.resourceType = self.deleteProcessVO().type;;
+         	  postBody.orderItems = orderItems;
+         	  
+         	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+         		  if(data.code){
+         			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+       		 		self.isValidateProcess(false);
+         		  }
+         	  });
+   		}
+        
+        //------------------------------------------删除-流程结束--------------------------------
+      
+
+      //------------------------------------------有效期-流程开始--------------------------------
+  	  this.isValidateProcess = ko.observable(false);
+        
+        this.doValidateProcessPost = function(object){
+      	  self.isValidateProcess(true);
+  		  self.validateProcessVO().name(object.name);
+  		  self.validateProcessVO().uuid(object.uuid);
+  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+  		  var myDate = new Date();
+  		  self.validateProcessVO().time(myDate.toLocaleString());
+  		  self.validateProcessVO().user("");
+  		  
+  		  self.validateProcessVO().validateTime(object.expiryTime);
+  		  self.validateProcessVO().targetValidateTime("");
+  		  
+  		  $('#resource_instance_balanceer_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
+  		            {
+  		              format:'YYYY/MM/DD',
+  		              minDate:moment(),
+  		              singleDatePicker: true,
+  		              locale:{
+  		                applyLabel: '确认',
+  		                cancelLabel: '取消',
+  		                weekLabel: '周',
+  		                daysOfWeek:["日","一","二","三","四","五","六"],
+  		                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+  		              }
+  		            }
+  		  ); 
+        }
+    
+        this.validateProcessVO = ko.observable({
+      	  name: ko.observable(),
+      	  uuid: ko.observable(),
+      	  time: ko.observable(),
+      	  user: ko.observable(),
+      	  serviceInstanceUuid: ko.observable(),
+      	  
+      	  validateTime: ko.observable(),
+      	  targetValidateTime: ko.observable()
+        });
+        
+        //申请
+        this.validateProcessPost = function(){
+      	  var orderItem = {};
+      	  orderItem.instanceName = self.validateProcessVO().name();
+      	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
+      	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
+      	  orderItem.resourceType = "LOAD_BALANCING";
+      	  
+      	  var orderItems = [];
+      	  orderItems.push(orderItem);
+      	  
+      	  var postBody = {};
+      	  postBody.resourceType = "LOAD_BALANCING";
+      	  postBody.orderItems = orderItems;
+      	  
+      	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+      		  if(data.code){
+      			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+    		 		self.isValidateProcess(false);
+      		  }
+      	  });
+        }
+        //------------------------------------------有效期-流程结束--------------------------------
     };
     ko.applyBindings(new ViewModel_Balancer(), $('#partition_balancer')[0]);
   })

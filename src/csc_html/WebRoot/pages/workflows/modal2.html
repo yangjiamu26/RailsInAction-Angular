@@ -1,5 +1,5 @@
 
-  <div class="panel panel-info" id="diskContent">
+  <div class="panel panel-info">
     <div class="panel-heading">申请信息</div>
     <div id="orderDetailedList" class="wrapper form-horizontal">
       <div class="row">
@@ -7,7 +7,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">云硬盘名称<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <input type="text" class="form-control"  placeholder="云硬盘名称" data-bind="value: currentVO().name">
+              <input type="text" class="form-control"  placeholder="云硬盘名称" data-bind="value: vdiskCartInfo().name">
             </div>
           </div>
         </div>
@@ -15,7 +15,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">存储大小(G)</label>
             <div class="col-sm-10">
-              <input type="text" class="form-control"  placeholder="存储大小" data-bind="value: currentVO().size,event:{change:$root.sizeChange}">
+              <input type="text" class="form-control"  placeholder="存储大小" data-bind="value: vdiskCartInfo().size,event:{change:$root.sizeChange}">
             </div>
           </div>
         </div>  
@@ -24,7 +24,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">所属VDC<i style="color:red" >*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:currentVO().vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}">
+              <select class="form-control" data-bind="options:vdiskCartInfo().vdcList,optionsText:'name',optionsValue:'uuid',value:vdiskCartInfo().vdcUuid,event:{change:function(data, event){ $root.vdcChange('vdiskCartInfo',data,event) }},optionsCaption:'请选择'">
               </select>
             </div>
           </div>
@@ -33,7 +33,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:currentVO().azUuid,event:{change:$root.azChangeGetVm},optionsCaption:'请选择'">
+              <select class="form-control" data-bind="options:vdiskCartInfo().azList,optionsText:'name',optionsValue:'uuid',value:vdiskCartInfo().azUuid,event:{change:function(data, event){ $root.azChangeGetVm('vdiskCartInfo',data,event) }},optionsCaption:'请选择'">
                 <option>可用分区1</option>
                 <option>可用分区2</option>
               </select>
@@ -44,7 +44,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">挂载云主机<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options:vmList,optionsText:'name',optionsValue:'uuid',value:currentVO().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'">
+              <select class="form-control" data-bind="options:vdiskCartInfo().vmList,optionsText:'name',optionsValue:'uuid',value:vdiskCartInfo().mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'">
                 <option>云主机1</option>
                 <option>云主机2</option>
               </select>
@@ -57,7 +57,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <textarea class="form-control" data-bind="value: currentVO().remark"></textarea>
+              <textarea class="form-control" data-bind="value: vdiskCartInfo().remark"></textarea>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">申请时长：<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              有效期至 <input type="text" class="form-control" id="timerange" style="width:250px;display:inline-block;" data-bind="value: currentVO().applyTime,attr:{disabled:true}" />
+              有效期至 <input type="text" class="form-control" id="timerange" style="width:250px;display:inline-block;" data-bind="value: vdiskCartInfo().applyTime,attr:{disabled:true}" />
             </div>
           </div>
         </div>
@@ -77,11 +77,11 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:currentVO().billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'">
+              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options:vdiskCartInfo().billRuleList,optionsText:'name',optionsValue:'value',value:vdiskCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('DISK',data,event) }},optionsCaption:'请选择'">
                 <option>包月</option>
                 <option>包年</option>
               </select> 
-              <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="value:currentVO().price"></span>
+              <span class="control-label text-left" style="height:34px;" data-bind="text:vdiskCartInfo().price"></span>
             </div>
           </div>
         </div>
@@ -93,7 +93,6 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	  debugger
     if(!args.type){
       $(".order-base-info").remove();
     }else{
@@ -105,143 +104,283 @@
 
     $("#timerange").daterangepicker();
     
+    function setArrayCharge(attr){
+	    	var arrayCharge = [];
+	    	if(attr !=null){
+	    		for(var i=0;i<attr.length;i++){
+  	    		if(attr[i]=="DAY"){
+  	    			arrayCharge.push({name:"按天",value:"DAY"});
+  	    		}else if(attr[i]=="MONTH"){
+  	    			arrayCharge.push({name:"按月",value:"MONTH"});
+  	    		}else if(attr[i]=="QUARTER"){
+  	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+  	    		}else{
+  	    			arrayCharge.push({name:"按年",value:"YEAR"});
+  	    		}
+  	    	}
+	    	}
+	    	return arrayCharge;
+	    }
+    
     if(args.taskId){
 		function ViewModel(){
 		  var self = this;
 		  var diskChargeType;
+		  this.order = ko.observable("");
 		  
-		  this.currentVO = ko.validatedObservable({
-		        name: ko.observable(),
-		        size: ko.observable("").extend({required: true}),
-		        azUuid: ko.observable().extend({required: true}),
-		        vdcUuid: ko.observable("").extend({required: true}),
-		        applyTime: ko.observable("").extend({required: true}),
-		        mountVmUuid:ko.observable(""),
-		        billRuleUuid:ko.observable(""),
-		        remark:ko.observable(),
-		        serviceUuid:ko.observable(),
-		        price:ko.observable(""),
-		        unitPrice:ko.observable("")
-		      });
+		  this.vdiskCartInfo = ko.validatedObservable({
+              id: ko.observable(""),
+              name: ko.observable(""),
+              serviceUuid:ko.observable(""),
+              size: ko.observable(""),
+              vdcUuid: ko.observable(""),
+              azUuid: ko.observable(""),
+              mountVmUuid: ko.observable(""),
+              vdcList: ko.observableArray([]),
+              azList: ko.observableArray([]),
+              vmList: ko.observableArray([]),
+              applyTime: ko.observable(""),
+              remark: ko.observable(""),
+              charge:ko.observable(""),
+              price:ko.observable(""),
+              billRuleUuid:ko.observable(""),
+              billRuleList: ko.observableArray([]),
+              unitPrice:ko.observable(""),
+              uuid:ko.observable("")
+          });
+		  
 		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-    	     var processInstanceId = data.taskInfo[0].processInstanceId;
-			 //获取订单数据
-	      	 csc.rest.get('api/v5.0.0/order/byFlowInstanceUuid/'+processInstanceId,function(data){
-	      		debugger
-	      		var test = {};
-	      		test.name="xx";
-	      		test.size="100";
-	      		test.azUuid="02";
-	      		test.vdcUuid="02";
-	      		test.applyTime="1986-01-10";
-	      		test.mountVmUuid="12313";
-	      		test.remark="12313123aad";
-	      		test.billRuleUuid='DAY';
-	      		test.serviceUuid = '66769923-ba8e-478e-8f14-587a91259886';
-	      		diskChargeType = setArrayCharge(test.billRuleUuid);
-	      		test.price='20';
-	      		test.unitPrice='10';
-	      		
-	      		 self.currentVO.fromJSON(test);
-	      	 })
-		  })
+	    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+				 //获取订单数据
+		      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+		      		var item = data.orderItems[0];
+		      		var order = data;
+		      		self.order(order);
+		      		
+		      		var metaData = JSON.parse(item.metaData);
+		      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+		      		var vdcUuid = item.vdcUuid;
+		      		var azUuid = item.azUuid;	
+		      		var serviceUuid = item.serviceUuid;
+		      		
+		      		 var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+		      		csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                       	
+                           self.vdiskCartInfo().vdcList(result.vdcList);
+                           self.vdiskCartInfo().azList(result.azList);
+                           self.vdiskCartInfo().billRuleList(setArrayCharge(result.chargeList));
+                           
+                           csc.rest.get("api/v5.0.0/vms?vdcUuid=" + vdcUuid + "&azUuid=" + azUuid, function(result1) {
+                               self.vdiskCartInfo().vmList(result1.results);
+                           	
+                           	   var disk = item;
+                           	    disk.name = item.instanceName;
+	    			      		disk.size= resBaseInfo.volumeSize;
+	    			      		
+	    			      		disk.serviceUuid = item.serviceUuid;
+	    			      		disk.billRuleUuid= item.billCycle;
+	    			      		
+	    			      		disk.vdcUuid= item.vdcUuid;
+	    			      		disk.azUuid= item.azUuid;
+	    			      		disk.mountVmUuid= resBaseInfo.vmUuid;
+	    			      		
+	    			      		disk.applyTime=item.expireValue;
+	    			      		disk.remark=item.desc;
+	    			      		disk.price=item.fee;
+	    			      		
+                               self.vdiskCartInfo.fromJSON(disk);
+                           });
+                       });
+		      	 })
+			  })
+			  
+			  this.vdcChange = function(arg, data, event) { //根据变化的vdc及服务ID查找其下的可用分区
+              csc.rest.get("api/v5.0.0/cart/getAzList/"+data[arg]().serviceUuid()+"/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                  data[arg]().azList(result);
+              });
+			  
+              this.azChangeGetVm = function(arg, data, event) {
+                  csc.rest.get("api/v5.0.0/vms?vdcUuid=" + data[arg]().vdcUuid() + "&azUuid=" + data[arg]().azUuid(), function(result) {
+                      data[arg]().vmList(result.results);
+                  });
+              }
+              
+              this.vmChangeGetDate = function(obj) {
+                  var vmItem = _.findWhere(self.vdiskCartInfo().vmList(), {
+                      uuid: self.vdiskCartInfo().mountVmUuid()
+                  });
+                  if (typeof(vmItem) == "undefined") {
+                      self.vdiskCartInfo().applyTime("");
+                  } else {
+                      self.vdiskCartInfo().applyTime(vmItem.expiryTime);
+                  }
+
+              }
+              
+              this.chargeChangeCart = function(arg,data,event){//vm
+                  var serviceUuid;
+                  var cycle;
+                  if(arg=='VM'){
+               	   serviceUuid=data.vmCartInfo().serviceUuid();
+               	   cycle=data.vmCartInfo().billRuleUuid();
+                  }else if(arg=='vdisk_VM'){
+               	   serviceUuid=data.serviceUuid();
+               	   cycle=data.billRuleUuid();
+                  }else if(arg=="PUBLICIP"){
+               	   serviceUuid=data.publicNetworkCartInfo().serviceUuid();
+               	   cycle=data.publicNetworkCartInfo().billRuleUuid();   
+                  }else if(arg=="OBJECT_STORAGE"){
+               	   serviceUuid=data.objectStorageCartInfo().serviceUuid();
+               	   cycle=data.objectStorageCartInfo().billRuleUuid();
+                  }else if(arg=='DISK'){
+               	   serviceUuid=data.vdiskCartInfo().serviceUuid();
+               	   cycle=data.vdiskCartInfo().billRuleUuid(); 
+                  }else if(arg=="SSH"){
+               	   serviceUuid=data.sshKeytCartInfo().serviceUuid();
+               	   cycle=data.sshKeytCartInfo().billRuleUuid(); 
+                  }else if(arg=="LB"){
+               	   serviceUuid=data.loadbalancerCartInfo().serviceUuid();
+               	   cycle=data.loadbalancerCartInfo().billRuleUuid(); 
+                  }
+                  
+       	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+       	    		var price = 0;
+       	    		var cpu=0;
+       	    		var memory=0;
+       	    		var storage=0;
+       	    		var size=0;
+       	    		var type;
+       	    	   if(arg=='VM'){
+       	    		   cpu=data.vmCartInfo().cpu();
+       	               memory=data.vmCartInfo().memory();
+       	               storage=data.vmCartInfo().storage();
+       	               type = data.vmCartInfo().billRuleUuid();
+       	               if(typeof(type)=="undefined"  || typeof(cpu)=="undefined" || typeof(memory)=="undefined" || typeof(storage)=="undefined"){
+       	            	   data.vmCartInfo().price("");
+       	   	    			return;
+       	               }
+      	               }else if(arg=='vdisk_VM'){
+    	                   size=data.size();
+      	            	   type = data.billRuleUuid();
+   	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+   	 	            	   data.price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='PUBLICIP'){
+      	            		type=data.publicNetworkCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.publicNetworkCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='OBJECT_STORAGE'){
+      	            	   size=data.objectStorageCartInfo().size();
+     	            	   type=data.objectStorageCartInfo().billRuleUuid();
+    	   	               if(typeof(type)=="undefined"){
+    	 	            	   data.objectStorageCartInfo().price("");
+    	 	   	    			return;
+    	 	               }
+      	               }else if(arg=='DISK'){
+    	                   size=data.vdiskCartInfo().size();
+      	            	   type = data.vdiskCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined" || typeof(size)=="undefined"){
+   	 	            	   data.vdiskCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='SSH'){
+      	            	   type = data.sshKeytCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.sshKeytCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }else if(arg=='LB'){
+      	            	   type = data.loadbalancerCartInfo().billRuleUuid();
+   	   	               if(typeof(type)=="undefined"){
+   	 	            	   data.loadbalancerCartInfo().price("");
+   	 	   	    			return;
+   	 	               }
+      	               }
+       	    	   
+       	    	   
+       	    		result.ruleList.forEach(function(e){
+       	    			if(e.attrType=='CPU'){
+       	    				price += cpu * e.unitPrice;
+       	    			}else if(e.attrType=='MEMORY'){
+       	    				price += memory * e.unitPrice;
+       	    			}else if(e.attrType=='STORAGE'){
+       	    				price += storage * e.unitPrice;
+       	    			}else if(e.attrType=='DISK'){
+       	    				price += size * e.unitPrice;
+       	    				if(arg=='DISK'){
+       	    					data.vdiskCartInfo().unitPrice(e.unitPrice);
+       	    				}
+       	    			}else if(e.attrType=='PUBLICIP'){
+       	    				price += e.unitPrice;
+       	    			}else if(e.attrType=='OBJECT_STORAGE'){
+       	    				data.objectStorageCartInfo().unitPrice(e.unitPrice);
+       	    				price += size * e.unitPrice;
+       	    			}else if(e.attrType=='LOAD_BALANCING'){
+        	    				price +=e.unitPrice;
+        	    			}else if(e.attrType=='SECRET_KEY'){
+        	    				price +=e.unitPrice;
+        	    			}
+       	    		});
+       	    		if(type=="DAY"){
+       	    			price+="元/天";
+       	    		}else if(type=="MONTH"){
+       	    			price+="元/月";
+       	    		}else if(type=="QUARTER"){
+       	    			price+="元/季度";
+       	    		}else{
+       	    			price+="元/年";
+       	    		}
+       	    		
+       	    		   if(arg=='VM'){
+       	    			data.vmCartInfo().price(price);
+      	               }else if(arg=='vdisk_VM'){
+      	            	    data.price(price);
+      	               }else if(arg=='PUBLICIP'){
+      	            		data.publicNetworkCartInfo().price(price);
+      	               }else if(arg=='OBJECT_STORAGE'){
+      	            		data.objectStorageCartInfo().price(price);
+      	               }else if(arg=='DISK'){
+      	            		data.vdiskCartInfo().price(price);
+      	               }else if(arg=='SSH'){
+      	            	    data.sshKeytCartInfo().price(price);
+      	               }else if(arg=='LB'){
+      	            	    data.loadbalancerCartInfo().price(price);
+      	               }
+       	    		
+       	    	});	    	
+       	    }
+              
+          };
+          
+          
+          this.save = function(){
+          	if(args.state=='UNSUBMIT'){
+				var meta ={};
+				var resBaseInfo={};
+				resBaseInfo.volumeSize = self.vdiskCartInfo().size();
+				resBaseInfo.vmUuid = self.vdiskCartInfo().mountVmUuid();
+				
+				meta.resBaseInfo = resBaseInfo;
+				var itemUuid = self.vdiskCartInfo().uuid();
+			    var itemResults = {"instanceName":self.vdiskCartInfo().name(),"vdcUuid":self.vdiskCartInfo().vdcUuid(),"azUuid":self.vdiskCartInfo().azUuid(),
+			    		"billCycle":self.vdiskCartInfo().billRuleUuid(),"fee":self.vdiskCartInfo().price(),"metaData":JSON.stringify(meta),"desc":self.vdiskCartInfo().remark()};
+				
+			    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+itemUuid,itemResults,function(data){
+	          		alert('保存成功！');
+  		    	});
+          	}else{
+          		saveComment(args.taskId,function(){
+          			alert("保存成功！");
+          		});
+          	}
+  		 }
 		  
-		    //vdc下拉列表
-		    this.vdcList = ko.observableArray();
-	        csc.rest.get("api/v5.0.0/cart/getselect", function(data){
-	        	debugger
-	        	self.vdcList(data);
-	        });
-		    //}
-		   //可用分区下拉列表
-		    this.azList = ko.observableArray();
-		   
-		    this.vdcChange = function(obj){//根据变化的vdc及服务ID查找其下的可用分区
-		    	var _self = this;
-		    	_self.azList.removeAll();
-		        csc.rest.get("api/v5.0.0/vdcs/"+obj.currentVO().vdcUuid()+"/azs", function(data){
-		        	_self.azList(data.results);
-		        });	        
-		    };
-		    
-		    //虚拟机列表
-		    this.vmList = ko.observableArray();
-		    this.azChangeGetVm = function(obj){	
-		    	var _self = this;
-		        csc.rest.get("api/v5.0.0/vms?vdcUuid="+obj.currentVO().vdcUuid()+"&azUuid="+obj.currentVO().azUuid(), function(data){
-		        	_self.vmList(data.results);
-		        });	    	
-		    }
-		    
-		    this.billRuleArray = ko.observableArray(diskChargeType);
-		    //有效时间
-		    this.vmChangeGetDate = function(obj){
-		    	var _self = this;
-	  			var vmItem = _.findWhere(_self.vmList(), {uuid: _self.currentVO().mountVmUuid()});
-				if (typeof(vmItem) == "undefined") { 
-					_self.currentVO().applyTime("");
-				}else{
-					_self.currentVO().applyTime(vmItem.expiryTime);
-				}
-		    	
-		    }
-		    
-		    this.chargeChange = function(arg,data,event){//除了VDC其他申请用这个方法
-		    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+this.currentVO().serviceUuid()+"&cycle="+this.currentVO().billRuleUuid(), function(result){
-		    		debugger
-		    		var _self = this;
-		    		var type = _self.currentVO().billRuleUuid();
-		    		var price;
-		    		if(typeof(type)=="undefined"){
-		    			currentVO().price("");
-		    			return;
-		    		}
-		    		if(arg=="size"){
-		    			var num = _self.currentVO().size();
-		    			_self.currentVO().unitPrice(result.ruleList[0].unitPrice);
-		    			price = num*(result.ruleList[0].unitPrice);
-		    			price = "费用:"+price;
-		    		}else{
-		    			price= "费用:"+result.ruleList[0].unitPrice;
-		    		}
-		    		 
-		    		if(type=="DAY"){
-		    			price+="元/天";
-		    		}else if(type=="MONTH"){
-		    			price+="元/月";
-		    		}else if(type=="QUARTER"){
-		    			price+="元/季度";
-		    		}else{
-		    			price+="元/年";
-		    		}
-		    		currentVO().price(price);
-		    	});	    	
-		    }
-		    
-		    function setArrayCharge(value){
-		    	var attr = getArrayByString(value);
-		    	var arrayCharge = [];
-		    	for(var i=0;i<attr.length;i++){
-		    		if(attr[i]=="DAY"){
-		    			arrayCharge.push({name:"按天",value:"DAY"});
-		    		}else if(attr[i]=="MONTH"){
-		    			arrayCharge.push({name:"按月",value:"MONTH"});
-		    		}else if(attr[i]=="QUARTER"){
-		    			arrayCharge.push({name:"按季度",value:"QUARTER"});
-		    		}else{
-		    			arrayCharge.push({name:"按年",value:"YEAR"});
-		    		}
-		    	}
-		    	return arrayCharge;
-		    }
-		    
-		  	function getArrayByString(type){
-		  		var a = type.split(',');
-		  		return a;
-		  	}
 		}
 		
-		ko.applyBindings(new ViewModel(), $('#diskContent')[0]); 
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
     }
   });
 </script>

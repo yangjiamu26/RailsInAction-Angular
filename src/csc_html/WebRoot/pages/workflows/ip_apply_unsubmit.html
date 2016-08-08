@@ -1,0 +1,232 @@
+  <div class="panel panel-info" id="approveSourceContent">
+    <div class="panel-heading">申请信息</div>
+    <div id="orderDetailedList" class="wrapper form-horizontal">
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">公网IP名称<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" data-bind="value: currentVO().instanceName"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">所属VDC<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control input-sm" data-bind="options:currentVO().vdcList,optionsText:'name',optionsValue:'uuid',value: currentVO().vdcUuid,optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control input-sm" data-bind="options: currentVO().azList, optionsText: 'name', optionsValue: 'uuid',value: currentVO().azUuid,optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">所属VPC<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control input-sm" data-bind="options: currentVO().vpcList, optionsText: 'name', optionsValue: 'uuid',value: currentVO().vpcUuid,optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">网络名称<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control input-sm" data-bind="options: currentVO().privateNetworkList, optionsText: 'name', optionsValue: 'uuid',value: currentVO().networkUuid,optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>  
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <textarea cols="5" rows="5" class="form-control" data-bind="text:desc"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">申请时长：<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <div class="radio">
+                <label class="form-inline">
+                  <input type="radio" name="optionsRadios" value="1" data-bind="checked: currentVO().expireType"> 永久
+                </label>
+              </div>
+              <div class="radio">
+                <label class="form-inline">
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" value="2" data-bind="checked: currentVO().expireType"> 
+				  <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: currentVO().expireValue"></select> 个月
+                </label>
+              </div>
+              <div class="radio disabled">
+                <label class="form-inline">
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" value="3" data-bind="checked: currentVO().expireType">
+                  	有效期至 <input type="text" class="form-control applyDateFormat" id="timerange" style="display:inline-block;"  data-bind="value:currentVO().expireTime"/>
+                </label>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options: currentVO().billCycleList,optionsText:'name',optionsValue:'value',value: currentVO().billCycle,event:{change:$root.getFee}"></select>	           
+              <span class="control-label"  data-bind="text:currentVO().fee"></span> 
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script type="text/javascript">
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    if(!args.type){
+      $(".order-base-info").remove();
+    }else{
+      if(args.type == 'order')
+        $("#orderBaseInfoType").html('订单号');
+      else
+        $("#orderBaseInfoType").html('任务ID');
+    };
+    
+    function ViewModel(){
+	      var self = this;
+	      var monthList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
+  	      this.applyList = ko.observableArray(monthList);
+	      self.order = ko.observable();
+	      this.currentVO = ko.validatedObservable({
+	        id: ko.observable(),
+	        instanceName: ko.observable("").extend({required: true}),
+	        expireType:ko.observable(""),
+	        expireValue:ko.observable(""),
+	        expireText:ko.observable(""),
+	        expireTime:ko.obervable("");
+	        vdcUuid: ko.observable("").extend({required:true}),
+	        vpcUuid: ko.observable("").extend({required:true}),
+	        azUuid:ko.observable("").extend({required:true}),
+	        networkUuid:ko.observable(""),
+	        fee:ko.observable(""),
+	        desc:ko.obervable(""),
+          
+	        vdcList:ko.observableArray([]),
+	        azList:ko.observableArray([]),
+	        vpcList:ko.observableArray([]),
+	        privateNetworkList:ko.observableArray([]),
+	        billCycleList:ko.observableArray([])
+	      });
+	      
+	      function setArrayCharge(attr){
+	    	var arrayCharge = [];
+	    	if(attr !=null){
+	    		for(var i=0;i<attr.length;i++){
+    	    		if(attr[i]=="DAY"){
+    	    			arrayCharge.push({name:"按天",value:"DAY"});
+    	    		}else if(attr[i]=="MONTH"){
+    	    			arrayCharge.push({name:"按月",value:"MONTH"});
+    	    		}else if(attr[i]=="QUARTER"){
+    	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+    	    		}else{
+    	    			arrayCharge.push({name:"按年",value:"YEAR"});
+    	    		}
+    	    	}
+	    	}
+	    	return arrayCharge;
+	    }
+	  	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(result2){
+   	     var processInstanceId = result2.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(result1){
+	      		 var item = result1.orderItems[0];
+	      		 var metaData = JSON.parse(item.metaData);
+	      		 var resInfoJson = metaData.resBaseInfo;
+	      		 var resInfo = JSON.parse(resInfoJson);
+	      		 var vdcUuid = item.vdcUuid;
+	      		 var azUuid = item.azUuid;	
+	      		 var serviceUuid = item.serviceUuid;
+	      		 item.networkUuid = resInfo.networkUuid;
+	      		 item.vpcUuid = resInfo.vpcUuid;
+	      		 self.order(result1);
+	      		 var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+	      		 csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                     self.currentVO().vdcList(result.vdcList);
+                     self.currentVO().azList(result.azList);
+                     self.currentVO().vpcList(result.vpcList);
+                     self.currentVO().billCycleList(setArrayCharge(result.chargeList));
+                     self.currentVO().privateNetworkList(result.networkList);
+                     self.currentVO().instanceName(item.instanceName);
+                     self.currentVO.fromJSON(item);
+	      		 })
+	      	})
+		})
+		  
+		this.save = function(){
+	    	if(args.state=='UNSUBMIT'){
+				var desc = self.currentVO().desc;
+				
+				var expireValue;
+				var expireType = $("input[name='optionsRadios']:checked").val();
+				if(self.currentVO().expireType()=="1"){
+					expireValue = "";
+				}else if(self.currentVO().expireType()=="2"){
+					expireValue = self.currentVO().expireValue;
+				}else{
+					expireValue = $("#applyServer_daterange").val();
+				}
+				
+				var meta = {"resBaseInfo":{"vpcUuid":self.currentVO().vpcUuid,"networkUuid":self.currentVO().networkUuid}};
+				meta = JSON.stringify(meta);
+			    var itemResults = {"instanceName":self.currentVO().instanceName,"vdcUuid":self.currentVO().vdcUuid,"azUuid":self.currentVO().azUuid,"billCycle":self.currentVO().billCycle
+			    		,"fee":self.currentVO().fee,"expireType":self.currentVO().expireType,"expireValue":self.currentVO().expireValue,"metaData":meta,"desc":self.currentVO().desc};
+				csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.publicIP().uuid,itemResults,function(data){
+	          		alert('保存成功！');
+	 		    });
+
+	    	}else{
+	    		saveComment(args.taskId,function(){
+	    			alert("保存成功！");
+	    		});
+	    	}
+		}
+	  	
+	  	$('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+	            {
+	              format:'YYYY/MM/DD',
+	              startDate: moment().subtract('days', 29),
+	              endDate: moment(),
+	              singleDatePicker:true,
+	              separator:'至',
+	              locale:{
+	                applyLabel: '确认',
+	                cancelLabel: '取消',
+	                fromLabel: '开始日期',
+	                toLabel: '结束日期',
+	                weekLabel: '周',
+	                customRangeLabel: '自定义范围',                            
+	                daysOfWeek:["日","一","二","三","四","五","六"],
+	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+	              }
+	            }
+	          );
+    }
+    ko.applyBindings(new ViewModel(), $('#approveSourceContent')[0]);  
+  })
+</script>

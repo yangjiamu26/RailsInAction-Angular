@@ -40,6 +40,16 @@
 					     callback(data);
 	    		    }); 
 			},
+			/**
+			 * 获取绑定的SSHKey 云主机列表
+			 * 
+			 */
+			getVms:function(uuid,callback,errorCallback){
+				 csc.rest.get('api/v5.0.0/sshKeys/'+uuid+"/vms",function(data){
+					     callback(data);
+	    		    }); 
+			}
+			
 			
 			
 	};

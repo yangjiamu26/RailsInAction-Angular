@@ -76,7 +76,7 @@
             <li class='dropdown' data-bind="visible: (roleVO().roleFlag()!='AG' && roleVO().roleFlag()!='AS')">
               <a  href='#pages/systems/notices/index'>
                 <i class='fa fa-bell'></i> 通知
-                <span class='badge badge-sm up bg-info'>2</span></a>
+                <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
             </li>
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li class='dropdown'>
@@ -409,7 +409,7 @@
             <nav class='navi clearfix' ui-nav=''>
               <ul class='nav navbox'>
                 <li>
-                  <a data-url="pages/welcome/index_user" href="#pages/welcome/index_user">
+                  <a data-url="pages/welcome/index" href="#pages/welcome/index">
                   <i class="icon home"></i>
                     <span class='text-base'>首页</span></a>
                 </li>
@@ -590,7 +590,7 @@
                   </a>
                 </li> 
                 <li>
-                  <a data-url="pages/systems/notices/index_user" href="#pages/systems/notices/index_user">
+                  <a data-url="pages/systems/notices/index" href="#pages/systems/notices/index">
                     <i class="icon system"></i>
                     <span class='text-base'>通知</span>
                   </a>
@@ -725,6 +725,8 @@
 		    		}
 		    		csc.rest.post("api/v5.0.0/homepage/role",data[0].name,function(data){
 		    			self.loadAlarmStat();
+		    			self.loadNoticeStat();
+		    			self.loadUserInfo();
 		    			window.location.hash = '#pages/welcome/index?role=all';
 		    		});
 		   	    });
@@ -733,11 +735,18 @@
 		    this.selectRole = function(role){
 		    	csc.rest.post("api/v5.0.0/homepage/role",role,function(data){
 		    		self.loadAlarmStat();
+		    		self.loadNoticeStat();
 		    	}); 
 		    	self.roleVO().currentRole(role);
-		    	if((role == "系统管理员") || (role == "运营管理员") || (role == "运维管理员")){
+		    	if(role == "系统管理员"){
 	    			self.roleVO().roleFlag("ALL")
-	    			window.location.hash = '#pages/welcome/index?role=all';
+	    			window.location.hash = '#pages/welcome/index?role=sys';
+	    		}else if(role == "运营管理员"){
+	    			self.roleVO().roleFlag("ALL")
+	    			window.location.hash = '#pages/welcome/index?role=yy';
+	    		}else if(role == "运维管理员"){
+	    			self.roleVO().roleFlag("ALL")
+	    			window.location.hash = '#pages/welcome/index?role=yw';
 	    		}else if(role == "VDC管理员"){
 	    			self.roleVO().roleFlag("VDC");
 	    			window.location.hash = '#pages/welcome/index?role=vdc';
@@ -766,6 +775,13 @@
 		    		self.alarmStatVO().vmAlarm(data.vmAlarm);
 		    		self.alarmStatVO().totalAlarm(data.systemAlarm+data.vdcQuotaAlarm+data.vmAlarm);
 		   	    });
+		    }
+		    
+		    this.noticeStatVO = ko.observable();
+		    this.loadNoticeStat = function(){
+		    	 csc.rest.get("api/v5.0.0/homepage/notice", function(data){
+		       	 	 self.noticeStatVO(data.results.length);
+		         });
 		    }
 		    
 		    /* ------------------ 用户信息模块  ---------------start */
@@ -806,7 +822,6 @@
 					
 				});
 			}
-			this.loadUserInfo();
 			
 			//修改用户信息
 			this.editAction = function(){

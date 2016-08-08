@@ -1,0 +1,138 @@
+<div class='wrapper-md'>
+    <div class="panel panel-info">
+        <div class="panel-heading">基本信息</div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-4">
+                    <p><strong>任务ID：</strong><span data-bind="text: currentVO().taskId"></span></p>
+                </div>
+                <div class="col-xs-4">
+                    <p><strong>流程类型：</strong>资源变更</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4">
+                    <p><strong>流程状态：</strong><span class="label label-info">审批中</span></p>
+                </div>
+                <div class="col-xs-4">
+                    <p><strong>当前节点：</strong>资源变更审批</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4">
+                    <p><strong>申请人：</strong><span data-bind="text: currentVO().user"></span></p>
+                </div>
+                <div class="col-xs-4">
+                    <p><strong>申请日期：</strong><span data-bind="text: currentVO().time"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+        <div class="panel-heading">申请信息</div>
+        <div id="orderDetailedList" class="wrapper">
+
+          <div class="row">
+            <div class="col-xs-4"><p>资源名称：<span data-bind="text: currentVO().resourceName"></span><a>查看</a></p></div>
+            <div class="col-xs-4"><p>所属VDC：<span data-bind="text: currentVO().vdcName"></span></p></div>
+          </div>
+          <div class="row">
+            <div class="col-xs-4"><p>所属业务系统：<span data-bind="text: currentVO().busSysName"></span></p></div>
+            <div class="col-xs-4"><p>资源类型：<span data-bind="text: currentVO().type"></span></p></div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>调整前</th>
+                <th>调整后</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CPU(个)</td>
+                <td><span data-bind="text: currentVO().vcpu"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetVcpu"/></td>
+              </tr>
+              <tr>
+                <td>内存(G)</td>
+                <td><span data-bind="text: currentVO().memory"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetMemory"/></td>
+              </tr>
+              <tr>
+                <td>存储(G)</td>
+                <td><span data-bind="text: currentVO().storage"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetStorage"/></td>
+              </tr>
+            </tbody>
+          </table> 
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var scripts = [null,null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+  	  function ViewModel(){
+  		  var self = this;
+  		  this.currentVO = ko.observable({
+  	        taskId: ko.observable(),
+  	        processType: ko.observable(),
+  	        processState: ko.observable(),
+  	        processNode: ko.observable(),
+  	        
+  	        user: ko.observable(),
+  	        time: ko.observable(),
+  	        resourceName: ko.observable(),
+  	        vdcName: ko.observable(),
+  	        busSysName: ko.observable(),
+  	        resourceType: ko.observable(),
+  	        
+  	        vcpu: ko.observable(),
+  	        memory: ko.observable(),
+  	        storage: ko.observable(),
+  	        
+  	        targetVcpu: ko.observable(),
+  	        targetMemory: ko.observable(),
+  	        targetStorage: ko.observable()
+  	        
+  	      });
+  		csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(taskData){
+  	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+  			 //获取订单数据
+  	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(processData){
+  	      		var orderData = processData;
+  	      		var itemListData = processData.orderItems;
+  	      		var metaData = JSON.parse(itemListData[0].metaData);
+  	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+  	      		
+  	      		self.currentVO().taskId(args.taskId);
+  	      		self.currentVO().user(orderData.userName);
+  	      		self.currentVO().time(orderData.createTime);
+  	      		
+	  	      	self.currentVO().resourceName(itemListData.instanceName);
+	  	      	self.currentVO().type(itemListData.resourceType);
+	  	      	if(csc.util.isNotNull(itemListData[0].resourceUuid)){
+	  	      		csc.rest.get('api/v5.0.0/vms/'+itemListData[0].resourceUuid,function(vmData){
+	  	      			if(vmData){
+			  	      		self.currentVO().vdcName(vmData.vdcName);
+			  	      		self.currentVO().busSysName(vmDatra.busSysName);
+			  	      		
+			  	      		self.currentVO().vcpu(vmData.vcpu);
+			  	      		self.currentVO().memory(vmData.memory);
+			  	      		self.currentVO().storage(vmData.storage);
+	  	      			}
+	  	      		});
+	  	      	}
+  	      		
+  	      		self.currentVO().targetVcpu(resBaseInfo.vcpu);
+  	      		self.currentVO().targetMemory(resBaseInfo.memory);
+  	      		self.currentVO().targetStorage(resBaseInfo.storage);
+  	      		
+  	      	 });
+  		});
+  	  }
+  	 ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+    });
+</script>

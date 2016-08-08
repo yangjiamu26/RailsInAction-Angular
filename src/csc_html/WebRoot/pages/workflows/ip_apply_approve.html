@@ -1,0 +1,71 @@
+	<div class="panel panel-info" id="approveSourceContent">
+		<div class="panel-heading">申请信息</div>
+		<div class="wrapper">
+			<div item="orderdetailed-PUBLICIP">
+				<h5 class="text-info">公网IP数：<label data-bind="text:num"></label></h5>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>公网IP名称</th>
+							<th>所属VDC</th>
+							<th>VPC名称</th>
+							<th>申请时长</th>
+							<th>收费标准</th>
+							
+						</tr>
+					</thead>
+					<tbody data-bind="foreach:orderItems">
+						<tr>
+							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:vdcName"></td>
+							<td data-bind="text:vpcName"></td>
+							<td >
+								<span data-bind="visible: expireType==1">永久</span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
+								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+							</td>
+							<td data-bind="text:fee"></td>
+							
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+<script type="text/javascript">
+	var scripts = [null, null];
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		
+		function ViewModel(){
+			var self = this;
+			self.num = ko.observable("");
+			self.vdcName = ko.observable("");
+			self.orderItems = ko.observableArray();
+			
+			if(args.taskId){
+		    	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+		    		var processInstanceId = data.taskInfo[0].processInstanceId;
+		    		var itemArray = [];
+			    	//获取订单数据
+			    	csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+			    		self.num(data.orderItems.length);
+			    		for(var i=0;i<data.orderItems.length;i++){
+						  	var orderItem = data.orderItems[i];
+						  	var metaData = JSON.parse(orderItem.metaData);
+						  	var resInfoJson = metaData.resBaseInfo;
+						  	var resInfo = JSON.parse(resInfoJson);
+							orderItem.vpcName = resInfo.vpcName;
+						  	itemArray.push(orderItem);
+					  	}
+			    		self.orderItems(itemArray);
+			    	},function(){alert('获取VDC失败！')});
+			    },function(){alert('获取任务失败！')});
+		    }
+		}
+		ko.applyBindings(new ViewModel(), $('#approveSourceContent')[0]);  
+	});
+	
+</script>
+
+
+

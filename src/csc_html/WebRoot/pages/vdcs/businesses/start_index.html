@@ -4,7 +4,7 @@
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>设置启动顺序</h3>
       </div>
-      <div class='modal-body no-padder'>
+      <div class='modal-body no-padder' style="max-height: 435px;overflow-y: auto;" data-bind="with: table" >
         <table class="table">
           <thead>
             <tr>
@@ -14,11 +14,12 @@
             </tr>
           </thead>
           <tbody>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
-              <td>跨池自动</td>
+              <td data-bind="text:uuid">跨池自动</td>
               <td>
                 <div class="input-append input-append-normal set-index">
-                  <input type="text" class="form-control input-sm" value="1" />
+                  <input type="text" class="form-control input-sm" value="1" data-bind="text:startOrder"/>
                   <span class="add-on w_numberBtn">
                     <i class="w_upBtn"><b></b></i>
                     <i class="w_downBtn"><b></b></i>
@@ -27,7 +28,7 @@
               </td>
               <td>
                 <div class="input-append input-append-normal set-index">
-                  <input type="text" class="form-control input-sm" value="3" />
+                  <input type="text" class="form-control input-sm" value="3" data-bind="text:delay"/>
                   <span class="add-on w_numberBtn">
                     <i class="w_upBtn"><b></b></i>
                     <i class="w_downBtn"><b></b></i>
@@ -35,6 +36,7 @@
                 </div>
               </td>
             </tr>
+              <!-- /ko -->
             <tr>
               <td>VM01</td>
               <td>
@@ -86,6 +88,29 @@
       </div>
     </div>
   </form>
+<script type="text/javascript">
+    var scripts = [null, 'assets/lib/bootstrap-multiselect/bootstrap-multiselect.js']
+    var sysUuid = "";
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	 function ViewModel(){
+    	        //定义属性
+    	        this.busSysVmSetVo = ko.validatedObservable({
+    	             uuid:ko.observable(""),
+    	             busUuid:ko.observable(""),
+    	             startOrder:ko.observable(""),
+    	             delay:ko.observable(""),
+    	             vmUuid:ko.observable("")
+    	        
+    		    });
+    	        sysUuid = args.subSysUuid;
+    	        var busSyssVmSetUrl = "api/v5.0.0/bussys/"+args.subSysUuid+"/vms";
+    	        this.table = new DataTable([], {path: busSyssVmSetUrl});
+        }
+    
+        ko.applyBindings(new ViewModel(), $('#page-content')[0]); 
+    });
+    
+</script>
   <script type="text/javascript">
     var scripts = [null, 'assets/js/counter.js',null];
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {

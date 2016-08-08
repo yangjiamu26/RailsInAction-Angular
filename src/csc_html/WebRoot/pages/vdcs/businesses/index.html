@@ -46,10 +46,13 @@
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
-              <td><a href="#pages/vdcs/businesses/show">OA系统</a></td>
-              <td>研发中心</td>
-              <td>张三</td>
-              <td>2016-06-16 03:52:36</td>
+              <td data-bind="text:uuid" hidden></td>
+              <td data-bind="text:desc" hidden></td>
+              
+              <td><a data-bind="attr:{href:'#pages/vdcs/businesses/show?subSysUuid='+uuid+'&vdcUuid='+vdcUuid}"><span data-bind="text:name"></span></a></td>
+              <td data-bind="text:vdcName"></td>
+              <td>张三（待取数据）</td>
+              <td data-bind="text:createTime"></td>
               <td>
                 <a data-bind="click: $root.edit">修改</a> |
                 <a data-bind="click: $root.remove">删除</a>
@@ -83,37 +86,34 @@
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title' data-bind="ifnot: currentVO().id">创建业务系统</h3>
-        <h3 class='modal-title' data-bind="if: currentVO().id">修改业务系统</h3>
+        <h3 class='modal-title' data-bind="ifnot: subsysVo().uuid">创建业务系统</h3>
+        <h3 class='modal-title' data-bind="if: subsysVo().uuid">修改业务系统</h3>
       </div>
       <div class='modal-body form-horizontal'>
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">业务系统名称</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control"  placeholder="">
+            <input type="text" class="form-control"  placeholder="" data-bind="value:subsysVo().name">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>           
         </div>
-        <div class="form-group">
-          <label for="inputEmail3" class="col-xs-3 control-label">所属VDC</label>
+        <div class="form-group" data-bind="ifnot: subsysVo().uuid">
+          <label for="inputEmail3" class="col-xs-3 control-label" >所属VDC</label>
           <div class="col-xs-8">
-            <select class="form-control">
-              <option>研发部</option>
-              <option>人资部</option>
+            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:subsysVo().vdcUuid,optionsCaption:'请选择'">              
             </select>
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>           
         </div>
-        <div class="form-group">
+        <div class="form-group" data-bind="ifnot: subsysVo().uuid">
           <label for="inputEmail3" class="col-xs-3 control-label">系统负责人</label>
           <div class="col-xs-8">
-            <select multiple="true" id="multipleSelect" class="form-control">
-              <option value="0">VDC管理员</option>
-              <option value="1">普通用户</option>
+            <select multiple="true" max-size="5"  data-bind="options:managerUserList,optionsText:'account',optionsValue:'value',selectedOptions:subsysVo().accounts_string" class="form-control">
+
             </select>
           </div>
           <div class="col-xs-1">
@@ -123,12 +123,12 @@
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">备注</label>
           <div class="col-xs-8">
-            <textarea class="form-control"></textarea>
+            <textarea class="form-control" data-bind="value:subsysVo().desc"></textarea>
           </div>
         </div>
       </div>
       <div class='modal-footer' style="text-align: center">
-        <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" />
+        <input id="add_submit" type="submit" name="commit" value="确定" data-bind="click: $root.addToSave" class="btn btn-default btn-info" />
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
       </div>
     </div>
@@ -139,53 +139,171 @@
 <script type="text/javascript">
 var scripts = [null, 'assets/lib/bootstrap-multiselect/bootstrap-multiselect.js']
 $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-  $("#multipleSelect").multiselect({
-    allSelectedText: false
-  });  
 
-  function ViewModel(){
-    this.isAdd = ko.observable(false);
+    function ViewModel(){
+        var self = this;
+        //定义属性
+        this.subsysVo = ko.validatedObservable({
+             uuid:ko.observable(""),
+             name:ko.observable().extend({required:true}),
+             vdcUuid:ko.observable("").extend({required:true}),
+             accounts_string:ko.observableArray([]).extend({required:true}),
+             accounts:[],//不是表单数据，用数组接收，传到后台
+             desc:ko.observable("")
+        
+        });
+        this.isAdd = ko.observable(false);
+        
+        /*********************显示下拉列表*************************/
+        this.managerUserList = ko.observableArray([]);
+        self.subsysVo().accounts_string.subscribe(function(value){
+        	self.subsysVo().accounts = _.map(value, function(item){
+        		return JSON.parse(item);
+        	});
+        })
+        self.subsysVo().vdcUuid.subscribe(function(vdcUuid){//选vdc传uuid作为参数传递
+            if(!vdcUuid) return;
+        
+            self.managerUserList([]);
 
-    this.currentVO = ko.observable({});
+            csc.rest.get("api/v5.0.0/vdcs/"+vdcUuid+"/users", function(data){
+                if(data.results.length < 1) return;
+                var results = [];
+                for(var i = 0; i < data.results.length; i++){
+                     var authType = data.results[i].authType;
+                     if (authType=="1"){
+                        authType = "AD域用户";
+                     }else{
+                         authType = "本地用户";
+                     }
+                     results.push({
+                         value:JSON.stringify({
+                             account: data.results[i].account,
+                             authType: data.results[i].authType,
+                             type: 'MANGER'
+                          }),
+                         account:authType + " : "+data.results[i].account
+                     });
+                }
+                self.managerUserList(results);
+             });	        
+        });
+        /*********************显示下拉列表*************************/
+        /********************业务系统新增-start*******************/
+        //vdc下拉列表
+        this.vdcList = ko.observableArray([]);
+        csc.rest.get("api/v5.0.0/vdcs", function(data){
+            self.vdcList.removeAll();
+            self.vdcList(data.results);
+        });
+        this.add = function(){
+            self.isAdd(true);
+            //清空表单
+            self.subsysVo.fromJSON({
+                id:null,
+                uuid:null,
+                name:"",
+                vdcUuid: [],
+                accounts_string: [],
+                desc: ''
+            });
+        }
 
-    var self = this;
-    this.add = function(){
-      this.currentVO({
-        id: null
-      });
+        //提交保存业务系统
+        this.addToSave = function(){
+            if(!self.subsysVo().name.isValid()){
+                return;
+            }
+            if(!self.subsysVo().vdcUuid.isValid()){
+                return;
+            }
+            if(!self.subsysVo().accounts_string.isValid()){
+                return;
+            }
+            //置灰按钮
+            $("#add_submit").attr("disabled","true");
 
-      self.isAdd(true);
-    }
+           var uuid = self.subsysVo().uuid();
+           if (uuid!=null&&uuid!=""){//修改
+                csc.rest.put('api/v5.0.0/bussys/'+uuid,self.subsysVo.toJSON(),function(data){
+                    systemMsg.alert('修改成功!');
+                    self.isAdd(false);
+                    self.table.refreshData();//刷新数据
+                },function(data,textStatus) {
+                    $("#add_submit").removeAttr("disabled");
+                    systemMsg.alert('修改失败!');
+                }); 
+             }else{// 新增
+                 csc.rest.post('api/v5.0.0/bussys',self.subsysVo.toJSON(),function(data){
+                    systemMsg.alert('新增成功!');
+                    self.isAdd(false);
+                    self.table.refreshData();//刷新数据
+              },function(data,textStatus) {
+                  $("#add_submit").removeAttr("disabled");
+                  systemMsg.alert('新增失败!');
+              }); 
+            }
+        }
+
+      /************************业务系统新增-end********************/
+        
+      /************************业务系统修改-start******************/
+        this.edit = function(object, event){
+            if(object.uuid==null)return;
+
+            self.isAdd(true); 
+            console.log(object)
+            /**********获取业务中用户信息，组装用于回显********/
+            csc.rest.get("api/v5.0.0/bussys/"+object.uuid, function(data){
+            
+        		var userList = data.userList;
+   	        	var results = [];
+        		if (userList!=null&&userList.length>0){
+    	        	for(var i = 0; i < userList.length; i++){
+    	        		
+    	        		results.push(JSON.stringify({
+	        				account: userList[i].account,
+	        				authType: userList[i].authType,
+	        				type: 'MANGER'
+	        			}));
+    	        	}
+        		}
+        		self.subsysVo().accounts_string(results);
+        	});
+            /**********获取业务中用户信息，组装用于回显********/
+            self.subsysVo.fromJSON(object);
+                   
+         }
+        /*********************业务系统修改-end**************************/
+ 
+
+        /************************业务系统删除-start********************/
+         this.remove = function(object,event){
+        
+        	 confirm("确定删除业务系统【"+object.name+"】?",function(arg){
+        		 csc.rest.del('api/v5.0.0/bussys/'+object.uuid,function(data){
+     		 		systemMsg.alert('删除业务系统成功!');
+                    self.table.refreshData();
+     		    },function(data,textStatus) {
+     		 		systemMsg.alert('删除业务系统失败!');
+     			});
+ 			 });
+         }
+       /************************业务系统删除-end**********************/
+
+         this.searchParam = ko.observable({
+             name: ""
+         })
+         this.search = function(){
+              this.table.params(this.searchParam());
+         }
     
-    this.edit = function(object, event){
-      console.log(object)
-      self.currentVO(object);
-      
-      self.isAdd(true);        
-    }
-    this.save = function(){
-      console.log(this.currentVO())
-      this.isAdd(false);
-      this.table.refreshData();
-    }
-
-    this.remove = function(){
-      console.log(this.table.chosenItems())
-      this.table.refreshData();
-    }
-
-    this.searchParam = ko.observable({
-      name: ""
-    })
+        var busSyssUrl = "api/v5.0.0/bussys";
+        this.table = new DataTable([], {path: busSyssUrl});
     
-    this.search = function(){
-      this.table.params(this.searchParam());
     }
 
-    this.table = new DataTable([], {path: 'pages/vdcs/businesses/index.json'});
-  }
-
-  ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
 });
 </script>

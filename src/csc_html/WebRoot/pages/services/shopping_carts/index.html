@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.vmNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.vdiskNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.objectStorageNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.publicNetworkNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -231,7 +231,7 @@
         </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.lbNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -279,7 +279,7 @@
         </div>
     </div>
 
-    <div class="panel panel-default m-b-sm">
+    <div class="panel panel-default m-b-sm" data-bind="visible:$root.sshNum()>0">
         <div class="carts-list-title form-inline">
             <div class="checkbox">
                 <label class="i-checks">
@@ -377,6 +377,10 @@
                 value: 'YES'
             }];
             this.sshIsMountList = ko.observableArray(sshIsMounts);
+            var loadBalanceWays = [{name:'轮训',value:'ROUND_ROBIN'},{name:'最少连接',value:'LEAST_CONNECTIONS'},{name:'源IP',value:'SOURCE_IP'}];
+            var agreements= [{name:'TCP',value:'TCP'},{name:'HTTP',value:'HTTP'},{name:'HTTPS',value:'HTTPS'}];
+            this.loadBalanceWayList = ko.observableArray(loadBalanceWays);
+            this.agreementList = ko.observableArray(agreements);
             
      	   this.orders_vdisk=ko.validatedObservable({
     		   resourceType : ko.observable(),
@@ -392,9 +396,22 @@
     		   resourceType : ko.observable(),
     		   orderItems : ko.observableArray([])
     	   });
+     	   
+     	   this.orders_loadbalancer=ko.validatedObservable({
+    		   resourceType : ko.observable(),
+    		   orderItems : ko.observableArray([])
+    	   });
+     	   this.orders_ssh=ko.validatedObservable({
+	   		   resourceType : ko.observable(),
+	   		   orderItems : ko.observableArray([])
+   	       });
+     	  this.orders_vm=ko.validatedObservable({
+	  		   resourceType : ko.observable(),
+	  		   orderItems : ko.observableArray([])
+  	      });
     	  
     	   function items(e){
-    		   this.instanceName = ko.observable(e.name);
+    		   this.instanceName = ko.observable(e.name != null? e.name: e.vmName);
     		   this.serviceUuid = ko.observable(e.serviceUuid);
     		   this.isBill = ko.observable(e.charge);
     		   this.expireType =  ko.observable(e.applyType);
@@ -413,6 +430,7 @@
     		   this.resourceType = ko.observable();
     		   this.relateUuid = ko.observable();
     		   this.vdcUuid = ko.observable(e.vdcUuid);
+    		   this.relateUuid = ko.observable();
     	   }
     	   
     	   function metaData(){
@@ -432,7 +450,61 @@
 			   this.vpcUuid = ko.observable();
 			   this.networkUuid = ko.observable();
 		   }
-
+		   
+		   function LOAD_BALANCING_baseInfo(){
+			   this.vpcUuid = ko.observable();
+			   this.networkUuid = ko.observable();
+			   this.lbMethod = ko.observable();
+			   this.protocol = ko.observable();
+		   }
+		   
+		   
+		   function VM_baseInfo (){
+			   this.azUuid = ko.observable();
+			   this.osType = ko.observable();
+			   this.osVersion = ko.observable();
+			   this.expiryTime = ko.observable();
+			   this.imageUuid = ko.observable();
+			   this.memory = ko.observable();
+			   this.name = ko.observable();
+			   this.storage = ko.observable();
+			   this.vcpu = ko.observable();
+			   this.vdcUuid = ko.observable();
+			   this.vpcUuid = ko.observable();
+			   this.partitionList = ko.observableArray([]);
+			   this.networkList = ko.observableArray([]);
+			   
+			   this.ip = ko.observable();
+			   this.account = ko.observable();
+			   this.password = ko.observable();
+			   this.repeatPassword = ko.observable();
+			   this.sshIsMount = ko.observable();
+			   this.sshUuid = ko.observable();
+			   this.busSysUuid = ko.observable();
+		   }
+		   	   
+		   function VM_network (){
+			   this.networkId = ko.observable();
+		   }
+		   function VM_partition (){
+			   this.name = ko.observable();
+			   this.size = ko.observable();
+		   }
+		   
+		   function getUuid() {
+				var s = [];
+				var hexDigits = "0123456789abcdef";
+				for (var i = 0; i < 36; i++) {
+				s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+				}
+				s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+				s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+				s[8] = s[13] = s[18] = s[23] = "-";
+				
+				var uuid = s.join("");
+				return uuid;
+			  }
+		   
             this.generateOrder = function() {       
                 var chose_length = self.vdiskList_chosens().length+self.objectStorageList_chosens().length
                 +self.publicNetworkList_chosens().length+self.loadbalancerList_chosens().length
@@ -443,6 +515,7 @@
                 }
                 
                 csc.rest.get('api/v5.0.0/cart', function(data) {
+                	systemMsg.alert('成功提交订单！');//后续优化，需改为提交后弹出
                     if (self.vdiskList_chosens().length > 0) {
                     	self.orders_vdisk().orderItems([]);
                     	self.orders_vdisk().resourceType("DISK");
@@ -461,8 +534,14 @@
                             	}
                             });
                     	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vdisk.toJSON(),function(data){
-						 		systemMsg.alert('成功提交订单！');
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vdisk.toJSON(),function(result1){
+						 		self.vdiskList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/vdiskCartInfo/'+e.id(),function(result2){
+						 				self.vdiskList.remove(function (item) { return item.id() == result2.id; });
+						 				self.vdiskNum(self.vdiskNum()-1);
+						 			});
+						 		});
+						 		self.vdiskList_chosens.removeAll();
 						    }); 
                     }
                     if(self.objectStorageList_chosens().length > 0){
@@ -481,16 +560,22 @@
                     	    	   self.orders_objectStorage().orderItems.push(item);
                             	}
                             });
-                    	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_objectStorage.toJSON(),function(data){
-						 		systemMsg.alert('成功提交订单！');
-						    });
+                    	});
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_objectStorage.toJSON(),function(result1){
+						 		self.objectStorageList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/objectStorageCartInfo/'+e.id(),function(result2){
+						 				self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
+						 				self.objectStorageNum(self.objectStorageNum()-1);
+						 			});
+						 		});
+						 		self.objectStorageList_chosens.removeAll();
+						    }); 
                     }
                     
                     if(self.publicNetworkList_chosens().length > 0){
                     	self.orders_publicNetwork().orderItems([]);
                     	self.orders_publicNetwork().resourceType("PUBLICIP");
-                    	self.objectStorageList_chosens().forEach(function (e){
+                    	self.publicNetworkList_chosens().forEach(function (e){
                             data['publicNetworkCartInfo'].forEach(function(f) {
                             	if(e.uuid()==f.uuid){
                             	   var item =new items(f);
@@ -505,10 +590,150 @@
                             	}
                             });
                     	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_publicNetwork.toJSON(),function(data){
-						 		systemMsg.alert('成功提交订单！');
-						    });
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_publicNetwork.toJSON(),function(result1){
+						 		self.publicNetworkList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/publicNetworkCartInfo/'+e.id(),function(result2){
+						 				self.publicNetworkList.remove(function (item) { return item.id() == result2.id; });
+						 				self.publicNetworkNum(self.publicNetworkNum()-1);
+						 			});
+						 		});
+						 		self.publicNetworkList_chosens.removeAll();
+						    }); 
                     }
+                    if(self.loadbalancerList_chosens().length > 0){
+                    	self.orders_loadbalancer().orderItems([]);
+                    	self.orders_loadbalancer().resourceType("LOAD_BALANCING");
+                    	self.loadbalancerList_chosens().forEach(function (e){
+                            data['loadbalancerCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   var baseInfo =new LOAD_BALANCING_baseInfo();
+                    	    	   item.resourceType("LOAD_BALANCING");
+                    	    	   baseInfo.vpcUuid(e.vpcUuid());
+                    	    	   baseInfo.networkUuid(e.vpcNetworkUuid());
+                    	    	   baseInfo.lbMethod(e.loadBalanceWay());
+                    	    	   baseInfo.protocol(e.agreement());
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_loadbalancer().orderItems.push(item);
+                            	}
+                            });
+                            
+                    	})
+                    	
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_loadbalancer.toJSON(),function(result1){
+						 		self.loadbalancerList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/loadbalancerCartInfo/'+e.id(),function(result2){
+						 				self.loadbalancerList.remove(function (item) { return item.id() == result2.id; });
+						 				self.lbNum(self.lbNum()-1);
+						 			});
+						 		});
+						 		self.loadbalancerList_chosens.removeAll();
+						    }); 
+                     }
+                    if(self.sshKeytList_chosens().length > 0){
+                    	self.orders_ssh().orderItems([]);
+                    	self.orders_ssh().resourceType("SECRET_KEY");
+                    	self.sshKeytList_chosens().forEach(function (e){
+                            data['sshKeytCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            	   var item =new items(f);
+                     	    	   var meta=new metaData();
+                    	    	   item.resourceType("SECRET_KEY");
+                    	    	   meta.resBaseInfo("");
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_ssh().orderItems.push(item);
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_ssh.toJSON(),function(result1){
+						 		self.sshKeytList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/sshKeytCartInfo/'+e.id(),function(result2){
+						 				self.sshKeytList.remove(function (item) { return item.id() == result2.id; });
+						 				self.sshNum(self.sshNum()-1);
+						 			});
+						 		});
+						 		self.sshKeytList_chosens.removeAll();
+						    }); 
+                     }
+                    if(self.vmList_chosens().length > 0){
+                    	self.orders_vm().orderItems([]);
+                    	self.orders_vm().resourceType("VM");
+                    	self.vmList_chosens().forEach(function (e){
+                            data['vmCartInfo'].forEach(function(f) {
+                            	if(e.uuid()==f.uuid){
+                            		var relateUuid=getUuid();
+                            		
+                            	   var item =new items(f);
+                            	   item.resourceType("VM");
+                    	    	   item.relateUuid(relateUuid);
+                    	    	   
+                    	    	   var meta=new metaData();
+                    	    	   var baseInfo =new VM_baseInfo();
+                    	    	   
+                    	    	   baseInfo.azUuid(f.azUuid);
+                    	    	   baseInfo.osType(f.osType);
+                    	    	   baseInfo.osVersion(f.osVersion);
+                    	    	   baseInfo.memory(f.memory);
+                    	    	   baseInfo.name(f.vmName);
+                    	    	   baseInfo.storage(f.storage);
+                    	    	   baseInfo.vcpu(f.cpu);
+                    	    	   baseInfo.vdcUuid(f.vdcUuid);
+                    	    	   baseInfo.vpcUuid(f.vpcUuid);
+                    	    	   baseInfo.ip(f.ip);
+                    	    	   baseInfo.account(f.account);
+                    	    	   baseInfo.password(f.password);
+                    	    	   baseInfo.repeatPassword(f.repeatPassword);
+                    	    	   baseInfo.sshIsMount(f.sshIsMount);
+                    	    	   baseInfo.sshUuid(f.sshUuid);
+                    	    	   baseInfo.busSysUuid(f.projectUuid);
+                    	    	   if(f.partitions!=null){
+                    	    		   f.partitions.forEach(function(p){
+	                    	    		   var p=new VM_partition()
+	                    	    		   p.name(p.name());
+	                    	    		   p.size(p.size());
+	                    	    		   baseInfo.partitionList.push(p)
+	                    	    	   });
+                    	    	   }
+                    	    	   
+                    	    	   var n = new VM_network
+                    	    	   n.networkId(f.vpcNetworkUuid);
+                    	    	   baseInfo.networkList.push(n);
+                    	    	   meta.resBaseInfo(baseInfo);
+                    	    	   //云硬盘服务
+                    	    	   if(f.mountDisks!=null){
+                    	    		   f.mountDisks.forEach(function(m){
+	                    	    		   var i =new itmes(m);
+	                    		    	   i.resourceType("DISK");
+	                    		    	   i.relateUuid(relateUuid);
+	                    		    	   var md=new metaData();
+	                    		    	   var bi =new DISK_baseInfo();
+	                    		    	   
+	                    		    	   bi.volumeSize(m.size);
+	                    		    	   md.resBaseInfo(bi);
+	                    		    	   i.metaData(ko.toJSON(md));
+	                    		    	   self.orders_vm().orderItems.push(i);
+	                    	    	   }); 
+                    	    	   }
+                    	    	   
+                    	    	   
+                    	    	   item.metaData(ko.toJSON(meta));
+                    	    	   self.orders_vm().orderItems.push(item);
+                    	    	   
+                            	}
+                            });
+                    	})
+					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vm.toJSON(),function(result1){
+						 		self.vmList_chosens().forEach(function (e){
+						 			csc.rest.del('api/v5.0.0/cart/delete/vmCartInfo/'+e.id(),function(result2){
+						 				self.vmList.remove(function (item) { return item.id() == result2.id; });
+						 				self.vmNum(self.vmNum()-1);
+						 			});
+						 		});
+						 		self.vmList_chosens.removeAll();
+						    }); 
+                     }
                 });
             };
 
@@ -758,7 +983,7 @@
 
 
             this.vpcChange = function(arg, data, event) {
-                csc.rest.get("api/v5.0.0/cart/getNetworkList/1/" + data[arg]().vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
+                csc.rest.get("api/v5.0.0/cart/getNetworkList/"+data[arg]().serviceUuid()+"/" + data[arg]().vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().networkList(result);
                 });
             }
@@ -868,9 +1093,15 @@
                 remark: ko.observable(),
                 billRuleUuid: ko.observable(),
                 charge:ko.observable(),
-                vdcList: ko.observableArray([]),
+                loadBalanceWay : ko.observable(),
+    			agreement : ko.observable(),
+    			vpcNetworkUuid : ko.observable(),
+    			vpcUuid : ko.observable(),
+                vdcList:ko.observableArray([]),
                 azList: ko.observableArray([]),
-                billRuleList: ko.observableArray([])
+                billRuleList: ko.observableArray([]),
+                networkList : ko.observableArray([]),
+    			vpcList : ko.observableArray([])
             });
 
             this.sshKeytCartInfo = ko.validatedObservable({
@@ -1106,14 +1337,17 @@
                                     editObject = object;
                                 }
                                 });
-                      }else if(arg=="loadbalancerCartInfo"){
+                      }else if(arg=="loadbalancerCartInfo"){ 
                     	  var serviceUuid=data.serviceUuid;
                           var vdcUuid=data.vdcUuid;
                           var azUuid=data.azUuid;
-                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
+                          var vpcUuid=data.vpcUuid;
+                          var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid;
                           csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
                         	 self.loadbalancerCartInfo().vdcList(result.vdcList);
                         	 self.loadbalancerCartInfo().azList(result.azList);
+                        	 self.loadbalancerCartInfo().vpcList(result.vpcList);
+                             self.loadbalancerCartInfo().networkList(result.networkList);
                         	 self.loadbalancerCartInfo().billRuleList(setArrayCharge(result.chargeList));
                              self.loadbalancerCartInfo.fromJSON(data);
                              if(dis=='view'){
@@ -1133,7 +1367,6 @@
                         	 self.sshKeytCartInfo().vdcList(result.vdcList);
                         	 self.sshKeytCartInfo().azList(result.azList);
                         	 self.sshKeytCartInfo().billRuleList(setArrayCharge(result.chargeList));
-                        	 debugger;
                              self.sshKeytCartInfo.fromJSON(data);
                              if(dis=='view'){
                                  self.isView_sshKeyt(true);
@@ -1681,7 +1914,7 @@
     });
     </script>
     <!-- 云硬盘查看 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_Vdisk}">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_Vdisk , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -1769,7 +2002,7 @@
     </div>
     <!-- 云硬盘查看 -->
     <!-- 云硬盘修改 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_Vdisk}">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_Vdisk , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -1858,7 +2091,7 @@
     </div>
     <!-- 云硬盘修改 -->
     <!-- 对象存储查看 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_ObjectStorage }">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_ObjectStorage , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -1953,7 +2186,7 @@
     </div>
     <!-- 对象存储查看 -->
     <!-- 对象存储修改 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_ObjectStorage }">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_ObjectStorage , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2049,7 +2282,7 @@
     </div>
     <!-- 对象存储修改 -->
     <!-- 公网IP查看 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_PublicNetwork }">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isView_PublicNetwork , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2154,7 +2387,7 @@
     </div>
     <!-- 公网IP查看 -->
     <!-- 公网IP修改 -->
-    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_PublicNetwork }">
+    <div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isEdit_PublicNetwork , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2259,7 +2492,7 @@
     </div>
     <!-- 公网IP修改 -->
     <!-- 负载均衡 查看-->
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isView_loadbalancer}">
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isView_loadbalancer , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2345,7 +2578,7 @@
     </div>
     <!-- 负载均衡 查看-->
     <!-- 负载均衡 修改-->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_loadbalancer}">
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_loadbalancer , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2374,10 +2607,43 @@
                         <div class="row">
                             <label class="col-sm-4 control-label">可用分区：</label>
                             <div class="col-sm-8">
-                                <select class="form-control w-xs" data-bind="options:loadbalancerCartInfo().azList,optionsText:'name',optionsValue:'uuid',value:loadbalancerCartInfo().azUuid,optionsCaption:'请选择'"></select>
+                                <select class="form-control w-xs" data-bind="options:loadbalancerCartInfo().azList,optionsText:'name',optionsValue:'uuid',value:loadbalancerCartInfo().azUuid,event:{change:function(data, event){ $root.azChangeGetVpc('loadbalancerCartInfo',data,event)}},optionsCaption:'请选择'"></select>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">VPC：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().vpcList,optionsText:'name',optionsValue:'uuid',value: loadbalancerCartInfo().vpcUuid,event:{change:function(data, event){ $root.vpcChange('loadbalancerCartInfo',data,event)}},optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">网络名称：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: loadbalancerCartInfo().networkList,optionsText:'name',optionsValue:'uuid',value:loadbalancerCartInfo().vpcNetworkUuid,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">协议：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: $root.agreementList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().agreement,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-xs-4 control-label">负载均衡方式：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: $root.loadBalanceWayList,optionsText:'name',optionsValue:'value',value: loadbalancerCartInfo().loadBalanceWay,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
                     <div class="form-group col-md-6">
                         <div class="row">
                             <label class="col-sm-4 control-label">备注：</label>
@@ -2432,7 +2698,7 @@
     </div>
     <!-- 负载均衡 修改-->
     <!-- ssh密钥 查看-->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isView_sshKeyt}">
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isView_sshKeyt , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2518,7 +2784,7 @@
     </div>
     <!-- ssh密钥 查看 -->
     <!-- ssh密钥  修改-->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_sshKeyt}">
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_sshKeyt , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -2605,7 +2871,7 @@
     </div>
     <!-- ssh密钥 修改 -->
     <!-- 云主机查看 -->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isView_vm}">
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isView_vm , backdrop: 'static'}">
       <div class='modal-dialog modal-lg'>
         <div class='modal-content'>
           <div class='modal-header'>
@@ -2917,7 +3183,7 @@
     </div>
     <!-- 云主机 查看-->
     <!-- 云主机 修改 -->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_vm}">
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isEdit_vm , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content'>
                 <div class='modal-header'>
@@ -3227,7 +3493,7 @@
     </div>
     <!-- 云主机 修改 -->
     <!-- 选择云服务页面 -->
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: selectVdiskService }">
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: selectVdiskService , backdrop: 'static'}">
       <div class='modal-dialog modal-lg' role='document'>
         <div class='modal-content'>
           <div class='modal-header'>

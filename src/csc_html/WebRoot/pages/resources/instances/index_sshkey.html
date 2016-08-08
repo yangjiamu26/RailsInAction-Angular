@@ -43,6 +43,11 @@
         </tr>
       </thead>
       <tbody>
+       <tr data-bind="visible: showNoData">
+              <td colspan=10 class="aligncenter">
+                This table has no data.
+              </td>
+            </tr>
          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
         <tr>
           <td data-bind="text:name">测试密钥1</td>
@@ -57,7 +62,7 @@
     <td data-bind="text:expiryDate">2016-06-29 11:55</td>
    <!--  <td data-bind="text:createTime">2016-06-29 13:56</td> -->
     <td data-bind="text:userName">admin</td>
-          <td><a href="#">下载</a> 
+          <td><a href="#" data-bind="attr:{href:'api/v5.0.0/sshKeys/'+uuid+'/download'}">下载</a> 
           | <a href="#" data-bind="click: $root.bindvmForSecretkey">查看挂载云主机</a> 
           | <a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a>  
    	| <a href="#" data-bind="click: $root.validate">终止</a>   
@@ -67,55 +72,84 @@
         </tbody>
       </table>
     </div>
-     <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-<ul class="pagination">
-  <li data-bind="css: leftPagerClass, click: prevPage">
-    <a href="#">&laquo;</a>
-  </li>
-  <!-- ko foreach: {data: (new Array(pages()))} -->
-<li data-bind="css: $parent.pageClass($index() + 1)">
-  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-</li>
-<!-- /ko -->
+<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+  <ul class="pagination">
+	  <li data-bind="css: leftPagerClass, click: prevPage">
+	    <a href="#">&laquo;</a>
+	  </li>
+	  <!-- ko foreach: {data: (new Array(pages()))} -->
+	<li data-bind="css: $parent.pageClass($index() + 1)">
+	  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+	</li>
+	<!-- /ko -->
     <li data-bind="css: rightPagerClass, click: nextPage">
       <a href="#">&raquo;</a>
     </li>
   </ul>
 </footer>
-    </div>
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
-      <div class='modal-dialog modal-lg' style="width:600px;">
+</div>
+    
+<!-- 云主机列表 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isBindvmForSecretkey}">
+      <div class='modal-dialog modal-lg' style="width:800px;">
     <div class='modal-content'>
       <div class='modal-header'>
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机列表</h3>
       </div>
       <div class='modal-body form-horizontal row'>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">密钥名称：</label>
-          <div class="col-sm-8">
-            <span>密钥111</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-3 control-label">云主机：</label>
-          <div class="col-sm-8">
-            <select class="form-control">
-              <option value="1">1</option>
-            </select>
-          </div>
-        </div>
+        			<div class='table-responsive'>
+					    <table class='table table-striped'>
+					      <thead>
+					        <tr>
+					          <th>云主机名称</th>
+					          <th>IP地址</th>
+					          <th>云主机状态</th>
+					          <th>所属VDC</th>
+					          <th>所属可用分区</th>
+					        </tr>
+					      </thead>
+					      <tbody>
+						       <tr data-bind="visible: vmTableArray().length==0">
+						              <td colspan=5 class="aligncenter">
+						                This table has no data.
+						              </td>
+						       </tr>
+						 </tbody>
+					        <tbody data-bind="foreach:vmTableArray">
+						        <tr>
+						          <td data-bind="text:name">vm名称</td>
+						          <td data-bind="text:ip">vpc</td>
+						         <td>
+					                <span class="label label-success" data-bind="if: state == 'ACTIVE' && taskState == null">运行中</span>
+					                <span class="label label-danger" data-bind="if: state == 'SHUTOFF' && taskState == null">已关机</span>
+					                <span class="label label-info" data-bind="if: state == 'SUSPENDED' && taskState == null">已挂起</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'POWERING_OFF'">正在关机</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'POWERING_ON'">正在启动</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING'">正在重启</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING_HARD'">正在强制重启</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'SUSPENDING'">正在挂起</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'RESUMING'">正在恢复</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'DELETING'">正在删除</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'RESIZING'">正在调整</span>
+				                </td>
+						          <td data-bind="text:vdcName">vdc</td>
+						          <td data-bind="text:azName">az</td>
+						        </tr>
+					        </tbody>
+					        
+					      </table>
+					    </div>
         
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+       <a class="btn btn-default btn-info" data-dismiss="modal">关闭</a>
       </div>
     </div>
   </div>
 </div>
 
 <!-- 创建SSH密钥 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
+<div role="dialog" aria-hidden="true" id="modal_addSsh" class="modal fade" data-bind="modal: { show: isAddSecretkey }">
   <div class='modal-dialog modal-lg' style="width:600px;">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -161,16 +195,17 @@
             <div>
               <label class="radio-inline">
                 <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                <input type="text" class="form-control input-sm inline w-xxs">
-                <select class="form-control inline w-xs input-sm">
-                  <option value="">月</option>
+                <input type="text" class="form-control inline w-xxs" id="resource_instance_ssh_limit_option2">
+                <select class="form-control inline w-xs" id="resource_instance_ssh_limit_option2_unit">
+                  <option value="MONTH">月</option>
+                  <option value="YEAR">年</option>
                 </select>  
               </label>
             </div>
             <div>
               <label class="radio-inline">
                 <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                   <input type="text" value="" class="form-control inline w input-sm" id="vm_duration">
+                   <input type="text" value="" class="form-control inline w input-sm" id="resource_instance_ssh_limit_option3">
               </label> 
             </div>                                   
           </div>
@@ -216,7 +251,108 @@
     </div>
   </div>
 </div>
- 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDeleteProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源删除</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源删除</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: deleteProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: deleteProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: deleteProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：SSH密钥</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content' style="width:700px;">
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>有效时间变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: validateProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: validateProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: validateProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：SSH密钥</p></div>
+		          </div>
+		          <div class="row">
+		            <div class="col-xs-6"><p>调整前失效时间：<input type="text" value="" class="form-control inline w" data-bind="value: validateProcessVO().validateTime" disabled="disabled"></p></div>
+		            <div class="col-xs-6"><p>调整后失效时间：<input type="text" value="" class="form-control inline w" id="resource_instance_ssh_validate_process" data-bind="value: validateProcessVO().targetValidateTime"></p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: validateProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","api/resourceInstance/sshkey/sshkey.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
@@ -235,13 +371,22 @@
       this.isBindvmForSecretkey = ko.observable(false);
       this.isAddSecretkey = ko.observable(false);
 
-      this.bindvmForSecretkey = function(){
+      this.vmTableArray = ko.observableArray([]);
+      
+      //查看绑定的云主机列表
+      this.bindvmForSecretkey = function(object,event){
+    	  $.SSH_KEY.getVms(object.uuid,function(data){
+    		  if(data.length>0){
+    			  self.vmTableArray(data);
+    		  }else{
+    			  self.vmTableArray([]);
+    		  }
+    	  });
         self.isBindvmForSecretkey(true);
       };
 
       //初始化vo
       this.currentVO = ko.validatedObservable();
-    
 
       this.addSecretkey = function(){
     	  this.currentVO({
@@ -278,6 +423,27 @@
         self.isAddSecretkey(true);
       };
       
+      $("#modal_addSsh").on("shown.bs.modal",function(){
+
+          // daterange             
+          $('#resource_instance_ssh_limit_option3').val(moment().format('YYYY/MM/DD')).daterangepicker(
+            {
+              format:'YYYY/MM/DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+            }
+
+          ); 
+
+      })
+      
       //保存
       this.save = function(){
     	  ko.validation.group(this.currentVO).showAllMessages();
@@ -298,8 +464,8 @@
 	    	    	 if(temp[i].value == "option1"){
 	    	    		 expiryTime = "2099-12-30 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
-	    	    		 if($("#resource_instance_vm_limit_option2_unit").val() == "MONTH"){
-	    	    			 var plusMonth = parseInt($("#resource_instance_vm_limit_option2").val());
+	    	    		 if($("#resource_instance_ssh_limit_option2_unit").val() == "MONTH"){
+	    	    			 var plusMonth = parseInt($("#resource_instance_ssh_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
 	    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
@@ -310,8 +476,8 @@
 	    	    			 if(m == 0){
 	    	    				 m = selfM;
 	    	    			 }
-	    	    		 }else if($("#resource_instance_vm_limit_option2_unit").val() == "YEAR"){
-	    	    			 var plusYear = parseInt($("#resource_instance_vm_limit_option2").val());
+	    	    		 }else if($("#resource_instance_ssh_limit_option2_unit").val() == "YEAR"){
+	    	    			 var plusYear = parseInt($("#resource_instance_ssh_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
 	    	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
@@ -320,14 +486,14 @@
 	    	    		 }
 	    	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
 	    	    	 }else{
-	    	    		 var timeStr = $("#resource_instance_vm_limit_option3").val();
+	    	    		 var timeStr = $("#resource_instance_ssh_limit_option3").val();
 	    	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
 	    	    	 }
 	    	     }
 	    	  }
 	    	  postBody.expiryDate = expiryTime;
 	    	 
-	    	  console.log(postBody);
+	    	  //console.log(postBody);
 	    	  //return;
 	    	  $.SSH_KEY.createSSHKey(postBody,function(data){
 	    		  //成功
@@ -339,7 +505,6 @@
 	    			  alert('创建失败！');
 	    		  }	    		  	    		  
 	    	  },function(data){
-	    		  console.log(data);
 	    		  alert('创建失败！');
 	    	  })
 	      }
@@ -347,22 +512,35 @@
       
       //删除
       this.removeOne = function(object, event){
-    	  confirm("您确定要删除该密钥["+object.name+"]吗？",function(){    
-    		  $.SSH_KEY.deleteSSHKey(object.uuid,function(data){
-    			  alert('删除成功');
-        		  self.table.refreshData();
-    			  if(data.result == 'success'){
-    				  alert('删除成功');
-            		  self.table.refreshData();
-    			  }else if(data.result == 'faile'){
-    				  alert('删除底层数据失败');
-    			  }else{
-    				  alert('没有发现密钥！');
-    			  }
-        	  });
-    	  });
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+    		  //走流程
+    		  self.doDeleteProcessPost(object);
+    	  }else{
+    		  //不走流程
+	    	  confirm("您确定要删除该密钥["+object.name+"]吗？",function(){    
+	    		  $.SSH_KEY.deleteSSHKey(object.uuid,function(data){
+	    			  alert('删除成功');
+	        		  self.table.refreshData();
+	    			  if(data.result == 'success'){
+	    				  alert('删除成功');
+	            		  self.table.refreshData();
+	    			  }else if(data.result == 'faile'){
+	    				  alert('删除底层数据失败');
+	    			  }else{
+	    				  alert('没有发现密钥！');
+	    			  }
+	        	  });
+	    	  });
+    	  }
       }
       
+      this.download = function(object,event){
+    	  $.SSH_KEY.download(object.uuid,function(data){
+			 if(data){
+				 alert(data);
+			 }
+    	  });
+      }
       
       
  
@@ -428,18 +606,19 @@
         this.table.params({});
       }
       this.search = function(){
-    	  console.log('11111111');
         this.table.params(this.searchParam());
       }
       this.table = new DataTable([], {path: 'api/v5.0.0/sshKeys',loader:function(result){
     	  //由于公钥太长，采用省略号
-    	  var publicKeyString = result.publicKey.substring(0,25)+'....';
-    	  result.publicKeyString = publicKeyString;
-    	  
-    	  console.log(result);
+    	  if(result.publicKey){
+    		  var publicKeyString = result.publicKey.substring(0,25)+'....';
+        	  result.publicKeyString = publicKeyString;
+    	  }
     	  //将时间转换一下
-    	  var expiryDate = result.expiryDate;    	  
-    	  result.expiryDate = expiryDate.substring(0,10);
+    	  if(result.expiryDate){
+    		  var expiryDate = result.expiryDate;    	  
+        	  result.expiryDate = expiryDate.substring(0,10);
+    	  }
     	  return result;
       }});
       
@@ -469,10 +648,15 @@
      	  uuid: ko.observable()
        });
        this.editValidateTime = function(object, event){
-     	  self.isValidateTime(true);
-     	  self.validateTimeVO().uuid(object.uuid);
-     	  console.log(object.expiryDate)
-     	  self.validateTimeVO().time(object.expiryDate);
+    	   if(csc.util.isNotNull(object.serviceInstanceUuid)){
+     		  //走流程
+     		  self.doValidateProcessPost(object);
+     	  }else{
+     		  //不走流程
+	     	  self.isValidateTime(true);
+	     	  self.validateTimeVO().uuid(object.uuid);
+	     	  self.validateTimeVO().time(object.expiryDate);
+     	  }
        }
        //修改有效期
        this.validateTime = function(){
@@ -497,10 +681,115 @@
    		});
        }
       
-      
+     //------------------------------------------删除-流程开始--------------------------------
+       this.isDeleteProcess = ko.observable(false);
+       
+       this.doDeleteProcessPost = function(object){
+     	  self.isDeleteProcess(true);
+ 		  self.deleteProcessVO().name(object.name);
+ 		  self.deleteProcessVO().uuid(object.uuid);
+ 		  var myDate = new Date();
+ 		  self.deleteProcessVO().time(myDate.toLocaleString());
+ 		  self.deleteProcessVO().user("");
+       }
+   
+       this.deleteProcessVO = ko.observable({
+     	  name: ko.observable(),
+     	  uuid: ko.observable(),
+     	  time: ko.observable(),
+     	  user: ko.observable()
+       });
+       
+       this.deleteProcessPost = function(){
+       	  var orderItem = {};
+       	  orderItem.instanceName = self.deleteProcessVO().name();
+       	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+       	  orderItem.resourceType = self.deleteProcessVO().type;
+       	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+       	  
+       	  var orderItems = [];
+       	  orderItems.push(orderItem);
+       	  
+       	  var postBody = {}; 
+       	  postBody.resourceType = self.deleteProcessVO().type;;
+       	  postBody.orderItems = orderItems;
+       	  
+       	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+       		  if(data.code){
+       			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+     		 		self.isValidateProcess(false);
+       		  }
+       	  });
+ 		}
+       
+       //------------------------------------------删除-流程结束--------------------------------
      
 
-      
+     //------------------------------------------有效期-流程开始--------------------------------
+ 	  this.isValidateProcess = ko.observable(false);
+       
+       this.doValidateProcessPost = function(object){
+     	  self.isValidateProcess(true);
+ 		  self.validateProcessVO().name(object.name);
+ 		  self.validateProcessVO().uuid(object.uuid);
+ 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+ 		  var myDate = new Date();
+ 		  self.validateProcessVO().time(myDate.toLocaleString());
+ 		  self.validateProcessVO().user("");
+ 		  
+ 		  self.validateProcessVO().validateTime(object.expiryTime);
+ 		  self.validateProcessVO().targetValidateTime("");
+ 		  
+ 		  $('#resource_instance_ssh_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
+ 		            {
+ 		              format:'YYYY/MM/DD',
+ 		              minDate:moment(),
+ 		              singleDatePicker: true,
+ 		              locale:{
+ 		                applyLabel: '确认',
+ 		                cancelLabel: '取消',
+ 		                weekLabel: '周',
+ 		                daysOfWeek:["日","一","二","三","四","五","六"],
+ 		                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+ 		              }
+ 		            }
+ 		  ); 
+       }
+   
+       this.validateProcessVO = ko.observable({
+     	  name: ko.observable(),
+     	  uuid: ko.observable(),
+     	  time: ko.observable(),
+     	  user: ko.observable(),
+     	  serviceInstanceUuid: ko.observable(),
+     	  
+     	  validateTime: ko.observable(),
+     	  targetValidateTime: ko.observable()
+       });
+       
+       //申请
+       this.validateProcessPost = function(){
+     	  var orderItem = {};
+     	  orderItem.instanceName = self.validateProcessVO().name();
+     	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
+     	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
+     	  orderItem.resourceType = "SECRET_KEY";
+     	  
+     	  var orderItems = [];
+     	  orderItems.push(orderItem);
+     	  
+     	  var postBody = {};
+     	  postBody.resourceType = "SECRET_KEY";
+     	  postBody.orderItems = orderItems;
+     	  
+     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+     		  if(data.code){
+     			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+   		 		self.isValidateProcess(false);
+     		  }
+     	  });
+       }
+       //------------------------------------------有效期-流程结束--------------------------------
       
     };   
      ko.applyBindings(new ViewModel_SSHKey(), $('#partition_sshkeys')[0]); 

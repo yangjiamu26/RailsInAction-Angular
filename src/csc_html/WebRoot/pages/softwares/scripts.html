@@ -477,6 +477,8 @@
 					
 					/** 构建文件上传器 **/
 			      	this.initUploader = function () {
+						self.uploadActionKey = WebUploader.guid('csc_upload_');
+							
 			      		self.uploader = WebUploader.create({
 							// 文件接收服务端。
 							threads : 1,
@@ -546,10 +548,8 @@
 			      	
 			      	/** 上传脚本文件 **/
 			      	this.uploadFile = function() {
-			      		var uploadKey = WebUploader.guid('csc_upload_');
-			      		
 			      		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscScript&actionKey='
-	      											+ uploadKey + '&dataKey=' + uploadKey;
+	      											+ self.uploadActionKey + '&dataKey=' + self.uploadActionKey;
 			      		
 			      		self.uploader.upload();
 			      	};
@@ -633,7 +633,7 @@
 					/** 移除脚本文件 **/
 					this.removeFile = function(object, event) {
 						if (object.path() && !object.Id) {
-							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()}, function(data) {
+							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()+object.name}, function(data) {
 								self.fileTable.remove(object);
 							});
 						} else {

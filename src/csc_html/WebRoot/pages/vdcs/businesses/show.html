@@ -12,89 +12,129 @@
 	<div class="nav-tabs-alt bg-white-only b b-blue">
 		<ul class="nav nav-tabs" role="tablist">
 			<li class="active" role="presentation">
-				<a aria-controls="VPC" data-toggle="tab" href="#VPC" role="tab">业务系统详情</a>
+				<a aria-controls="VM_OPERATION" data-toggle="tab" href="#VM_OPERATION" role="tab">业务系统详情</a>
 			</li>
 			<li role="presentation">
 				<a aria-controls="router" data-toggle="tab" href="#router" role="tab">云主机</a>
 			</li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane active" id="VPC" role="tabpanel">
+			<div class="tab-pane active" id="VM_OPERATION" role="tabpanel">
+				<div class="wrapper-md">
+					<p>&nbsp;</p>
+					<div class="panel panel-default">
+					  <div class="panel-heading">基本信息</div>
+					  <div class="panel-body">
+					    <p><strong>业务系统名称：</strong><span data-bind="text:busSysInfoVo().name"></span></p>
+					    <p><strong>所属VDC：</strong><span data-bind="text:busSysInfoVo().vdcName"></span></p>
+					    <p><strong>业务系统负责人：</strong><span data-bind="text:busSysInfoVo().managerUsers"></span></p>
+					    <p><strong>备注：</strong><span data-bind="text:busSysInfoVo().desc"></span></p>
+					  </div>
+					</div>
 				<div class="wrapper">
 					<a class="btn btn-sm btn-default" href="#pages/vdcs/businesses/index"><i class="fa fa-arrow-left"></i> 返回</a>
-					<button class="btn btn-info btn-sm" onclick="showModal('pages/vdcs/businesses/start_password.html')">开机</button>
-					<button class="btn btn-info btn-sm">关机</button>
-					<button class="btn btn-info btn-sm">重启</button>
-					<button class="btn btn-info btn-sm" onclick="showModal('pages/vdcs/businesses/start_index.html')">设置启动顺序</button>
-				</div>
-
-				<div class="wrapper">	
-	                <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息</h5>
-	                <div class="bg-light b-t b-b wrapper-sm">
-	                  <div class="row m-b">
-	                    <div class="col-xs-2 font-bold text-nowrap">业务系统名称：</div>
-	                    <div class="col-xs-4">xxxxxxxxx</div>
-	                    <div class="col-xs-2 font-bold text-nowrap">所属VDC：</div>
-	                    <div class="col-xs-4">xxxxxxxxx</div>
-	                  </div>
-	                  <div class="row m-b">
-	                    <div class="col-xs-2 font-bold text-nowrap">业务系统负责人：</div>
-	                    <div class="col-xs-4">xxxxxxxxx</div>
-	                    <div class="col-xs-2 font-bold text-nowrap">备注：</div>
-	                    <div class="col-xs-4">xxxxxxxxx</div>
-	                  </div>
-	                 </div>
+					<button class="btn btn-info btn-sm" data-bind="click: powerOnVm">开机</button>
+					<button class="btn btn-info btn-sm" data-bind="click: powerOffVm">关机</button>
+					<button class="btn btn-info btn-sm" data-bind="click: powerRestartVm">重启</button>
+					|
+				  	<button class="btn btn-info btn-sm " data-bind="visible: !editMode(), click: editVMOrder">设置启动顺序</button>
+				  	<button class="btn btn-info btn-sm " data-bind="visible: editMode, click: confirmVMOrder">保存</button>
+				  	<button class="btn btn-info btn-sm " data-bind="visible: editMode, click: cancelVMOrder">取消</button>
 				</div>
 
 				<div class="wrapper">
-	                <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>虚拟机启动顺序</h5>
 					  <table class="table">
 				  		<thead>
 				  			<tr>
+				  				<th>虚拟机名称</th>
 				  				<th>虚拟机名称</th>
 				  				<th>启动顺序</th>
 				  				<th>延迟间隔</th>
 				  			</tr>
 				  		</thead>
-				  		<tbody>
+				  		<tbody data-bind="foreach: vmList"	>
 				  			<tr>
-				  				<td>VM01</td>
-				  				<td>1</td>
-				  				<td>10秒</td>
-				  			</tr>
-				  			<tr>
-				  				<td>VM01</td>
-				  				<td>1</td>
-				  				<td>10秒</td>
-				  			</tr>
-				  			<tr>
-				  				<td>VM01</td>
-				  				<td>1</td>
-				  				<td>10秒</td>
+				  				<td data-bind="text:uuid"></td>
+				  				<td data-bind="text:vmUuid"></td>
+				  				<td >
+				  				  <!-- ko if: $root.editMode -->
+				  					<div class="input-append input-append-normal">
+				  					<input type="text" class="form-control input-sm" value="0" data-bind="value:startOrder"/>
+					                  <span class="add-on w_numberBtn">
+					                    <i class="w_upBtn" data-bind="click: $root.addCount"><b></b></i>
+					                    <i class="w_downBtn" data-bind="click: $root.decreaseCount"><b></b></i>
+					                  </span>
+					                 </div>
+					               <!-- /ko -->
+					               <!-- ko ifnot: $root.editMode -->
+					               <span data-bind="text:startOrder"></span>
+					               <!-- /ko -->
+				  				</td>
+				  				<td >
+					  				 <!-- ko if: $root.editMode -->
+					  					<div class="input-append input-append-normal">
+					  					<input type="text" class="form-control input-sm" value="0" data-bind="value:delay"/>
+						                  <span class="add-on w_numberBtn">
+						                    <i class="w_upBtn" data-bind="click: $root.addDelayCount"><b></b></i>
+						                    <i class="w_downBtn" data-bind="click: $root.decreaseDelayCount"><b></b></i>
+						                  </span>
+						                 </div>
+						               <!-- /ko -->
+						               <!-- ko ifnot: $root.editMode -->
+						               <span data-bind="text:delay"></span>
+						               <!-- /ko -->
+				  				</td>
 				  			</tr>
 				  		</tbody>
 				  	</table>
 				</div>
-
 			</div>
-
-			<div class="tab-pane" id="router" role="tabpanel">
+			                <!-- 操作云主机  输入用户信息modal -->
+                <div role="dialog" aria-hidden="true" class="modal fade " data-bind="modal: { show: verifyToPass }">
+                    <div class='modal-dialog modal-md' role='document'>
+                      <div class='modal-content'>
+                        <div class='modal-header'>
+                          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>用户验证</h3>
+                        </div>
+                        <div class='modal-body'>
+                          <div class="form-group">
+                            <label class="col-xs-3 control-label">请输入密码：</label>
+                            <div class="col-xs-9">
+                              <input type="password" class="form-control"  placeholder="">
+                              <div>您需要输入当前登录用户的密码才能执行操作</div>
+                            </div>
+                          </div>
+                          
+                        </div>
+                        <div class='modal-footer' style="text-align: center">
+                          <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" />
+                          <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
+                        </div>
+                     </div>
+                    </div>
+                <!-- 操作云主机  输入用户信息modal -->
+			
+		</div>
+		
+		<!-- 云主机tab页页面  -->
+		<div class="tab-pane" id="router" role="tabpanel">
 				<div class="row wrapper">
 			        <div class="col-xs-8">
-			        	<a class="btn btn-sm btn-info" onclick="showModal('pages/vdcs/businesses/new_host.html')">添加</a>
+			        	<a class="btn btn-sm btn-primary" data-bind="click:addHost">添加</a>
 			        </div>
+		            <!-- 宇阳说暂时不用，考虑数据量不多，也不做分页
 			        <div class="col-xs-3">          
 		                <div class="input-group">
 		                  <span class="input-group-addon">名称</span>
-		                  <input type="text" class="input-sm form-control" placeholder="请输入名称">
+		                  <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
 		                </div>
 		            </div>
-		            <div class="col-xs-1">
-		                <button class="btn btn-sm btn-default" type="button">搜索</button>
+		            <div class="col-xs-1" >
+		                <button class="btn btn-sm btn-default" type="button"  data-bind="click: searchVm">搜索qqq</button>
 		            </div>
-		    	</div>	
-		    	<div class="wrapper">	
-			    	<div class="table-responsive">
+		             -->
+		    	</div>		
+			    <div class="table-responsive" data-bind="with: vmtable">
 						<table class="table table-striped">
 							<thead>
 								<tr>
@@ -104,142 +144,412 @@
 									<th>存储</th>
 									<th>IP</th>
 									<th>状态</th>
-									<th>所属VDC</th>
-									<th>所属业务系统</th>
 									<th>失效时间</th>
-									<th>资源状态</th>
+									<th>服务状态</th>
 									<th>操作</th>
 								</tr>
 							</thead>
 							<tbody>
+							 <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-danger">异常</span></td>
-									<td><a>移除</a></td>
+									<td data-bind="text:name"></td>
+									<td data-bind="text:vcpu"></td>
+									<td data-bind="text:memory"></td>
+									<td data-bind="text:storage"></td>
+									<td data-bind="text:ip"></td>
+									<td >
+									    <span class="label label-success" data-bind="if: state == 'ACTIVE' &amp;&amp; taskState == null">运行中</span>
+									    <span class="label label-warning" data-bind="if: state != 'ACTIVE' &amp;&amp; taskState == null">非运行</span>
+									</td>
+									<td data-bind="text:expiryTime"></td>
+									<td>
+									    <span class="label label-success" data-bind="if: isValidate == true">正常</span>
+									    <span class="label label-danger" data-bind="if: isValidate == false">过期</span>
+									</td>
+									<td><a data-bind="click: $root.remove">移除</a></td>
 								</tr>
-								<tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr>
-								<tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr><tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr><tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr><tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr><tr>
-									<td>VM01</td>
-									<td>1个</td>
-									<td>1.00GB</td>
-									<td>7GB</td>
-									<td>192.168.1.1</td>
-									<td>已关机</td>
-									<td>研发中心</td>
-									<td>OA系统</td>
-									<td>2016-05-29</td>
-									<td><span class="label label-success">正常</span></td>
-									<td><a>移除</a></td>
-								</tr>
+							<!-- /ko -->
 							</tbody>
 						</table>
 					</div>	
-					<footer class="panel-footer">
-							<ul class="pagination">
-								<li class="page active">
-									<a href="#pages/javascript:void(0)">1</a>
-								</li>
-								<li class="page">
-									<a>2</a>
-								</li>
-								<li class="page">
-									<a>3</a>
-								</li>
-								<li class="page">
-									<a>4</a>
-								</li>
-								<li class="page">
-									<a >5</a>
-								</li>
-								<li class="page gap disabled">
-									<a href="#pages/javascript:void(0)">…</a>
-								</li>
-								<li class="next">
-									<a>下页 ›</a>
-								</li>
-								<li class="last">
-									<a>末页 »</a>
-								</li>
-							</ul>
-					</footer>
-				</div>
-			</div>
-		</div>
-	</div>
+			      <!-- 云主机tab页页面-->
+			      
+               <!--添云主机 modal  -->
+		    	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddHost }">
+				  <div class='modal-dialog modal-lg' role='document'>
+				    <div class='modal-content'>
+				      <div class='modal-header'>
+				        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加云主机</h3>
+				      </div>
+				      <div class='modal-body no-padder'>
+				        <div class="row wrapper">
+				          <div class="col-xs-8">
+				          </div>
+				          <div class="col-xs-3">          
+				              <div class="input-group">
+				                <span class="input-group-addon">名称</span>
+				                <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchAddVmParam().name">
+				              </div>
+				          </div>
+				          <div class="col-xs-1">
+				              <button class="btn btn-sm btn-default" type="button" data-bind="click: searchAddVm">搜索</button>
+				          </div>
+				        </div>  
+				      <div class="table-responsive" data-bind="with:vmAddtable">        
+				        <table class="table" >
+				            <thead>
+				              <tr>
+				                <th>
+				                  <div class="checkbox">
+				                    <label class="i-checks">
+				                      <input type="checkbox" data-bind="checked: isSelectedAll">
+				                      <i></i>
+				                    </label>
+				                  </div>                    
+				                </th> 
+				                <th>云主机名称</th>
+				                <th>CPU</th>
+				                <th>内存</th>
+				                <th>存储</th>
+				                <th>IP</th>
+				                <th>状态</th>
+				                <th>失效时间</th>
+				              </tr>
+				            </thead>
+				            <tbody>
+				             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+				             <tr>
+				                <td>
+				                  <div class="checkbox">
+				                    <label class="i-checks">
+                                       <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems, enable: $root.isExistVM($data.uuid)">
+				                      <i></i>
+				                    </label>
+				                  </div>  
+				                </td>
+				                <td data-bind="text:uuid" hidden="true"></td>
+				                <td data-bind="text:name"></td>
+				                <td data-bind="text:vcpu"></td>
+				                <td data-bind="text:memory"></td>
+				                <td data-bind="text:storage"></td>
+				                <td data-bind="text:ip"></td>
+				                <td>
+				                     <span class="label label-success" data-bind="if: state == 'ACTIVE' &amp;&amp; taskState == null">运行中</span>
+				                     <span class="label label-warning" data-bind="if: state != 'ACTIVE' &amp;&amp; taskState == null">非运行</span>
+				                </td>
+				                <td data-bind="text:expiryTime"></td>
+				              </tr>
+				              <!--/ko  -->
+				            </tbody>
+				          </table>
+				        </div>
+				        <footer class="panel-footer" data-bind="with: vmAddtable, visible: vmAddtable.pages() > 1">
+					        <ul class="pagination">
+					          <li data-bind="css: leftPagerClass, click: prevPage">
+					            <a href="#">&laquo;</a>
+					          </li>
+					          <!-- ko foreach: {data: (new Array(pages()))} -->
+					          <li data-bind="css: $parent.pageClass($index() + 1)">
+					            <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+					          </li>
+					          <!-- /ko -->
+					          <li data-bind="css: rightPagerClass, click: nextPage">
+					            <a href="#">&raquo;</a>
+					          </li>
+					        </ul>
+					     </footer>
+				      </div>
+				      <div class='modal-footer' style="text-align: center">
+				        <input data-bind="click: $root.addVm" type="submit" name="commit" value="确定" class="btn btn-default btn-info" />
+				        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
+				      </div>
+				    </div>
+				  </div>  
+		    	<!--modal end -->
+                
+                </div>	
+               </div>
+    </div>
 </div>
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-	var scripts = [null, null]
-	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //inline scripts related to this page
-});
+    var scripts = [null, 'assets/lib/bootstrap-multiselect/bootstrap-multiselect.js']
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	 function ViewModel(){
+    		   this.busSysInfoVo = ko.validatedObservable({
+    			   name:ko.observable(""),
+    			   vdcName:ko.observable(""),
+    			   managerUsers:ko.observable(""),
+    			   desc:ko.observable("")
+    		   })
+    		 
+    	        //定义虚拟机延时属性
+    	        this.busSysVmSetVo = ko.validatedObservable({
+    	             uuid:ko.observable(""),
+    	             busUuid:ko.observable(""),
+    	             startOrder:ko.observable(""),
+    	             delay:ko.observable(""),
+    	             vmUuid:ko.observable("")
+    		    });
+    	        
+    	        var self = this;
+    	        this.vmList = ko.observableArray();
+    	        
+    	        function VM(busUuid,uuid,vmUuid, startOrder, delay){
+    	        	this.busUuid = busUuid;
+    	        	this.uuid = uuid;
+    	        	this.vmUuid = vmUuid;
+    	        	this.startOrder = ko.observable(startOrder).extend({digit:{params:true,message:' '},required:true});
+    	        	this.delay = ko.observable(delay).extend({digit:{params:true,message:' '},required:{params:true,message:' '}});
+    	        }
+    	        
+    	        this.loadSubSysInfo = function(url){
+    	        	csc.rest.get(url, function(data){
+    	        		var userList = data.userList;
+    	        		var managerUsers = "";
+    	        		if (userList!=null&&userList.length>0){
+	    	        		var uLength = userList.length;
+    	        			for (var i=0;i<uLength;i++){
+        	        			if(userList[i].type=="MANGER"){
+	        	        			managerUsers += userList[i].account+","
+        	        			}
+    	        			}
+    	        			if(managerUsers!=""){
+    	        				managerUsers = managerUsers.substr(0,managerUsers.length-1);
+    	        			}
+    	        		}
+    	        		self.busSysInfoVo.fromJSON({
+    	        			name:data.name,
+    	        			managerUsers: managerUsers,
+    	      		    	vdcName: data.vdcName,
+    	      		    	desc: data.desc
+    	      		    });
+    	        	});
+    	        }
+    	        
+    	        this.loadVM = function(initUrl){
+    	        	csc.rest.get(initUrl, function(data){
+    	        		var list = ko.utils.arrayMap(data.results, function(result, index){
+    	        			console.log(result)
+    	        			return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
+    	        		});
+    	        		self.vmList(list);
+    	        		
+    	        	});
+    	        };
+    	        
+    	        //初始化列表值，过滤出启动顺序为0的 ( TODO 待出接口)
+    	       // this.loadVM("api/v5.0.0/bussys/"+args.subSysUuid+"/vms?startOrder=NO_ZERO");
+    	        if(args.subSysUuid!=null&&typeof(args.subSysUuid)!="undefined"){
+                    this.loadSubSysInfo("api/v5.0.0/bussys/"+args.subSysUuid);
+    	        }
+    	        
+    	        this.editMode = ko.observable(false);
+    	        
+    	        this.editVMOrder = function(){
+	    	        //查询uuid下所有的云主机列表
+    	        	self.editMode(true);
+    	        	//self.loadVM("api/v5.0.0/bussys/"+args.subSysUuid+"/vms");
+    	        }
+    	        this.cancelVMOrder = function(){
+    	        	this.editMode(false);
+    	        	this.loadVM();
+    	        }
+    	        this.confirmVMOrder = function(){
+    	        	var list = this.vmList();
+    	        	for(var i=0; i<list.length;i++){
+    	        		var vm = list[i];
+    	        		if(!vm.isValid()) return;
+    	        	}
+    	        	this.editMode(false)
+    	        	
+    	        	console.log(ko.toJSON(this.vmList()));
+    	        }
+    	        
+    	        //启动顺序加
+    	        this.addCount = function(object, event){
+    	        	object.startOrder(parseInt(object.startOrder())+1);
+    	        }
+    	        //启动顺序减
+    	        this.decreaseCount = function(object, event){
+    	        	object.startOrder(parseInt(object.startOrder())-1);
+    	        }
+    	        
+    	        //延时间隔加
+    	        this.addDelayCount = function(object, event){
+    	        	object.delay(parseInt(object.delay())+1);
+    	        }
+    	        //延时间隔减
+    	        this.decreaseDelayCount = function(object, event){
+    	        	object.delay(parseInt(object.delay())-1);
+    	        }
+    	        
+                 this.verifyToPass = ko.observable(false);
+                 /******************开机操作*****************************/
+                 this.powerOnVm = function(){
+                     self.verifyToPass(true)
+                     //todo something to on vm ...
+                  }
+                /******************开机操作*****************************/
+                
+                /******************关机操作*****************************/
+                 this.powerOffVm = function(){
+                     self.verifyToPass(true)
+                     //todo something to off vm ...
+                  }
+                /******************关机操作*****************************/
+                
+                /******************重启操作*****************************/
+                 this.powerRestartVm = function(){
+                     self.verifyToPass(true)
+                     //todo something to restart vm ...
+                  }
+                /******************重启操作*****************************/
+        }
+
+        ko.applyBindings(new ViewModel(), $('#VM_OPERATION')[0]); 
+        
+        function ViewVmModel(){
+            //定义虚拟机实例
+	        this.vmVo = ko.validatedObservable({
+	             busSysVmRelUuid:ko.observable(""),
+	             name:ko.observable(""),
+	             vcpu:ko.observable(""),
+	             memory:ko.observable(""),
+	             storage:ko.observable(""),
+	             ip:ko.observable(""),
+	             state:ko.observable(""),
+	             expiryTime:ko.observable(""),
+	             isValidate:ko.observable("")
+            });
+
+            this.isAddHost = ko.observable(false);
+            var self = this;
+            this.modalVmList = ko.observableArray();
+            this.addHost = function(){
+                //清空搜索框
+                self.searchAddVmParam().name="";
+                self.vmAddtable.refreshData();//刷新数据
+                
+                self.isAddHost(true)
+                //查询已经关联的虚拟机
+                csc.rest.get(busSysVmUrl, function(data){
+                    self.modalVmList(data.results);
+                });
+            }
+
+            this.searchParam = ko.observable({
+                 name: ""
+            })
+         
+            this.searchVm = function(){
+                 this.vmtable.params(this.searchParam());
+            }
+            //云主机tab页面，通过业务系统uuid查询出关联的云主机
+            var busSysVmUrl = "api/v5.0.0/bussys/"+args.subSysUuid+"/vms";
+            this.vmtable = new DataTable([], {path: busSysVmUrl});
+            this.isExistVM = function(uuid){
+            	//查找modaoVmList中是否存在uuid的数据，是就返回false
+            	var result = _.findWhere(this.modalVmList(), {uuid: uuid});
+            	return !result;
+            }
+            
+            /********************业务系统删除-start**************/
+            this.remove = function(object,event){
+                confirm("确定删除云主机【"+object.name+"】?",function(arg){
+                   var delVmList = {};
+                   var listJson = [];
+                   listJson.push(new VM(args.subSysUuid,args.vdcUuid,object.uuid,'0','0'));
+                   delVmList["delVms"] = listJson;
+                   
+                   csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vms",delVmList,function(data){
+                        systemMsg.alert('删除成功!');
+                        self.vmtable.refreshData();//刷新数据
+                        self.isAddHost(false);
+                    },function(data,textStatus) {
+                        systemMsg.alert('删除失败!');
+                    });
+                })
+            }
+           /************************业务系统删除-end**************/
+            //封装虚拟机和业务系统关系，及初始化部分值
+           function VM(busUuid,vdcUuid,vmUuid,startOrder,delay){
+                this.busUuid = busUuid;
+                this.vdcUuid = vdcUuid;
+                this.vmUuid = vmUuid;
+                this.startOrder = startOrder;
+                this.delay = delay;
+           }
+            this.addVmVo = ko.validatedObservable({
+	             uuid:ko.observable(""),
+	             name:ko.observable(""),
+	             vcpu:ko.observable(""),
+	             memory:ko.observable(""),
+	             storage:ko.observable(""),
+	             ip:ko.observable(""),
+	             state:ko.observable(""),
+	             expiryTime:ko.observable(""),
+	             isValidate:ko.observable("")
+		    });
+       	
+       	     this.searchAddVmParam = ko.observable({
+                 name: "",
+                 vdcUuid: args.vdcUuid
+             })
+        
+             this.searchAddVm = function(){
+                  this.vmAddtable.params(this.searchAddVmParam());
+             }
+       	    
+             /************云主机tab页面，通过业务系统vdcUuid查询出关联的云主机-start***********/
+             //获取已经关联的云主机信息
+            
+             
+             var vmUrl = "api/v5.0.0/vms?vdcUuid="+args.vdcUuid;
+             this.vmAddtable = new DataTable([], {path: vmUrl,perPage:8});
+             
+             
+             /************云主机tab页面，通过业务系统uuid查询出关联的云主机-end**************/
+           
+            /******************提交保存业务系统和云主机关系*****************************/
+             var newVmList = {};
+             this.addVm = function(){
+            	 //去重如果已经关联的业务系统，就不需要添加进来
+            	 var chosenItems = _.reject(this.vmAddtable.chosenItems(), function(item){
+            		 return !self.isExistVM(item.uuid)
+            	 });
+            	 console.log(chosenItems)
+            	 
+                 var vmUuids = _.pluck(chosenItems, "uuid")
+                 //组装数据
+                 if(vmUuids!=null&&vmUuids.length>0){
+                     var listJson = []
+                     for (var i=0;i<vmUuids.length;i++){
+                         listJson.push(new VM(args.subSysUuid,args.vdcUuid,vmUuids[i],'0','0'));
+                     }
+                 }else {
+ 			 		systemMsg.alert('没有选择数据,请检查!');
+ 			 		return;
+                 }
+                 newVmList["addVms"] = listJson;
+                 console.log(newVmList)
+                 csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vms",newVmList,function(data){
+ 			 		systemMsg.alert('新增成功!');
+ 			 		self.isAddHost(false);
+ 			 		self.vmtable.refreshData();//刷新数据
+ 			    },function(data,textStatus) {
+ 			    	//$("#add_submit").removeAttr("disabled");
+ 			 		systemMsg.alert('新增失败!');
+ 				}); 
+             }
+            /******************提交保存业务系统和云主机关系*****************************/
+            
+             
+             
+        }
+        ko.applyBindings(new ViewVmModel(), $('#router')[0]);
+
+    });
+    
 </script>
