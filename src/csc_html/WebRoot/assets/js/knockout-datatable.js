@@ -88,6 +88,7 @@
       this.filter = ko.observable('');
       this.loading = ko.observable(false);
       this.params = ko.observableArray([]);
+      this.targetPage = ko.observable("");
       return this.rows = ko.observableArray([]);
     };
     //客户端分页
@@ -227,6 +228,7 @@
       this.recordsText = pureComputed((function(_this) {
         return function() {
           var from, pages, recordWord, recordWordPlural, to, total;
+
           pages = _this.pages();
           total = _this.total();
           from = _this.from();
@@ -234,9 +236,11 @@
           recordWord = _this.options.recordWord;
           recordWordPlural = _this.options.recordWordPlural || recordWord + 's';
           if (pages > 1) {
-            return from + " to " + to + " of " + total + " " + recordWordPlural;
+            //return from + " to " + to + " of " + total + " " + recordWordPlural;
+            return "共 " + total + " 条记录，每页 " + _this.perPage() +" 条，共 "+pages+" 页";
           } else {
-            return total + " " + (total > 1 || total === 0 ? recordWordPlural : recordWord);
+            //return total + " " + (total > 1 || total === 0 ? recordWordPlural : recordWord);
+            return "共 " + total + " 条记录，每页 " + _this.perPage() +" 条，共 "+pages+" 页";
           }
         };
       })(this));
@@ -510,9 +514,11 @@
           recordWord = _this.options.recordWord;
           recordWordPlural = _this.options.recordWordPlural || recordWord + 's';
           if (pages > 1) {
-            return from + " to " + to + " of " + total + " " + recordWordPlural;
+            //return from + " to " + to + " of " + total + " " + recordWordPlural;
+            return "共 " + total + " 条记录，每页 " + _this.perPage() +" 条，共 "+pages+" 页";
           } else {
-            return total + " " + (total > 1 || total === 0 ? recordWordPlural : recordWord);
+            //return total + " " + (total > 1 || total === 0 ? recordWordPlural : recordWord);
+            return "共 " + total + " 条记录，每页 " + _this.perPage() +" 条，共 "+pages+" 页";
           }
         };
       })(this));
@@ -605,6 +611,20 @@
         };
       })(this);
     };
+
+    DataTable.prototype.gotoTargetPage = function(page) {
+      return (function(_this) {
+        return function() {
+          var target = parseInt(_this.targetPage());
+          if(target>0){
+            return _this.currentPage(parseInt(target));
+          }else{
+            _this.targetPage("")
+          }
+        };
+      })(this);
+    };
+    
 
     DataTable.prototype.pageClass = function(page) {
       return pureComputed((function(_this) {
