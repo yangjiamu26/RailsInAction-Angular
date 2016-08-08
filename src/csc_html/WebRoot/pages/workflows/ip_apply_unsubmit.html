@@ -50,7 +50,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <textarea cols="5" rows="5" class="form-control" data-bind="text:desc"></textarea>
+              <textarea cols="5" rows="5" class="form-control" data-bind="value:currentVO().desc"></textarea>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@
               <div class="radio disabled">
                 <label class="form-inline">
                   <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" value="3" data-bind="checked: currentVO().expireType">
-                  	有效期至 <input type="text" class="form-control applyDateFormat" id="timerange" style="display:inline-block;"  data-bind="value:currentVO().expireTime"/>
+                  	有效期至 <input type="text" class="form-control applyDateFormat" id="timerange" style="display:inline-block;"  data-bind="value:currentVO().applyTime"/>
                 </label>
               </div>
               
@@ -99,44 +99,48 @@
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    if(!args.type){
-      $(".order-base-info").remove();
-    }else{
-      if(args.type == 'order')
-        $("#orderBaseInfoType").html('订单号');
-      else
-        $("#orderBaseInfoType").html('任务ID');
-    };
+	  if(!args.type){
+	      $(".order-base-info").remove();
+	  }else{
+	      if(args.type == 'order')
+	      	$("#orderBaseInfoType").html('订单号');
+	      else
+	        $("#orderBaseInfoType").html('任务ID');
+	  };
     
-    function ViewModel(){
+      function ViewModel(){
 	      var self = this;
 	      var monthList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
   	      this.applyList = ko.observableArray(monthList);
 	      self.order = ko.observable();
+	      self.itemUuid = ko.observable();
 	      this.currentVO = ko.validatedObservable({
-	        id: ko.observable(),
-	        instanceName: ko.observable("").extend({required: true}),
-	        expireType:ko.observable(""),
-	        expireValue:ko.observable(""),
-	        expireText:ko.observable(""),
-	        expireTime:ko.obervable("");
-	        vdcUuid: ko.observable("").extend({required:true}),
-	        vpcUuid: ko.observable("").extend({required:true}),
-	        azUuid:ko.observable("").extend({required:true}),
-	        networkUuid:ko.observable(""),
-	        fee:ko.observable(""),
-	        desc:ko.obervable(""),
+	          id: ko.observable(),
+	          uuid: ko.observable(),
+	          orderUuid: ko.observable(),
+	          instanceName: ko.observable("").extend({required: true}),
+	          expireType:ko.observable(""),
+	          expireValue:ko.observable(""),
+	          expireText:ko.observable(""),
+	          applyTime:ko.observable(""),
+	          billCycle:ko.observable(""),
+	          vdcUuid: ko.observable("").extend({required:true}),
+	          vpcUuid: ko.observable("").extend({required:true}),
+	          azUuid:ko.observable("").extend({required:true}),
+	          networkUuid:ko.observable(""),
+	          fee:ko.observable(""),
+	          desc:ko.observable(""),
           
-	        vdcList:ko.observableArray([]),
-	        azList:ko.observableArray([]),
-	        vpcList:ko.observableArray([]),
-	        privateNetworkList:ko.observableArray([]),
-	        billCycleList:ko.observableArray([])
-	      });
+	          vdcList:ko.observableArray([]),
+	          azList:ko.observableArray([]),
+	          vpcList:ko.observableArray([]),
+	          privateNetworkList:ko.observableArray([]),
+	          billCycleList:ko.observableArray([])
+	     });
 	      
-	      function setArrayCharge(attr){
-	    	var arrayCharge = [];
-	    	if(attr !=null){
+	     function setArrayCharge(attr){
+	    	 var arrayCharge = [];
+	    	 if(attr !=null){
 	    		for(var i=0;i<attr.length;i++){
     	    		if(attr[i]=="DAY"){
     	    			arrayCharge.push({name:"按天",value:"DAY"});
@@ -148,8 +152,8 @@
     	    			arrayCharge.push({name:"按年",value:"YEAR"});
     	    		}
     	    	}
-	    	}
-	    	return arrayCharge;
+	    	 }
+	    	 return arrayCharge;
 	    }
 	  	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(result2){
    	     var processInstanceId = result2.taskInfo[0].processInstanceId;
@@ -162,9 +166,11 @@
 	      		 var vdcUuid = item.vdcUuid;
 	      		 var azUuid = item.azUuid;	
 	      		 var serviceUuid = item.serviceUuid;
+	      		 var itemUuid = item.uuid;
 	      		 item.networkUuid = resInfo.networkUuid;
 	      		 item.vpcUuid = resInfo.vpcUuid;
 	      		 self.order(result1);
+	      		 self.itemUuid(itemUuid);
 	      		 var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
 	      		 csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
                      self.currentVO().vdcList(result.vdcList);
@@ -173,60 +179,50 @@
                      self.currentVO().billCycleList(setArrayCharge(result.chargeList));
                      self.currentVO().privateNetworkList(result.networkList);
                      self.currentVO().instanceName(item.instanceName);
+                     self.currentVO().applyTime(item.expireValue);
                      self.currentVO.fromJSON(item);
-	      		 })
-	      	})
-		})
+	      		 });
+	      	});
+		});
 		  
-		this.save = function(){
-	    	if(args.state=='UNSUBMIT'){
-				var desc = self.currentVO().desc;
-				
-				var expireValue;
-				var expireType = $("input[name='optionsRadios']:checked").val();
-				if(self.currentVO().expireType()=="1"){
-					expireValue = "";
-				}else if(self.currentVO().expireType()=="2"){
-					expireValue = self.currentVO().expireValue;
-				}else{
-					expireValue = $("#applyServer_daterange").val();
-				}
-				
-				var meta = {"resBaseInfo":{"vpcUuid":self.currentVO().vpcUuid,"networkUuid":self.currentVO().networkUuid}};
-				meta = JSON.stringify(meta);
-			    var itemResults = {"instanceName":self.currentVO().instanceName,"vdcUuid":self.currentVO().vdcUuid,"azUuid":self.currentVO().azUuid,"billCycle":self.currentVO().billCycle
-			    		,"fee":self.currentVO().fee,"expireType":self.currentVO().expireType,"expireValue":self.currentVO().expireValue,"metaData":meta,"desc":self.currentVO().desc};
-				csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.publicIP().uuid,itemResults,function(data){
-	          		alert('保存成功！');
-	 		    });
-
-	    	}else{
-	    		saveComment(args.taskId,function(){
-	    			alert("保存成功！");
-	    		});
-	    	}
-		}
+ 		this.save = function(){
+ 			var expireValue;
+ 			if(self.currentVO().expireType()=="1"){
+ 				expireValue = "";
+ 			}else if(self.currentVO().expireType()=="2"){
+ 				expireValue = self.currentVO().expireValue();
+ 			}else if(self.currentVO().expireType()=="3"){
+ 				expireValue = self.currentVO().applyTime();
+ 			}
+ 			var meta = {"resBaseInfo":{"vpcUuid":self.currentVO().vpcUuid(),"networkUuid":self.currentVO().networkUuid()}};
+ 			meta = JSON.stringify(meta);
+ 		    var itemResults = {"instanceName":self.currentVO().instanceName(),"vdcUuid":self.currentVO().vdcUuid(),"azUuid":self.currentVO().azUuid(),"billCycle":self.currentVO().billCycle()
+ 		    		,"fee":self.currentVO().fee(),"expireType":self.currentVO().expireType(),"expireValue":expireValue,"metaData":meta,"desc":self.currentVO().desc()};
+ 			console.log("json data");
+ 			console.log(itemResults);
+ 		    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.itemUuid(),itemResults,function(data){
+           		alert('保存成功！');
+  		    });
+ 		}
 	  	
-	  	$('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
-	            {
-	              format:'YYYY/MM/DD',
-	              startDate: moment().subtract('days', 29),
-	              endDate: moment(),
-	              singleDatePicker:true,
-	              separator:'至',
-	              locale:{
-	                applyLabel: '确认',
-	                cancelLabel: '取消',
-	                fromLabel: '开始日期',
-	                toLabel: '结束日期',
-	                weekLabel: '周',
-	                customRangeLabel: '自定义范围',                            
-	                daysOfWeek:["日","一","二","三","四","五","六"],
-	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
-	              }
-	            }
-	          );
+	  	$('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker({
+	        format:'YYYY/MM/DD',
+	        startDate: moment().subtract('days', 29),
+	        endDate: moment(),
+	        singleDatePicker:true,
+	        separator:'至',
+	        locale:{
+	          applyLabel: '确认',
+	          cancelLabel: '取消',
+	          fromLabel: '开始日期',
+	          toLabel: '结束日期',
+	          weekLabel: '周',
+	          customRangeLabel: '自定义范围',                            
+	          daysOfWeek:["日","一","二","三","四","五","六"],
+	          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+	        }
+	    });
     }
-    ko.applyBindings(new ViewModel(), $('#approveSourceContent')[0]);  
-  })
+    ko.applyBindings(new ViewModel(), $('#approveContent')[0]);  
+  });
 </script>
