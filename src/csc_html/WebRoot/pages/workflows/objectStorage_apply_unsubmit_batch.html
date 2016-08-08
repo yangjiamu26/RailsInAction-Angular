@@ -24,7 +24,7 @@
                       <td data-bind="text:applyText"></td>
                       <td data-bind="text:fee"></td>
                       <td>
-                          <a class="expand-btn" onclick="expandView(this)">查看 <i class="fa fa-angle-double-right"></i></a> | <a class="expand-btn" onclick="expandEdit(this)">修改 <i class="fa fa-angle-double-right"></i></a> | <a data-bind="click:$root.deleteItem">删除</a>
+                          <a class="expand-btn" onclick="expandView(this)">查看 <i class="fa fa-angle-double-right"></i></a> | <a class="expand-btn" onclick="expandEdit(this)">修改 <i class="fa fa-angle-double-right"></i></a> | <a data-bind="click:function(data, event){ $root.deleteItem($index(), data, event)}">删除</a>
                       </td>
                   </tr>
                   <tr style="display: none">
@@ -133,7 +133,7 @@
                           </div>
                           <div class="col-xs-6">
                             <div class="form-group">
-                              <label class="col-sm-2 control-label">存储大小(G)</label>
+                              <label class="col-sm-2 control-label">存储大小(G)<i style="color:red">*</i></label>
                               <div class="col-sm-10">
                                 <input type="text" class="form-control"  placeholder="存储大小" data-bind="value:applySize">
                               </div>
@@ -195,7 +195,7 @@
                             </div>
                           </div>
                         </div>
-                        <div class="row">
+                        <div class="row"  data-bind="visible:isBill()=='true'">
                           <div class="col-xs-6">
                             <div class="form-group">
                               <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
@@ -228,7 +228,7 @@
     	      	  function ViewModel(){	  
     	      	      var self = this;
 	    	      	  
-	    	      	  this.itemListNum = itemList.length;
+	    	      	  this.itemListNum = ko.observable(itemList.length);
 	    	      	  
       	    	      var monthList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
     	    	      this.applyList = ko.observableArray(monthList);
@@ -236,7 +236,6 @@
 	    	      	  itemList.forEach(function (e){
 	    	      		 setList(e);
 	    	      	  })
-	    	      	  
 	    	      	  this.orderList = ko.observableArray();
 
     	      		  function setList(e){
@@ -258,7 +257,7 @@
 	                             }
 	                             var metaData = JSON.parse(e.metaData);
 	                             var resBaseInfo = JSON.parse(metaData.resBaseInfo);
-	                             self.orderList.push({
+	                             self.orderList.push(new ko.validatedObservable({
 	                            	 uuid:ko.observable(e.uuid),
 	                            	 instanceName:ko.observable(e.instanceName).extend({required:true}),
 	                            	 applySize:ko.observable(resBaseInfo.applySize).extend({required:true}),
@@ -278,20 +277,20 @@
 	                            	 applyNum:ko.observable(applyNum),
 	                            	 applyTime:ko.observable(applyTime),
 	                            	 applyText:ko.observable(applyText)
-	                             }); 
-	                             console.log(self.orderList());
+	                             })); 
 	                             setDateFormmat();
 	                          });
   	      		       }
     	      		  
-    	      		  this.deleteItem = function(){
-    	      			  var item = this;
+    	      		  this.deleteItem = function(index, data, event){
+    	      			  var item = data;
     	      			  if(self.orderList().length==1){
     	      				  systemMsg.alert("删除失败，订单中至少存在一个订单项");
     	      			  }else{
-    	    	  	      		systemMsg.confirm("确定删除要名称为"+item.instanceName()+"的申请吗?",function(){
+    	    	  	      		systemMsg.confirm("确定删除要名称为"+data.instanceName()+"的申请吗?",function(){
+    	    	  	      			self.orderList.splice(index,1);
+    	    	  	      			self.itemListNum(self.itemListNum()-1);
     	    	  	      			alert("删除成功");
-    	    	  	      			self.orderList.remove(item);
     	    		      		});
     	      			  }
     	      		  }
@@ -311,12 +310,18 @@
             	    	var item = this;
             	    	var serviceUuid=item.serviceUuid();
             	    	var vdcUuid=item.vdcUuid();
-            	    	var vdcItem = _.findWhere(item.vdcList(), {uuid: item.vdcUuid()});
-            	    	item.vdcName(vdcItem.name);
-            	    	item.azName("");
+            	    	
             	        csc.rest.get("api/v5.0.0/cart/getAzList/"+serviceUuid+"/"+vdcUuid, function(azList){
             	        	item.azList(azList);	
-            	        });	        
+            	        });	 
+            	        var vdcItem = _.findWhere(item.vdcList(), {uuid: item.vdcUuid()});
+            	    	if(typeof(vdcItem)=="undefined"){
+                	    	item.vdcName("");
+                	    	item.azName("");
+            	    		return;
+            	    	}
+            	    	item.vdcName(vdcItem.name);
+            	    	item.azName("");       
             	    };
             	    
             	    this.azChange = function(){//根据可用分区变化修改展示可用分区名称
@@ -379,41 +384,48 @@
                                 });
                         	})
                       }
-
     	      	  	  
     	           this.save = function(){
-    	        	   //if(self.model_ObjSto.isValid()){
-    	        		   var orderItemsModify = [];
-    	        		   self.orderList().forEach(function (e){
-    	        			   orderData.orderItems.forEach(function (f){
-    	        				   if(e.uuid()==f.uuid){
-    	        					    f.instanceName = e.instanceName();
-    	        					    f.expireType = e.expireType();
-    	        					    var expireValue = "";
-    	        					    if(e.expireType()=="2"){
-    	        					    	expireValue = e.applyNum();
-    	        					    }else if(e.expireType()=="2"){
-    	        					    	expireValue = e.applyTime();
-    	        					    }
-    	        					    f.expireValue = expireValue;
-    	        					    f.vdcUuid = e.vdcUuid();
-										f.azUuid = e.azUuid();
-										f.billCycle = e.billCycle();
-										f.fee = e.fee();
-										f.desc = e.desc();
-			       						var meta = {"resBaseInfo":{"applySize":e.applySize()}};
-			    						meta = JSON.stringify(meta);
-			    						f.metaData = meta;
-										orderItemsModify.push(f);
-    	        				   }
-    	        			   })
-    	        		   })
-    	        		   orderData.orderItems=orderItemsModify;
-                           csc.rest.put("api/v5.0.0/orders/"+orderData.uuid,orderData, function(data){ 
-                              alert("保存成功！"); 
-                           }); 
-    	        	   }   
-     	      		//}
+    	        	   for(var i=0; i<self.orderList().length; i++){
+    	        		   if(!self.orderList()[i].isValid()){
+    	        			   return false;
+    	        		   }
+    	        	   }
+    	        	   
+   	        		   var orderItemsModify = [];
+   	        		   var count = 0;
+   	        		   self.orderList().forEach(function (e){
+   	        			   orderData.orderItems.forEach(function (f){
+   	        				   if(e().uuid()==f.uuid){
+   	        					    f.instanceName = e().instanceName();
+   	        					    f.expireType = e().expireType();
+   	        					    var expireValue = "";
+   	        					    if(e().expireType()=="2"){
+   	        					    	expireValue = e().applyNum();
+   	        					    }else if(e().expireType()=="3"){
+   	        					    	expireValue = e().applyTime();
+   	        					    }
+   	        					    f.expireValue = expireValue;
+   	        					    f.vdcUuid = e().vdcUuid();
+  	        					    f.vdcName = e().vdcName();
+									f.azUuid = e().azUuid();
+									f.azName = e().azName();
+									f.billCycle = e().billCycle();
+									f.fee = e().fee();
+									f.desc = e().desc();
+		       						var meta = {"resBaseInfo":{"applySize":e().applySize()}};
+		    						meta = JSON.stringify(meta);
+		    						f.metaData = meta;
+									orderItemsModify.push(f);
+   	        				   }
+   	        			   })
+   	        		   })
+   	        		   orderData.orderItems=orderItemsModify;
+                          csc.rest.put("api/v5.0.0/orders/"+orderData.uuid,orderData, function(data){ 
+                             alert("保存成功！"); 
+                          }); 
+    	        	     
+     	      		}
     	      	  }
     	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
     	      	 });
@@ -422,12 +434,10 @@
     });//
 	  function expandView(obj){ 
 		     $(obj).find('i').toggleClass("fa-angle-double-down"); 
-		     //$(obj).parents('tr').children('tr').eq(1).toggle();
 		     $(obj).parents('tr').next("tr").toggle(); 
 		   }
      function expandEdit(obj){ 
 	     $(obj).find('i').toggleClass("fa-angle-double-down"); 
-	     $(obj).parents('tr').next("tr").next("tr").toggle(); 
-	     //$(obj).parents('tr').children('tr').eq(2).toggle(); 
+	     $(obj).parents('tr').next("tr").next("tr").toggle();  
 	   }
    </script>

@@ -416,46 +416,46 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 <select class="pull-right" data-bind="options: dcList,optionsText:'name',value:selectedDc, optionsCaption:'数据中心总览',event:{change:$root.loadDCStatistics}">
               	</select>
               </div>
-              <div class="welcome-dataCenter" data-bind="with:dcStatistics">
+              <div class="welcome-dataCenter" >
                   <div class="resource-vm">
                     <div>虚拟机</div>
-                    <div><strong data-bind="text:hasOwnProperty('vmNum')?vmNum:0"></strong></div>
+                    <div><strong data-bind="text:dcStatistics().hasOwnProperty('vmNum')?dcStatistics().vmNum:1"></strong></div>
                   </div>
                   <div class="resource-partition">
                     <div>可用分区</div>
-                    <div><strong data-bind="text:hasOwnProperty('azNum')?azNum:0"></strong></div>
+                    <div><strong data-bind="text:dcStatistics().hasOwnProperty('azNum')?dcStatistics().azNum:0"></strong></div>
                   </div>
                   <div class="resource-storageNum">
                     <div>存储池</div>
-                    <div><strong data-bind="text:(hasOwnProperty('storagePoolNum')&&storagePoolNum!=null)?storagePoolNum:0"></strong></div>
+                    <div><strong data-bind="text:(dcStatistics().hasOwnProperty('storagePoolNum')&&dcStatistics().storagePoolNum!=null)?dcStatistics().storagePoolNum:0"></strong></div>
                   </div>
-                  <div class="resource-pool" data-bind="visible:$root.isShowResourcePool">
+                  <div class="resource-pool" data-bind="visible:isShowResourcePool">
                     <div>资源池</div>
-                    <div><strong data-bind="text:(hasOwnProperty('resourcePoolNum')&&resourcePoolNum!=null)?resourcePoolNum:0"></strong></div>
+                    <div><strong data-bind="text:(dcStatistics().hasOwnProperty('resourcePoolNum')&&dcStatistics().resourcePoolNum!=null)?dcStatistics().resourcePoolNum:0"></strong></div>
                   </div>
                   <div class="resource-image">
                     <div>镜像</div>
-                    <div><strong data-bind="text:hasOwnProperty('imageNum')?imageNum:0"></strong></div>
+                    <div><strong data-bind="text:dcStatistics().hasOwnProperty('imageNum')?dcStatistics().imageNum:0"></strong></div>
                   </div>
                   <div class="resource-host">
                     <div>物理机</div>
-                    <div><strong data-bind="text:hasOwnProperty('hostNum')?hostNum:0"></strong></div>
+                    <div><strong data-bind="text:dcStatistics().hasOwnProperty('hostNum')?dcStatistics().hostNum:0"></strong></div>
                   </div>
                   <div class="resource-ip">
-                    <div data-bind="text:$root.netWorkTextName">网络</div>
-                    <div><strong data-bind="text:(hasOwnProperty('networkNum')&&networkNum!=null)?networkNum:0"></strong></div>
+                    <div data-bind="text:netWorkTextName">网络</div>
+                    <div><strong data-bind="text:(dcStatistics().hasOwnProperty('networkNum')&&dcStatistics().networkNum!=null)?dcStatistics().networkNum:0"></strong></div>
                   </div>
                   <div class="resource-storageVolumen">
                     <div>存储</div>
-                    <div><strong data-bind="text:(hasOwnProperty('storageNum')&&storageNum!=null?storageNum:0)+'TB'"></strong></div>
+                    <div><strong data-bind="text:storageSize"></strong></div>
                   </div>
                   <div class="resource-memory">
                     <div>内存</div>
-                    <div><strong data-bind="text:(hasOwnProperty('memorySize')?memorySize:0)+'GB'"></strong></div>
+                    <div><strong data-bind="text:memorySize"></strong></div>
                   </div>
                   <div class="resource-cpu">
                     <div>CPU逻辑单元</div>
-                    <div><strong data-bind="text:hasOwnProperty('cpuNum')?cpuNum:0"></strong></div>
+                    <div><strong data-bind="text:dcStatistics().hasOwnProperty('cpuNum')?dcStatistics().cpuNum:0"></strong></div>
                   </div>
               </div>
 
@@ -1440,17 +1440,21 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       this.isShowResourcePool(true);
       
       this.dcStatistics = ko.observable(new dcStatisticsInfo());
+      
+      this.storageSize = ko.observable("");
+      this.memorySize = ko.observable("");
+      
       //加载数据中心统计信息
       this.loadDCStatistics = function(obj){
     	  if(self.selectedDc() && self.selectedDc().cloudPlatform == "OpenStack"){
-    		  this.netWorkTextName("网络");
-    		  this.isShowResourcePool(false);
+    		  self.netWorkTextName("网络");
+    		  self.isShowResourcePool(false);
     	  }else if(self.selectedDc() && self.selectedDc().cloudPlatform == "CNware"){
-    		  this.netWorkTextName("IP池");
-    		  this.isShowResourcePool(true);
+    		  self.netWorkTextName("IP池");
+    		  self.isShowResourcePool(true);
     	  }else{
-    		  this.netWorkTextName("网络");
-    		  this.isShowResourcePool(true);
+    		  self.netWorkTextName("网络");
+    		  self.isShowResourcePool(true);
     	  }
     	  
     	  var url = "api/v5.0.0/homepage/datacenter";
@@ -1461,6 +1465,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  }
     	  csc.rest.get(url, function(data){
     		  self.dcStatistics(data);
+    		  self.storageSize(data.storageSize+"GB");
+    		  self.memorySize(data.memorySize+"TB");
     	  });
       }
       this.loadDCStatistics();
