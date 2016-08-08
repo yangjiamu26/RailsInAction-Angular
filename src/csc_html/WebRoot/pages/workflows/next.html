@@ -18,8 +18,8 @@
                                 <th>账号</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
+                        <tbody id="userList">
+                            <!-- <tr>
                                 <td>
                                     <input type="radio" checked="checked" value="kermit" name="userId"/>
                                 </td>
@@ -32,7 +32,7 @@
                                 </td>
                                 <td>张三</td>
                                 <td>shangsan</td>
-                            </tr>
+                            </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -67,17 +67,25 @@
   
   function loadUsers(taskId,activityId){
 	csc.rest.get('api/v5.0.0/workflows/tasks/'+taskId+'/activity/outgings/'+activityId+'/identitylinks',function(data){
-  		console.log(data);
-  	},function(){/* alert('获取用户失败！') */});
+  		if(data.length>0){
+  			for(var i=0;i<data.length;i++){
+  				$("#userList").append("<tr><td><input type='radio' value='"+data[i].user+"' name='userId'/>"
+  						+"</td><td>"+data[i].userName+"</td><td>"+data[i].user+"</td></tr>");
+  			}
+  		}else{
+  			alert("没有可以办理的用户！")
+  		}
+  	},function(){alert('获取用户失败！')});
   }
   
   function submitNext(){
-	  var userId = $("input:radio:checked").val();
+	  var userId = $("input[name='userId']:checked").val();
+	  //var userId="yunwei";
 	  saveComment(taskId,function(){
 		var databody = {"userId":userId,"action":"designated"};
 		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
 		  alert("审核成功！");
-		  location.href = "#pages/workflows/tasks1?type=work";
+		  location.href = "#pages/workflows/tasks?type=work";
 		},function(){alert("操作失败！")});
 	  });
   }

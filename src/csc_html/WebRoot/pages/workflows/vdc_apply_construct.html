@@ -1,11 +1,15 @@
-  <div class="panel panel-info" id="vdcApplyConstruct">
+  <div class="panel panel-info" >
         <div class="panel-heading">VDC变更</div>
         <div id="orderDetailedList" class="wrapper">
-            <div class="wrapper-sm">VDC名称：<span data-bind="text: vdc().instanceName"></span></div>
-            <div class="wrapper-sm">支持的操作系统：<span>Windows, Linux, Aix</span></div>
-            <div class="wrapper-sm">申请时长：<span></span></div>
-            <div class="wrapper-sm">套餐：<span>包月 费用：100元/月</span></div>
-            <div class="wrapper-sm">描述：<span data-bind="text: order().desc"></span></div>
+            <div class="wrapper-sm">VDC名称：<span data-bind="text: itemList().instanceName"></span></div>
+            <div class="wrapper-sm">支持的操作系统：<span data-bind="text: osType()"></span></div>
+            <div class="wrapper-sm">申请时长：
+            	<span data-bind="visible: expireType()=='1'">永久</span>
+            	<span data-bind="visible: expireType()=='2'"><span data-bind="text: expireValue()"></span>个月</span>
+            	<span data-bind="visible: expireType()=='3'"><span data-bind="text: expireValue()"></span></span>
+            </div>
+            <div class="wrapper-sm">套餐：<span data-bind="text: fee()"></span></div>
+            <div class="wrapper-sm">描述：<span data-bind="text: desc()"></span></div>
             <div class="wrapper-sm">配额限制：
 	            <span data-bind="visible: limitQuota()=='true'">限制</span>
 	            <span data-bind="visible: limitQuota()=='false'">不限制</span>
@@ -17,19 +21,19 @@
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">CPU配额(个)：</span>
-                        <input type="text" disabled class="form-control" data-bind="value: vdcQuotaList().">
+                        <input type="text" disabled class="form-control" data-bind="value: cpu()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">内存配额(GB)：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: memory()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">存储配额(GB)：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: storage()">
                       </div>
                     </div>
                 </div>
@@ -37,19 +41,19 @@
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">云主机最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: vm()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">云硬盘最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: disk()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">对象存储最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: objectStorage()">
                       </div>
                     </div>
                 </div>
@@ -57,19 +61,19 @@
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">路由器最大可创建数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: router()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">防火墙最大可创建数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: firewall()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">公网IP最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: publicIp()">
                       </div>
                     </div>
                 </div>
@@ -77,19 +81,19 @@
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">负载均衡器最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: loadBalance()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">SSH密钥最大申请数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: secretKey()">
                       </div>
                     </div>
                     <div class="col-xs-3">
                       <div class="input-group">
                         <span class="input-group-addon w">VPC最大可创建数：</span>
-                        <input type="text" disabled class="form-control" value="6">
+                        <input type="text" disabled class="form-control" data-bind="value: vpc()">
                       </div>
                     </div>
                 </div>
@@ -106,18 +110,18 @@
                         <th>操作</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>zone1,zone,zone3</td>
-                        <td>wincenter1</td>
-                        <td>winserver</td>
-                        <td><a>移除</a></td>
-                    </tr>
-
+                <tbody id="vdcRelAcList" data-bind="foreach: azs">
+                	<tr>
+                		<input type="hidden" data-bind="value: uuid" name="azUuid">
+                		<td data-bind="text: name"></td>
+                		<td data-bind="text: cloudPlatform"></td>
+                		<td data-bind="text: virtualHypervisor"></td>
+                		<td><a data-bind="click: $root.removeAz">移除</a></td>
+                	</tr>
                 </tbody>
             </table>
 
-            <h5 class="text-info">网络 <button class="btn btn-sm btn-info" data-bind="click:addNet">添加</button></h5>
+            <h5 class="text-info">网络 <button class="btn btn-sm btn-info" data-bind="click:addVdcNetwork">添加</button></h5>
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -127,21 +131,20 @@
                         <th>操作</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>网络名称1</td>
-                        <td></td>
-                        <td></td>
-                        <td><a>移除</a></td>
-                    </tr>
+                <tbody data-bind="foreach: networks">
+                	<tr>
+                		<input type="hidden" data-bind="value: networkUuid,attr:{azUuid:azUuid}" name="networkUuid">
+                		<td data-bind="text: networkName"></td>
+                		<td data-bind="text: cloudPlatformName"></td>
+                		<td data-bind="text: azName"></td>
+                		<td><a data-bind="click: $root.removeNetwork">移除</a></td>
+                	</tr>
                 </tbody>
             </table>
 
         </div>
-    </div>
-
-
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcAZModel }">
+        
+        <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcAZModel }">
       <div class='modal-dialog modal-lg' role='document'>
 	    <div class='modal-content'>
 	      <div class='modal-header'>
@@ -289,111 +292,79 @@
 	    </div>
 	  </div>
     </div>
+        
+        
+    </div>
 
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddNet }">
-        <div class='modal-dialog modal-lg' role='document'>
-            <div class='modal-content'>
-                <div class='modal-header'>
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加网络</h3>
-                </div>
-                <div class='modal-body'>
-                    <div class="row">
-                        <div class="col-xs-5" style="width:380px">
-                            <p>待选择：</p>
-                            <div class="form-inline text-right" style="margin-bottom:10px;">
-                                <select class="form-control input-sm">
-                                    <option value="">可用分区</option>
-                                    <option value="">分区1</option>
-                                    <option value="">分区2</option>
-                                </select>
-                                <div class="form-group input-group">
-                                    <input type="text" class="input-sm form-control" style="width:100px;" placeholder="请输入名称">
-                                    <span class="input-group-addon">搜索</span>
-                                </div>
-                            </div>
-                            <table class="table table-striped">
-                                <thead>
-                                    <th>
-                                      <div class="checkbox">
-                                        <label class="i-checks">
-                                          <input type="checkbox" value="">
-                                          <i></i>
-                                        </label>
-                                      </div> 
-                                    </th>
-                                    <th>可用分区</th>
-                                    <th>外部网络/IP池</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="checkbox">
-                                              <label class="i-checks">
-                                                <input type="checkbox" value="">
-                                                <i></i>
-                                              </label>
-                                            </div> 
-                                        </td>
-                                        <td>分区1</td>
-                                        <td>网络名称1</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="col-xs-1">
-                            <button class="btn btn-block btn-default" style="margin-top:150px">&gt;&gt;</button>
-                            <button class="btn btn-block btn-default">&lt;&lt;</button>
-                        </div>
-                        <div class="col-xs-5" style="width:380px">
-                            <p>已选择：</p>
-                            <div class="form-inline text-right" style="margin-bottom:10px;">
-                                <select class="form-control input-sm">
-                                    <option value="">可用分区</option>
-                                    <option value="">分区1</option>
-                                    <option value="">分区2</option>
-                                </select>
-                                <div class="form-group input-group">
-                                    <input type="text" class="input-sm form-control" style="width:100px;" placeholder="请输入名称">
-                                    <span class="input-group-addon">搜索</span>
-                                </div>
-                            </div>
-                            <table class="table table-striped">
-                                <thead>
-                                    <th>
-                                      <div class="checkbox">
-                                        <label class="i-checks">
-                                          <input type="checkbox" value="">
-                                          <i></i>
-                                        </label>
-                                      </div> 
-                                    </th>
-                                    <th>可用分区</th>
-                                    <th>外部网络/IP池</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="checkbox">
-                                              <label class="i-checks">
-                                                <input type="checkbox" value="">
-                                                <i></i>
-                                              </label>
-                                            </div> 
-                                        </td>
-                                        <td>分区1</td>
-                                        <td>网络名称1</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class='modal-footer'>
-                    <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
-                    <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
-                </div>
-            </div>
-        </div>
+
+    
+
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcNetworkModel }" >   
+	    <div class='modal-dialog modal-lg' role='document'>
+			<div class='modal-content'>
+				<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加网络</h3>
+				</div>
+				<div class='modal-body form-horizontal'>
+					<div class="row">
+						<div class="col-xs-5" style="width:380px">
+							<p>待选择：</p>
+							<div class="form-inline text-right" style="margin-bottom:10px;">
+								<select class="form-control input-sm"  data-bind="options:addVdcNetworkAzList,optionsText:'name',optionsValue:'uuid',value: addVdcNetworkAzVO().uuid">
+								</select>
+								<div class="form-group input-group">
+	                            	<input type="text" class="input-sm form-control" style="width:100px;" placeholder="请输入名称" data-bind="value:addVdcNetworkSearchParam().name">
+	                            	<button class="btn btn-sm btn-default" type="button" data-bind="click:addVdcNetworkSearch"  >搜索</button>
+	                            </div>
+							</div>
+							<table class="table table-striped">
+								<thead>
+									<th>
+					                  <div class="checkbox">
+					                    <label class="i-checks">
+					                      <input type="checkbox" value="">
+					                      <i></i>
+					                    </label>
+					                  </div> 
+					                </th>
+									<th>可用分区</th>
+									<th>外部网络/IP池</th>
+								</thead>
+								<tbody id="availableAzNetworkListTableId">
+								</tbody>
+							</table>
+						</div>
+						<div class="col-xs-1">
+							<button class="btn btn-block btn-default" id="addNetwork2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+							<button class="btn btn-block btn-default" id="removeNetwork2PreAddList" >&lt;&lt;</button>
+						</div>
+						<div class="col-xs-5" style="width:380px">
+							<p>已选择：</p>
+							<table class="table table-striped">
+								<thead>
+									<th>
+					                  <div class="checkbox">
+					                    <label class="i-checks">
+					                      <input type="checkbox" value="">
+					                      <i></i>
+					                    </label>
+					                  </div> 
+					                </th>
+									<th>可用分区</th>
+									<th>外部网络/IP池</th>
+								</thead>
+								<tbody id="preAddAzNetworkListTableId">
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class='modal-footer'>
+					<input type="button" name="commit" value="确定"  data-bind="click:confirmVdcAddNetwork" class="btn btn-default btn-info" />
+					<button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
     </div>
 
 
@@ -407,51 +378,123 @@
     	var self = this;
     	
     	this.order = ko.observable("");
-    	this.vdc = ko.observable("");
+    	this.itemList = ko.observable("");
     	this.resBaseInfo = ko.observable("");
+    	this.osType = ko.observable("");
     	this.metaData = ko.observable("");
     	this.vdcQuotaList = ko.observable("");
+    	this.expireType = ko.observable("");
+    	this.expireValue = ko.observable("");
     	
+    	this.osType = ko.observable("");
     	this.limitQuota = ko.observable("");
+    	  
     	this.cpu = ko.observable("");
     	this.memory = ko.observable("");
-    	/* this.order = ko.validatedObservable({
-    		resourceType: ko.observable(""),
-    		desc: ko.observable("")
-	      });
-	    this.vdc = ko.validatedObservable({
-	        instanceName: ko.observable(""),
-	        limitQuota: ko.observable("")
-	      });
-		this.vdc.fromJSON({
-			instanceName: "jjjjj",
-			limitQuota: 'false'
-	    }); */
+    	this.storage = ko.observable("");
+  	  	this.vpc = ko.observable("");
+  	    this.vm = ko.observable("");
+    	this.disk = ko.observable("");
+    	this.publicIp = ko.observable("");
+  	    this.router = ko.observable("");
+  	    this.firewall = ko.observable("");
+    	this.secretKey = ko.observable("");
+    	this.objectStorage = ko.observable("");
+  	    this.loadBalance = ko.observable("");
+    	  
+    	this.fee = ko.observable("");
+    	this.desc = ko.observable("");
+    	
+    	this.azs = ko.observable("");//可用分区列表
+    	this.networks = ko.observable("");//网络列表
+    	
+		self.selectVdcVO = ko.observable({});//选中的vdc
+    	
 		csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
   	      var processInstanceId = data.taskInfo[0].processInstanceId;
 			 //获取订单数据
-	      	 csc.rest.get('api/v5.0.0/order/byFlowInstanceUuid/'+processInstanceId,function(data){
-	      		console.log(data);
-	      		var orderData = data.order;
-	      		var itemListData = data.itemList;
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+	      		var orderData = data;
+	      		var itemListData = data.orderItems;
 	      		var metaData = JSON.parse(itemListData[0].metaData);
-	      		var resBaseInfo = metaData.resBaseInfo;
+	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	      		var osType = metaData.osType;
 	      		var vdcQuotaList = resBaseInfo.vdcQuotaList;
+	      		var azs = resBaseInfo.azs;
 	      		self.order(orderData);
-	      		self.vdc(itemListData[0]);
+	      		self.itemList(itemListData[0]);
 	      		self.metaData(metaData);
+	      		self.desc(itemListData[0].desc);
 	      		self.limitQuota(resBaseInfo.limitQuota);
+	      		
 	      		for(var i=0;i<vdcQuotaList.length;i++){
 	      			if(vdcQuotaList[i].type=='CPU'){
-	      				this.cpu(vdcQuotaList[i].value);
+	      				self.cpu(vdcQuotaList[i].value);
 	      			}else if(vdcQuotaList[i].type=='MEMORY'){
-	      				this.memory(vdcQuotaList[i].value);
+	      				self.memory(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='STORAGE'){
+	      				self.storage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VPC'){
+	      				self.vpc(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VM'){
+	      				self.vm(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='DISK'){
+	      				self.disk(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+	      				self.publicIp(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='ROUTER'){
+	      				self.router(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+	      				self.firewall(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+	      				self.secretKey(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+	      				self.objectStorage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+	      				self.loadBalance(vdcQuotaList[i].value);
 	      			}
 	      		}
+	      		var os = '';
+	      		for(var i=0;i<osType.length;i++){
+	      			if(osType[i]=='windows'){
+	      				os += 'windows，';
+	      			}else if(osType[i]=='linux'){
+	      				os += 'linux，';
+	      			}else if(osType[i]=='aix'){
+	      				os += 'aix，';
+	      			}
+	      		}
+	      		if(os != ''){
+	      			os = os.substring(0,os.length-1);
+	      		}
+	      		self.osType(os);
 	      		self.vdcQuotaList(vdcQuotaList);
+	      		self.expireType(itemListData[0].expireType);
+	      		self.expireValue(itemListData[0].expireValue);
+	      		self.fee(itemListData[0].fee);
+	      		
+	      		var azList = [];
+	      		var networks = [];
+	      		if(azs != undefined){	      			
+		      		for(var i=0;i<azs.length;i++){
+		      			$.VDC.getAvailableToVdc({uuid:azs[i].uuid},function(data){
+			      			azList.push(data.results[0]);
+			      			self.azs(azList);
+		      			});
+		      			/* debugger
+		      			var nwUuids = azs[i].networks;
+		      			for(var j=0;j<nwUuids.length;j++){
+		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
+		      					console.log(data);
+			      				networks.push(data);
+		   					});
+		      			} */
+		      		}
+	      		}
 	      	 })
 		});
     	
+		/*****添加AZ start*****/
         this.addVdcAZModel = ko.observable(false);
         self.addVdcAZ = function(){
 			$("#availableAzListTableId").html("");
@@ -462,8 +505,8 @@
 					  var azList = data.results;
 					  for(var i=0;i<azList.length;i++){
 						  var az = azList[i];
-						  tableBody = "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" /><i></i></label></div></td>";
-						  tableBody +="<td>"+az.cloudPlatform+"</td><td>"+az.virtualHypervisor+"</td><td>"+az.name+"</td></tr>";
+						  tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" name=\"azUuid\"/><i></i></label></div></td>"
+						  	+"<td id='cloudPlatform"+i+"'>"+az.cloudPlatform+"</td><td id=\"virtualHypervisor"+i+"\">"+az.virtualHypervisor+"</td><td id=\"name"+i+"\">"+az.name+"</td></tr>";
 					  } 
 				  }
 				  $("#availableAzListTableId").html(tableBody);
@@ -486,15 +529,197 @@
 		}
         
         
-        this.isAddNet = ko.observable(false);
-        /* this.addVdcAZ = function(){
-            this.addVdcAZModel(true);
-        }; */
-        this.addNet = function(){
-            this.isAddNet(true);
-        };
+        self.confirmAddAz = function(){
+			var azs = [];
+			$("#preAddAzListTableId input[type='checkbox']").each(function(index){
+				//azs.push({uuid:$(this).val()});
+				var cloudPlatform = $("#cloudPlatform"+index).text();
+				var virtualHypervisor = $("#virtualHypervisor"+index).text();
+				var name = $("#name"+index).text();
+				var az={uuid:$(this).val(),cloudPlatform:$("#cloudPlatform"+index).text(),
+						virtualHypervisor:$("#virtualHypervisor"+index).text(),name:$("#name"+index).text()};
+				azs.push(az);
+				/* $("#vdcRelAcList").append("<tr id='"+$(this).val()+"'><td><input type='hidden' value='"+$(this).val()+"'>"
+						+name+"</td><td>"+cloudPlatform+"</td><td>"
+						+virtualHypervisor+"</td><td><a data-bind='click: removeAz'>移除</a></td></tr>"); */
+		    })
+		    self.azs(azs);
+		    self.addVdcAZModel(false);
+		}
+        this.removeAz = function(object){
+        	$("input[name='azUuid'][value='"+object.uuid+"']").parent().remove();
+        }
+        /*****添加AZ end*****/
+        
+        
+        /*****添加AZ下的网络*****/
+		self.addVdcNetworkModel = ko.observable(false);
+		
+		self.addVdcNetworkAzList = ko.observableArray();
+		self.addVdcNetworkAzVO = ko.observable({"uuid":""})
+		self.addVdcNetworkSearchParam = ko.observable({
+    	        name: ""
+    	    })
+    	self.addVdcNetworkAzList([]);
+		
+	    self.addVdcNetworkSearch = function(){
+				var azUuid = self.addVdcNetworkAzVO().uuid ;
+				var name = self.addVdcNetworkSearchParam().name;
+				$("#availableAzNetworkListTableId").html("");
+				csc.rest.get('api/v5.0.0/networks?azUuid='+azUuid+"&name="+name,function(data){
+					var tableBody = "";
+				   if(data && data.results){
+					   for(var i=0;i<data.results.length;i++){
+						   var network = data.results[i];
+						   tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" az=\""
+						   		+ network.azUuid+"\" azName=\""+network.azName+"\" cloudPlatformName=\""+network.cloudPlatformName +"\" networkName=\""+network.name+"\" value=\""+network.uuid+"\"><i></i></label></div>";
+                           tableBody += "</td><td>"+network.azName+"</td><td>"+network.name+"</td>/tr>"
+					   }
+				   }
+				   $("#availableAzNetworkListTableId").html(tableBody);
+   		    	}); 
+				/* $.NETWORK.getNetworks({"azUuid":azUuid,"name":name},function(data){
+					   var tableBody = "";
+					   if(data && data.results){
+						   for(var i=0;i<data.results.length;i++){
+							   var network = data.results[i];
+							   tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" az=\""
+							   		+ network.azUuid+"\" azName=\""+network.azName+"\" cloudPlatformName=\""+network.cloudPlatformName +"\" networkName=\""+network.name+"\" value=\""+network.uuid+"\"><i></i></label></div>";
+                               tableBody += "</td><td>"+network.azName+"</td><td>"+network.name+"</td>/tr>"
+						   }
+					   }
+					   $("#availableAzNetworkListTableId").html(tableBody);
+				}); */
+       	    }
+		
+		self.addVdcNetwork = function(){
+			$("#availableAzNetworkListTableId").html("");
+			$("#preAddAzNetworkListTableId").html("");
+			self.addVdcNetworkAzList(this.azs());
+			
+			self.addVdcNetworkModel(true)
+			
+			$("#addNetwork2PreAddList").bind("click",function(data){
+			    $("#availableAzNetworkListTableId input[type='checkbox']").each(function(){
+			        if($(this).prop("checked")){
+			    	   $("#preAddAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
+			    	   $(this).parents("tr").remove();
+			        } 
+			    })
+			})
+			
+			$("#removeNetwork2PreAddList").bind("click",function(data){
+				$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
+				   if($(this).prop("checked")){
+					  $("#availableAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
+					  $(this).parents("tr").remove()
+				    }
+			    })
+			})
+		}
+		
+		this.itemResults = ko.observable("");
+		self.confirmVdcAddNetwork = function(){
+			var azs = [];
+			var networks = [];
+			$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
+				var azUuid = $(this).attr("az");
+				var networkName =  $(this).attr("networkName");
+				var azName =  $(this).attr("azName");
+				var cloudPlatformName =  $(this).attr("cloudPlatformName");
+				var networkUuid = $(this).val();
+			    var notFound = true;
+			    
+			    var net = '';
+				for(var az in azs){
+					var azVo = azs[az];
+					if(azVo.uuid == azUuid){
+						if(!azVo.networks){
+							azVo.networks = [];
+						}
+						azVo.networks.push({"uuid":networkUuid,"networkName":networkName});
+						
+						net = {"azUuid":azUuid,"networkName":networkName,"azName":azName,
+								"cloudPlatformName":cloudPlatformName,"networkUuid":networkUuid};
+						networks.push(net);
+						notFound = false;
+						break;
+					}
+				}
+				if(notFound){
+					azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid,"name":networkName}]});
+					net = {"azUuid":azUuid,"networkName":networkName,"azName":azName,
+							"cloudPlatformName":cloudPlatformName,"networkUuid":networkUuid};
+					networks.push(net);
+				}
+		    })
+		    self.networks(networks);
+			
+		    
+			/* var metaData = this.metaData();
+			var osType = metaData.osType;
+			var resBaseInfo = metaData.resBaseInfo;
+			var limitQuota = resBaseInfo.limitQuota;
+			var vdcQuotaList = resBaseInfo.vdcQuotaList;
+			
+			var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
+			meta = JSON.stringify(meta);
+		    var itemResults = {"metaData":meta};
+		    //console.log(itemResults)
+			
+		    self.itemResults(itemResults); */
+		    self.addVdcNetworkModel(false);
+			 
+		}
+		this.removeNetwork = function(object){
+			$("input[name='networkUuid'][value='"+object.networkUuid+"']").parent().remove();
+		}
+		
+		/*****添加AZ下的网络*****/
+        
+        
+        this.save = function(){
+          	saveComment(args.taskId,function(){
+          		var azs = [];
+				$("input[name='networkUuid']").each(function(){					
+	          		var azUuid = $(this).attr("azuuid");
+					var networkUuid = $(this).val();
+				    var notFound = true;
+				    
+					for(var az in azs){
+						var azVo = azs[az];
+						if(azVo.uuid == azUuid){
+							if(!azVo.networks){
+								azVo.networks = [];
+							}
+							azVo.networks.push({"uuid":networkUuid});
+							notFound = false;
+							break;
+						}
+					}
+					if(notFound){
+						azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid}]});
+					}
+				})
+				var metaData = self.metaData();
+				var osType = metaData.osType;
+				var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+				var limitQuota = resBaseInfo.limitQuota;
+				var vdcQuotaList = resBaseInfo.vdcQuotaList;
+				
+				var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
+				meta = JSON.stringify(meta);
+			    var itemResults = {"metaData":meta};
+				
+			    self.itemResults(itemResults);
+				csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.itemList().uuid,self.itemResults(),function(data){
+	          		alert('保存成功！');
+    		    });
+          	});
+		}
         
     };
-    ko.applyBindings(new vdcModel(), $("#vdcApplyConstruct")[0]);
+    
+    ko.applyBindings(new vdcModel(), $("#approveContent")[0]);
   });
 </script>

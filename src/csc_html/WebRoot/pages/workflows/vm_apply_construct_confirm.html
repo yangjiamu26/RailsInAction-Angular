@@ -1,0 +1,436 @@
+   <div class="panel panel-info">
+        <div class="panel-heading">申请信息</div>
+        <div id="orderDetailedList" class="wrapper">
+         <!--  <button class="btn btn-sm btn-primary pull-right" onclick="showModal('pages/workflows/handle_12.html')">重施工</button> -->
+          <h5 class="text-info">云主机数：2</h5>
+          <div class="table-responsive no-height" id="vm_apply_list">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>云主机名称</th>
+                        <th>所属VDC</th>
+                        <th>可用分区</th>
+                        <th>VPC名称</th>
+                        <th>网络名称</th>
+                        <th>IP地址</th>
+                        <th>施工状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody  data-bind="foreach:currentVO().applyVmList">
+                    <tr>
+                        <td><span data-bind="text: instanceName"></span></td>
+                        <td><span data-bind="text: vdcName"></span></td>
+                        <td><span data-bind="text: azName"></span></td>
+                        <td><span data-bind="text: vpcName"></span></td>
+                        <td><span data-bind="text: networkName"></span></td>
+                        <td><span data-bind="text: ip"></span></td>
+                        <td data-bind="html:itemStateHtml"></td>
+                        <td>
+                            <a class="expand-btn-detail" data-bind="click:$root.getVmOrderDetail">查看 <i class="fa fa-angle-double-right"></i></a>
+                            <span data-bind="visible: itemState == 'CONSTRUCTION_FAILED'">
+                             |
+                            <a  >重施工</a> | 
+                            <a data-bind="click:$root.vmErrorMsg">失败原因</a>
+                            </span>
+                        </td>
+                    </tr>
+                      <tr style="display: none">
+                        <td colspan="11" class="no-padder">
+                          <div class="b wrapper-sm"></div>
+                        </td>
+                      </tr>                    
+                </tbody>
+            </table>          
+          </div>
+
+
+
+          <h5 class="text-info">云硬盘数：3</h5>
+          <div class="table-responsive no-height">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>云硬盘名称</th>
+                        <th>所属VDC</th>
+                        <th>挂载云主机</th>
+                        <th>存储大小（G）</th>
+                        <th>收费标准</th>
+                        <th>可用分区</th>
+                        <th>施工状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                
+                  <tbody data-bind="foreach:currentVO().mountDisks">
+                    <tr>
+                        <td><span data-bind="text: name"></span></td>
+                        <td><span data-bind="text: vdcName"></span></td>
+                        <td><span data-bind="text: vmName"></span></td>
+                        <td><span data-bind="text: size"></span></td>
+                        <td><span data-bind="text: price"></span></td>
+                        <td><span data-bind="text: azName"></span></td>
+                        <td><span class="label label-danger">施工失败</span></td>
+                        <td>
+                            <a>重施工</a> | 
+                            <a onclick="systemMsg.alert('内存不足内存不足')">失败原因</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+   </div>
+   </div>
+   <!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	 csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+	   	     //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){
+	      		console.log(orderData); 
+	      		 
+	      		function ViewModel(){
+	        	      var self = this;
+	        	      this.currentVO = ko.validatedObservable({
+	        	        id: ko.observable(),
+	        	        instanceName: ko.observable(""),
+	        	        vdcId: ko.observable(""),
+	        	        vdcName:ko.observable(""),
+	        	        azName:ko.observable(""),
+	        	        vpcName:ko.observable(""),
+	        	        partition: ko.observable(),
+	        	        osType: ko.observable(""),
+	        	        osVersion: ko.observable(""),
+	        	        osVersionName: ko.observable(""),
+	        	        vcpu: ko.observable(""),
+	        	        memory: ko.observable(""),
+	        	        storage: ko.observable(""),
+	        	        ipPool: ko.observable(""),
+	        	        network: ko.observable(""),
+	        	        networkName: ko.observable(""),
+	        	        assignIp: ko.observable(""),
+	        	        account: ko.observable(""),
+	        	        password: ko.observable(""),
+	        	        repeatPassword: ko.observable(""),
+	        	        isBind: ko.observable(""),
+	        	        sshKey: ko.observable(""),
+	        	        expireType:ko.observable(""),
+	        	        expireValue:ko.observable(""),
+	        	        expireText:ko.observable(""),
+	        	        busSysUuid:ko.observable(""),
+	       	          //分区
+	                   partitions: ko.observableArray([]),
+	                   //硬盘
+	                   mountDisks : ko.observableArray([]),
+	                   applyVmList:ko.observableArray([]),
+	                   
+	                   softwares : ko.observableArray([]),
+	                   vdcList:ko.observableArray([]),
+	                   azList:ko.observableArray([]),
+	                   osTypeList:ko.observableArray([]),
+	                   osVersionList:ko.observableArray([]),
+	                   cpuList:ko.observableArray([]),
+	                   memoryList:ko.observableArray([]),
+	                   vpcList:ko.observableArray([]),
+	                   privateNetworkList:ko.observableArray([]),
+	                   bussyList:ko.observableArray([]),
+	                   sshList:ko.observableArray([]),
+	                   billRuleList:ko.observableArray([])
+	        	      });
+	        	      
+	        	      
+	        	      function VmVo(){
+	        	    	  this.instanceName = ko.observable();
+	        	    	  this.vdcName = ko.observable();
+	        	    	  this.vpcName = ko.observable();
+	        	    	  this.azName = ko.observable();
+	        	    	  this.osVersionName = ko.observable();
+	        	    	  this.vcpu = ko.observable();
+	        	    	  this.memory = ko.observable();
+	        	    	  this.storage = ko.observable();
+	        	    	  this.networkName = ko.observable();
+	        	    	  this.ip = ko.observable();  
+	        	    	  this.uuid = ko.observable();  
+	        	    	  this.itemState = ko.observable(); 
+	        	    	  this.itemStateHtml = ko.observable(); 
+	        	    	  this.workFailedMessage = ko.observable(); 
+	        	      }
+	        		  
+	        	      function MountDiskVO(){
+	                      this.name = ko.observable();
+	                      this.vdcName = ko.observable();
+	                      this.azName = ko.observable();
+	                      this.vmName = ko.observable();
+	                      this.size = ko.observable();
+	                      this.type = ko.observable();
+	                      this.serviceUuid = ko.observable();
+	                      this.serviceName = ko.observable();
+	                      this.billRuleUuid = ko.observable();
+	                      this.billRuleText = ko.observable();
+	                      this.applyType = ko.observable();
+	                      this.applyNum = ko.observable();
+	                      this.applyTime = ko.observable();
+	                      this.applyText = ko.observable();
+	                      this.billRuleList=ko.observableArray([]);
+	                      this.price = ko.observable();
+	                }
+	        	      
+	        	      function setArrayCharge(attr){
+	          	    	var arrayCharge = [];
+	          	    	if(attr !=null){
+	          	    		for(var i=0;i<attr.length;i++){
+	              	    		if(attr[i]=="DAY"){
+	              	    			arrayCharge.push({name:"按天",value:"DAY"});
+	              	    		}else if(attr[i]=="MONTH"){
+	              	    			arrayCharge.push({name:"按月",value:"MONTH"});
+	              	    		}else if(attr[i]=="QUARTER"){
+	              	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+	              	    		}else if(attr[i]=="YEAR"){
+	              	    			arrayCharge.push({name:"按年",value:"YEAR"});
+	              	    		}
+	              	    	}
+	          	    	}
+	          	    	return arrayCharge;
+	          	    }
+	        		  
+	        		 /*    var  orderData = {"resourceType":"VM","itemList":[
+	        		                                                        {"instanceName":"d01","serviceUuid":"6d1dd0c2-7fcd-4e11-8f44-9a2e9cae58c0","isBill":"false","expireType":"2","expireValue":"3","billcycle":"DAY","fee":"1110元/天","metaData":"{\"resBaseInfo\":{\"volumeSize\":\"10\"}}","resourceType":"DISK","relateUuid":"99924abf-4b9e-4815-8c6c-d182061a3e07"},
+	        		                                                        {"instanceName":"d02","serviceUuid":"ea312741-014f-4080-af58-6d0eb1c45cfc","isBill":"false","expireType":"2","expireValue":"3","billcycle":"MONTH","fee":"2000元/月","metaData":"{\"resBaseInfo\":{\"volumeSize\":\"20\"}}","resourceType":"DISK","relateUuid":"99924abf-4b9e-4815-8c6c-d182061a3e07"},
+	        		                                                        {"instanceName":"xxx","serviceUuid":"8507c5d1-76c7-4e08-8a57-55e6b0375bc2","isBill":"false","expireType":"3","expireValue":"2016-08-09","billcycle":"DAY","fee":"52元/天","metaData":"{\"resBaseInfo\":{\"azUuid\":\"000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7\",\"osType\":\"linux\",\"osVersion\":\"8c0b816e-3448-473a-854f-0c13315e0719\",\"memory\":\"8\",\"name\":\"xxx\",\"storage\":\"10\",\"vcpu\":\"8\",\"vdcUuid\":\"3b8a7d11-02e3-4e44-bb71-1e7f2fb36ecf\",\"vpcUuid\":\"d50125e6-9d32-4e02-941c-fbbf4688ee0f\",\"partitionList\":[{}],\"networkList\":[{\"networkId\":\"437f6417-0483-4418-b0f1-62d4c6ef4d3d\"}],\"ip\":\"10.10.10.10\",\"account\":\"a\",\"password\":\"b\",\"repeatPassword\":\"b\",\"sshIsMount\":\"NO\",\"busSysUuid\":\"ed81da58-e30d-4395-b089-857cf1890a44\"}}","desc":"tset","azUuid":"000eb1c8-ac92-4b39-96cc-b2dc19f2c4b7","resourceType":"VM","relateUuid":"99924abf-4b9e-4815-8c6c-d182061a3e07"}]}
+ 
+                        */
+                       
+	        		  var vmOrderItems = [];
+	        		  var diskOrderItems= [];
+	        		  for(var i=0;i<orderData.orderItems.length;i++){
+	        			  var orderItem = orderData.orderItems[i];
+	        			  if(orderItem.resourceType == "VM"){
+	        				  vmOrderItems.push(orderItem);
+	        			  }else if(orderItem.resourceType == "DISK"){
+	        				  diskOrderItems.push(orderItem);
+	        			  }
+	        		  }
+	        		 
+	        		  var vmOrderItemVO = vmOrderItems[0];
+	        		  var serviceUuid=vmOrderItemVO.serviceUuid;
+	        		  var metaData = JSON.parse(vmOrderItemVO.metaData);
+	        		  var vmInParamData = JSON.parse(metaData.resBaseInfo);
+	                  var vdcUuid=vmInParamData.vdcUuid;
+	                  var azUuid=vmInParamData.azUuid;
+	                  var vpcUuid=vmInParamData.vpcUuid;
+	                  var osType=vmInParamData.osType;
+	                  var osVersionUuid = vmInParamData.osVersion;
+	                  var networks = vmInParamData.networkList;
+	                  var selelctNetworkUuid = networks[0]?networks[0].networkId:"";
+	                  var callbackParam = {};
+	                  callbackParam.vmOrderItemVO = vmOrderItemVO;
+	                  callbackParam.self = self;
+	                  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid+"&vpcUuid="+vpcUuid+"&osType="+osType;
+	                  csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result,textStatus,callbackCustParam){
+	                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vdcUuid,function(result2,textStatus,callbackCustParam){
+	                         csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid+"&userUuid=",function(result3,textStatus,callbackCustParam){
+	                        	 
+	                      	 var vmOrderItemVO = callbackParam.vmOrderItemVO;
+	                      	 var self = callbackParam.self;
+	                            self.currentVO().sshList(result3.results);
+	                            self.currentVO().bussyList(result2.results); 
+	                            var vdcList = result.vdcList;
+	                            for(var i=0;i<vdcList.length;i++){
+	                          	  var vdcVO = vdcList[i];
+	                          	  if(vdcUuid == vdcVO.uuid){
+	                          		  vmOrderItemVO.vdcName = vdcVO.name;
+	                          		  break;
+	                          	  }
+	                            }
+	                            self.currentVO().vdcList(vdcList);
+	                          
+	                            var vpcList = result.vpcList;
+	                            for(var i=0;i<vpcList.length;i++){
+	                          	  var vpcVO = vpcList[i];
+	                          	  if(vpcUuid == vpcVO.uuid){
+	                          		  vmOrderItemVO.vpcName = vpcVO.name;
+	                          		  break;
+	                          	  }
+	                            }
+	                            self.currentVO().vpcList(vpcList);
+	                            
+	                            
+	                            var networkList = result.networkList;
+	                            for(var i=0;i<networkList.length;i++){
+	                          	  var networkVO = networkList[i];
+	                          	  if(selelctNetworkUuid == networkVO.uuid){
+	                          		  vmOrderItemVO.networkName = networkVO.name;
+	                          		  break;
+	                          	  }
+	                            }
+	                            self.currentVO().privateNetworkList(networkList);
+	                            
+	                            
+	                            var azList = result.azList;
+	                            for(var i=0;i<azList.length;i++){
+	                          	  var azVO = azList[i];
+	                          	  if(azUuid == azVO.uuid){
+	                          		  vmOrderItemVO.azName = azVO.name;
+	                          		  break;
+	                          	  }
+	                            }
+	                            self.currentVO().azList(azList);
+	                            self.currentVO().osTypeList(result.osTypeList);
+	                            self.currentVO().cpuList(result.cpuList);
+	                            self.currentVO().memoryList(result.memoryList);
+	                            
+	                            var osVersionList = result.osVersionList;
+	                            for(var i=0;i<osVersionList.length;i++){
+	                          	  var osVersionVO = osVersionList[i];
+	                          	  if(osVersionUuid == osVersionVO.uuid){
+	                          		  vmOrderItemVO.osVersionName = osVersionVO.opSysVersion;
+	                          		  break;
+	                          	  }
+	                            }
+	                            self.currentVO().osVersionList(result.osVersionList);
+	                            self.currentVO.fromJSON(vmInParamData);
+	                            self.currentVO.fromJSON({
+	                            	instanceName:vmOrderItemVO.instanceName,
+	                            	expireType:vmOrderItemVO.expireType,
+	                            	expireValue:vmOrderItemVO.expireValue
+	                            });
+	                            
+	                            
+	                          
+	                          
+	                           vmOrderItems.forEach(function(e){
+	                          	      var metaDataJson = JSON.parse(e.metaData);
+	                                  var vmInfoData = JSON.parse(metaDataJson.resBaseInfo);
+	                                  var vmVo =new VmVo();
+	                                  vmVo.uuid(e.uuid)
+	                                  vmVo.instanceName(e.instanceName);
+	                                  vmVo.vdcName(e.vdcName);
+	      	                          vmVo.vpcName(e.vpcName);
+	      	                          vmVo.azName(e.azName);
+	      	                          vmVo.osVersionName(e.osVersionName);
+	      	                          vmVo.vcpu(vmInfoData.vcpu);
+	      	                          vmVo.memory(vmInfoData.memory);
+	      	                          vmVo.storage(vmInfoData.storage);
+	      	                          vmVo.networkName(e.networkName);
+	      	                          vmVo.ip(vmInfoData.ip);
+	      	                          vmVo.itemState(e.itemState);
+	      	                         
+	      	                     // ("READY_CONSTRUCTION":"待施工";"CONSTRUCTION_DOING":"订单行施工成功";"CONSTRUCTION_SUCCESS":"订单行施工成功";"CONSTRUCTION_FAILED":"订单行施工失败",INVALID：失效，DELETE：删除,RECOVER:回收)
+	      	                         var stateHtml = "";
+	      	                         if(e.itemState == "CONSTRUCTION_FAILED"){
+	      	                        	stateHtml="<span class=\"label label-danger\">施工失败</span>";
+	      	                         }else if(e.itemState == "CONSTRUCTION_SUCCESS"){
+	      	                        	stateHtml="<span class=\"label label-success\">施工成功</span>";
+	      	                         }else{
+	      	                        	stateHtml="<span class=\"label label-warn\">施工中</span>";
+	      	                         }     
+	      	                          vmVo.itemStateHtml(stateHtml);
+	      	                          vmVo.workFailedMessage(e.workFailedMessage);
+	      	                          self.currentVO().applyVmList.push(vmVo);
+	                            });
+	                            
+	                           
+	                           for(var i =0;i<diskOrderItems.length;i++){
+	                          	  var diskOrderItemVO = diskOrderItems[i];
+	                          	  var selectVmOrderItemVO = null;
+	      	                   	  for(var j =0;j<vmOrderItems.length;j++){
+	      	                   		  var vmOrderItemVO = vmOrderItems[j];
+	      	                   		  if(diskOrderItemVO.relateUuid && vmOrderItemVO.relateUuid == diskOrderItemVO.relateUuid){
+	      	                   			 selectVmOrderItemVO = vmOrderItemVO;
+	      	                   			  break;
+	      	                   		  }
+	      	                   	  }
+	      	                   	  
+	      	                   	if(selectVmOrderItemVO){
+	      	                   		diskOrderItemVO.vdcName = selectVmOrderItemVO.vdcName;
+	      	                   		diskOrderItemVO.azName = selectVmOrderItemVO.azName;
+	      	                   		diskOrderItemVO.vmName = selectVmOrderItemVO.instanceName;
+	      	                   	} 
+	      	                   	  
+	      	                  
+	                            	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+diskOrderItemVO.serviceUuid, function(serviceVO,textStatus,callbackCustParam){
+	                            		 csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+diskOrderItemVO.serviceUuid, function(res,textStatus,callbackCustParam){
+	                            			  var diskOrderItemVO = callbackCustParam;
+	                            		 	  var metaDataJson = JSON.parse(diskOrderItemVO.metaData);
+	                                         var diskData = JSON.parse(metaDataJson.resBaseInfo);
+	                                     	  var vo=new MountDiskVO();
+	                                     	   vo.vdcName(diskOrderItemVO.vdcName);
+	                                     	   vo.azName(diskOrderItemVO.azName);
+	                                     	   vo.vmName(diskOrderItemVO.vmName);
+	                                     	   vo.name(diskOrderItemVO.instanceName);
+	                                         vo.size(diskData.volumeSize);
+	                                         vo.serviceUuid(diskOrderItemVO.serviceUuid);
+	                                         vo.serviceName(serviceVO.name);
+	                                         vo.billRuleUuid(diskOrderItemVO.billcycle);
+	                                          var billTxt = "";
+	                                          if(diskOrderItemVO.billcycle=="DAY"){
+	                                          	billTxt = "按天"
+	      	                   	    		}else if(diskOrderItemVO.billcycle=="MONTH"){
+	      	                   	    			billTxt = "按月"
+	      	                   	    		}else if(diskOrderItemVO.billcycle=="QUARTER"){
+	      	                   	    			billTxt = "按季度"
+	      	                   	    		}else{
+	      	                   	    			billTxt = "按年"
+	      	                   	    		}
+	                                         vo.billRuleText(billTxt);
+	                                         vo.billRuleList(setArrayCharge(res.chargeList));
+	                                         vo.price(diskOrderItemVO.price);
+	                                         self.currentVO().mountDisks.push(vo);
+	                                     },function(){},callbackCustParam);
+	                            	},function(){},diskOrderItemVO)
+	                           }
+	                           
+	                            
+	                            
+	                            var v="";
+	                            if("1"==vmOrderItemVO.expireType){
+	                                v="永久";
+	                            }else if("2"==vmOrderItemVO.expireType){
+	                                v=vmOrderItemVO.expireValue+"个月";
+	                            }else if("3"==vmOrderItemVO.expireType){
+	                                v= "有效期至:"+vmOrderItemVO.expireValue.substr(0,10); 
+	                            }
+	                            self.currentVO().expireText(v);
+	                            self.currentVO().billRuleList(setArrayCharge(result.chargeList));
+	                           
+	                           
+	                         },function(){},callbackParam);                             
+	                     },function(){},callbackParam);
+	                 },function(){},callbackParam);
+	                  
+	                  
+	                  self.getVmOrderDetail = function(data,event){
+	                	  $('#approveContent').data("vmOrderDetail",data)
+					      var url = 'pages/workflows/vm_apply_detail.html';
+	                	  var div =  $(event.target).parents('tr').next("tr").find("div:first");
+	                	  if(!div.html()){
+	                		  div.load(url)
+	                	  }
+	                  }
+	                  
+	                  
+	                  self.vmErrorMsg = function(data){
+	                	    if(data.workFailedMessage()){
+	                	    	 systemMsg.alert(data.workFailedMessage());
+	                	    }else{
+	                	    	 systemMsg.alert("未知异常！");
+	                	    }
+	                  }
+	                  
+	        	   }
+	      		 
+	      	 	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+	       	 });
+	   	     
+	  }); 
+ 
+	  $("#vm_apply_list").on("click",".expand-btn-detail",function(){
+		  $(this).find('i').toggleClass("fa-angle-double-down");
+	      $(this).parents('tr').next("tr").toggle();
+	      $(this).parents('tr').next("tr").find('.sub-detail').toggle();
+	  })
+
+  });
+</script>

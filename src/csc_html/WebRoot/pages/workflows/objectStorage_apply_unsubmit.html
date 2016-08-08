@@ -1,0 +1,260 @@
+  <div class="panel panel-info">
+    <div class="panel-heading">申请信息</div>
+    <div id="orderDetailedList" class="wrapper form-horizontal">
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label" style="white-space:nowrap">对象存储名称<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control"  placeholder="对象存储名称"  data-bind="value:model_ObjSto().instanceName">
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">存储大小(G)<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control"  placeholder="存储大小" data-bind="value:model_ObjSto().applySize">
+            </div>
+          </div>
+        </div>  
+
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">所属VDC<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control" data-bind="options:model_ObjSto().vdcList,optionsText:'name',optionsValue:'uuid',value: model_ObjSto().vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+				<select class="form-control" data-bind="options:model_ObjSto().azList,optionsText:'name',optionsValue:'uuid',value: model_ObjSto().azUuid,optionsCaption:'请选择'"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">备注</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" data-bind="value:model_ObjSto().desc"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">申请时长：<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <div class="radio">
+                <label class="form-inline">
+                  <input type="radio" name="optionsRadios" value="1" data-bind="checked: model_ObjSto().expireType"> 永久
+                </label>
+              </div>
+              <div class="radio">
+                <label class="form-inline">
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" value="2" data-bind="checked: model_ObjSto().expireType"> 
+				  <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: model_ObjSto().applyNum"></select> 个月
+                </label>
+              </div>
+              <div class="radio disabled">
+                <label class="form-inline">
+                  <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" value="3" data-bind="checked: model_ObjSto().expireType">
+                  	有效期至 <input type="text" class="form-control applyDateFormat" id="timerange" style="display:inline-block;"  data-bind="value:model_ObjSto().applyTime"/>
+                </label>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" data-bind="visible:model_ObjSto().isBill()=='true'">
+        <div class="col-xs-6">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
+            <div class="col-sm-10">
+              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options: model_ObjSto().billCycleList,optionsText:'name',optionsValue:'value',value: model_ObjSto().billCycle,event:{change:$root.getFee}"></select>	           
+              <span class="control-label"  data-bind="text:model_ObjSto().fee"></span> 
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>                
+<script type="text/javascript">
+    var scripts = [null,null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+    	   	     //获取订单数据
+    	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){
+    	      		console.log(orderData);
+    	      		var itemList = orderData.orderItems;
+    	      		var orderItem = itemList[0];
+					console.log(orderItem);
+    	      	  function ViewModel(){	
+    	      	      var self = this;
+    	      	      
+        	    	    var monthList = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
+        	    	    this.applyList = ko.observableArray(monthList);
+        	    	    
+	    	  	      this.model_ObjSto = ko.validatedObservable({
+	    	  	    	    serviceUuid:ko.observable(""),
+	    	  	    		instanceName: ko.observable("").extend({required:true}),
+	    	  	    		applySize: ko.observable("").extend({required:true}),
+	    	  	    		vdcUuid: ko.observable("").extend({required:true}),
+	    	  	    		azUuid: ko.observable("").extend({required:true}),
+	    	  	    		desc: ko.observable(""),
+	    	  	    		billCycle: ko.observable(""),
+	    	  	    		expireType:ko.observable(""),
+	    	  	    		fee:ko.observable(""),
+	    	  	    		applyNum:ko.observable(""),
+	    	  	    		applyTime:ko.observable(""),
+	    	  	    		vdcList: ko.observableArray([]),
+	    	  	    		azList:ko.observableArray([]),
+	    	  	    		billCycleList:ko.observableArray([]),
+	    	  	    		isBill:ko.observable("")
+	    	  	       	})
+                   	     var serviceUuid=orderItem.serviceUuid;
+                         var vdcUuid=orderItem.vdcUuid;
+                         var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid;
+                         csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                        	 self.model_ObjSto().vdcList(result.vdcList);
+                        	 self.model_ObjSto().azList(result.azList);
+                        	 self.model_ObjSto().billCycleList(setArrayCharge(result.chargeList));
+                             self.model_ObjSto.fromJSON(orderItem);
+                             if(orderItem.expireType=='2'){
+                            	 self.model_ObjSto().applyNum(orderItem.expireValue);
+                             }else if(orderItem.expireType=='3'){
+                            	 self.model_ObjSto().applyTime(orderItem.expireValue);
+                             }
+                             var metaData = JSON.parse(orderItem.metaData);
+                             var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+                             self.model_ObjSto().applySize(resBaseInfo.applySize);
+                          });
+                         
+                 	    this.vdcChange = function(){//根据变化的vdc及服务ID查找其下的可用分区
+                	    	var _self = this;
+                	    	var serviceUuid=self.model_ObjSto().serviceUuid();
+                	    	var vdcUuid=self.model_ObjSto().vdcUuid();
+                	        csc.rest.get("api/v5.0.0/cart/getAzList/"+serviceUuid+"/"+vdcUuid, function(azList){
+                	        	self.model_ObjSto().azList(azList);
+                	        });	        
+                	    };
+                         
+                         this.getFee =function(){
+                             var serviceUuid=self.model_ObjSto().serviceUuid();
+                             var cycle=self.model_ObjSto().billCycle();
+                  	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+                 	    	   var size = self.model_ObjSto().applySize();
+                               if(typeof(cycle)=="undefined" || ""==size){
+                            	   self.model_ObjSto().fee("");
+                   	    			return;
+                               }
+                               var price = result.ruleList[0].unitPrice*size;
+                 	    		if(cycle=="DAY"){
+                 	    			price+="元/天";
+                 	    		}else if(cycle=="MONTH"){
+                 	    			price+="元/月";
+                 	    		}else if(cycle=="QUARTER"){
+                 	    			price+="元/季度";
+                 	    		}else{
+                 	    			price+="元/年";
+                 	    		}
+                 	    		self.model_ObjSto().fee(price);
+                 	    	});	    
+                         }
+                         
+                         function setArrayCharge(attr){
+                 	    	var arrayCharge = [];
+                 	    	if(attr !=null){
+                 	    		for(var i=0;i<attr.length;i++){
+                     	    		if(attr[i]=="DAY"){
+                     	    			arrayCharge.push({name:"按天",value:"DAY"});
+                     	    		}else if(attr[i]=="MONTH"){
+                     	    			arrayCharge.push({name:"按月",value:"MONTH"});
+                     	    		}else if(attr[i]=="QUARTER"){
+                     	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+                     	    		}else{
+                     	    			arrayCharge.push({name:"按年",value:"YEAR"});
+                     	    		}
+                     	    	}
+                 	    	}
+                 	    	return arrayCharge;
+                 	    }
+                        
+                      	$('.applyDateFormat').each(function(n,v){
+                    		$(this).daterangepicker({
+                            	startDate: $(this).val() == '' ?moment():$(this).val(), 
+                                endDate: false, 
+                                singleDatePicker:true
+                            });
+                    	})
+                    	
+                    function nameCheck(name,type,callback){
+        			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name,function(result){
+        			 		 if(result.result==true){
+        			 			  systemMsg.alert(result.message);
+        						  callback(false);
+        					  }else{
+        						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+name,function(result1){	
+        						 		 if(result1.isExist==true){
+        						 			  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
+        									  callback(false);
+        								  }else{
+        									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+name,function(result1){	
+        									 		 if(result1.isExist=="true"){
+        												  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+        												  callback(false);
+        											  }else{
+        												  callback(true);
+        											  }
+        									    });
+        								  }
+        						    });
+        					  }
+        			    });	
+                    }
+	    								
+    	           this.save = function(){
+    	        	   if(self.model_ObjSto.isValid()){
+    	        		       nameCheck(self.model_ObjSto().instanceName(),"OBJECT_STORAGE",function(pass){
+    	        		    	   if(pass){
+    		       						var meta = {"resBaseInfo":{"applySize":self.model_ObjSto().applySize()}};
+    		    						meta = JSON.stringify(meta);
+    		    						var expireValue='';
+    		    						if(self.model_ObjSto().expireType()=='2'){
+    		    							expireValue = self.model_ObjSto().applyNum();
+    		    						}else if(self.model_ObjSto().expireType()=='3'){
+    		    							expireValue = self.model_ObjSto().applyTime();
+    		    						}
+    	        	        		    var itemResults = {
+    	        	        				   "instanceName":self.model_ObjSto().instanceName(),
+    	        	        				   "expireType":self.model_ObjSto().expireType(),
+    	        	        				   "expireValue":expireValue,
+    	        	        				   "vdcUuid":self.model_ObjSto().vdcUuid(),
+    	        	        				   "azUuid":self.model_ObjSto().azUuid(),
+    	        	        				   "billCycle":self.model_ObjSto().billCycle(),
+    	        	        				   "fee":self.model_ObjSto().fee(),
+    	        	        				   "metaData":meta,
+    	        	        				   "desc":self.model_ObjSto().desc()
+    	        	        				   };
+    		       						csc.rest.put('api/v5.0.0/orders/'+orderData.uuid+'/modifyItem/'+orderItem.uuid,itemResults,function(data){
+    		    			          		alert('保存成功！');
+    		    		  		    	});
+    	        		    	   }
+    	        		       })
+    	        	   }
+     	      		}
+    	      	  }
+    	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+    	      	 });
+    	  });
+  	  
+    });//
+   </script>

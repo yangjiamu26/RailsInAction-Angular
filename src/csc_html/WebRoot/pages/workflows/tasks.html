@@ -5,11 +5,11 @@
 		<li>流程管理</a></li>
 	</ol>
 </div>
-<div class="wrapper-md nav-tabs-alt">
+<div class="wrapper-md nav-tabs-alt b b-blue">
 	<div id="workflow_content">
 	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a href="#tab1" aria-controls="home" role="tab" data-toggle="tab">待办工作</a></li>
-		<li role="presentation"><a href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">已办工作</a></li>
+		<li role="presentation" class="active"><a id="doingTab" href="#tab1" aria-controls="home" role="tab" data-toggle="tab">待办工作</a></li>
+		<li role="presentation"><a id="didTab" href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">已办工作</a></li>
 	</ul>
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="tab1">
@@ -67,7 +67,7 @@
 			               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().id">
 			            </div>        
 			        </div>		        		
-			        <div class="col-xs-3">
+			        <!-- <div class="col-xs-3">
 			            <div class="input-group">
 			               <span class="input-group-addon">所属VDC</span>
 			               <select class="form-control">
@@ -75,7 +75,7 @@
 			               	<option>VDC02</option>
 			               </select>
 			            </div>        
-			        </div>		        		
+			        </div> -->		        		
 				  	</div>
 				  	<div class="row">
 			        <div class="col-xs-3">
@@ -122,7 +122,7 @@
 								<th>申请人</th>
 								
 								<th>申请日期</th>
-								<th>所属VDC</th>
+								<!-- <th>所属VDC</th> -->
 								<th>产品类型</th>
 								<th>实例名称</th>
 								<th>流程跟踪</th>
@@ -147,12 +147,15 @@
 								</td>
 								<td data-bind="text: $row.id"></td>
 								<td data-bind="text: $row.processTypeName"></td>
-								<td><span class="label label-info">审批中</span></td>
-								<td data-bind="text: $row.name"></td>
+								<td>
+									<span class="label label-info" data-bind="visible: $row.status!='UNSUBMIT'">审批中</span>
+									<span class="label label-warning" data-bind="visible: $row.status=='UNSUBMIT'">未提交</span>
+								</td>
+								<td data-bind="text: $row.name,visible:$row.status=='DOING'"></td>
+								<td data-bind="visible:$row.status=='UNSUBMIT'">申请节点</td>
 								<td data-bind="text: $row.applyUser"></td>
 							
 								<td data-bind="text: $row.applyTime"></td>
-								<td data-bind="text: $row.vdcName"></td>
 								<td >
 									<span data-bind="visible: $row.productTypes=='VM'">云主机</span>
 									<span data-bind="visible: $row.productTypes=='DISK'">云硬盘</span>
@@ -166,7 +169,8 @@
 								<td data-bind="text: $row.instanceNames"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
-									<a data-url="pages/workflows/tasks" data-bind="click:$root.dealwith">办理</a> | <a data-bind="click:$root.deleteTask">删除</a>
+									<div data-bind="visible:$row.status=='DOING'"><a data-url="pages/workflows/tasks" data-bind="click:$root.dealwith">办理</a></div>
+									<div data-bind="visible:$row.status=='UNSUBMIT'"><a data-bind="click:$root.reSubmit">提交</a> | <a data-bind="click:$root.dealwith">修改</a> | <a data-bind="click:$root.deleteTask">删除</a></div>
 								</td>
 							</tr>
 							<!-- /ko -->
@@ -238,7 +242,7 @@
 								<th>当前节点</th>
 								<th>申请人</th>
 								<th>申请日期</th>
-								<th>所属VDC</th>
+								<!-- <th>所属VDC</th> -->
 								<th>产品类型</th>
 								<th>实例名称</th>
 								<th>流程跟踪</th>
@@ -263,12 +267,15 @@
 								</td>
 								<td data-bind="text: $row.id"></td>
 								<td data-bind="text: $row.processTypeName"></td>
-								<td><span class="label label-success">已审批</span></td>
-								<td data-bind="text: $row.name"></td>
+								<td>
+									<span class="label label-success" data-bind="visible: $row.status!='UNSUBMIT'">已审批</span>
+									<span class="label label-warning" data-bind="visible: $row.status=='UNSUBMIT'">未提交</span>
+								</td>
+								<td data-bind="text: $row.name,visible:$row.status=='DOING'"></td>
+								<td data-bind="visible:$row.status=='UNSUBMIT'">申请节点</td>
 								<td data-bind="text: $row.applyUser"></td>
 							
 								<td data-bind="text: $row.applyTime"></td>
-								<td data-bind="text: $row.vdcName"></td>
 								<td >
 									<span data-bind="visible: $row.productTypes=='VM'">云主机</span>
 									<span data-bind="visible: $row.productTypes=='DISK'">云硬盘</span>
@@ -282,7 +289,7 @@
 								<td data-bind="text: $row.instanceNames"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
-									<a data-bind="click: $root.recall, visible:$row.isRecall">撤回</a>
+									<a data-bind="click: $root.recall, visible:$row.isRecall&&$row.status=='DOING'">撤回</a>
 								</td>
 							</tr>
 							<!-- /ko -->
@@ -338,8 +345,18 @@
 		    }	
 			
 			this.dealwith = function(object, event){
-				var url = "#pages/workflows/modal?taskId="+object.id+"&state=1122";
+				var url = "#pages/workflows/modal?taskId="+object.id+"&state="+object.status+"&isBatch="+object.isBatch;
 				location.href = url;
+			}
+			
+			this.reSubmit = function(object, event){
+				confirm("确定重新提交吗？", function(){
+					var databody = {"action":"reSubmit"};
+					csc.rest.put('api/v5.0.0/workflows/tasks/'+object.id,databody,function(data){
+					  alert("提交成功！");
+					  self.table.refreshData();
+					},function(){alert("操作失败！")});
+				});
 			}
 			
 			this.deleteTask = function(object, event){
@@ -382,7 +399,12 @@
 			
 			this.recall = function(object, event){
 				confirm("确认撤回任务？", function(){
-					console.log("iiii")
+					var databody = {"action":"recall"};
+					csc.rest.put('api/v5.0.0/workflows/tasks/'+object.id,databody,function(data){
+					  alert("撤回成功！");
+					  //self.table.refreshData();
+					  location.href = "#pages/workflows/tasks";
+					},function(){alert("操作失败！")});
 				});
 			}
 			
@@ -415,5 +437,18 @@
 	        $("#editProcessinstanceId").val(processinstanceId);
 	    }
 		
+		//获取url参数，用于首页传参，初始化时显示不同的tab
+		function getUrlParam(name) {
+		　　var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+		　　var r = window.location.href.match(reg);
+		　　if (r != null)
+		　　return unescape(r[2]);
+	　　}
+		
+		//显示不同的tab，待办/已办
+		if(getUrlParam('showTab') == 'didTab' || getUrlParam('showTab') == 'doingTab'){
+			$("#"+getUrlParam('showTab')).tab("show");
+		}
+
 	});
 </script>

@@ -28,28 +28,28 @@
 								<table class='table table-striped table-hover left-list'>
 									<tbody>
 										<tr class="active">
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(1)">VDC</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(0)">VDC</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(2)">云主机</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(1)">云主机</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(3)">云硬盘</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(2)">云硬盘</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(4)">对象存储</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(3)">对象存储</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(5)">公网IP</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(4)">公网IP</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(6)">负载均衡器</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(5)">负载均衡器</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(7)">SSH密钥</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(6)">SSH密钥</a></td>
 										</tr>
 										<tr>
-											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(8)">自定义产品</a></td>
+											<td><a href="javascript:void(0)" data-bind="click: $root.productTypeChecked(7)">自定义产品</a></td>
 										</tr>
 									</tbody>
 								</table>
@@ -437,26 +437,26 @@
 													<tbody>
 														<tr>
 															<th><img src="" alt="" width="60" height="60"></th>
-															<td class="v-middle text-lg"><span>xxxxxxx</span></td>
+															<td class="v-middle text-lg"><span data-bind="text:serviceName"></span></td>
 														</tr>
 														<tr>
 															<th>可用分区：</th>
-															<td>分区1/分区2</td>
+															<td data-bind="text:azName"></td>
 														</tr>
 														<tr>
 															<th>是否收费：</th>
-															<td>是</td>
+															<td data-bind="text:isFee"></td>
 														</tr>
 														<tr>
 															<th>服务介绍：</th>
-															<td>服务介绍文字。。</td>
+															<td data-bind="text:serviceDesc"></td>
 														</tr>
 													</tbody>
 												</table>
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
-														data-bind="click: $root.add_SSH">申请服务</a>
+														data-bind="click: $root.add_SSHSingle">申请服务</a>
 												</div>
 											</div>
 										</div>
@@ -554,11 +554,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
   
     function ViewModel(){
 	    var self = this;
-	    
-	    this.productType = ko.observable();
+	    this.productType = ko.observable(args.type);
 	    this.productTypeChecked = function(obj){
 	    	self.productType(obj);
-	    }
+	    } 
 	    //vdc下拉列表
 	    this.vdcList = ko.observableArray();
 	   // this.loadCatelogs = function(){
@@ -615,7 +614,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			}
 	    	
 	    }
-
+	    var loadBalanceWays = [{name:'轮训',value:'ROUND_ROBIN'},{name:'最少连接',value:'LEAST_CONNECTIONS'},{name:'源IP',value:'SOURCE_IP'}];
+        var agreements= [{name:'TCP',value:'TCP'},{name:'HTTP',value:'HTTP'},{name:'HTTPS',value:'HTTPS'}];
+        this.loadBalanceWayList = ko.observableArray(loadBalanceWays);
+        this.agreementList = ko.observableArray(agreements);
+        
 	    var billRoles = [{name:'按天',value:'1'},{name:'按月',value:'2'},{name:'按季度',value:'3'},{name:'按年',value:'4'}];
 	    var countries = [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'}];
 	    var osTypes = [{name:'windows',value:'windows'},{name:'linux',value:'linux'},{name:'vmware',value:'vmware'}];
@@ -645,7 +648,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.sshIsMountList = ko.observableArray(sshIsMounts);
 	    //添加到购物车操作
 		this.addToCart = function(){
-			if(self.productType()==2){
+			if(self.productType()==1){
 				if(self.model_VM.isValid()){
 					var jsonArray = self.model_VM.toJSON().vmCartInfo;
 					nameCheck(jsonArray,'VM',function(pass){
@@ -653,11 +656,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						 	 csc.rest.post('api/v5.0.0/cart',self.model_VM.toJSON(),function(data){
 							 		systemMsg.alert('添加到购物车成功！');
 							 		self.isAdd_VMSingle(false);
+							 		self.isAdd_VMMore(false);
 							    }); 
 						}
 					});
 				}
-			}else if(self.productType()==3){
+			}else if(self.productType()==2){
 				if(self.model_Vdisk.isValid()){
 					var jsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
 					nameCheck(jsonArray,'DISK',function(pass){
@@ -670,7 +674,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						}
 					});
 				}
-			}else if(self.productType()==4){
+			}else if(self.productType()==3){
 				if(self.model_ObjectStorage.isValid()){
 					var jsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
 					nameCheck(jsonArray,'OBJECT_STORAGE',function(pass){
@@ -683,7 +687,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						}
 					});
 				}
-			}else if(self.productType()==5){
+			}else if(self.productType()==4){
 				if(self.model_PublicNetwork.isValid()){
 					var jsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
 					nameCheck(jsonArray,'PUBLICIP',function(pass){
@@ -696,26 +700,29 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						}
 					});
 				}
-			}else if(self.productType()==6){
+			}else if(self.productType()==5){
 				if(this.model_LB.isValid()){
 				 	var jsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
 					nameCheck(jsonArray,'LOAD_BALANCING',function(pass){
 						if(pass){
-						 	csc.rest.post('api/v5.0.0/cart',this.model_LB.toJSON(),function(data){
+						 	csc.rest.post('api/v5.0.0/cart',self.model_LB.toJSON(),function(data){
 						 		systemMsg.alert('添加到购物车成功！');
-						 		self.isAdd_LB(false);
+						 		self.isAdd_LBSingle(false);
+						 		self.isAdd_LBMore(false);
 						    });
 						}
 					});
 				}
-			}else if(self.productType()==7){
-				if(this.model_SSH.isValid()){
+			}else if(self.productType()==6){
+				//ko.validation.group(self.model_SSH).showAllMessages(); 
+				if(self.model_SSH.isValid()){
 					var jsonArray = self.model_SSH.toJSON().sshKeytCartInfo;
 					nameCheck(jsonArray,'SECRET_KEY',function(pass){
 						if(pass){
-						 	csc.rest.post('api/v5.0.0/cart',this.model_SSH.toJSON(),function(data){
+						 	csc.rest.post('api/v5.0.0/cart',self.model_SSH.toJSON(),function(data){
 						 		systemMsg.alert('添加到购物车成功！');
-						 		self.isAdd_SSH(false);
+						 		self.isAdd_SSHSingle(false);
+						 		self.isAdd_SSHMore(false);
 						    });
 						}
 					});
@@ -724,7 +731,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		}
 	    
 	    function nameCheck(jsonArray,type,callback){
-	    	var count = 0;
+	    	var orderCount = 0;
+	    	var instanceCount = 0;
 			for(var i=0;i<jsonArray.length;i++){
 				var name_i;
 				if(type == "VM"){
@@ -745,19 +753,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					}
 				}
 			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name_i,function(result){
-			 		 if(result.result==true){
-			 			  systemMsg.alert(result.message);
+			 		 if(result.isExist==true){
+			 			  systemMsg.alert("已存在名称为"+result.name+"的购物车申请");
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result.name,function(result1){	
-						 		if(result1.isExist=="true"){
-									  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+result.name,function(result1){	
+						 		if(result1.isExist==true){
+									  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
 									  callback(false);
 								  }else{
-									  count = count+1;
-									  if(count==jsonArray.length){
-										  callback(true);
-									  }
+									   orderCount = orderCount+1;
+									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result1.name,function(result2){	
+									 		if(result2.isExist=="true"){
+												  systemMsg.alert("已存在名称为"+result2.name+"的资源实例");
+												  callback(false);
+											  }else{
+												  instanceCount = instanceCount+1;
+												  if((instanceCount==jsonArray.length)&&(orderCount==jsonArray.length)){
+													  callback(true);
+												  }
+											  }
+									    });
 								  }
 						    });
 					  }
@@ -767,7 +783,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    
 		//添加到购物车操作
 		this.addToOrder = function(){
-			if(self.productType()==1){
+			if(self.productType()==0){
 // 				var osTypeVdc="";
 // 				for(var i=0;i<self.model_VDC().vdcCartInfo().osTypesSelelct().length;i++){
 // 					osTypeVdc +=self.model_VDC().vdcCartInfo().osTypesSelelct()[i]+',';
@@ -804,13 +820,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 									 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.model_VDC().vdcCartInfo().loadBalancer()});
 								 }
 								 resBaseInfo.vdcQuotaList=vdcQuotaList;
-								 var charge = self.model_VDC().vdcCartInfo().charge();
-								 var isBill;
-								 if(charge=="YES"){
-									 isBill = "true";
-								 }else{
-									 isBill = "false";
-								 }
 								 var expireValue;
 								 if(self.model_VDC().vdcCartInfo().applyType()=="1"){
 									 expireValue = "";
@@ -822,10 +831,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 								 metaData.resBaseInfo=resBaseInfo;
 								 metaData.osType=self.model_VDC().vdcCartInfo().osTypesSelelct();
 								 orderItems.push({
+									 resourceType:"VDC",
 									 instanceName:self.model_VDC().vdcCartInfo().name(),
 									 serviceUuid:self.model_VDC().vdcCartInfo().serviceUuid(),
-									 isBill:isBill,
-									 billcycle:self.model_VDC().vdcCartInfo().billRuleUuid(),
+									 isBill:self.model_VDC().vdcCartInfo().charge(),
+									 billCycle:self.model_VDC().vdcCartInfo().billRuleUuid(),
 									 fee:self.model_VDC().vdcCartInfo().price(),
 									 expireType:self.model_VDC().vdcCartInfo().applyType(),
 									 expireValue:expireValue,
@@ -843,26 +853,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							  }
 					    });
 				}
-			}else if(self.productType()==2){
+			}else if(self.productType()==1){
 				self.formatOrders_VM();
 				if(this.model_VM.isValid()){
 					var jsonArray = self.model_VM.toJSON().vmCartInfo;
 					nameCheck(jsonArray,'VM',function(pass){
 						if(pass){
-						 	 csc.rest.post('api/v5.0.0/order-apply/vms',self.orders.toJSON(),function(data){
+						 	 csc.rest.post('api/v5.0.0/orders',self.orders.toJSON(),function(data){
 							 		systemMsg.alert('成功提交订单！');
 							 		self.isAdd_VMSingle(false);
+							 		self.isAdd_VMMore(false);
 							    }); 
 						}
 					});
 				}
-			}else if(self.productType()==3){
+			}else if(self.productType()==2){
 				if(self.model_Vdisk.isValid()){
 					var jsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
 					nameCheck(jsonArray,'DISK',function(pass){
 						if(pass){
 							self.formatOrders_DISK();
-							csc.rest.post('api/v5.0.0/carts',self.orders.toJSON(),function(data){
+							csc.rest.post('api/v5.0.0/orders',self.orders.toJSON(),function(data){
 						 		systemMsg.alert('成功提交订单！');
 						 		self.isAdd_VdiskSingle(false);
 						 		self.isAdd_VdiskMore(false);
@@ -870,7 +881,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						}
 					}); 
 				}
-			}else if(self.productType()==4){
+			}else if(self.productType()==3){
 				if(self.model_ObjectStorage.isValid()){
 					var jsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
 					nameCheck(jsonArray,'OBJECT_STORAGE',function(pass){
@@ -884,38 +895,44 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 						}
 					});
 				}
-			}else if(self.productType()==5){
+			}else if(self.productType()==4){
 				if(self.model_PublicNetwork.isValid()){
 					var jsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
 					nameCheck(jsonArray,'PUBLICIP',function(pass){
 						if(pass){
-						 	 csc.rest.post('api/v5.0.0/orders',self.model_PublicNetwork.toJSON(),function(data){
+							self.formatOrders_PUBLICIP();
+						 	 csc.rest.post('api/v5.0.0/orders',self.orders.toJSON(),function(data){
 							 		systemMsg.alert('成功提交订单！');
-							 		self.isAdd_PublicNetwork(false);
+							 		self.isAdd_PublicNetworkSingle(false);
+							 		self.isAdd_PublicNetworkMore(false);
 							    });
 						}
 					});
 				}
-			}else if(self.productType()==6){
+			}else if(self.productType()==5){
+				self.formatOrders_LB();
 				if(this.model_LB.isValid()){
 				 	var jsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
 					nameCheck(jsonArray,'LOAD_BALANCING',function(pass){
 						if(pass){
-						 	csc.rest.post('api/v5.0.0/orders',this.model_LB.toJSON(),function(data){
+						 	csc.rest.post('api/v5.0.0/orders',self.orders.toJSON(),function(data){
 						 		systemMsg.alert('成功提交订单！');
-						 		self.isAdd_LB(false);
+						 		self.isAdd_LBSingle(false);
+						 		self.isAdd_LBMore(false);
 						    });
 						}
 					});	
 				}
-			}else if(self.productType()==7){
+			}else if(self.productType()==6){
+				self.formatOrders_SSH();
 				if(this.model_SSH.isValid()){
 					var jsonArray = self.model_SSH.toJSON().sshKeytCartInfo;
 					nameCheck(jsonArray,'SECRET_KEY',function(pass){
 						if(pass){
-						 	csc.rest.post('api/v5.0.0/orders',this.model_SSH.toJSON(),function(data){
+						 	csc.rest.post('api/v5.0.0/orders',self.orders.toJSON(),function(data){
 						 		systemMsg.alert('成功提交订单！');
-						 		self.isAdd_SSH(false);
+						 		self.isAdd_SSHSingle(false);
+						 		self.isAdd_SSHMore(false);
 						    });
 						}
 					});
@@ -939,10 +956,17 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			this.price = ko.observable();
 			this.azUuid = ko.observable();
 			this.serviceUuid = ko.observable();
+			this.charge = ko.observable();//是否计费
+			this.loadBalanceWay = ko.observable();
+			this.agreement = ko.observable();
+			this.vpcNetworkUuid = ko.observable();
+			this.vpcUuid = ko.observable();
 			
 			this.azList = ko.observableArray([]);
 			this.billRuleList = ko.observableArray([]);
 			this.vdcList = ko.observableArray([]);
+			this.networkList = ko.observableArray([]);
+			this.vpcList = ko.observableArray([]); 
 	    }
 	    
 	    this.isAdd_LBSingle = ko.observable(false);
@@ -955,38 +979,93 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  		 	      vo.vdcList(result.vdcList);
 	  		 	      vo.billRuleList(formatCharge(result.chargeList));
 	  		 	      vo.serviceUuid(serviceUuid);
-                      
+		    		  vo.charge(obj.isFee=="否"?"false":"true");
                       self.model_LB().loadbalancerCartInfo.push(vo);
                       self.isAdd_LBSingle(true);
             });
 	    }
 	    
+	    
+	    var vdcList_more;
+    	var billRuleList_more;
+    	var osTypeList_more;
+    	var cpuList_more;
+    	var memoryList_more;
+    	var serviceUuid_more;
+    	var charge_more;
+    	
+    	this.isAdd_LBMore = ko.observable(false);
+	    this.changeList_LB = function(){
+	    	vdcList_more = self.model_LB().loadbalancerCartInfo()[0].vdcList();
+	    	billRuleList_more = self.model_LB().loadbalancerCartInfo()[0].billRuleList();
+	    	serviceUuid_more = self.model_LB().loadbalancerCartInfo()[0].serviceUuid();
+	    	charge_more = self.model_LB().loadbalancerCartInfo()[0].charge();
+	    	
+	    	self.model_LB().loadbalancerCartInfo([]);
+	    	self.isAdd_LBSingle(false);
+	    	self.isAdd_LBMore(true);
+	    }
 	    this.num_LB = ko.observable().extend({max:20});
-	     this.num_LB.subscribe(function(){
+	    this.num_LB.subscribe(function(){
 	    	self.model_LB().loadbalancerCartInfo([]);
 	    	var num = self.num_LB();
 	    	for(var i=0; i<num; i++){
-	    		self.model_LB().loadbalancerCartInfo.push({
-	    			name: ko.observable("").extend({required:true}),
-					vdcUuid: ko.observable(""),
-					applyType: ko.observable("1"),
-					applyNum: ko.observable(""),
-					//applyTime: ko.observable(new Date()),
-					billRuleUuid: ko.observable("")
-						
-	    		})
+	    		var vo = new lbVO();
+	    		vo.vdcList(vdcList_more);
+	    		vo.billRuleList(billRuleList_more);
+	    		vo.serviceUuid(serviceUuid_more);
+	    		vo.charge(charge_more);
+	    		self.model_LB().loadbalancerCartInfo.push(vo);
 	    	}
+	    	changeDateFormat();
 	    }); 
 	    
-	    //控制 负载均衡服务 申请页面显示
-	    this.isAdd_LB = ko.observable(false);
-	    this.add = function(){
-	        self.isAdd_LB(true);
-	        self.num_LB(1);
-	        //self.loadCatelogs();
-	    }
 		//负载均衡列表数据
 		this.table_LB = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/BALANCE',perPage:6});
+		
+		function LB_baseInfo(){
+			   this.vpcUuid = ko.observable();
+			   this.networkUuid = ko.observable();
+			   this.lbMethod = ko.observable();//负载均衡方式
+			   this.protocol = ko.observable();//协议
+		}
+		
+	    this.formatOrders_LB = function(){
+	    	self.orders().orderItems([]);
+	    	self.orders().resourceType("LOAD_BALANCING");
+	        self.model_LB().loadbalancerCartInfo().forEach(function (e){
+	    	   var item =new itmes();
+	    	   item.resourceType("LOAD_BALANCING");
+	    	   item.desc(e.remark());
+	    	   item.vdcUuid(e.vdcUuid);
+	    	   item.azUuid(e.azUuid());
+	    	   item.instanceName(e.name());
+	    	   item.serviceUuid(e.serviceUuid());
+	    	   item.isBill(e.charge());
+	    	   item.expireType(e.applyType());
+	    	   var expireValue="";
+	    	   if(e.applyType() == "2"){
+	    		   expireValue = e.applyNum();
+	    	   }else if(e.applyType() == "3"){
+	    		   expireValue = e.applyTime();
+	    	   }
+	    	   item.expireValue(expireValue);
+	    	   item.billCycle(e.billRuleUuid());
+	    	   item.fee(e.price());
+	    	   
+	    	   var meta=new metaData();
+	    	   var baseInfo=new LB_baseInfo();
+	    	   baseInfo.vpcUuid(e.vpcUuid());
+	    	   baseInfo.networkUuid(e.vpcNetworkUuid());
+	    	   baseInfo.lbMethod(e.loadBalanceWay());
+	    	   baseInfo.protocol(e.agreement());
+	    	   
+	    	   meta.resBaseInfo(baseInfo);
+	    	   item.metaData(ko.toJSON(meta));
+	    	   
+	    	   self.orders().orderItems.push(item);
+	       });
+	    }
 		//################## 负载均衡  end ##################
 		
 		 
@@ -995,34 +1074,101 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		
 		//################## SSH密钥 start ##################
 	    this.isAdd_SSH = ko.observable(false);
-	    this.add_SSH = function(){
-	    	self.isAdd_SSH(true);
-	    	self.num_SSH(1);
-	    	//self.loadCatelogs();
-	    }
-	    this.num_SSH = ko.observable().extend({max:20});
-	    
 	    this.model_SSH = ko.validatedObservable({
 	    	sshKeytCartInfo: ko.observableArray([])
 	    });
 	    
+	    function sshVO(){
+	    	this.name = ko.observable();
+			this.vdcUuid = ko.observable();
+			this.applyType = ko.observable();
+			this.applyNum = ko.observable();
+			this.applyTime = ko.observable();
+			this.billRuleUuid = ko.observable();
+			this.remark = ko.observable();
+			this.price = ko.observable();
+			this.azUuid = ko.observable();
+			this.serviceUuid = ko.observable();
+			this.charge = ko.observable();//是否计费
+			this.azList = ko.observableArray([]);
+			this.billRuleList = ko.observableArray([]);
+			this.vdcList = ko.observableArray([]);
+	    }
+	    
+	    this.isAdd_SSHSingle = ko.observable(false);
+	    this.add_SSHSingle = function(obj){
+	        var serviceUuid = obj.serviceUuid;
+            var uri="serviceUuid="+serviceUuid;
+            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                      self.model_SSH().sshKeytCartInfo([]);
+  		 	    	  var vo = new sshVO();
+	  		 	      vo.vdcList(result.vdcList);
+	  		 	      vo.billRuleList(formatCharge(result.chargeList));
+	  		 	      vo.serviceUuid(serviceUuid);
+	  		 	      vo.charge(obj.isFee=="否"?"false":"true");
+                      self.model_SSH().sshKeytCartInfo.push(vo);
+                      self.isAdd_SSHSingle(true);
+            });
+	    }
+	    
+	    this.isAdd_SSHMore = ko.observable(false);
+	    this.changeList_SSH = function(){
+	    	vdcList_more = self.model_SSH().sshKeytCartInfo()[0].vdcList();
+	    	billRuleList_more = self.model_SSH().sshKeytCartInfo()[0].billRuleList();
+	    	serviceUuid_more = self.model_SSH().sshKeytCartInfo()[0].serviceUuid();
+	    	charge_more = self.model_SSH().sshKeytCartInfo()[0].charge();
+	    	
+	    	self.model_SSH().sshKeytCartInfo([]);
+	    	self.isAdd_SSHSingle(false);
+	    	self.isAdd_SSHMore(true);
+	    }
+	    this.num_SSH = ko.observable().extend({max:20});
 	    this.num_SSH.subscribe(function(){
 	    	self.model_SSH().sshKeytCartInfo([]);
 	    	var num = self.num_SSH();
 	    	for(var i=0; i<num; i++){
-	    		self.model_SSH().sshKeytCartInfo.push({
-	    			name: ko.observable("").extend({required:true}),
-					vdcUuid: ko.observable(""),
-					applyType: ko.observable("1"),
-					applyNum: ko.observable(""),
-					//applyTime: ko.observable(""),
-					billRuleUuid: ko.observable("")
-	    		})
+	    		var vo = new sshVO();
+	    		vo.vdcList(vdcList_more);
+	    		vo.billRuleList(billRuleList_more);
+	    		vo.serviceUuid(serviceUuid_more);
+	    		vo.charge(charge_more);
+	    		self.model_SSH().sshKeytCartInfo.push(vo);
 	    	}
-	    	
-	    	
-	    });
-	    this.table_SSH = new DataTable([], {path: 'api/v5.0.0/cart/findLoadBalancer',perPage:6});
+	    	changeDateFormat();
+	    }); 
+	    
+	    this.table_SSH = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/SSH',perPage:6});
+	    
+	    this.formatOrders_SSH = function(){
+	    	self.orders().orderItems([]);
+	    	self.orders().resourceType("SECRET_KEY");
+	        self.model_SSH().sshKeytCartInfo().forEach(function (e){
+	    	   var item =new itmes();
+	    	   item.resourceType("SECRET_KEY");
+	    	   item.desc(e.remark());
+	    	   item.vdcUuid(e.vdcUuid);
+	    	   item.azUuid(e.azUuid());
+	    	   item.instanceName(e.name());
+	    	   item.serviceUuid(e.serviceUuid());
+	    	   item.isBill(e.charge());
+	    	   item.expireType(e.applyType());
+	    	   var expireValue="";
+	    	   if(e.applyType() == "2"){
+	    		   expireValue = e.applyNum();
+	    	   }else if(e.applyType() == "3"){
+	    		   expireValue = e.applyTime();
+	    	   }
+	    	   item.expireValue(expireValue);
+	    	   item.billCycle(e.billRuleUuid());
+	    	   item.fee(e.price());
+	    	   
+	    	   var meta=new metaData();
+	    	   meta.resBaseInfo("");
+	    	   item.metaData(ko.toJSON(meta));
+	    	   
+	    	   self.orders().orderItems.push(item);
+	       });
+	    }
 	    //################## SSH密钥 end ##################
 	    
 	    //################## 云硬盘 start ##################
@@ -1038,9 +1184,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
 	    		self.isAdd_VdiskSingle(true);
 	    		if(data.charge==1){
-	    			self.diskCharge("NO");
+	    			self.diskCharge("false");
 		    	}else{
-		    		self.diskCharge("YES");
+		    		self.diskCharge("true");
 		    		diskChargeType = setArrayCharge(data.chargeType);
 		    		console.log(diskChargeType);
 		    	}
@@ -1060,27 +1206,25 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    
 	    this.formatOrders_DISK = function(){
 	    	self.orders().orderItems([]);
-	    	self.orders().resourceType("DISk");
+	    	self.orders().resourceType("DISK");
 	        self.model_Vdisk().vdiskCartInfo().forEach(function (e){
 	    	   var item =new itmes();
+	    	   item.resourceType("DISK");
 	    	   item.desc(e.remark());
 	    	   item.azUuid(e.azUuid());
+	    	   item.vdcUuid(e.vdcUuid());
 	    	   item.instanceName(e.name());
 	    	   item.serviceUuid(e.serviceUuid());
-	    	   if(e.charge()=='YES'){
-	    		   item.isBill("true");
-	    	   }else{
-	    		   item.isBill("false");
-	    	   }
-	    	   item.expireType(e.applyType);
+	    	   item.isBill(e.charge());
+	    	   item.expireType(e.applyType());
 	    	   var expireValue="";
-	    	   if(e.applyType == "2"){
+	    	   if(e.applyType() == "2"){
 	    		   expireValue = e.applyNum();
-	    	   }else if(e.applyType == "3"){
+	    	   }else if(e.applyType() == "3"){
 	    		   expireValue = e.applyTime();
 	    	   }
 	    	   item.expireValue(expireValue);
-	    	   item.billcycle(e.billRuleUuid());
+	    	   item.billCycle(e.billRuleUuid());
 	    	   item.fee(e.price());
 	    	   
 	    	   var meta=new metaData();
@@ -1162,9 +1306,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    		console.log(data);
 	    		self.isAdd_ObjectStorageSingle(true);
 	    		if(data.charge==1){
-	    			self.objStorageCharge("NO");
+	    			self.objStorageCharge("false");
 		    	}else{
-		    		self.objStorageCharge("YES");
+		    		self.objStorageCharge("true");
 		    		objStorageChargeType = setArrayCharge(data.chargeType);
 		    		console.log(objStorageChargeType);
 		    	}
@@ -1183,27 +1327,24 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		    this.formatOrders_OBJECT_STORAGE = function(){
 		    	self.orders().orderItems([]);
 		    	self.orders().resourceType("OBJECT_STORAGE");
-		        self.model_ObjectStorage().objectStorageCartInfo().forEach(function (e){d
+		        self.model_ObjectStorage().objectStorageCartInfo().forEach(function (e){
 		    	   var item =new itmes();
+		           item.resourceType("OBJECT_STORAGE");
 		    	   item.desc(e.remark());
 		    	   item.vdcUuid(e.vdcUuid);
 		    	   item.azUuid(e.azUuid());
 		    	   item.instanceName(e.name());
 		    	   item.serviceUuid(e.serviceUuid());
-		    	   if(e.charge()=='YES'){
-		    		   item.isBill("true");
-		    	   }else{
-		    		   item.isBill("false");
-		    	   }
-		    	   item.expireType(e.applyType);
+		    	   item.isBill(e.charge());
+		    	   item.expireType(e.applyType());
 		    	   var expireValue="";
-		    	   if(e.applyType == "2"){
+		    	   if(e.applyType() == "2"){
 		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType == "3"){
+		    	   }else if(e.applyType() == "3"){
 		    		   expireValue = e.applyTime();
 		    	   }
 		    	   item.expireValue(expireValue);
-		    	   item.billcycle(e.billRuleUuid());
+		    	   item.billCycle(e.billRuleUuid());
 		    	   item.fee(e.price());
 		    	   var meta=new metaData();
 		    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
@@ -1265,6 +1406,45 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  //################## 对象存储 end ##################
 	  
 	  //################## 公网IP start ##################
+	   function PUBLICIP_baseInfo(){
+		   this.vpcUuid = ko.observable();
+		   this.networkUuid = ko.observable();
+	   }
+	    
+	    this.formatOrders_PUBLICIP = function(){
+	    	self.orders().orderItems([]);
+	    	self.orders().resourceType("PUBLICIP");
+	        self.model_PublicNetwork().publicNetworkCartInfo().forEach(function (e){
+	    	   var item =new itmes();
+	    	   item.resourceType("PUBLICIP");
+	    	   item.desc(e.remark());
+	    	   item.azUuid(e.azUuid());
+	    	   item.vdcUuid(e.vdcUuid());
+	    	   item.instanceName(e.name());
+	    	   item.serviceUuid(e.serviceUuid());
+	    	   item.isBill(e.charge());
+	    	   item.expireType(e.applyType());
+	    	   var expireValue="";
+	    	   if(e.applyType() == "2"){
+	    		   expireValue = e.applyNum();
+	    	   }else if(e.applyType() == "3"){
+	    		   expireValue = e.applyTime();
+	    	   }
+	    	   item.expireValue(expireValue);
+	    	   item.billCycle(e.billRuleUuid());
+	    	   item.fee(e.price());
+	    	   
+	    	   var meta=new metaData();
+	    	   var baseInfo =new PUBLICIP_baseInfo();
+	    	   
+	    	   baseInfo.vpcUuid(e.vpcUuid());
+	    	   baseInfo.networkUuid(e.netWorkId());
+	    	   meta.resBaseInfo(baseInfo);
+	    	   item.metaData(ko.toJSON(meta));
+	    	   self.orders().orderItems.push(item);
+	       });
+	    }	  
+	  
 	    this.isAdd_PublicNetworkSingle = ko.observable(false);
 	    this.isAdd_PublicNetworkMore = ko.observable(false);
 	    
@@ -1277,9 +1457,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    		console.log(data);
 	    		self.isAdd_PublicNetworkSingle(true);
 	    		if(data.charge==1){
-	    			self.pubNetworkCharge("NO");
+	    			self.pubNetworkCharge("false");
 		    	}else{
-		    		self.pubNetworkCharge("YES");
+		    		self.pubNetworkCharge("true");
 		    		pubNetworkChargeType = setArrayCharge(data.chargeType);
 		    		console.log(pubNetworkChargeType);
 		    	}
@@ -1371,16 +1551,15 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
 	        	console.log(data);
 		    	self.isAdd_VDC(true);
-		    	self.productType(1);
 		    	var osType = data.serviceVDC.osType;
 		    	var isLimit = data.serviceVDC.isLimit;
 		    	self.osTypeArray(getArrayByString(osType));
 		    	console.log(setArrayCharge(data.chargeType));
 		    	self.model_VDC().vdcCartInfo().billRuleArray(setArrayCharge(data.chargeType));
 		    	if(data.charge==1){
-		    		self.model_VDC().vdcCartInfo().charge("NO");
+		    		self.model_VDC().vdcCartInfo().charge("false");
 		    	}else{
-		    		self.model_VDC().vdcCartInfo().charge("YES");
+		    		self.model_VDC().vdcCartInfo().charge("true");
 		    		getArrayByString(data.chargeType);
 		    		//self.model_VDC().vdcCartInfo().billRuleArray(getArrayByString(data.chargeType));
 		    	}
@@ -1519,22 +1698,39 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	  
 	  //################## 云主机start ##################
 	  
+	  
+	  function getUuid() {
+		var s = [];
+		var hexDigits = "0123456789abcdef";
+		for (var i = 0; i < 36; i++) {
+		s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+		}
+		s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+		s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+		s[8] = s[13] = s[18] = s[23] = "-";
+		
+		var uuid = s.join("");
+		return uuid;
+	  }
+	  
 	   this.orders=ko.validatedObservable({
 		   resourceType : ko.observable(),
 		   orderItems : ko.observableArray([])
 	   })
 	  
 	   function itmes(){
-		   this.instanceName= ko.observable();
+		   this.instanceName = ko.observable();
 		   this.serviceUuid = ko.observable();
 		   this.isBill = ko.observable();
 		   this.expireType =  ko.observable();
 		   this.expireValue = ko.observable();
-		   this.billcycle = ko.observable();
+		   this.billCycle = ko.observable();
 		   this.fee = ko.observable();
 		   this.metaData = ko.observable();
 		   this.desc = ko.observable();
 		   this.azUuid = ko.observable();
+		   this.resourceType = ko.observable();
+		   this.relateUuid = ko.observable();
 		   this.vdcUuid = ko.observable();
 	   }
 	   
@@ -1554,16 +1750,24 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		   this.vcpu = ko.observable();
 		   this.vdcUuid = ko.observable();
 		   this.vpcUuid = ko.observable();
-		   this.diskList = ko.observableArray([]);
+		   this.partitionList = ko.observableArray([]);
 		   this.networkList = ko.observableArray([]);
+		   
+		   this.ip = ko.observable();
+		   this.account = ko.observable();
+		   this.password = ko.observable();
+		   this.repeatPassword = ko.observable();
+		   this.sshIsMount = ko.observable();
+		   this.sshUuid = ko.observable();
+		   this.busSysUuid = ko.observable();
 	   }
-	   
-	   function VM_disk (){
-		   this.volumeName = ko.observable();
-		   this.volumeSize = ko.observable();
-	   }
+	   	   
 	   function VM_network (){
 		   this.networkId = ko.observable();
+	   }
+	   function VM_partition (){
+		   this.name = ko.observable();
+		   this.size = ko.observable();
 	   }
 	   
 	  
@@ -1571,22 +1775,25 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		   self.orders().orderItems([]);
 		   
            self.orders().resourceType("VM");
-	       self.model_VM().vmCartInfo().forEach(function (e){debugger;
+	       self.model_VM().vmCartInfo().forEach(function (e){
+	    	   var relateUuid=getUuid();
 	    	   var item =new itmes();
 	    	   item.desc(e.remark());
 	    	   item.azUuid(e.azUuid());
 	    	   item.instanceName(e.vmName());
 	    	   item.serviceUuid(e.serviceUuid());
+	    	   item.resourceType("VM");
+	    	   item.relateUuid(relateUuid);
 	    	   item.isBill(e.charge());
-	    	   item.expireType(e.applyType);
+	    	   item.expireType(e.applyType());
 	    	   var expireValue="";
-	    	   if(e.applyType == "2"){
+	    	   if(e.applyType() == "2"){
 	    		   expireValue = e.applyNum();
-	    	   }else if(e.applyType == "3"){
+	    	   }else if(e.applyType() == "3"){
 	    		   expireValue = e.applyTime();
 	    	   }
 	    	   item.expireValue(expireValue);
-	    	   item.billcycle(e.billRuleUuid());
+	    	   item.billCycle(e.billRuleUuid());
 	    	   item.fee(e.price());
 	    	   
 	    	   
@@ -1603,13 +1810,52 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	   baseInfo.vdcUuid(e.vdcUuid);
 	    	   baseInfo.vpcUuid(e.vpcUuid);
 	    	   
-	    	   e.mountDisks().forEach(function(m){
-	    		  var disk=new VM_disk();
-	    		  disk.volumeName(m.name());
-	    		  disk.volumeSize(m.size());
-	    		  baseInfo.diskList.push(disk)
+	    	   baseInfo.ip(e.ip);
+	    	   baseInfo.account(e.account);
+	    	   baseInfo.password(e.password);
+	    	   baseInfo.repeatPassword(e.repeatPassword);
+	    	   baseInfo.sshIsMount(e.sshIsMount);
+	    	   baseInfo.sshUuid(e.sshUuid);
+	    	   baseInfo.busSysUuid(e.projectUuid);
+	    	   
+	    	   e.partitions().forEach(function(p){
+	    		   var p=new VM_partition()
+	    		   p.name(p.name());
+	    		   p.size(p.size());
+	    		   baseInfo.partitionList.push(p)
 	    	   });
+	    	   var n = new VM_network
+	    	   n.networkId(e.vpcNetworkUuid());
+	    	   baseInfo.networkList.push(n);
+	    	   
 	    	   meta.resBaseInfo(baseInfo);
+	    	   //云硬盘服务
+	    	   e.mountDisks().forEach(function(m){
+	    		   var i =new itmes();
+		    	   i.instanceName(m.name());
+		    	   i.serviceUuid(m.serviceUuid());
+		    	   i.resourceType("DISK");
+		    	   i.relateUuid(relateUuid);
+		    	   i.isBill(m.charge());
+		    	   i.expireType(e.applyType());
+		    	   var ev="";
+		    	   if(e.applyType() == "2"){
+		    		   ev = e.applyNum();
+		    	   }else if(e.applyType() == "3"){
+		    		   ev = e.applyTime();
+		    	   }
+		    	   i.expireValue(ev);
+		    	   i.billCycle(m.billRuleUuid());
+		    	   i.fee(m.price());
+		    	   
+		    	   var md=new metaData();
+		    	   var bi =new DISK_baseInfo();
+		    	   
+		    	   bi.volumeSize(m.size());
+		    	   md.resBaseInfo(bi);
+		    	   i.metaData(ko.toJSON(md));
+		    	   self.orders().orderItems.push(i);
+	    	   }); 
 	    	   item.metaData(ko.toJSON(meta));
 	    	   self.orders().orderItems.push(item);
 	       });
@@ -1643,7 +1889,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             		return this.applyTime();
             	}
             }, this);
-            this.desc = ko.observable("");
             this.billRuleUuid = ko.observable("");
             this.applyTime = ko.observable("");
             this.networkType = ko.observable("");
@@ -1731,7 +1976,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	                      info.memoryList(result.memoryList);
 	                      info.billRuleList(formatCharge(result.chargeList));
 	                      info.serviceUuid(serviceUuid);
-	                      
+	                      info.charge(obj.isFee=="否"?"false":"true");
 	                      self.model_VM().vmCartInfo.push(info);
 	  		 		      self.isAdd_VMSingle(true);
 	            });
@@ -1739,23 +1984,43 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	
 	    
 	    //多个
-	    this.add_VM = function(){
-	    	self.isAdd_VM(true);
-	    	self.num_VM(1); 	
-	    	//self.loadCatelogs();
+	    this.isAdd_VMMore = ko.observable(false);
+	    this.changeList_VM = function(){
+	    	vdcList_more = self.model_VM().vmCartInfo()[0].vdcList();
+	    	billRuleList_more = self.model_VM().vmCartInfo()[0].billRuleList();
+	    	osTypeList_more = self.model_VM().vmCartInfo()[0].osTypeList();
+	    	cpuList_more = self.model_VM().vmCartInfo()[0].cpuList();
+	    	memoryList_more = self.model_VM().vmCartInfo()[0].memoryList();
+	    	serviceUuid_more = self.model_VM().vmCartInfo()[0].serviceUuid();
+	    	charge_more = self.model_VM().vmCartInfo()[0].charge();
+	    	
+	    	self.model_VM().vmCartInfo([]);
+	    	self.isAdd_VMSingle(false);
+	    	self.isAdd_VMMore(true);
 	    	self.myStep(1);
-	    	self.isUpdate_partition(false);
 	    }
 	    this.num_VM = ko.observable().extend({max:20});
-	    this.model_VM = ko.validatedObservable({
-	    	vmCartInfo: ko.observableArray([])
-	    });
 	    this.num_VM.subscribe(function(){
 	    	self.model_VM().vmCartInfo([]);
 	    	var num = self.num_VM();
 	    	for(var i=0; i<num; i++){
-	    		self.model_VM().vmCartInfo.push(new Info());
+	    		var vo = new Info();
+	    		vo.vdcList(vdcList_more);
+	    		vo.billRuleList(billRuleList_more);
+	    		vo.osTypeList(osTypeList_more)
+	    		vo.cpuList(cpuList_more);
+	    		vo.memoryList(memoryList_more);
+	    		vo.serviceUuid(serviceUuid_more);
+	    		vo.charge(charge_more);
+	    		self.model_VM().vmCartInfo.push(vo);
 	    	}
+	    	changeDateFormat();
+	    }); 
+	    
+	    
+	    
+	    this.model_VM = ko.validatedObservable({
+	    	vmCartInfo: ko.observableArray([])
 	    });
 	    
 	    function MountDiskVO(){
@@ -1771,6 +2036,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 		  	this.applyText = ko.observable();
             this.billRuleList=ko.observableArray([]);
             this.price = ko.observable();
+            this.charge = ko.observable();
 	    }
 	    
 	    function formatCharge(attr){
@@ -1791,12 +2057,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	return arrayCharge;
 	    }
 	     
-	    this.addVdisk_VM = function(){
+	    this.addVdisk_VM = function(data){
 	    	var vo=new MountDiskVO();
-	    	self.model_VM().vmCartInfo()[0].mountDisks.push(vo);
+	    	data.mountDisks.push(vo);
 	    }
-	    this.delVdisk_VM = function(object){
-	       self.model_VM().vmCartInfo()[0].mountDisks.remove(object);
+	    this.delVdisk_VM = function(obj,data,event){
+	    	obj.mountDisks.remove(data);
 	    }
 	    //选择云硬盘服务
 	    this.selectVdiskService = ko.observable(false);
@@ -1809,6 +2075,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    this.submitVdiskService = function(){
         	editObject.serviceName(self.table_Vdisk_VM.chosenItems().serviceName);
             editObject.serviceUuid(self.table_Vdisk_VM.chosenItems().serviceUuid);
+            editObject.charge( self.table_Vdisk_VM.chosenItems().isFee=="否"?"false":"true")
+            
             var attr;
             if(self.table_Vdisk_VM.chosenItems().feeType !=null && self.table_Vdisk_VM.chosenItems().feeType!=""){
             	attr=self.table_Vdisk_VM.chosenItems().feeType.split(",")
@@ -1822,16 +2090,16 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	    	this.name = ko.observable();
 		  	this.size = ko.observable();
 	    }
-	    this.addPartition_VM = function(){
+	    this.addPartition_VM = function(data){
 	    	var vo=new PartitionVO();
-	    	self.model_VM().vmCartInfo()[0].partitions.push(vo);
+	    	data.partitions.push(vo);
 	    }
-	    this.delPartition_VM = function(object){
-		    self.model_VM().vmCartInfo()[0].partitions.remove(object);
+	    this.delPartition_VM = function(obj,data,event){
+	        obj.partitions.remove(data);
 		}
 	    
 	    
-	    this.chargeChangeCart = function(arg,data,event){//vm
+	    this.chargeChangeCart = function(data){//vm
             var serviceUuid=data.serviceUuid();
             var cycle=data.billRuleUuid();
  	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
@@ -1856,6 +2124,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
  	    				price += storage * e.unitPrice;
  	    			}else if(e.attrType=='DISK'){
  	    				price += size * e.unitPrice;
+ 	    			}else if(e.attrType=='LOAD_BALANCING'){
+ 	    				price +=e.unitPrice;
+ 	    			}else if(e.attrType=='SECRET_KEY'){
+ 	    				price +=e.unitPrice;
  	    			}
  	    		});
  	    		if(type=="DAY"){
@@ -1889,7 +2161,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	        });
 	    }
 	    this.getOsVersionForOsTypeChange = function(data){
-	    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.azUuid()+"/"+data.osType(), function(result){debugger;
+	    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.azUuid()+"/"+data.osType(), function(result){
 	        	data.osVersionList(result);
 	        });
 	    }
@@ -1945,8 +2217,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
   });
   
 </script>
-<!-- 负载均衡 单个 start -->
-    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_LBSingle }">
+    <!-- 负载均衡 单个 start -->
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_LBSingle , backdrop: 'static'}">
         <div class='modal-dialog modal-lg'>
             <div class='modal-content' >
                 <div class='modal-header'>
@@ -1954,9 +2226,233 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                     <h3 class='modal-title'>负载均衡器服务</h3>
                 </div>
                 <div class='modal-body form-horizontal row' data-bind="foreach: model_LB().loadbalancerCartInfo">
+                    <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+			          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_LB">批量申请</a>
+			        </div>
+                
                      <div class="form-group col-md-6">
                         <div class="row">
                             <label class="col-sm-4 control-label">负载均衡器名称：</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control w" data-bind="value: name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="form-group col-md-6">
+                        <div class="row">
+                            <label class="col-sm-4 control-label">所属VDC：</label>
+                            <div class="col-sm-8">
+                                <select class="form-control w-xs" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value: vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <div class="row">
+                            <label class="col-sm-4 control-label">可用分区：</label>
+                            <div class="col-sm-8">
+                                <select class="form-control w-xs" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value: azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">VPC：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">网络名称：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-sm-4 control-label">协议：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: $root.agreementList,optionsText:'name',optionsValue:'value',value: agreement,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group col-md-6">
+		              <div class="row">
+		                <label class="col-xs-4 control-label">负载均衡方式：</label>
+		                <div class="col-sm-8">
+		                  <select class="form-control w-xs" data-bind="options: $root.loadBalanceWayList,optionsText:'name',optionsValue:'value',value: loadBalanceWay,optionsCaption:'请选择'"></select>
+		                </div>
+		              </div>
+		            </div>
+                    <div class="form-group col-md-6">
+                        <div class="row">
+                            <label class="col-sm-4 control-label">备注：</label>
+                            <div class="col-sm-8">
+                                <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div> 
+                     <div class="form-group col-md-6">
+                        <div class="row">
+                                    <label class="col-xs-4 control-label">申请时长：</label>
+                                    <div class="col-sm-8">
+                                        <div class="radio">
+                                            <label class="form-inline">
+                                                <input type="radio" name="optionsRadiosi" value="1" data-bind="checked: applyType"> 永久
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label class="form-inline">
+                                                <input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="2" data-bind="checked: applyType">
+                                                <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: applyNum"></select> 个月
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label class="form-inline">
+                                                <input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="3" data-bind="checked: applyType">
+                                                <span class="">有效期至 </span>
+                                                <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: applyTime">
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                    </div> 
+                     <div class="clearfix"></div>
+                    <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
+                        <div class="row">
+                            <label class="col-sm-4 control-label">套餐：</label>
+                            <div class="col-sm-3">
+                                <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
+                            </div>
+                            <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:price"></span>
+                        </div>
+                    </div> 
+                </div>
+                <div class='modal-footer' style="text-align:center;">
+                    <a class="btn btn-default btn-info" data-bind="click: $root.addToCart">添加到购物车</a>
+			        <a class="btn btn-default btn-success"  data-bind="click: $root.addToOrder">提交订单</a>
+			        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- 负载均衡 单个 end -->	
+<!-- 负载均衡 多个start -->
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_LBMore , backdrop: 'static'}">
+	<div class='modal-dialog modal-lg' role='document'>
+        <div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title'>申请负载均衡器</h3>
+			</div>
+			<div class='modal-body form-horizontal'>
+				<div class="form-inline">
+					<div class="input-group">
+						<span class="input-group-addon">申请数量</span> <input type="text"
+							class="form-control" data-bind="value: num_LB, valueUpdate: 'afterkeydown'">
+					</div>
+				</div>
+				<div class="panel panel-default table-responsive no-height"
+					style="margin: 0; margin-top: 10px">
+					<table class="table table-striped">
+						<thead>
+							<th>序号</th>
+							<th>负载均衡器名称<i style="color: red">*</i></th>
+							<th>所属VDC<i style="color: red">*</i></th>
+							<th>可用分区<i style="color: red">*</i></th>
+							<th>VPC</th>
+							<th>网络名称</th>
+							<th>协议</th>
+							<th>负载均衡方式</th>
+							<th>申请时长<i style="color: red">*</i></th>
+							<th >套餐</th>
+							<th >收费标准</th>
+						</thead>
+						<tbody id="applyServiceBalancingBox"
+							data-bind="foreach: model_LB().loadbalancerCartInfo">
+							<tr>
+								<td><span data-bind="text: ($index()+1)"></span></td>
+								<td><input type="text" class="form-control input-sm"
+									data-bind="value: name"></td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value: vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
+								</td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value: azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select>
+								</td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+								</td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
+								</td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options: $root.agreementList,optionsText:'name',optionsValue:'value',value: agreement,optionsCaption:'请选择'"></select>
+								</td>
+								<td>
+								    <select class="form-control input-sm" data-bind="options: $root.loadBalanceWayList,optionsText:'name',optionsValue:'value',value: loadBalanceWay,optionsCaption:'请选择'"></select>
+								</td>
+								
+								<td>
+									<div class="radio">
+										<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
+										</label>
+									</div>
+									<div class="radio">
+										<label class="form-inline"> 
+										    <input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
+										    <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: applyNum"></select> 个月
+										</label>
+									</div>
+									<div class="radio disabled">
+										<label class="form-inline"> 
+											<input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="3" data-bind="checked: applyType,name: ($index()+1)">
+                                            <span class="">有效期至 </span>
+                                            <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: applyTime">
+										</label>
+									</div>
+								</td>
+								<td  >
+								    <select class="form-control" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
+								</td>
+								<td><span data-bind="text:price"></span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+            </div>
+			<div class='modal-footer' style="text-align: center;">
+				<a class="btn btn-default btn-info" data-bind="click: $root.addToCart">添加到购物车</a> <a
+					class="btn btn-default btn-success" data-bind="click: $root.addToOrder">提交订单</a> <a
+					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 负载均衡 多个 end -->
+<!-- ssh密钥  单个start-->
+    <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_SSHSingle, backdrop: 'static'}">
+        <div class='modal-dialog modal-lg'>
+            <div class='modal-content'>
+                <div class='modal-header'>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                    <h3 class='modal-title'>SSH密钥服务</h3>
+                </div>
+                <div class='modal-body form-horizontal row' data-bind="foreach: model_SSH().sshKeytCartInfo">
+                    <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+			          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_SSH">批量申请</a>
+			        </div>
+                    
+                    <div class="form-group col-md-6">
+                        <div class="row">
+                            <label class="col-sm-4 control-label">SSH密钥名称：</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control w" data-bind="value: name">
                             </div>
@@ -2014,7 +2510,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                                 </div>
                     </div> 
                      <div class="clearfix"></div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
                         <div class="row">
                             <label class="col-sm-4 control-label">套餐：</label>
                             <div class="col-sm-3">
@@ -2032,80 +2528,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
         </div>
     </div>
-<!-- 负载均衡 单个 end -->	
-<!-- 负载均衡 多个start -->
-<!-- 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_LB }">
-	<div class='modal-dialog modal-lg' role='document'>
-        <div class='modal-content'>
-			<div class='modal-header'>
-				<button type="button" class="close" data-dismiss="modal">
-					<span aria-hidden="true">&times;</span>
-				</button>
-				<h3 class='modal-title'>申请负载均衡器</h3>
-			</div>
-			<div class='modal-body form-horizontal'>
-				<div class="form-inline">
-					<div class="input-group">
-						<span class="input-group-addon">申请数量</span> <input type="text"
-							class="form-control" data-bind="value: num_LB, valueUpdate: 'afterkeydown'">
-					</div>
-				</div>
-				<div class="panel panel-default table-responsive no-height"
-					style="margin: 0; margin-top: 10px">
-					<table class="table table-striped">
-						<thead>
-							<th>序号</th>
-							<th>负载均衡器名称<i style="color: red">*</i></th>
-							<th>所属VDC<i style="color: red">*</i></th>
-							<th>申请时长<i style="color: red">*</i></th>
-							<th>套餐</th>
-							<th>收费标准</th>
-						</thead>
-						<tbody id="applyServiceBalancingBox"
-							data-bind="foreach: model_LB().loadbalancerCartInfo">
-							<tr>
-								<td><span data-bind="text: ($index()+1)"></span></td>
-								<td><input type="text" class="form-control input-sm"
-									data-bind="value: name"></td>
-								<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
-								<td>
-									<div class="radio">
-										<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
-										</label>
-									</div>
-									<div class="radio">
-										<label class="form-inline"> <input type="radio"
-											class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
-											<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
-										</label>
-									</div>
-									<div class="radio disabled">
-										<label class="form-inline"> <input type="radio"
-											class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
-											<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
-										</label>
-									</div>
-								</td>
-								<td><select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select></td>
-								<td>0.5元/小时</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-            </div>
-			<div class='modal-footer' style="text-align: center;">
-				<a class="btn btn-default btn-info" data-bind="click: $root.addToCart">添加到购物车</a> <a
-					class="btn btn-default btn-success" data-bind="click: $root.addToOrder">提交订单</a> <a
-					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
-			</div>
-		</div>
-	</div>
-</div>
- -->
-<!-- 负载均衡 多个 end -->	
-<!-- SSH密钥 start -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_SSH }">
+    <!-- ssh密钥 单个 end -->	
+<!-- SSH密钥  多个start -->
+  <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_SSHMore , backdrop: 'static'}">
 	<div class='modal-dialog modal-lg' role='document'>
   
     <div class='modal-content'>
@@ -2125,6 +2550,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>序号</th>
               <th>SSH密钥名称<i style="color:red">*</i></th>
               <th>所属VDC<i style="color:red">*</i></th>
+              <th>可用分区<i style="color:red">*</i></th>
               <th>申请时长<i style="color:red">*</i></th>
               <th>套餐</th>
               <th>收费标准</th>
@@ -2132,30 +2558,36 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             <tbody id="applyServiceSSHBox" data-bind="foreach: model_SSH().sshKeytCartInfo">
                   <tr>
 						<td><span data-bind="text: ($index()+1)"></span></td>
-						<td><input type="text" class="form-control input-sm"
-							data-bind="value: name"></td>
-						<td><select class="form-control input-sm" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
+						<td><input type="text" class="form-control input-sm" data-bind="value: name"></td>
+						<td>
+						   <select class="form-control w-xs" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value: vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
+						</td>
+						<td>
+						    <select class="form-control w-xs" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value: azUuid,optionsCaption:'请选择'"></select>
+						</td>
 						<td>
 							<div class="radio">
 								<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
 								</label>
 							</div>
 							<div class="radio">
-								<label class="form-inline"> <input type="radio"
-									class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)" > 
-									<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+								<label class="form-inline"> 
+								    <input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
+								    <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: applyNum"></select> 个月
 								</label>
 							</div>
-							<div class="radio disabled">
-								<label class="form-inline"> <input type="radio"
-									class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
-									<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate" type="date">
+							<div class="radio">
+								<label class="form-inline"> 
+									<input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="3" data-bind="checked: applyType,name: ($index()+1)">
+                                          <span class="">有效期至 </span>
+                                          <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: applyTime,name: ($index()+1)">
 								</label>
 							</div>
 						</td>
-						<td><select class="form-control"  data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid">
-						</select></td>
-						<td>0.5元/小时</td>
+						<td  >
+						    <select class="form-control" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
+						</td>
+						<td><span data-bind="text:price"></span></td>
 					</tr>  
             </tbody>
           </table>
@@ -2171,9 +2603,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
     </div>
   </div>
 </div>
-<!-- SSH密钥 end -->
+<!-- SSH密钥 多个 end -->
 <!-- 云硬盘单个 -->
-<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_VdiskSingle }">
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_VdiskSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg' data-bind="foreach: model_Vdisk().vdiskCartInfo">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2242,7 +2674,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
           </div>
           <div class="clearfix"></div>
-          <div class="form-group col-md-6" data-bind="visible:charge()=='YES'">
+          <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
               <label class="col-sm-4 control-label">套餐：</label>
               <div class="col-sm-3">
@@ -2263,7 +2695,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 云硬盘单个 -->
 <!-- 云硬盘多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VdiskMore }">
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd_VdiskMore , backdrop: 'static'}">
   <div class='modal-dialog modal-lg' role='document'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2287,8 +2719,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>可用分区<i style="color:red">*</i></th>
               <th>挂载云主机</th>
               <th>申请时长</th>
-              <th data-bind="visible:$root.diskCharge()=='YES'">套餐</th>
-              <th data-bind="visible:$root.diskCharge()=='YES'">收费标准</th>
+              <th data-bind="visible:$root.diskCharge()=='true'">套餐</th>
+              <th data-bind="visible:$root.diskCharge()=='true'">收费标准</th>
             </thead>
             <tbody data-bind="foreach: model_Vdisk().vdiskCartInfo">
               <tr>
@@ -2310,10 +2742,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 					<td>
 						<input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}">
 					</td>
-					<td data-bind="visible:charge()=='YES'">
+					<td data-bind="visible:charge()=='true'">
 					    <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
 					</td>
-					<td data-bind="visible:charge()=='YES',text:price"></td>
+					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>
             </tbody>
           </table>
@@ -2331,7 +2763,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 <!-- 云硬盘多个 -->
 
 <!-- 对象存储单个 -->
-<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageSingle }">
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg' data-bind="foreach: model_ObjectStorage().objectStorageCartInfo">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2410,7 +2842,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
           </div>
           <div class="clearfix"></div>
-          <div class="form-group col-md-6" data-bind="visible:charge()=='YES'">
+          <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
               <label class="col-sm-4 control-label">套餐：</label>
               <div class="col-sm-3">
@@ -2433,7 +2865,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 对象存储单个 -->
 <!-- 对象存储多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageMore }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_ObjectStorageMore , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2456,8 +2888,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>所属VDC<i style="color:red">*</i></th>
               <th>可用分区<i style="color:red">*</i></th>
               <th>申请时长</th>
-              <th data-bind="visible:$root.objStorageCharge()=='YES'">套餐</th>
-              <th data-bind="visible:$root.objStorageCharge()=='YES'">收费标准</th>
+              <th data-bind="visible:$root.objStorageCharge()=='true'">套餐</th>
+              <th data-bind="visible:$root.objStorageCharge()=='true'">收费标准</th>
             </thead>
             <tbody data-bind="foreach: model_ObjectStorage().objectStorageCartInfo">
                 <tr>
@@ -2484,13 +2916,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 								class="form-control" style="top: 2px;"
 								value="3" data-bind="checked: applyType,name:$index()"> <input type="text"
 								style="width: 206px" class="form-control applyDateFormat" data-bind="value: applyTime">
+								
 							</label>
 						</div>
 					</td>
-					<td data-bind="visible:charge()=='YES'">
+					<td data-bind="visible:charge()=='true'">
 					<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
 					</td>
-					<td data-bind="visible:charge()=='YES',text:price"></td>
+					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>            
             </tbody>
           </table>
@@ -2507,7 +2940,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 对象存储多个 -->
 <!-- 公网IP单个 -->
-<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkSingle }">
+<div role="dialog" aria-hidden="true" class="simple_form form-horizontal modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg' data-bind="foreach: model_PublicNetwork().publicNetworkCartInfo">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2595,7 +3028,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
             </div>
           </div>
           <div class="clearfix"></div>
-          <div class="form-group col-md-6" data-bind="visible:charge()=='YES'">
+          <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
               <label class="col-sm-4 control-label" >套餐：</label>
               <div class="col-sm-3">
@@ -2618,7 +3051,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 公网IP单个 -->
 <!-- 公网IP多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkMore }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_PublicNetworkMore , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2642,8 +3075,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <th>VPC<i style="color:red">*</i></th>
               <th>网络名称</th>
               <th>申请时长<i style="color:red">*</i></th>
-              <th data-bind="visible:$root.pubNetworkCharge()=='YES'">套餐</th>
-              <th data-bind="visible:$root.pubNetworkCharge()=='YES'">收费标准</th>
+              <th data-bind="visible:$root.pubNetworkCharge()=='true'">套餐</th>
+              <th data-bind="visible:$root.pubNetworkCharge()=='true'">收费标准</th>
             </thead>
             <tbody  data-bind="foreach: model_PublicNetwork().publicNetworkCartInfo">
                  <tr>
@@ -2674,10 +3107,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 							</label>
 						</div>
 					</td>
-					<td data-bind="visible:charge()=='YES'">
+					<td data-bind="visible:charge()=='true'">
 					   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('single',data,event) }},optionsCaption:'请选择'"></select>
 					</td>
-					<td data-bind="visible:charge()=='YES',text:price"></td>
+					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>               
             </tbody>
           </table>
@@ -2694,7 +3127,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 </div>
 <!-- 公网IP多个 -->
 <!-- VDC -->
-<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VDC }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VDC , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
@@ -2862,7 +3295,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			</div>
 			</div>
         </div>
-        <div class="form-group" data-bind="visible:model_VDC().vdcCartInfo().charge()=='YES'">
+        <div class="form-group" data-bind="visible:model_VDC().vdcCartInfo().charge()=='true'">
           <div>
             <label class="col-sm-3 control-label">套餐：</label>
             <div class="col-sm-2">
@@ -2883,13 +3316,17 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 <!-- VDC -->
 
 <!-- 云主机 单个 -->
-<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VMSingle }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VMSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机服务</h3>
       </div>
       <div class='modal-body form-horizontal row' data-bind="foreach:model_VM().vmCartInfo">
+          <div class="form-inline clearfix" style="padding:0 15px 15px 0">
+	          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_VM">批量申请</a>
+	        </div>
+      
         <div class="panel panel-default no-height" style="margin:0;border:none">
           <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step1(!$root.step1()),css:{'glyphicon-chevron-up': $root.step1(), 'glyphicon-chevron-down': !$root.step1()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step1">
@@ -2970,7 +3407,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
               <div class="row">
                 <label class="col-xs-5 control-label">网络名称：</label>
                 <div class="col-xs-7">
-                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'originalId',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
+                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
                 </div>
               </div>
             </div>
@@ -3049,11 +3486,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 	            </div>
             </div>
             <div class="clearfix"></div>
-             <div class="form-group col-md-3">
+             <div class="form-group col-md-3" data-bind="visible:charge()=='true'">
                  <div class="row">
                      <label class="col-xs-5 control-label">套餐：</label>
                      <div class="col-xs-7">
-                         <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('VM',data,event) }},optionsCaption:'请选择'"></select>
+                         <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
                      </div>
                  </div>
              </div>
@@ -3086,9 +3523,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                         <td><input type="text" class="form-control" data-bind="value:size"/></td>
                         <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
                         <td><span data-bind="text: $parent.applyTimeText"></span></td>
-                        <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChangeCart('vdisk_VM',data,event) }},optionsCaption:'请选择'"></select></td>
+                        <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select></td>
                         <td><span data-bind="text: price"></span></td>
-                        <td><a class="btn btn-xs btn-danger" data-bind="click:$root.delVdisk_VM">删除</a></td>
+                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,data,event) }}">删除</a></td>
                     </tr>
                     
                    
@@ -3158,7 +3595,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
                     <tr>
                       <td><input type="text" class="form-control" data-bind="value:name"/></td>
                       <td><input type="text" class="form-control" data-bind="value:size"/></td>
-                      <td><a class="btn btn-xs btn-danger" data-bind="click: $root.delPartition_VM">删除</a></td>
+                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,data,event) }}">删除</a></td>
                     </tr>
                   </tbody>
                 </table>
@@ -3202,7 +3639,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 <!-- 云主机 单个 -->
 
 <!-- 云主机 多个 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: false }">
+<div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VMMore , backdrop: 'static'}">
 	<div class='modal-dialog modal-lg' role='document'>
 	    <div class='modal-content'>
 	    	<div class='modal-header'>
@@ -3231,11 +3668,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				                <thead>
 				                  <th>序号</th>
 				                  <th>云主机名称<i style="color:red">*</i></th>
-				                  <th>计算机名称</th>
+				                  <th>所属VDC<i style="color:red">*</i></th>
 				                  <th>可用分区</th>
 				                  <th>业务系统</th>
-				                  <th>所属VDC<i style="color:red">*</i></th>
-				                  <th>备注</th>
 				                  <th>申请时长<i style="color:red">*</i></th>
 				                  <th>套餐</th>
 				                </thead>
@@ -3243,32 +3678,31 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				                     <tr>
 					                     <td><span data-bind="text: ($index()+1)"></span></td>
 					                     <td><input type="text" class="form-control w" data-bind="value:vmName"></td>
-					                     <td><input type="text" class="form-control w" data-bind="value:computerName"></td>
-					                     <td><select class="form-control w-xs" data-bind="options:$parent.projectList,optionsText:'name',optionsValue:'value',value:azUuid"></select></td>
-					                     <td><select class="form-control w-xs" data-bind="options:$parent.projectList,optionsText:'name',optionsValue:'value',value:projectUuid"></select></td>
-					                     <td><select class="form-control w-xs" data-bind="options:$parent.vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid"></select></td>
-					                     <td><input type="text" class="form-control w"></td>
+					                     <td><select class="form-control w-xs" data-bind="options:  vdcList,optionsText:'name',optionsValue:'uuid',value:  vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select></td>
+					                     <td><select class="form-control w-xs" data-bind="options:  azList,optionsText:'name',optionsValue:'uuid',value:  azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select></td>
+					                     <td><select class="form-control w-xs" data-bind="options: bussyList,optionsText:'name',optionsValue:'uuid',value:projectUuid,optionsCaption:'请选择'"></select></td>
 					                     <td>
-					                         <div class="radio">
+											<div class="radio">
 												<label class="form-inline"> <input type="radio" value="1" data-bind="checked: applyType,name: ($index()+1)" > 永久
 												</label>
 											</div>
 											<div class="radio">
-												<label class="form-inline"> <input type="radio"
-													class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
-													<select class="form-control"  data-bind="options:$parent.applyList,optionsText:'name',optionsValue:'value',value:applyNum"></select> 个月
+												<label class="form-inline"> 
+												    <input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: applyType,name: ($index()+1)"> 
+												    <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: applyNum"></select> 个月
 												</label>
 											</div>
-											<div class="radio disabled">
-												<label class="form-inline"> <input type="radio"
-													class="form-control" style="top: 2px;" value="3" data-bind="checked: applyType,name: ($index()+1)"> 
-													<input style="width: 206px" class="form-control" data-bind="datePicker : MyDate,value:applyTime" type="date">
+											<div class="radio">
+												<label class="form-inline"> 
+													<input type="radio" class="form-control" style="top:2px;" name="optionsRadiosi" value="3" data-bind="checked: applyType,name: ($index()+1)">
+		                                            <span class="">有效期至 </span>
+		                                            <input type="text" style="width:126px" class="form-control applyDateFormat" data-bind="value: applyTime,name: ($index()+1)">
 												</label>
 											</div>
-					                     </td>
-					                     <td>
-					                         <select class="form-control w-xs" data-bind="options:$parent.billRoleList,optionsText:'name',optionsValue:'value',value:billRuleUuid"></select>
-					                     </td>
+										</td>
+										<td  >
+										    <select class="form-control" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
+										</td>
 					                 </tr>  
 				                </tbody>
 			                </table>
@@ -3286,7 +3720,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                  <th>CPU(核)<i style="color:red">*</i></th>
 			                  <th>内存(G)<i style="color:red">*</i></th>
 			                  <th>存储(G)</th>
-			                  <th>用户名<i style="color:red">*</i></th>
+			                  <th>主机账号<i style="color:red">*</i></th>
 			                  <th>密码<i style="color:red">*</i></th>
 			                  <th>重复密码<i style="color:red">*</i></th>
 			                </thead>
@@ -3294,12 +3728,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                  <tr>
                                 <td><span data-bind="text: ($index()+1)"></span></td>
 		                        <td><span data-bind="text:vmName"></span></td>
-		                        <td><select class="form-control" data-bind="options:$parent.osTypeList,optionsText:'name',optionsValue:'value',value:osType"></select></td>
-		                        <td><select class="form-control" data-bind="options:$parent.osVersionList,optionsText:'name',optionsValue:'value',value:osVersion"></select></td>
-		                        <td><select class="form-control" style="width: 80px;" data-bind="options:$parent.cpuList,optionsText:'name',optionsValue:'value',value:cpu"></select></td>
-		                        <td><select class="form-control" style="width: 80px;" data-bind="options:$parent.memoryList,optionsText:'name',optionsValue:'value',value:memory"></select></td>
+		                        <td><select class="form-control w-xs" data-bind="options:  osTypeList,optionsText:$data,optionsValue:$data,value:  osType,event:{change:$root.getOsVersionForOsTypeChange},optionsCaption:'请选择'"></select></td>
+		                        <td><select class="form-control w-xs" data-bind="options:  osVersionList,optionsText:'opSysVersion',optionsValue:'uuid',value: osVersion,optionsCaption:'请选择'"></select></td>
+		                        <td><select class="form-control w-xs" data-bind="options:  cpuList,optionsText:$data,optionsValue:$data,value:  cpu,optionsCaption:'请选择'"></select></td>
+		                        <td><select class="form-control w-xs" data-bind="options:  memoryList,optionsText:$data,optionsValue:$data,value:  memory,optionsCaption:'请选择'"></select></td>
 		                        <td><input type="text" class="form-control" data-bind="value:storage"></td>
-		                        <td><input type="text" class="form-control" data-bind="value:userName"></td>
+		                        <td><input type="text" class="form-control" data-bind="value:account"></td>
 		                        <td><input type="text" class="form-control" data-bind="value:password"></td>
 		                        <td><input type="text" class="form-control" data-bind="value:repeatPassword"></td>
 		                      </tr>
@@ -3314,7 +3748,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                <thead>
 			                  <th>序号</th>
 			                  <th>云主机名称</th>
-			                  <th>网络类型<i style="color:red">*</i></th>
 			                  <th>VPC/IP池<i style="color:red">*</i></th>
 			                  <th>网络名称</th>
 			                  <th>指定IP</th>
@@ -3324,12 +3757,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                    <tr>
 			                       <td><span data-bind="text: ($index()+1)"></span></td>
 			                       <td><span data-bind="text:vmName"></span></td>
-			                       <td><select class="form-control" data-bind="options:$parent.netTypeList,optionsText:'name',optionsValue:'value',value:networkType"></select></td>
-			                       <td><select class="form-control" data-bind="options:$parent.vpcOrIpPoolList,optionsText:'name',optionsValue:'value',value:vpcOrIpPoolList"></select></td>
-			                       <td><select class="form-control" data-bind="options:$parent.netNameList,optionsText:'name',optionsValue:'value',value:vpcNetworkUuid"></select></td>
-			                       <td><select class="form-control" data-bind="options:$parent.ipList,optionsText:'name',optionsValue:'value',value:ip"></select></td>
+			                       <td><select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcOrIpPoolList,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select></td>
+			                       <td><select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select></td>
+			                       <td><input type="text" class="form-control" data-bind="value:  ip"></td>
 			                       <td>
-			                           <input type="radio" data-bind="checked: sshIsMount" value="NO" >否<input type="radio" data-bind="checked: sshIsMount" value="YES">是 <select class="form-control" data-bind="options:$parent.osTypeList,optionsText:'name',optionsValue:'value',value:sshUuid"></select>
+			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择'"></select>
 			                       </td>
 			                    </tr>
 			                </tbody>
@@ -3340,7 +3772,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			          <div data-bind="visible: myStep()==4">
 			              <div data-bind="foreach: model_VM().vmCartInfo">
 				              <div style="margin:0;margin-top:10px">
-				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click:$root.addPartitions">添加分区</a>
+				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addPartition_VM">添加分区</a>
 				              <div class="clearfix" style="height:10px;clear:both;"></div>
 				              <div class="panel panel-default table-responsive no-height">
 				                  <table class="table table-striped">
@@ -3351,11 +3783,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 				                      </thead>
 				                      <tbody data-bind="foreach: partitions">
 				                          <tr >
-				                              <td><span data-bind="text:name"></span></td>
-				                              <td><span data-bind="text:size"></span></td>
-				                              <td><a class="btn btn-xs btn-default" data-bind="click:function(object, event){ $root.updatePartitions($parent, object, event) }">修改</a> 
-				                              <a class="btn btn-xs btn-danger" data-bind="click:function(object, event){ $root.delPartitions($parent, object, event) }">删除</a></td>
-				                          </tr>
+						                      <td><input type="text" class="form-control" data-bind="value:name"/></td>
+						                      <td><input type="text" class="form-control" data-bind="value:size"/></td>
+						                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,data,event) }}">删除</a></td>
+						                    </tr>
 				                      </tbody>
 				                  </table>
 				               </div>
@@ -3366,26 +3797,33 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			          <div data-bind="visible: myStep()==5">
 			              <div data-bind="foreach: model_VM().vmCartInfo">
 				              <div style="margin:0;margin-top:10px">
-					              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click:$root.addMountdisks">挂载云硬盘</a>
+					              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addVdisk_VM">添加云硬盘</a>
 					              <div class="clearfix" style="height:10px;clear:both;"></div>
 				                  <div class="panel panel-default table-responsive no-height">
 				                      <table class="table table-striped">
-				                          <thead>
-				                              <th>云硬盘名称</th>
-				                              <th>云硬盘类型</th>
-				                              <th>云硬盘大小</th>
-				                              <th>操作</th>
-				                          </thead>
-				                          <tbody data-bind="foreach: mountDisks">
-				                              <tr>
-				                                  <td><span data-bind="text:name"></span></td>
-				                                  <td><span data-bind="text:type"></span></td>
-				                                  <td><span data-bind="text:size"></span></td>
-				                                  <td><a class="btn btn-xs btn-default" data-bind="click:function(object, event){ $root.updateMountdisks($parent, object, event) }">修改</a> 
-				                                      <a class="btn btn-xs btn-danger" data-bind="click:function(object, event){ $root.delMountdisks($parent, object, event) }">删除</a></td>
-				                              </tr>
-				                          </tbody>
-				                      </table>
+						                  <thead>
+						                    <th>序号</th>
+						                    <th>云硬盘名称<i style="color:red">*</i></th>
+						                    <th>存储大小</th>
+						                    <th>所属服务</th>
+						                    <th>申请时长</th>
+						                    <th>套餐</th>
+						                    <th>收费标准</th>
+						                    <th>操作</th>
+						                  </thead>
+						                  <tbody data-bind="foreach: mountDisks">
+						                    <tr>
+						                        <td><span data-bind="text: ($index()+1)"></span></td>
+						                        <td><input type="text" class="form-control" data-bind="value:name"/></td>
+						                        <td><input type="text" class="form-control" data-bind="value:size"/></td>
+						                        <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
+						                        <td><span data-bind="text: $parent.applyTimeText"></span></td>
+						                        <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select></td>
+						                        <td><span data-bind="text: price"></span></td>
+						                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,data,event) }}">删除</a></td>
+						                    </tr>
+						                  </tbody>
+						                </table>
 				                  </div>
 				              </div>
 				          </div>    
@@ -3446,7 +3884,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 			                      <td data-bind="text: memory"></td>
 			                      <td data-bind="text: storage">100</td>
 			                      <td data-bind="text: softwares().length"></td>
-			                      <td data-bind="text: mountdisks().length"></td>
+			                      <td data-bind="text: mountDisks().length"></td>
 			                      <td data-bind="text: vdcText"></td>
 			                      <td data-bind="text: applyTimeText"></td>
 			                      <td data-bind="text: vmName"></td>
@@ -3473,7 +3911,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js',
 <!-- 云主机 多个-->
 
     <!-- 选择云服务页面 -->
-    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: selectVdiskService }">
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: selectVdiskService , backdrop: 'static'}">
       <div class='modal-dialog modal-lg' role='document'>
         <div class='modal-content'>
           <div class='modal-header'>

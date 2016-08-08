@@ -1,21 +1,28 @@
 !function ($) {
 	$.LOAD_BALANCER = {
 			lbMethods:[
+			           "",
 			           "LEAST_CONNECTIONS",
 			           "ROUND_ROBIN ",
 			           "SOURCE_IP"
 			           ],
 			lbProtocols:[
+			             "TCP",
 			             "HTTP",
-			             "HTTPS",
-			             "TCP"
+			             "HTTPS"
 			             ],
 			monitorType: [
 			              "PING", 
 			              "TCP", 
 			              "HTTP", 
 			              "HTTPS"
-			              ],             
+			              ], 
+          sessionPersistenceType: [
+                      "",
+		              "SOURCE_IP", 
+		              "HTTP_COOKIE", 
+		              "APP_COOKIE"
+		              ],
              /**
  			 * 获取负载均衡器列表
  			 * @param param  查询条件
@@ -48,7 +55,7 @@
 			 * 删除负载均衡器
 			 *  @param uuid 负载均衡器 uuid
 			 */
-			deleteLoadBalancer:function(uuid,callback){
+			deleteLoadBalancer:function(uuid, callback){
 				csc.rest.del('api/v5.0.0/loadBalancers/'+uuid, function(data){
 					 callback(data)
    		        })
@@ -78,7 +85,7 @@
 			 *  @param uuid 负载均衡器 uuid
 			 */
 			editLoadBalancerMember:function(uuid, params, callback){
-				csc.rest.put('api/v5.0.0/loadBalancerMembers/'+uuid, function(data){
+				csc.rest.put('api/v5.0.0/loadBalancerMembers/'+uuid, params, function(data){
 					 callback(data)
    		        })
 			},
@@ -86,7 +93,7 @@
 			 * 删除负载均衡器成员
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerMember:function(uuid,name,callback){
+			deleteLoadBalancerMember:function(uuid,callback){
 				csc.rest.del('api/v5.0.0/loadBalancerMembers/' + uuid,function(data){
 					 callback(data)
    		        })
@@ -118,7 +125,7 @@
 			 *  @param uuid 负载均衡器 uuid
 			 */
 			editLoadBalancerMonitor:function(uuid, params, callback){
-				csc.rest.put('api/v5.0.0/loadBalancerMonitors/'+uuid, function(data){
+				csc.rest.put('api/v5.0.0/loadBalancerMonitors/'+uuid, params, function(data){
 					 callback(data)
    		        })
 			},
@@ -126,7 +133,7 @@
 			 * 删除负载均衡器监控
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerMonitor:function(uuid,name,callback){
+			deleteLoadBalancerMonitor:function(uuid, callback){
 				csc.rest.del('api/v5.0.0/loadBalancerMonitors/' + uuid,function(data){
 					 callback(data)
    		        })
@@ -143,6 +150,15 @@
  					     callback(data);
  	    		    }); 
  			},
+ 			/**
+ 			 * 获取指定负载均衡器VIP信息
+ 			 * @param param  查询条件
+ 			 */
+ 			getLoadBalancerVip: function(uuid,callback,errorCallback){
+ 				 csc.rest.get('api/v5.0.0/loadBalancerVips/' + uuid, function(data){
+				     callback(data);
+    		    }); 
+ 			},
 			/**
 			 * 创建负载均衡器VIP
 			 * @param param 负载均衡器创建入参
@@ -157,7 +173,7 @@
 			 *  @param uuid 负载均衡器 uuid
 			 */
 			editLoadBalancerVip:function(uuid, params, callback){
-				csc.rest.put('api/v5.0.0/loadBalancerVips/'+uuid, function(data){
+				csc.rest.put('api/v5.0.0/loadBalancerVips/'+uuid, params, function(data){
 					 callback(data)
    		        })
 			},
@@ -165,7 +181,7 @@
 			 * 删除负载均衡器VIP
 			 *  @param  uuid
 			 */
-			deleteLoadBalancerVip:function(uuid,name,callback){
+			deleteLoadBalancerVip:function(uuid,callback){
 				csc.rest.del('api/v5.0.0/loadBalancerVips/' + uuid,function(data){
 					 callback(data)
    		        })

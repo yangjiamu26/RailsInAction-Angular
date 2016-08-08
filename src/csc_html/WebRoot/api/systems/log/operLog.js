@@ -28,6 +28,17 @@
 					data) {
 				callback(data);
 			});
+		},
+		/**
+		 * 获取操作日志模块信息
+		 * 
+		 * @param param
+		 *            查询条件
+		 */
+		getModules : function(callback, errorCallback) {
+			csc.rest.get('api/v5.0.0/operLogs/modules', function(data) {
+				callback(data);
+			});
 		}
 	};
 }(window.jQuery);

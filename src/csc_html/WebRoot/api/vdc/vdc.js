@@ -93,12 +93,20 @@
 	    		    }); 
 			},
 			/**
-			 * 修改VDC下AZ
+			 * 修改VDC下AZ,这里接口要把VDC下的所有AZ都传过去
 			 */
 			modifyVdcAzs:function(uuid,param,callback){
 				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/azs",param,function(data){
 					 callback(data)
     		    }); 
+			},
+			/**
+			 * 添加AZ到VDC下
+			 */
+			addVzsToVdc:function(uuid,param,callback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/addAzs",param,function(data){
+					 callback(data)
+   		    }); 
 			},
 			/**
 			 * 修改VDC下AZ 网络

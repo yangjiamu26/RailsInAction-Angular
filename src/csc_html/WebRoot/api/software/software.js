@@ -49,6 +49,7 @@
 				});
 			}
 	};
+	
 	$.SOFT_TYPE = {
 			/**
 			 * 创建软件类型
@@ -168,5 +169,15 @@
 				callback(data);
 			});
 		}
+	};
+	
+	$.INSTALL = {
+			installSoft: function (params, callback, errorCallback) {
+				var param = csc.util.httpQueryParamConvert(params);
+				
+				csc.rest.post('api/v5.0.0/install', params, function(data) {
+				     callback(data);
+			    }); 
+			}
 	};
 }(window.jQuery);

@@ -99,24 +99,24 @@
                       更多<span class="fa fa-caret-down"></span>
                     </a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                      <li>
-                        <a data-bind="click: $root.editValidateTime">有效时间变更</a>
-                       <!--  <a data-bind="click: $root.startOne,if: state == 'SHUTOFF'">开机</a>
-                        <a data-bind="click: $root.shutoffOne,if: state == 'ACTIVE'">关机</a>
-                        <a data-bind="click: $root.restartOne,if: state == 'ACTIVE'">重启</a>
-                        <a data-bind="click: $root.restartForceOne,if: state == 'ACTIVE'">强制重启</a>
-                        <a data-bind="click: $root.suspend,if: state == 'ACTIVE'">挂起</a>
-                        <a data-bind="click: $root.resume,if: state == 'SUSPENDED'">恢复</a> -->
-                        <a data-bind="click: $root.startOne">开机</a>
+                         <li><a data-bind="click: $root.editValidateTime">有效时间变更</a></li>
+                        <li data-bind="if: state == 'SHUTOFF'"><a data-bind="click: $root.startOne">开机</a></li>
+                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.shutoffOne">关机</a></li>
+                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.restartOne">重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.suspend">挂起</a></li>
+                        <li data-bind="if: state == 'SUSPENDED'"><a data-bind="click: $root.resume">恢复</a></li>
+                        
+                       <!--  <a data-bind="click: $root.startOne">开机</a>
                         <a data-bind="click: $root.shutoffOne">关机</a>
                         <a data-bind="click: $root.restartOne">重启</a>
                         <a data-bind="click: $root.restartForceOne">强制重启</a>
                         <a data-bind="click: $root.suspend">挂起</a>
-                        <a data-bind="click: $root.resume">恢复</a>
-                        <a data-bind="click: $root.validate">终止</a>
-                        <!-- <a data-bind="click: $root.removeOne,if: state == 'SHUTOFF' || state == 'ACTIVE'">删除</a> -->
-                        <a data-bind="click: $root.removeOne">删除</a>
-                      </li>
+                        <a data-bind="click: $root.resume">恢复</a> -->
+                        <li><a data-bind="click: $root.validate">终止</a></li>
+                        <li data-bind="if: state == 'SHUTOFF' || state == 'ACTIVE'"><a data-bind="click: $root.removeOne">删除</a></li>
+                        <!--  <li><a data-bind="click: $root.removeOne">删除</a></li> -->
+                      
                     </ul>
                   </div>                     
                 </td>
@@ -192,7 +192,7 @@
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                      <label class="col-xs-1 control-label no-padder-h">内存(GB)</label>
+                      <label class="col-xs-1 control-label no-padder-h">内存(MB)</label>
                       <div class="col-xs-2">
                         <input type="text" class="form-control" data-bind="value: currentVO().memory" placeholder="请输入内存"/>
                       </div>
@@ -217,21 +217,21 @@
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">网络名称</label>
                       <div class="col-xs-2">
-                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择网络',value: currentVO().network, options: $root.add_networks, optionsText: 'name', optionsValue: 'originalId'"></select>
+                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择网络',value: currentVO().network, options: $root.add_networks, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_networks}"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                     </div>
                     <div class="form-group">
-                     <!--  <label class="col-xs-1 control-label no-padder-h">指定IP</label>
+                      <label class="col-xs-1 control-label no-padder-h">指定IP</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control">
+                        <select class="form-control" data-bind="optionsCaption: '请选择IP',value: currentVO().ip, options: $root.add_isIps, optionsText: 'ip', optionsValue: 'ip'">
+                        </select>
                       </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-                        <a href="#" class="text-info">选择</a>
-                      </div> -->
+                       <div class="col-xs-1">
+                        <span class="text-danger inline m-l-n m-t-sm"></span>
+                      </div>
                       <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
                       <div class="col-xs-2">
                         <select class="form-control" data-bind="value: currentVO().isBind, options: $root.add_isBinds, optionsText: 'text', optionsValue: 'option', event: {change: $root.onchange_add_isBind}">
@@ -464,6 +464,185 @@
 
       </div>
      <div id="resource_instance_index_vm_console" style="display:none;"></div> 
+     
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isDeleteProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源删除</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源删除</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: deleteProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: deleteProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: deleteProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：云主机</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdjustProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: adjustProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: adjustProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		            <table class="table">
+			            <thead>
+			              <tr>
+			                <th></th>
+			                <th>调整前</th>
+			                <th>调整后</th>
+			              </tr>
+			            </thead>
+			            <tbody>
+			              <tr>
+			                <td>CPU(个)</td>
+			                <td data-bind="text: adjustProcessVO().vcpu"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetVcpu" /></td>
+			              </tr>
+			              <tr>
+			                <td>内存(MB)</td>
+			                <td data-bind="text: adjustProcessVO().memory"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetMemory"/></td>
+			              </tr>
+			              <tr>
+			                <td>存储(GB)</td>
+			                <td data-bind="text: adjustProcessVO().storage"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetStorage"/></td>
+			              </tr>
+			            </tbody>
+			         </table> 
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：云主机</p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: adjustProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isValidateProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content' style="width:700px;">
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>有效时间变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>有效时间变更</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: validateProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: validateProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: validateProcessVO().name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：云主机</p></div>
+		          </div>
+		          <div class="row">
+		            <div class="col-xs-6"><p>调整前失效时间：<input type="text" value="" class="form-control inline w" data-bind="value: validateProcessVO().validateTime" disabled="disabled"></p></div>
+		            <div class="col-xs-6"><p>调整后失效时间：<input type="text" value="" class="form-control inline w" id="resource_instance_vm_validate_process" data-bind="value: validateProcessVO().targetValidateTime"></p></div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: validateProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
@@ -580,12 +759,18 @@
       }
       //删除
       this.removeOne = function(object, event){
-    	  systemMsg.confirm("确定要删除云主机 "+object.name+"？",function(){
-    			csc.rest.del('api/v5.0.0/vms/'+object.uuid,function(data){
-			 		systemMsg.alert('删除云主机请求成功，调度任务ID：'+data.taskId+'！');
-			 		self.table.refreshData();
-			    });
-    		});
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+    		  //走流程
+    		  self.doDeleteProcessPost(object);
+    	  }else{
+    		  //不走流程
+	    	  systemMsg.confirm("确定要删除云主机 "+object.name+"？",function(){
+	    			csc.rest.del('api/v5.0.0/vms/'+object.uuid,function(data){
+				 		systemMsg.alert('删除云主机请求成功，调度任务ID：'+data.taskId+'！');
+				 		self.table.refreshData();
+				    });
+	    		});
+    	  }
       }
       
       //终止（服务实例）
@@ -812,17 +997,32 @@
     		  self.add_vpcs(data.results);
     	  });
       }
-      
+      var network = [];
       //VPC->网络
       this.onchange_add_vpcs = function(){
     	  var vpcUuid = self.currentVO().vpc();
     	  csc.rest.get('api/v5.0.0/vpcNetworks?type=INNER&vpcUuid='+vpcUuid,function(data){
+    		  network = data.results;
     		  self.add_networks(data.results);
     	  });
       }
       
       //网络
       this.add_networks = ko.observableArray([]);
+      
+      //网络->IP
+      this.onchange_add_networks = function(){
+    	  var networkUuid = self.currentVO().network();
+    	  if(csc.util.isNotNull(networkUuid)){
+    		  csc.rest.get('api/v5.0.0/vpcNetworks/'+networkUuid+'/availableIp',function(data){
+        		  self.add_isIps(data);
+        	  });
+    	  }else{
+    		  self.add_isIps([]);
+    	  }
+      }
+      //选择IP
+      this.add_isIps = ko.observableArray([]);
       
       //提交创建
       this.save = function(){
@@ -839,9 +1039,18 @@
 	    	  postBody.vpcUuid = self.currentVO().vpc();
 	    	  var networkList= [];
 	    	  var networkInfo = {};
-	    	  networkInfo.networkId = self.currentVO().network();
-	    	  networkList.push(networkInfo);
-	    	  postBody.networkList = networkList;
+	    	  if(csc.util.isNotNull(self.currentVO().ip())){
+	    		  for(var n=0;n<network.length;n++){
+	    			  if(network[n].uuid == self.currentVO().network()){
+	    				  networkInfo.subNetworkId = network[n].originalSubId;
+	    				  break;
+	    			  }
+	    		  }
+	    		  networkInfo.ip = self.currentVO().ip();
+	    	  }
+		      networkInfo.networkId = self.currentVO().network();
+		      networkList.push(networkInfo);
+		      postBody.networkList = networkList;
 	    	  postBody.sshKeyUuid = self.currentVO().sshKey();
 	    	  
 	    	  var expiryTime = "";
@@ -913,11 +1122,17 @@
       });
       
       this.vmAdjustment = function(object, event){
-          self.isVmAdjustment(true);
-          self.adjustmentVO().vcpu(object.vcpu);
-          self.adjustmentVO().memory(object.memory);
-          self.adjustmentVO().storage(object.storage);
-          self.adjustmentVO().vmUuid(object.uuid);
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+    		  //走流程
+    		  self.doAdjustProcessPost(object);
+    	  }else{
+    		  //不走流程
+	          self.isVmAdjustment(true);
+	          self.adjustmentVO().vcpu(object.vcpu);
+	          self.adjustmentVO().memory(object.memory);
+	          self.adjustmentVO().storage(object.storage);
+	          self.adjustmentVO().vmUuid(object.uuid);
+    	  }
       };
       
       //调整资源
@@ -981,9 +1196,15 @@
       });
       
       this.editValidateTime = function(object, event){
-    	  self.isValidateTime(true);
-    	  self.validateTimeVO().uuid(object.uuid);
-    	  self.validateTimeVO().time(object.expiryTime)
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+    		  //走流程
+    		  self.doValidateProcessPost(object);
+    	  }else{
+    		  //不走流程
+	    	  self.isValidateTime(true);
+	    	  self.validateTimeVO().uuid(object.uuid);
+	    	  self.validateTimeVO().time(object.expiryTime);
+    	  }
       }
       
       //修改有效期
@@ -997,6 +1218,203 @@
 		  });
       }
       //------------------------------------------修改有效期结束----------------------------
+      
+      //------------------------------------------删除-流程开始--------------------------------
+      this.isDeleteProcess = ko.observable(false);
+      
+      this.doDeleteProcessPost = function(object){
+    	  self.isDeleteProcess(true);
+		  self.deleteProcessVO().name(object.name);
+		  self.deleteProcessVO().uuid(object.uuid);
+		  var myDate = new Date();
+		  self.deleteProcessVO().time(myDate.toLocaleString());
+		  self.deleteProcessVO().user("");
+		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+      }
+  
+      this.deleteProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable()
+      });
+      
+      this.deleteProcessPost = function(){
+    		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.deleteProcessVO().uuid(),function(volumeData){
+            	  var orderItem = {};
+            	  orderItem.instanceName = self.deleteProcessVO().name();
+            	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+            	  orderItem.resourceType = self.deleteProcessVO().type;
+            	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+            	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
+            	  
+            	  var orderItems = [];
+            	  orderItems.push(orderItem);
+            	  
+            	  if(volumeData.results){
+            		  var volumes = volumeData.results;
+                	  for(var i=0;i<volumes.length;i++){
+                		  var volumeItem = {};
+                		  volumeItem.instanceName = volumes[i].volumeName();
+                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+                		  volumeItem.resourceType = "DISK";
+                		  volumeItem.metaData =  "{\"resBaseInfo\": {}";
+                		  orderItems.push(volumeItem);
+                	  }
+            	  }
+            	  
+            	  var postBody = {}; 
+            	  postBody.resourceType = self.deleteProcessVO().type;;
+            	  postBody.orderItems = orderItems;
+            	  
+            	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+            		  if(data.code){
+            			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+          		 		self.isValidateProcess(false);
+            		  }
+            	  });
+    		  });
+      }
+      
+      //------------------------------------------删除-流程结束--------------------------------
+      
+      //------------------------------------------资源变更-流程开始--------------------------------
+	  this.isAdjustProcess = ko.observable(false);
+      
+      this.doAdjustProcessPost = function(object){
+    	  self.isAdjustProcess(true);
+		  self.adjustProcessVO().name(object.name);
+		  self.adjustProcessVO().uuid(object.uuid);
+		  self.adjustProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  var myDate = new Date();
+		  self.adjustProcessVO().time(myDate.toLocaleString());
+		  self.adjustProcessVO().user("");
+		  
+		  self.adjustProcessVO().vcpu(object.vcpu);
+		  self.adjustProcessVO().memory(object.memory);
+		  self.adjustProcessVO().storage(object.storage);
+		  
+		  self.adjustProcessVO().targetVcpu('');
+		  self.adjustProcessVO().targetMemory('');
+		  self.adjustProcessVO().targetStorage('');
+      }
+  
+      this.adjustProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable(),
+    	  
+    	  vcpu: ko.observable(),
+    	  memory: ko.observable(),
+    	  storage: ko.observable(),
+    	  
+    	  targetVcpu: ko.observable(),
+    	  targetMemory: ko.observable(),
+    	  targetStorage: ko.observable()
+      });
+      
+      //申请
+      this.adjustProcessPost = function(){
+    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  
+    	  var orderItem = {};
+    	  orderItem.instanceName = self.adjustProcessVO().name();
+    	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
+    	  orderItem.resourceType = "VM";
+    	  orderItem.metaData = metaData;
+    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+    	  
+    	  var orderItems = [];
+    	  orderItems.push(orderItem);
+    	  
+    	  var postBody = {};
+    	  postBody.resourceType = "VM";
+    	  postBody.orderItems = orderItems;
+    	  
+    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+    		  if(data.code){
+    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+  		 		self.isAdjustProcess(false);
+    		  }
+    	  });
+      }
+      //------------------------------------------资源变更-流程结束--------------------------------
+      
+      //------------------------------------------有效期-流程开始--------------------------------
+	  this.isValidateProcess = ko.observable(false);
+      
+      this.doValidateProcessPost = function(object){
+    	  self.isValidateProcess(true);
+		  self.validateProcessVO().name(object.name);
+		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().vdcName(object.vdcName);
+		  self.validateProcessVO().busSysName(Object.busSysName);
+		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  var myDate = new Date();
+		  self.validateProcessVO().time(myDate.toLocaleString());
+		  self.validateProcessVO().metaTime(object.expiryTime);
+		  self.validateProcessVO().user("");
+		  self.validateProcessVO().validateTime(object.expiryTime);
+		  self.validateProcessVO().targetValidateTime("");
+		  
+		  $('#resource_instance_vm_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
+		            {
+		              format:'YYYY/MM/DD',
+		              minDate:moment(),
+		              singleDatePicker: true,
+		              locale:{
+		                applyLabel: '确认',
+		                cancelLabel: '取消',
+		                weekLabel: '周',
+		                daysOfWeek:["日","一","二","三","四","五","六"],
+		                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+		              }
+		            }
+		  ); 
+      }
+  
+      this.validateProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  metaTime: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  vdcName: ko.observable(),
+    	  busSysName: ko.observable(),
+    	  serviceInstanceUuid: ko.observable(),
+    	  validateTime: ko.observable(),
+    	  targetValidateTime: ko.observable()
+      });
+      
+      //申请
+      this.validateProcessPost = function(){
+    	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\""+self.validateProcessVO().metaTime() +"\",\"vdcName\": \""+self.validateProcessVO().vdcName()+"\",\"busSysName\":\""+self.validateProcessVO().busSysName()+"\"}}";
+    	  var orderItem = {};
+    	  orderItem.instanceName = self.validateProcessVO().name();
+    	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
+    	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
+    	  orderItem.resourceType = "VM";
+    	  orderItem.resourceUuid = self.validateProcessVO().uuid();
+    	  orderItem.metaData = metaData;
+    	  
+    	  var orderItems = [];
+    	  orderItems.push(orderItem);
+    	  
+    	  var postBody = {};
+    	  postBody.resourceType = "VM";
+    	  postBody.orderItems = orderItems;
+    	  
+    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+    		  if(data.code){
+    			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+  		 		self.isValidateProcess(false);
+    		  }
+    	  });
+      }
+      //------------------------------------------有效期-流程结束--------------------------------
     }
     ko.applyBindings(new ViewModel_VM(), $('#partition_vms')[0]);
   })

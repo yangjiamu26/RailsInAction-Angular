@@ -1,0 +1,435 @@
+<div class="div-radius" style="margin:20px 20px 20px 0;">
+<div class="row-fluid">
+<div style="width: 100%;display: table;">
+    <div style="margin: 10px 20px 10px 20px;">
+        <h4>
+            硬盘和节点
+        </h4>
+    </div>
+    <div style="background: #31C72B;height: 1px;overflow: hidden;float: left;width: 16%;">
+    </div>
+    <div style="background: #488FD2;height: 1px;overflow: hidden;float: left;width: 82%;">
+    </div>
+</div>
+<div style="width: 100%;display: table;">
+    <div style="margin: 10px 20px 10px 20px;display: table;width: 96%;">
+        <div style="width: 75%;float: left;padding-top: 15px;">
+            <div style="float: left;width: 12%;">硬件当前状态</div>
+            <div style="float: left;width: 15%;text-align: right;">
+                <span style="float: right;">没有使用</span>
+
+                <div style="background-color: #BFBFBF;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+            <div style="float: left;width: 15%;text-align: right;">
+                <span style="float: right;">没有插盘</span>
+
+                <div style="background-color: #1B232F;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+            <div style="float: left;width: 15%;text-align: right;">
+                <span style="float: right;">正在恢复</span>
+
+                <div style="background-color: #488FD2;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+            <div style="float: left;width: 15%;text-align: right;">
+                <span style="float: right;">紧急告警</span>
+
+                <div style="background-color: #F60510;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+            <div style="float: left;width: 14%;text-align: right;">
+                <span style="float: right;">告警</span>
+
+                <div style="background-color: #FFB400;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+            <div style="float: left;width: 14%;text-align: right;">
+                <span style="float: right;">健康</span>
+
+                <div style="background-color: #FFFFFF;width: 12px;height:12px;float: right;margin: 5px 5px 0px 0px;"></div>
+            </div>
+        </div>
+        <div style="width: 25%;float: right;padding-top: 12px;">
+            <div style="width:30%;float: right;border:1px #677991 solid;cursor: pointer;height: 24px;"
+                 ng-click="toggleNodes('whole')" ng-style="wholeSelected">
+                <span style="float: right;padding:2px 5px 2px 0px;">全视图</span>
+                <img src="images/node/btn_pic_whole.png" style="float: right; padding: 4px 3px 2px 2px;">
+            </div>
+            <div style="width:30%;float: right;border:1px #677991 solid;cursor: pointer;height: 24px;border-right: 0px;"
+                 ng-click="toggleNodes('part')" ng-style="partSelected">
+                <span style="float: right;padding:2px 5px 2px 0px;">缩略图</span>
+                <img src="images/node/btn_pic_part.png" style="float: right; padding: 4px 3px 2px 2px;">
+            </div>
+        </div>
+    </div>
+    <!-- 硬件节点展示DIV 局部视图-->
+    <div ng-show="partOfNode" style="margin: 10px 20px 10px 20px;display: table;width: 98%; ">
+        <div style="width:100%;" ng-repeat="arr in nodeArray">
+            <div ng-repeat="nodeDetail in arr"
+                 style="width: 25%;min-width: 240px;min-height: 130px;float: left;margin:10px 0px;">
+
+                <!-- 单个node节点DIV-->
+                <div id="{{$parent.$index}}_{{$index}}"
+                     style="background-color: #45566C;display: table;width: 94%;cursor: pointer;"
+                     ng-class="{ok:'node-ok',warn:'node-warn',down:'node-down',recovery:'node-recovery'}[nodeDetail.nodeStatus]"
+                     ng-click="nodeSelect($event,nodeDetail)" ng-mouseenter="nodeMouseenter($parent.$index,$index)"
+                     ng-mouseleave="nodeMouseleave($parent.$index,$index)">
+
+                    <!-- 节点信息加IP地址 -->
+                    <div style="width: 100%;height: 30px;">
+                        <p style="margin:10px 0px 5px 10px;">
+                            节点IP：{{nodeDetail.nodeIp}}
+                        </p>
+                    </div>
+
+                    <!-- 磁盘展示 -->
+                    <div ng-repeat="diskDetail in nodeDetail.disks | subNodes:defaultNodes"
+                         style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 0px;">
+
+                        <div ng-class="{ok:'ok',warn:'warn',down:'down',recovery:'recovery',unused:'unused',empty:'empty'}[diskDetail.status]"
+                             style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div style="margin-right: auto;margin-left: auto;height: 38px;text-align: center;position: relative;"
+                                 class="tips">
+
+                                <img src="images/node/pic_hdd_base.png" ng-show="diskDetail.type == 'HDD'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <img src="images/node/pic_ssd_base.png" ng-show="diskDetail.type == 'SSD' || diskDetail.type == 'NVME'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <span style="min-width:180px">
+                                    硬盘类型：{{diskDetail.type}}<br/>
+                                    硬盘容量：{{diskDetail.capacity}}<br/>
+                                    硬盘厂商：{{diskDetail.vendor}}<br/>
+                                    设备名称：{{diskDetail.device_name}}<br/>
+                                    WWID:{{diskDetail.wwid}}<br/>
+                                </span>
+
+                            </div>
+                        </div>
+                        <div class="tips" style="margin-top: -2px;cursor: pointer;">
+                            <img src="images/node/switch_on.gif" ng-show="diskDetail.lightStatus == 'on'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+
+                            <img src="images/node/switch_off.gif" ng-show="diskDetail.lightStatus == 'off'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+
+                            <span>单击操作硬盘定位灯，可用于换盘时对硬盘定位 </span>
+                        </div>
+                    </div>
+                    <div style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 0px;" ng-show="disk.replaceModeSet != 'auto'">
+                        <div class = "ok" style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div class="tips" >
+                                <img src="images/node/swap_disk.png" style="margin-top:6px;cursor: pointer; " ng-click="swapDiskShow(nodeDetail)" >
+                                <span>选择替换硬盘 </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分隔线 -->
+                    <div style="width: 100%;float: left;height: 1px;"></div>
+
+                    <!-- 网卡展示 -->
+                    <div ng-repeat="nicDetail in nodeDetail.nics"
+                         style="float: left;width: 12.5%;min-width: 25px;height: 20px;margin:6px 0px 10px 0px;"
+                         ng-class="{ok:'nic-ok',warn:'nic-warn',down:'nic-down',recovery:'nic-recovery'}[nicDetail.status]"
+                         class="tips">
+                         <span>网卡槽号：{{nicDetail.lanNum}}</span>
+                    </div>
+                </div>
+
+                <div id="{{$parent.$index}}_{{$index}}_whole"
+                     style="background-color: #726338;display:none;width: 94%;cursor: pointer;border:0px"
+                     ng-click="nodeSelect($event,nodeDetail)" ng-mouseleave="wholeNodeMouseleave($parent.$index,$index)">
+
+                    <!-- 节点信息加IP地址 -->
+                    <div style="width: 100%;height: 30px;">
+                        <p style="margin:10px 0px 5px 10px;">
+                            节点IP：{{nodeDetail.nodeIp}}
+                        </p>
+                    </div>
+
+                    <!-- 磁盘展示 -->
+
+                    <div ng-repeat="diskDetail in nodeDetail.disks | subNodes:defaultNodes"
+                         style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 0px;">
+
+                        <div ng-class="{ok:'ok',warn:'warn',down:'down',recovery:'recovery',unused:'unused',empty:'empty'}[diskDetail.status]"
+                             style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div style="margin-right: auto;margin-left: auto;height: 38px;text-align: center;position: relative;"
+                                 class="tips">
+
+                                <img src="images/node/pic_hdd_base.png" ng-show="diskDetail.type == 'HDD'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <img src="images/node/pic_ssd_base.png" ng-show="diskDetail.type == 'SSD' || diskDetail.type == 'NVME'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <span style="min-width:180px">
+                                    硬盘类型：{{diskDetail.type}}<br/>
+                                    硬盘容量：{{diskDetail.capacity}}<br/>
+                                    硬盘厂商：{{diskDetail.vendor}}<br/>
+                                    设备名称：{{diskDetail.device_name}}<br/>
+                                    WWID:{{diskDetail.wwid}}<br/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="tips" style="margin-top: -2px;cursor: pointer;">
+                            <img src="images/node/switch_on.gif" ng-show="diskDetail.lightStatus == 'on'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+
+                            <img src="images/node/switch_off.gif" ng-show="diskDetail.lightStatus == 'off'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+                            <span>单击操作硬盘定位灯，可用于换盘时对硬盘定位</span>
+                        </div>
+                    </div>
+                    <div style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 0px;" ng-show="disk.replaceModeSet != 'auto'" >
+                        <div class = "ok" style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div class="tips" >
+                                <img src="images/node/swap_disk.png" style="margin-top:6px;cursor: pointer; " ng-click="swapDiskShow(nodeDetail)" >
+                                <span>选择替换硬盘 </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 分隔线 -->
+                    <div style="width: 100%;float: left;height: 1px;"></div>
+
+                    <!-- 网卡展示 -->
+                    <div ng-repeat="nicDetail in nodeDetail.nics"
+                         style="float: left;width: 12.5%;min-width: 25px;height: 20px;margin:3px 0px 10px 0px;"
+                         ng-class="{ok:'nic-ok',warn:'nic-warn',down:'nic-down',recovery:'nic-recovery'}[nicDetail.status]"
+                         class="tips">
+                         <span>网卡槽号：{{nicDetail.lanNum}}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- div分隔 -->
+            <div ng-if="$index < (nodeArray.length -1)" style="width: 100%;float: left;height: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- 硬件节点展示DIV 全视图 -->
+    <div ng-show="wholeOfNode" style="margin: 10px 20px 10px 20px;display: table;width: 98%; ">
+        <div style="width:100%;" ng-repeat="arr in nodeArray">
+            <div ng-repeat="nodeDetail in arr"
+                 style="width: 25%;min-width: 240px;min-height: 130px;float: left;margin:10px 0px;">
+                <!-- 单个node节点DIV-->
+                <div style="background-color: #45566C;display: table;width: 94%;cursor: pointer;"
+                     ng-class="{ok:'node-ok',warn:'node-warn',down:'node-down',recovery:'node-recovery'}[nodeDetail.nodeStatus]"
+                     ng-click="nodeSelect($event,nodeDetail)">
+
+                    <!-- 节点信息加IP地址 -->
+                    <div style="width: 100%;height: 30px;">
+                        <p style="margin:10px 0px 5px 10px;">
+                            节点IP：{{nodeDetail.nodeIp}}
+                        </p>
+                    </div>
+
+                    <!-- 磁盘展示 -->
+
+                    <div ng-repeat="diskDetail in nodeDetail.disks"
+                         style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 2px;">
+
+                        <div ng-class="{ok:'ok',warn:'warn',down:'down',recovery:'recovery',unused:'unused',empty:'empty'}[diskDetail.status]"
+                             style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div style="margin-right: auto;margin-left: auto;height: 38px;text-align: center;position: relative;"
+                                 class="tips" style="margin-top: -2px;cursor: pointer;">
+                                <img src="images/node/pic_hdd_base.png" ng-show="diskDetail.type == 'HDD'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <img src="images/node/pic_ssd_base.png" ng-show="diskDetail.type == 'SSD' || diskDetail.type == 'NVME'"
+                                style="margin-left: auto;margin-right: auto;margin-top: auto">
+                                <span style="min-width:180px">
+                                    硬盘类型：{{diskDetail.type}}<br/>
+                                    硬盘容量：{{diskDetail.capacity}}<br/>
+                                    硬盘厂商：{{diskDetail.vendor}}<br/>
+                                    设备名称：{{diskDetail.device_name}}<br/>
+                                    WWID:{{diskDetail.wwid}}<br/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="tips"; border:2px >
+                            <img src="images/node/switch_on.gif" ng-show="diskDetail.lightStatus == 'on'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+
+                            <img src="images/node/switch_off.gif" ng-show="diskDetail.lightStatus == 'off'"
+                            style="width: 71%; height: 12px; margin-left: 6px; margi-right: auto; margin-top: 0px"
+                            ng-click="diskLight($event,nodeDetail,diskDetail)">
+                            <span>单击操作硬盘定位灯，可用于换盘时对硬盘定位</span>
+                        </div>
+                    </div>
+                    <div style="float:left;width: 12.5%;min-width: 25px;height: 50px;margin: 0px 0px 10px 0px;" ng-show="disk.replaceModeSet != 'auto'" >
+                        <div class = "ok" style="width: 71%;height: 86%;margin-left: auto;margin-right: auto;border-radius: 3px; ">
+                            <div class="tips" >
+                                <img src="images/node/swap_disk.png" style="margin-top:6px;cursor: pointer; " ng-click="swapDiskShow(nodeDetail)" >
+                                <span>选择替换硬盘 </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 分隔线 -->
+                    <div style="width: 100%;float: left;height: 1px;"></div>
+
+                    <!-- 网卡展示 -->
+                    <div ng-repeat="nicDetail in nodeDetail.nics"
+                         style="float: left;width: 12.5%;min-width: 25px;height: 20px;margin:3px 0px 10px 0px;"
+                         ng-class="{ok:'nic-ok',warn:'nic-warn',down:'nic-down',recovery:'nic-recovery'}[nicDetail.status]"
+                         class="tips">
+                         <span>网卡槽号：{{nicDetail.lanNum}}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- div分隔 -->
+            <div ng-if="$index < (nodeArray.length -1)" style="width: 100%;float: left;height: 10px;"></div>
+        </div>
+    </div>
+
+</div>
+</div>
+</div>
+
+<!--Summary系统硬件详细信息-->
+<div class="div-radius" style="margin:20px 20px 20px 0;" ng-init="init()">
+    <div style="color: white;height:30px;padding-top:10px;font-size:16px;">
+        &nbsp;&nbsp;&nbsp;&nbsp;概况
+        <img src="images/main/pic_line_text1.png" style="height:1px;border:1px;width:100%">
+    </div>
+    <div class="row-fluid">
+        <div class="span8" style="background-color:#3D4D62;">
+            <div style="color: white;height:30px;padding-top:10px;font-size:16px;">
+                &nbsp;&nbsp;&nbsp;&nbsp;系统硬件详细信息
+            </div>
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="row-fluid">
+                        <div class="span7" style="margin:20px;">
+                            <div style="width:100%;height:140px">
+                                <div style="height:20px"></div>
+                                <!--
+                                <div style="background: url('images/main/pic_line_text2.png') no-repeat left bottom;">
+                                    <div style="float:left">块</div>
+                                    <div style="float:right;color:yellow">1</div>
+                                    <br/>
+                                </div>
+                                -->
+                                <div style="background: url('images/main/pic_line_text2.png') no-repeat left bottom;">
+                                    <div style="float:left">节点总个数</div>
+                                    <!--div style="float:left">{{mainName}}</div>-->
+                                    <div style="float:right;color:yellow">{{nodeStatus.nodeCount}}&nbsp;个</div>
+                                    <br/>
+                                </div>
+                                <div style="background: url('images/main/pic_line_text2.png') no-repeat left bottom;">
+                                    <div style="float:left">内存总大小</div>
+                                    <div style="float:right;color:yellow">{{nodeStatus.totalMem}}&nbsp;GB</div>
+                                    <br/>
+                                </div>
+                                <div style="background: url('images/main/pic_line_text2.png') no-repeat left bottom;">
+                                    <div style="float:left">磁盘总数</div>
+                                    <div style="float:right;color:yellow">
+                                        HDD:&nbsp;{{nodeStatus.hddCount}}&nbsp;个&nbsp;SSD:&nbsp;{{nodeStatus.ssdCount}}&nbsp;个
+                                    </div>
+                                    <br/>
+                                </div>
+                                <div style="background: url('images/main/pic_line_text2.png') no-repeat left bottom;">
+                                    <div style="float:left">CPU总核数</div>
+                                    <div style="float:right;color:yellow">{{nodeStatus.totalCPU}}&nbsp;个</div>
+                                    <br/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width:100%">
+                        <div style="height:40px;line-height:40px;">
+                            <div class="fontSize12" style="float:left;padding-left:15px">内存使用率{{nodeStatus.selectedNodeIp}}</div>
+                            <!-- <div class="fontSize12"style="float:right;padding-right:20px;color:#04CA4F">16.6%/95.66GHz</div> -->
+                        </div>
+                        <div id="nodeMemory" style="width:100%;height:140px;float:left;"></div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div style="width:100%">
+                        <div style="height:40px;line-height:40px;">
+                            <div class="fontSize12" style="float:left;padding-left:15px">CPU使用率{{nodeStatus.selectedNodeIp}}</div>
+                            <!-- <div class="fontSize12"style="float:right;padding-right:20px;color:#04CA4F">16.6%/95.66GHz</div> -->
+                        </div>
+                        <div id="nodeCpu" style="width:100%;height:140px;float:left;"></div>
+                    </div>
+                    <div style="width:100%">
+                        <div style="height:40px;line-height:40px;">
+                            <div class="fontSize12" style="float:left;padding-left:15px">磁盘容量使用率{{nodeStatus.selectedNodeIp}}</div>
+                            <!-- <div class="fontSize12"style="float:right;padding-right:20px;color:#04CA4F">16.6%/90GHz</div> -->
+                        </div>
+                        <div id="nodeDisk" style="width:100%;height:140px;float:left;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="span4" style="background-color:#323F54;">
+            <p style="color: white">&nbsp;</p>
+
+            <div style="width:100%">
+                <div style="height:40px;line-height:40px;">
+                    <div class="fontSize12" style="float:left;padding-left:15px">系统IOPS</div>
+                </div>
+                <div id="nodeIops" style="width:100%;height:140px;float:left;"></div>
+            </div>
+            <div style="width:100%">
+                <div style="height:40px;line-height:40px;">
+                    <div class="fontSize12" style="float:left;padding-left:15px">系统IO带宽</div>
+                    <!--<div class="fontSize12"style="float:right;padding-right:20px;color:#04CA4F">0KBps</div>-->
+                </div>
+                <div id="nodeMbps" style="width:100%;height:140px;float:left;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="SwapDisk" class="modal hide fade" style="background-color: #4f97dc;"
+tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header" style="font-size:15px;">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+            ×
+        </button>
+        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">
+            替换硬盘？
+        </h3>
+    </div>
+    <div  class="modal-body" style="background-color:#fff;padding:20px 50px 10px 50px;color:#97acc1;" ng-show="diskOp=='swap'">
+        <form style="margin-bottom:5px;">
+            <label style="color:#FF7611">选择需要替换掉的旧盘 :</label>
+            <select class="diskDetail" ng-model="adisk.lostDisk" ng-options="(disk.vendor + ' -- ' + (disk.capacity/(1024*1024)).toFixed(0) + 'GB -- ' + 'wwid: ' + disk.wwid  ) for disk in lostDiskList" ng-disabled="!diskDiscoverDone">
+                <option value="">-选择被拔出替换的磁盘-</option>
+            </select>
+            <br>
+            <div class="discover" name="discover" ng-show="!diskDiscoverDone"></div>
+            <label class="rediscover" ng-show="diskDiscoverDone" ng-click="rediscoverDisk()">重新扫描</label>
+            <br/>
+            <label style="color:#FF7611">选择用于替换的新盘 :</label>
+            <select class="diskDetail" ng-model="adisk.newDisk" ng-options="(disk.vendor + ' -- ' + (disk.capacity/(1024*1024*1024)).toFixed(0) + 'GB -- ' + 'wwid: ' + disk.wwid  ) for disk in newDiskList"ng-disabled="!diskDiscoverDone">
+                <option value="">-选择新盘替换-</option>
+            </select>
+            <div class="discover" name="discover" ng-show="!diskDiscoverDone"></div>
+            <label class="rediscover" ng-show="diskDiscoverDone" ng-click="rediscoverDisk()">重新扫描</label>
+        </form>
+        <p></br></p>
+        <div class="fontSize16"  style="color:red;">{{errMsg}}</div>
+    </div>
+    <div  class="modal-body" style="background-color:#fff;padding:20px 50px 10px 50px;color:#97acc1;" ng-show="diskOp=='add'">
+        <form style="margin-bottom:5px;">
+            <label style="color:#FF7611">选择新插入的盘进行存储容量扩充</label>
+            <br/>
+            <select class = "diskDetail" ng-model="disk.newDisk" ng-options="disk.diskWwid as disk.diskWwid for disk in newDiskList">
+                <option value="">-选择新插入的盘进行扩容-</option>
+            </select>
+        </form>
+        <p></br></p>
+        <div class="fontSize16"  style="color:red;">{{errMsg}}</div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="swapDisk()" ng-show="diskOp=='swap'">
+            替换硬盘
+        </button>
+        <button class="btn btn-primary" ng-click="addDisk()" ng-show="diskOp=='add'">
+            磁盘扩容
+        </button>
+        <button class="btn" data-dismiss="modal" aria-hidden="true">
+            取消
+        </button>
+    </div>
+</div>

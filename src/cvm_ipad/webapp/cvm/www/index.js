@@ -123,6 +123,18 @@ $(function(){
       });
       window.HostIndex_viewModel.loadData();
     }
+
+    /*vm*/
+    this.vmSelected = ko.observable("全部");
+    this.setVmSelected = function(object,event){
+      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue || '';
+      var val = event.currentTarget.attributes["toselect"].nodeValue;
+      self.vmSelected(val);
+      var hype = hypervisor ? hypervisor : "";
+      //var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
+      window.vm_index_viewModel.loadData(false, hype);
+    }
+
     
   }
   var viewModel = new ViewModel();
@@ -147,7 +159,7 @@ $(function(){
   $$('.assistive').on('touchmove', function(event) {
     setTimeout(function(){
       ismove = true;
-    },300)
+    },200)
     
     event.preventDefault();
     var e = event.touches[0];

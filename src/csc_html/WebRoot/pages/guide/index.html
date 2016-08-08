@@ -6,9 +6,9 @@
 </div>
 <div class='wrapper-md'>    
   	<h4 class="m-b text-primary"><i class="fa fa-star"></i> 入云向导——<span class="text-sm">对接OpenStack</span></h4>
-	<div class="row guide">
+		<div class="row guide">
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="removeTreeStyle()" href="#pages/resources/partitions/datacenters/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-dataCenter.png">
@@ -22,7 +22,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#" class="active">
+			<a onclick="removeTreeStyle()" href="#pages/resources/partitions/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-partition.png">
@@ -36,7 +36,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="doAddResource('network')" href="#">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-net.png">
@@ -50,7 +50,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="doAddResource('iso')" href="#">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-image.png">
@@ -67,7 +67,7 @@
   	<h4 class="m-b text-primary"><i class="fa fa-star"></i> 入云向导——<span class="text-sm">对接CNWare</span></h4>
 	<div class="row guide">
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="removeTreeStyle()" href="#pages/resources/partitions/datacenters/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-dataCenter.png">
@@ -81,7 +81,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#" class="active">
+			<a onclick="removeTreeStyle()" href="#pages/resources/partitions/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-partition.png">
@@ -98,7 +98,7 @@
   	<h4 class="m-b text-primary"><i class="fa fa-star"></i> 运营向导</h4>
 	<div class="row guide">
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="removeTreeStyle()" href="#pages/systems/users/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-user.png">
@@ -112,7 +112,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#" class="active">
+			<a onclick="removeTreeStyle()" href="#pages/systems/workflows/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-flow.png">
@@ -127,7 +127,7 @@
 	    	<img src="assets/img/arr1.png">
 	    </div>
 	    <div class="col-xs-2 guide-item">
-			<a href="#">
+			<a onclick="removeTreeStyle()" href="#pages/services/service_definitions/index">
 		        <div class="panel panel-white">
 		            <div class="img">
 		                <img src="assets/img/guide-release.png">
@@ -144,12 +144,167 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    //交替实现active
-    $(".guide > div > a").bind("click", function() {
-        $(this).addClass("active").parent().siblings('.guide-item').find('a').removeClass("active")
-    })
-
-  });
+	var scripts = [null, null]
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  //交替实现active
+	  $(".guide > div > a").bind("click", function() {
+	      $(this).addClass("active").parent().siblings('.guide-item').find('a').removeClass("active")
+	  })
+	});
+  
+	function removeTreeStyle(){
+		// 设置菜单树
+		$('nav .highlight').each(function(){
+			$(this).removeClass('highlight');
+		});
+		$('nav .active').each(function(){
+			$(this).removeClass('active');
+		});
+		return true;
+	}
+	  
+	// 添加网络
+	function doAddResource(type){
+		csc.rest.get('api/v5.0.0/azs?maxResult=1&firstResult=0',function(data){
+		if(data == null || data == ""){
+			return ;
+		}
+		removeTreeStyle();
+		$('nav a[href="#pages/resources/partitions/index"]').parent().addClass('highlight');
+		$('nav a[href="#pages/resources/partitions/index"]').parent().parent().parent().addClass('active');
+		var url = '#pages/resources/partitions/partition_detail?type='+type+'&azUuid='+data.results[0].uuid+'&cloudPlatform='+data.results[0].cloudPlatform+'&virtualHypervisor='+data.results[0].virtualHypervisor;
+			window.location.href=url;
+		});
+		return false;
+	}
+  
+	// 禁用板块
+	function disablePanel(){
+		$('.wrapper-md:lt(2)').each(function(){
+			$(this).find('.guide .guide-item:gt(0)').each(function(){
+				$(this).html('<div>'+$(this).find('a').html()+'</div>');
+			});
+		});
+		$('.wrapper-md:eq(2)').each(function(){
+			$(this).find('.guide .guide-item:lt(2)').each(function(){
+				$(this).html('<div>'+$(this).find('a').html()+'</div>');
+				$(this).hide();
+				$(this).next().hide();
+			});
+		});
+	}
+	
+	//启用板块
+	function enablePanel(rowIndex,cellIndex){
+		var key=rowIndex+'_'+cellIndex;
+		$('.wrapper-md:eq('+--rowIndex+')').each(function(){
+			$(this).find('.guide .guide-item:eq('+--cellIndex+')').each(function(){
+				$(this).html(panelData[key]);
+			});
+		});
+	}
+	
+	//启用板块
+	function enablePanel2(rowIndex,cellIndex){
+		var key=rowIndex+'_'+cellIndex;
+		$('.wrapper-md:eq('+--rowIndex+')').each(function(){
+			$(this).find('.guide .guide-item:eq('+--cellIndex+')').each(function(){
+				$(this).show();
+				$(this).next().show();
+				$(this).html(panelData[key]);
+			});
+		});
+	}
+	
+	//高亮模块
+	function highlight(rowIndex,cellIndex){
+		$('.wrapper-md:eq('+--rowIndex+')').each(function(){
+			$(this).find('.guide .guide-item:eq('+--cellIndex+')').each(function(){
+				$(this).find('a').addClass('active');
+			});
+		});
+	}
+	
+	// 获取数据中心信息
+	// 如果创建了数据中心，则展示创建可用分区板块
+	function getDatacenter(){
+		csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data){
+			if(data == null || data == ""){
+				return ;
+			}
+			if(data.results.length > 0){
+				enablePanel(1,2);
+				enablePanel(2,2);
+				getPartition();
+				highlight(1,1);
+				highlight(2,1);
+			}
+		});
+	}
+	
+	// 获取可用分区信息
+	// 如果有可用分区信息，则展示添加网络板块
+	function getPartition(){
+		csc.rest.get('api/v5.0.0/azs?maxResult=1&firstResult=0',function(data){
+			if(data == null || data == ""){
+				return ;
+			}
+			if(data.results.length > 0){
+				enablePanel(1,3);
+				highlight(1,2);
+				highlight(2,2);
+				getNetwork(data.results[0].uuid);
+			}
+		});
+	}
+	
+	// 获取网络信息
+	// 如果有网络信息，则展示添加镜像板块
+	function getNetwork(zazUuid){
+		csc.rest.get('api/v5.0.0/networks?azUuid='+zazUuid+'&maxResult=1&firstResult=0',function(data){
+			if(data == null || data == ""){
+				return ;
+			}
+			if(data.results.length > 0){
+				enablePanel(1,4);
+				highlight(1,3);
+			}
+		});
+	}
+	
+	// 获取产品发布信息
+	// 如果没有产品发布信息，则展示用户管理和流程定义
+	function getProduct(){
+		csc.rest.get('api/v5.0.0/service?maxResult=1&firstResult=0&state=1',function(data){
+			if(data == null || data == ""){
+				return ;
+			}
+			if(data.results.length > 0){
+				highlight(3,3);
+			}else{
+				enablePanel2(3,1);
+				enablePanel2(3,2);
+			}
+		});
+	}
+	
+	// 缓存板块内容
+	function loadPanelData(){
+		var rowIndex =1 ;
+		$('.wrapper-md').each(function(){
+			var cellIndex =1 ;
+			$(this).find('.guide .guide-item').each(function(){
+				var key = rowIndex+'_'+ (cellIndex++)
+				panelData[key]=$(this).html();
+			});
+			rowIndex++;
+		});
+	}
+	var panelData={};
+	$(function(){
+		loadPanelData();
+		disablePanel();
+		getDatacenter();
+		getProduct();
+	});
 </script>

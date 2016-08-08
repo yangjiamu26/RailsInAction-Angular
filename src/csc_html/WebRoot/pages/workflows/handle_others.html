@@ -1,74 +1,34 @@
-<div class="bg-light lter b-b wrapper-sm">
-  <ol class="breadcrumb">
-    <li>当前位置：</li>
-    <li>工作</li>
-    <li><a data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">我的工作</a></li>
-    <li class="active">任务办理</li>
-  </ol>
-</div>
-
-<div class="wrapper-md">
-	<div class="panel panel-info">
-		<div class="panel-heading">基本信息</div>
-		<div class="panel-body">
-			<div class="row">
-				<div class="col-xs-4">
-					<p><strong>订单号：</strong>15137</p>
-				</div>
-				<div class="col-xs-4">
-					<p><strong>流程类型：</strong>资源申请</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-4">
-					<p><strong>流程状态：</strong><span class="label label-info">审批中</span> <a>查看</a></p>
-				</div>
-				<div class="col-xs-4">
-					<p><strong>当前节点：</strong>资源审批</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-4">
-					<p><strong>申请人：</strong>admin</p>
-				</div>
-				<div class="col-xs-4">
-					<p><strong>申请日期：</strong>2016-08-08 18:08:08</p>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="panel panel-info">
+	<div class="panel panel-info" id="handleotherContent">
 		<div class="panel-heading">申请信息</div>
 		<div id="orderDetailedList" class="wrapper">
-			<div item="orderdetailed-harddisk">
-				<h5 class="text-info">云硬盘数：1</h5>
+			<div item="orderdetailed-harddisk" data-bind="visible:$root.vdiskNum()>0">
+				<h5 class="text-info">云硬盘数：
+					<span class="badge bg-danger" data-bind="text:vdiskNum"></span>
+				</h5>
 				<table class="table table-striped">
 					<thead>
 						<tr>
 							<th>云硬盘名称</th>
-							<th>云硬盘类型</th>
 							<th>存储大小（G）</th>
 							<th>所属VDC</th>
 							<th>挂载云主机</th>
 							<th>收费标准</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody data-bind="foreach:vdiskList">
 						<tr>
-							<td>云硬盘</td>
-							<td>SSH</td>
-							<td>300</td>
-							<td>研发部</td>
-							<td>云主机1</td>
-							<td>0.5元/时</td>						
+							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:size"></td>
+							<td data-bind="text:vdcName"></td>
+							<td data-bind="text:vmName"></td>
+							<td data-bind="text:fee"></td>				
 						</tr>
 					</tbody>
 				</table>
 			</div>
 
 			
-			<div item="orderdetailed-router">
+			<div item="orderdetailed-router" data-bind="visible:$root.ltNum()>0">
 				<h5 class="text-info">路由器数：1</h5>
 				<table class="table table-striped">
 					<thead>
@@ -95,7 +55,7 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-ip">
+			<div item="orderdetailed-ip" data-bind="visible:$root.publicNetworkNum()>0">
 				<h5 class="text-info">公网IP数：1</h5>
 				<table class="table table-striped">
 					<thead>
@@ -121,8 +81,8 @@
 				</table>
 			</div>
 			
-			<div item="orderdetailed-balancer">
-				<h5 class="text-info">负载均衡器数：1</h5>
+			<div item="orderdetailed-balancer" data-bind="visible:$root.lbNum()>0">
+				<h5 class="text-info">负载均衡器数：<span class="badge bg-danger" data-bind="text:lbNum"></span></h5>
 				<table class="table table-striped">
 					<thead>
 						<tr>
@@ -132,39 +92,37 @@
 							<th>收费标准</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody data-bind="foreach:lbList">
 						<tr>
-							<td>负载均衡器1</td>
-							<td>研发部</td>
-							<td>永久</td>
-							<td>0.5元/月</td>						
+							<td data-bind="text: instanceName"></td>
+							<td data-bind="text: vdcName"></td>
+							<td data-bind="text: expireTime"></td>
+							<td data-bind="text: fee"></td>						
 						</tr>
 					</tbody>
 				</table>
 			</div>
 
 			
-			<div item="orderdetailed-sshkey">
+			<div item="orderdetailed-sshkey" data-bind="visible:$root.sshNum()>0">
 				<h5 class="text-info">SSH密钥数：1</h5>
 				<table class="table table-striped">
 					<thead>
 						<tr>
 							<th>SSH密钥</th>
 							<th>所属VDC</th>
-							<th>挂载云主机</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody data-bind="foreach:sshList">
 						<tr>
-							<td>密钥1</td>
-							<td>研发部</td>
-							<td>host1</td>
+							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:vdcName"></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 
-			<div item="orderdetailed-objstorage">
+			<div item="orderdetailed-objstorage" data-bind="visible:$root.objectStorageNum()>0">
 				<h5 class="text-info">对象存储数：1</h5>
 				<table class="table table-striped">
 					<thead>
@@ -188,35 +146,77 @@
 				</table>
 			</div>
 		</div>
-		<div class="wrapper">
-			<h4>审批意见:</h4>
-			<textarea class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>
-			<hr />
-	  	<div>
-		  	<button name="button"  class="btn btn-info" data-dismiss="modal">保存数据</button>
-		    <button name="button"  class="btn btn-default" data-dismiss="modal" onclick="showModal('pages/workflows/back.html')">回退</button>
-		    <button name="button"  class="btn btn-default" onclick="showModal('pages/workflows/transfer.html')">转发</button>
-		    <button name="button"  class="btn btn-default" onclick="showModal('pages/workflows/next.html')">转交下一步</button>
-		    <a  class="btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">取消</a>
-		  </div>
-		</div>
 	</div>
-</div>
 <script type="text/javascript">
 	var scripts = [null, null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-		
-		var showItems = args.items.split('-');
-		var orderDetailedList = $("#orderDetailedList");
-		$.each($("#orderDetailedList > div"),function(n,v){
-			var hasItem = false;
-			$.each(showItems,function(a,b){
-				if($(v).attr("item").indexOf(b) > -1)
-					hasItem = true;
-			});
-			if(!hasItem)
-				$(this).remove();
-		});
+		 if(args.taskId){
+			function ViewModel(){
+			    var self = this;
+	            this.vdiskNum = ko.observable("");
+	            this.objectStorageNum = ko.observable(""); 
+	            this.publicNetworkNum = ko.observable("");
+	            this.lbNum = ko.observable("");
+	            this.sshNum = ko.observable("");
+	            this.ltNum = ko.observable("0"); //路由器数
+	            
+	            this.vdiskList = ko.observableArray();
+	            this.sshList = ko.observableArray();
+	            this.lbList = ko.observableArray();
+	            
+			     csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+		    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+					 //获取订单数据
+			      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+			      		
+			            var vdiskNum = 0;
+			            var objectStorageNum = 0;
+			            var publicNetworkNum = 0;
+			            var lbNum = 0;
+			            var sshNum = 0;
+			            
+			      		data.orderItems.forEach(function(e){
+			      			var metaData = JSON.parse(e.metaData);
+			      			var resBaseInfo = {};
+			      			if(metaData.resBaseInfo!=""){
+			      				resBaseInfo = JSON.parse(metaData.resBaseInfo);
+			      			}
+			      			
+			      			if(e.resourceType=='DISK'){
+			      				vdiskNum ++;
+			      				
+			      				var disk = e;
+				      			disk.size = resBaseInfo.volumeSize;
+				      			
+				      			var vmName = resBaseInfo.vmName;
+				      			disk.vmName = vmName;
+				      			
+				      			self.vdiskList.push(disk);
+			      			}else if(e.resourceType=='SECRET_KEY'){
+			      				sshNum ++;
+			      				self.sshList.push(e);
+			      			}else if(e.resourceType=='LOAD_BALANCING'){
+			      				lbNum++;
+			      				if(e.expireType == "1"){
+			      					e.expireTime = "永久";
+			      				}else if(e.expireType == "2"){
+			      					e.expireTime = e.expireValue+"月";
+			      				}else if(e.expireType == "3"){
+			      					e.expireTime = e.expireTime;
+			      				}
+			      				self.lbList.push(e);
+			      			}
+			      		})
+			      		
+			      		self.sshNum(sshNum);
+			      		self.vdiskNum(vdiskNum);
+			      		self.lbNum(lbNum);
+			      	 })
+			  })
+		 }
+				
+		ko.applyBindings(new ViewModel(), $('#handleotherContent')[0]); 
+	  }
 	});
 	
 </script>
