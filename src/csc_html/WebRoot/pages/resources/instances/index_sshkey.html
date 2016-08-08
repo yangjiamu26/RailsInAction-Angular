@@ -688,6 +688,7 @@
      	  self.isDeleteProcess(true);
  		  self.deleteProcessVO().name(object.name);
  		  self.deleteProcessVO().uuid(object.uuid);
+ 		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
  		  var myDate = new Date();
  		  self.deleteProcessVO().time(myDate.toLocaleString());
  		  self.deleteProcessVO().user("");
@@ -697,7 +698,8 @@
      	  name: ko.observable(),
      	  uuid: ko.observable(),
      	  time: ko.observable(),
-     	  user: ko.observable()
+     	  user: ko.observable(),
+     	  serviceInstanceUuid: ko.observable()
        });
        
        this.deleteProcessPost = function(){
@@ -706,6 +708,7 @@
        	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
        	  orderItem.resourceType = self.deleteProcessVO().type;
        	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+       	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
        	  
        	  var orderItems = [];
        	  orderItems.push(orderItem);
@@ -735,6 +738,7 @@
  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
  		  var myDate = new Date();
  		  self.validateProcessVO().time(myDate.toLocaleString());
+ 		  self.validateProcessVO().metaTime(object.expiryTime());
  		  self.validateProcessVO().user("");
  		  
  		  self.validateProcessVO().validateTime(object.expiryTime);
@@ -762,6 +766,7 @@
      	  time: ko.observable(),
      	  user: ko.observable(),
      	  serviceInstanceUuid: ko.observable(),
+     	  metaTime: ko.observable(),
      	  
      	  validateTime: ko.observable(),
      	  targetValidateTime: ko.observable()
@@ -769,11 +774,13 @@
        
        //申请
        this.validateProcessPost = function(){
-     	  var orderItem = {};
+    	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\"" + self.validateProcessVO().metaTime() + "\"}}";
+    	  var orderItem = {};
      	  orderItem.instanceName = self.validateProcessVO().name();
      	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
      	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
      	  orderItem.resourceType = "SECRET_KEY";
+     	  orderItem.resourceUuid = self.validateProcessVO().uuid();
      	  
      	  var orderItems = [];
      	  orderItems.push(orderItem);

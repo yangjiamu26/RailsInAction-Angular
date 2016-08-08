@@ -187,42 +187,68 @@
                  	    	}
                  	    	return arrayCharge;
                  	    }
-                         
-	    			$('.applyDateFormat').val(moment().format('YYYY/MM/DD')).daterangepicker(
-	    	   	      {
-	    	   	        format:'YYYY/MM/DD',
-	    	   	        startDate: moment(),
-	    	   	        singleDatePicker:true,
-	    	   	        endDate: moment(),
-	    	   	        separator:'至'
-	    	   	      }
-	    	   	    );
+                        
+                      	$('.applyDateFormat').each(function(n,v){
+                    		$(this).daterangepicker({
+                            	startDate: $(this).val() == '' ?moment():$(this).val(), 
+                                endDate: false, 
+                                singleDatePicker:true
+                            });
+                    	})
+                    	
+                    function nameCheck(name,type,callback){
+        			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name,function(result){
+        			 		 if(result.result==true){
+        			 			  systemMsg.alert(result.message);
+        						  callback(false);
+        					  }else{
+        						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+name,function(result1){	
+        						 		 if(result1.isExist==true){
+        						 			  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
+        									  callback(false);
+        								  }else{
+        									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+name,function(result1){	
+        									 		 if(result1.isExist=="true"){
+        												  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+        												  callback(false);
+        											  }else{
+        												  callback(true);
+        											  }
+        									    });
+        								  }
+        						    });
+        					  }
+        			    });	
+                    }
 	    								
     	           this.save = function(){
     	        	   if(self.model_ObjSto.isValid()){
-        	        		   console.log(self.model_ObjSto());
-	       						var meta = {"resBaseInfo":{"applySize":self.model_ObjSto().applySize()}};
-	    						meta = JSON.stringify(meta);
-	    						var expireValue='';
-	    						if(self.model_ObjSto().expireType()=='2'){
-	    							expireValue = self.model_ObjSto().applyNum();
-	    						}else if(self.model_ObjSto().expireType()=='3'){
-	    							expireValue = self.model_ObjSto().applyTime();
-	    						}
-        	        		   var itemResults = {
-        	        				   "instanceName":self.model_ObjSto().instanceName(),
-        	        				   "expireType":self.model_ObjSto().expireType(),
-        	        				   "expireValue":expireValue,
-        	        				   "vdcUuid":self.model_ObjSto().vdcUuid(),
-        	        				   "azUuid":self.model_ObjSto().azUuid(),
-        	        				   "billCycle":self.model_ObjSto().billCycle(),
-        	        				   "fee":self.model_ObjSto().fee(),
-        	        				   "metaData":meta,
-        	        				   "desc":self.model_ObjSto().desc()
-        	        				   };
-	       						csc.rest.put('api/v5.0.0/orders/'+orderData.uuid+'/modifyItem/'+orderItem.uuid,itemResults,function(data){
-	    			          		alert('保存成功！');
-	    		  		    	});
+    	        		       nameCheck(self.model_ObjSto().instanceName(),"OBJECT_STORAGE",function(pass){
+    	        		    	   if(pass){
+    		       						var meta = {"resBaseInfo":{"applySize":self.model_ObjSto().applySize()}};
+    		    						meta = JSON.stringify(meta);
+    		    						var expireValue='';
+    		    						if(self.model_ObjSto().expireType()=='2'){
+    		    							expireValue = self.model_ObjSto().applyNum();
+    		    						}else if(self.model_ObjSto().expireType()=='3'){
+    		    							expireValue = self.model_ObjSto().applyTime();
+    		    						}
+    	        	        		    var itemResults = {
+    	        	        				   "instanceName":self.model_ObjSto().instanceName(),
+    	        	        				   "expireType":self.model_ObjSto().expireType(),
+    	        	        				   "expireValue":expireValue,
+    	        	        				   "vdcUuid":self.model_ObjSto().vdcUuid(),
+    	        	        				   "azUuid":self.model_ObjSto().azUuid(),
+    	        	        				   "billCycle":self.model_ObjSto().billCycle(),
+    	        	        				   "fee":self.model_ObjSto().fee(),
+    	        	        				   "metaData":meta,
+    	        	        				   "desc":self.model_ObjSto().desc()
+    	        	        				   };
+    		       						csc.rest.put('api/v5.0.0/orders/'+orderData.uuid+'/modifyItem/'+orderItem.uuid,itemResults,function(data){
+    		    			          		alert('保存成功！');
+    		    		  		    	});
+    	        		    	   }
+    	        		       })
     	        	   }
      	      		}
     	      	  }

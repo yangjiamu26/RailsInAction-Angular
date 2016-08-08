@@ -16,7 +16,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">所属VDC<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options:currentVO().vdcList,optionsText:'name',optionsValue:'uuid',value:currentVO().vdcUuid,event:{change:function(data, event){ $root.vdcChange(data,event) }}">
+              <select class="form-control" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value:currentVO().vdcUuid,event:{change:function(data, event){ $root.vdcChange(data,event) }}">
               </select>
             </div>
           </div>
@@ -25,7 +25,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options:currentVO().azList,optionsText:'name',optionsValue:'uuid',value:currentVO().azList">
+              <select class="form-control" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value:currentVO().azUuid">
               </select>
             </div>
           </div>
@@ -36,7 +36,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <textarea class="form-control" data-bind="text: currentVO().desc"></textarea>
+              <textarea class="form-control" data-bind="value: currentVO().desc"></textarea>
             </div>
           </div>
         </div>
@@ -56,14 +56,15 @@
                   <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: currentVO().expireType"> 
                   <select class="form-control" data-bind="value: currentVO().expireValue">
                   <option value="1">1</option>
-                  <option value="1">2</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
                   </select> 个月
                 </label>
               </div>
               <div class="radio disabled">
                 <label class="form-inline">
                   <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: currentVO().expireType">
-                 	 有效期至 <input type="text" class="form-control" id="timerange" style="display:inline-block;"  />
+                 	 有效期至 <input type="text" class="form-control" id="timerange" style="display:inline-block;" data-bind="value: currentVO().expireTime"/>
                 </label>
               </div>
               
@@ -76,7 +77,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options:currentVO().billRuleList,optionsText:'name',optionsValue:'value',value:currentVO().billCycle,event:{change:function(data, event){ $root.chargeChangeCart(data,event) }}">
+              <select class="form-control" style="width:150px;display:inline-block;" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:currentVO().billCycle,event:{change:function(data, event){ $root.chargeChangeCart(data,event) }}">
                 <option>包月</option>
                 <option>包年</option>
               </select> 
@@ -121,6 +122,10 @@
 		function ViewModel(){
 		  var self = this;
 		  
+		  this.vdcList = ko.observableArray([]);
+          this.azList = ko.observableArray([]);
+          this.billRuleList = ko.observableArray([]);
+		  
 		  this.currentVO = ko.validatedObservable({
 			  uuid: ko.observable(""),
 			  orderUuid: ko.observable(""),
@@ -128,17 +133,19 @@
               serviceUuid: ko.observable(""),
               desc: ko.observable(""),
               vdcUuid: ko.observable(""),
+              vdcName: ko.observable(""),
               azUuid: ko.observable(""),
-              vdcList: ko.observableArray([]),
-              azList: ko.observableArray([]),
+              azName: ko.observable(""),
               expireType: ko.observable("1"),
               expireValue: ko.observable(""),
+              expireTime: ko.observable(""),
               metaData: ko.observable(""),
+              itemState: ko.observable(""),
+              resourceType: ko.observable(""),
               isBill: ko.observable(""),
               billCycle: ko.observable(""),
               fee: ko.observable(""),
-              billRuleList: ko.observableArray([]),
-              unitPrice: ko.observable("")
+              isBill: ko.observable("")
 		  });
 		  
 		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -155,9 +162,9 @@
 	      		
 	      		var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
 	      		csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
-	      			self.currentVO().vdcList(result.vdcList);
-                    self.currentVO().azList(result.azList);
-                    self.currentVO().billRuleList(setArrayCharge(result.chargeList));
+	      			self.vdcList(result.vdcList);
+                    self.azList(result.azList);
+                    self.billRuleList(setArrayCharge(result.chargeList));
 
                    	self.currentVO.fromJSON({
                    		uuid: item.uuid,
@@ -166,11 +173,17 @@
                    		serviceUuid: item.serviceUuid,
                    		desc: item.desc,
                    		vdcUuid: item.vdcUuid,
+                   		vdcName: item.vdcName,
                    		metaData: metaData,
                    		azUuid: item.azUuid,
+                   		azName: item.azName,
                    		expireValue: item.expireValue,
                    		expireType: item.expireType,
+                   		expireTime: item.expireTime,
+                   		itemState: item.itemState,
+                   		resourceType: item.resourceType,
                    		billCycle: item.billCycle,
+                   		isBill: item.isBill,
                    		fee: item.fee
                    	})
 	      		})
@@ -187,26 +200,37 @@
 		  }
 		  
 		  this.save = function(){
-			  debugger
-             if(self.currentVO.isValid()){
-                    console.log(self.currentVO()); 
-                  var meta = {"resBaseInfo":{"applySize":self.currentVO().applySize()}}; 
-                  meta = JSON.stringify(meta); 
-                  var expireValue=''; 
-                  if(self.currentVO().expireType()=='2'){ 
-                     expireValue = self.currentVO().applyNum(); 
-                  }else if(self.currentVO().expireType()=='3'){ 
-                     expireValue = self.currentVO().applyTime(); 
-                  } 
-                   
-                  csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderUuid+'/modifyItem/'+self.currentVO().uuid,self.currentVO.toJSON(),function(data){ 
-                      alert('保存成功！'); 
-                  }); 
-             } 
+			 if(args.state=='UNSUBMIT'){
+	             if(self.currentVO.isValid()){
+	                  var expireValue=''; 
+	                  if(self.currentVO().expireType()=='2'){ 
+	                     expireValue = self.currentVO().expireValue(); 
+	                  }else if(self.currentVO().expireType()=='3'){ 
+	                     expireValue = self.currentVO().expireTime(); 
+	                  } 
+	                  var itemResults = {
+	                		"instanceName": self.currentVO().instanceName(),
+	                		"vdcUuid": self.currentVO().vdcUuid(),
+	                		"azUuid": self.currentVO().azUuid(),
+	                		"expireValue": expireValue,	                		
+	                   		"expireType": self.currentVO().expireType(),
+	                   		"expireTime": self.currentVO().expireTime(),
+	                   		"desc": self.currentVO().desc(),
+	                   		"billCycle": self.currentVO().billCycle()
+	                  }
+	                  csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderUuid()+'/modifyItem/'+self.currentVO().uuid(), itemResults, function(data){ 
+	                      alert('保存成功！'); 
+	                  }); 
+	             }
+			 }else{
+				 saveComment(args.taskId,function(){
+        			alert("保存成功！");
+        		 });
+			 }
           }
 		}
 		
-		ko.applyBindings(new ViewModel(), $('#balanceContent')[0]); 
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
     }
     
     $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
