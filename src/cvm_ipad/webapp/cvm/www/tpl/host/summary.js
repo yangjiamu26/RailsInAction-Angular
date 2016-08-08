@@ -214,7 +214,8 @@ function initSingleHost_storage_chart() {
 }
   function ViewModel(){
     this.summary = ko.observable({
-      "hypervisor":''
+      "hypervisor":'',
+      "vmNum":''
     });
     this.loadData = function(data){
       var self = this;

@@ -2,20 +2,21 @@ myApp.onPageInit("pool-list-search", function(page) {
   function ViewModel(){
     var self = this;
     this.dataList = ko.observableArray([]);
+    this.forPage = ko.observable(page.query.forPage);
 
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.poolSelected = ko.observable("全部");
     this.setPoolSelected = function(object,event){
-      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue;
+      //var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue;
       var val = event.currentTarget.attributes["toselect"].nodeValue;
       self.poolSelected(val);
-      var hype = hypervisor ? hypervisor : "";
+      //var hype = hypervisor ? hypervisor : "";
       var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
       if(page.query.forPage == 'vm'){
-        window.vm_index_viewModel.loadData(false, hype, id);
+        window.vm_index_viewModel.loadData(false, self.hypervisor(), id);
       }
       if(page.query.forPage == 'storage'){
-        window.storage_index_viewModel.loadData(false, hype);
+        window.storage_index_viewModel.loadData(false, self.hypervisor(), id);
       }
     }
 
@@ -26,7 +27,7 @@ myApp.onPageInit("pool-list-search", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":self.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
         //$.ajax("tpl/pool/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
@@ -49,9 +50,9 @@ myApp.onPageInit("pool-list-search", function(page) {
 
   viewModel.loadData();
 
-  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
-  });
+  // $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+  //   viewModel.loadData();
+  // });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true);
   });  

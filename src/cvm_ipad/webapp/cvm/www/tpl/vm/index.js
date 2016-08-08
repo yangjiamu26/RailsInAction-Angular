@@ -4,6 +4,7 @@ myApp.onPageInit("vm-index", function(page) {
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
     this.dataList = ko.observableArray([]);
+    this.vmNum = ko.observable("");
 
     this.loading = false;
     this.page = 1;
@@ -31,8 +32,31 @@ myApp.onPageInit("vm-index", function(page) {
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
 
-          initVm_os_chart();
-          initVm_status_chart();
+          self.vmNum(data.size);
+          var os = [0,0,0,0], status = [0,0,0];
+          for(var i=0; i<data.data.length; i++){
+            var reg1 = /windows/i,
+                reg2 = /linux/i,
+                reg3 = /aix/i;
+            if(data.data[i].osVersion.match(reg1)&&data.data[i].osVersion.match(reg1).index>-1){
+              os[0]+=1;
+            }else if(data.data[i].osVersion.match(reg2)&&data.data[i].osVersion.match(reg2).index>-1){
+              os[1]+=1;
+            }else if(data.data[i].osVersion.match(reg3)&&data.data[i].osVersion.match(reg3).index>-1){
+              os[2]+=1;
+            }else{
+              os[3]+=1;
+            }
+            if(data.data[i].state=="OK"){
+              status[0]+=1;
+            }else if(data.data[i].state=="STOPPED"){
+              status[1]+=1;
+            }else{
+              status[2]+=1;
+            }
+          }
+          initVm_os_chart(os);
+          initVm_status_chart(status);
         }
         for(var i=0; i<data.data.length; i++){
           var reg1 = /windows/i,
@@ -148,7 +172,7 @@ myApp.onPageInit("vm-index", function(page) {
 
 
 // 虚拟机-操作系统占比
-function initVm_os_chart() {
+function initVm_os_chart(os) {
     $('#vm_os_chart').highcharts({
         chart: {
             marginTop: 15,
@@ -194,18 +218,23 @@ function initVm_os_chart() {
             name: '操作系统',
             data: [{
                   name: 'Windows',
-                  y: 40,
+                  y: os[0],
                   color:"#4791d2"
               },
               {
                   name: 'AIX',
-                  y: 10,
+                  y: os[2],
                   color:"#ffd800"
               },
               {
                   name: 'Linux',
-                  y: 28,
+                  y: os[1],
                   color:"#5bd544"
+              },
+              {
+                  name: 'Other',
+                  y: os[3],
+                  color:"#fe9898"
               }
           ]
         }]
@@ -214,7 +243,7 @@ function initVm_os_chart() {
 
 
 // 虚拟机-状态占比
-function initVm_status_chart() {
+function initVm_status_chart(states) {
     $('#vm_status_chart').highcharts({
         chart: {
             marginTop: 15,
@@ -260,18 +289,18 @@ function initVm_status_chart() {
             name: '状态',
             data: [{
                   name: '运行中',
-                  y: 55,
-                  color:"#4791d2"
+                  y: states[0],
+                  color:"#5bd544"
               },
               {
                   name: '已关机',
-                  y: 10,
+                  y: states[1],
                   color:"#ffd800"
               },
               {
                   name: '其他',
-                  y: 13,
-                  color:"#5bd544"
+                  y: states[2],
+                  color:"#4791d2"
               }
           ]
         }]
