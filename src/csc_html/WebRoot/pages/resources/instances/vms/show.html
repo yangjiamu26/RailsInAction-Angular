@@ -273,12 +273,12 @@
             <div class="col-xs-9">
               <strong>采集</strong>
               <select class="input-sm form-control w-sm inline v-middle" id="minute_select">
-                 <option value="10">10</option>
-                 <option value="20">20</option>
-                 <option value="30">30</option>
-                 <option value="60">60</option>
+                 <option value="10">10分钟</option>
+                 <option value="20">20分钟</option>
+                 <option value="30">30分钟</option>
+                 <option value="60">60分钟</option>
               </select>
-              <strong>之前数据</strong>&nbsp;
+              <strong>之内数据</strong>&nbsp;
               <button class="btn btn-sm btn-default" data-bind="click: config">告警配置</button>
             </div>
           </div> 
@@ -1156,30 +1156,53 @@
 		  self.deleteProcessVO().uuid(self.vmVO().uuid);
 		  var myDate = new Date();
 		  self.deleteProcessVO().time(myDate.toLocaleString());
-		  self.deleteProcessVO().user("");
+		  self.deleteProcessVO().serviceInstanceUuid(self.vmVO().serviceInstanceUuid);
       }
   
       this.deleteProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
     	  time: ko.observable(),
-    	  user: ko.observable()
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable()
       });
       
-      //保存
       this.deleteProcessPost = function(){
-    	  var postBody = {};
-    	  postBody.state = "UNSUBMIT";//流程状态
-    	  postBody.type = "RESOURCE_DELETE";//流程类型
-    	  postBody.flowState = "";//流程节点状态
-    	  postBody.userType = "";//用户uuid
-    	  postBody.userName = "";//用户名称
-    	  postBody.resourceNames = "";//实例名称组合
-    	  postBody.resourceType = "VM";//资源类型
-		  /* csc.rest.post("api/v5.0.0/orders",postBody,function(data){
-    	  }); */
-    	  self.isDeleteProcess(false);
-      }
+		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.deleteProcessVO().uuid(),function(volumeData){
+        	  var orderItem = {};
+        	  orderItem.instanceName = self.deleteProcessVO().name();
+        	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
+        	  orderItem.resourceType = self.deleteProcessVO().type;
+        	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+        	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
+        	  
+        	  var orderItems = [];
+        	  orderItems.push(orderItem);
+        	  
+        	  if(volumeData.results){
+        		  var volumes = volumeData.results;
+            	  for(var i=0;i<volumes.length;i++){
+            		  var volumeItem = {};
+            		  volumeItem.instanceName = volumes[i].volumeName();
+            		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+            		  volumeItem.resourceType = "DISK";
+            		  volumeItem.metaData =  "{\"resBaseInfo\": {}";
+            		  orderItems.push(volumeItem);
+            	  }
+        	  }
+        	  
+        	  var postBody = {}; 
+        	  postBody.resourceType = self.deleteProcessVO().type;;
+        	  postBody.orderItems = orderItems;
+        	  
+        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+        		  if(data.code){
+        			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+      		 		self.isDeleteProcess(false);
+        		  }
+        	  });
+		  });
+  		}
       
       //------------------------------------------删除-流程结束--------------------------------
       
@@ -1229,6 +1252,7 @@
     	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
     	  orderItem.resourceType = "VM";
     	  orderItem.metaData = metaData;
+    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
     	  
     	  var orderItems = [];
     	  orderItems.push(orderItem);
@@ -1253,10 +1277,12 @@
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(self.vmVO().name);
 		  self.validateProcessVO().uuid(self.vmVO().uuid);
+		  self.validateProcessVO().vdcName(self.vmVO().vdcName);
+		  self.validateProcessVO().busSysName(self.vmVO().busSysName);
 		  self.validateProcessVO().serviceInstanceUuid(self.vmVO().serviceInstanceUuid);
 		  var myDate = new Date();
 		  self.validateProcessVO().time(myDate.toLocaleString());
-		  self.validateProcessVO().user("");
+		  self.validateProcessVO().metaTime(self.vmVO().expiryTime);
 		  
 		  self.validateProcessVO().validateTime(self.vmVO().expiryTime);
 		  self.validateProcessVO().targetValidateTime("");
@@ -1280,21 +1306,27 @@
       this.validateProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  metaTime: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
+    	  vdcName: ko.observable(),
+    	  busSysName: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
-    	  
     	  validateTime: ko.observable(),
     	  targetValidateTime: ko.observable()
       });
       
       //申请
       this.validateProcessPost = function(){
+    	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\""+self.validateProcessVO().metaTime() +"\",\"vdcName\": \""+self.validateProcessVO().vdcName()+"\",\"busSysName\":\""+self.validateProcessVO().busSysName()+"\"}}";
+    	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.validateProcessVO().name();
     	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
     	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
     	  orderItem.resourceType = "VM";
+    	  orderItem.resourceUuid = self.validateProcessVO().uuid();
+    	  orderItem.metaData = metaData;
     	  
     	  var orderItems = [];
     	  orderItems.push(orderItem);

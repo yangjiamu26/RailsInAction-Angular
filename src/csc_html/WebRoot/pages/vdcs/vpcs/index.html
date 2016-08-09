@@ -1141,17 +1141,29 @@
 
 	  ko.applyBindings(new VPNViewModel(), $("#page-content .tab-pane")[4]);
 	  
-	//获取url参数，用于首页传参，初始化时显示不同的tab
-	function getUrlParam(name) {
-	　　var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-	　　var r = window.location.href.match(reg);
-	　　if (r != null)
-	　　return unescape(r[2]);
-　　}
+	//获取URL参数对象
+	function UrlSearch() {
+		var name,value; 
+		var str=location.href; //取得整个地址栏
+		var num=str.indexOf("?") 
+		str=str.substr(num+1); //取得所有参数   stringvar.substr(start [, length ]
+	
+		var arr=str.split("&"); //各个参数放到数组里
+		for(var i=0;i < arr.length;i++){ 
+			num=arr[i].indexOf("="); 
+			if(num>0){ 
+				name=arr[i].substring(0,num);
+				value=arr[i].substr(num+1);
+				this[name]=value;
+			}
+		}
+	}
+  	
+	var requestParam = new UrlSearch();
 	//显示不同的tab，待办/已办
-	if(getUrlParam('showTab') == 'routerTab' || getUrlParam('showTab') == 'firewallTab'
-		 || getUrlParam('showTab') == 'safegroupTab' ){
-		$("#"+getUrlParam('showTab')).tab("show");
+	if(requestParam.showTab == 'routerTab' || requestParam.showTab == 'firewallTab'
+		 || requestParam.showTab == 'safegroupTab' ){
+		$("#"+requestParam.showTab).tab("show");
 	}
 });
 	

@@ -52,18 +52,44 @@
       .done(function(result) {
         $contentArea.trigger('ajaxloaddone', {url: url, hash: hash});
         
-        var link_element = null, link_text = '';;
+        var link_element = null, link_text = '';
         if(typeof update_active === 'function') {
           link_element = update_active.call(null, hash, url);
         }
         else if(update_active === true) {
-          link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]')],function(res){
+        /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单--------------以下是修改的地方--start--------------*/
+          var params = hash.substring(hash.indexOf("?")+1);
+          var paramsList = new Array();
+          if(params){
+        	  var paramsArray = params.split("&");
+        	  if(paramsArray && paramsArray.length > 0){
+        		  for(var _i=0; _i<paramsArray.length; _i++){
+        			  paramsList.push(paramsArray[_i].substring(0,paramsArray[_i].indexOf("=")));
+        		  }
+        	  }
+          }
+          var paramsStr = paramsList.join(",");
+          
+          if(hash.indexOf("?")>-1){
+        	  hash = hash.split("?")[0];
+          }
+          
+          link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]'),$('a[data-url="'+hash.substring(0,hash.indexOf("?"))+'"][data-url-params*="'+paramsStr+'"]')],function(res){
             if(res.length > 0) return res;
             return [''];
           });
-
-          link_element = link_element[0];
-          if(link_element.length > 0) {
+          
+          //link_element = link_element[0];
+          
+          for(var _j=0;_j<link_element.length;_j++){
+        	  if(link_element[_j]){
+        		  link_element = link_element[_j];
+        		  break;
+        	  }
+          }
+          /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单------------以上是修改的地方--end--------------*/
+          
+          if(link_element.length > 0 && link_element.length<2) {
             var nav = link_element.closest('.navbox');
             if(nav.length > 0) {
               nav.find('.highlight').each(function(){
@@ -84,6 +110,8 @@
                 if(manual_trigger) $this.ace_sidebar_scroll('scroll_to_active');//first time only
               })
             }
+          }else{
+        	  link_element = link_element[0];
           }
         }
 
@@ -256,7 +284,7 @@
           if(typeof callback === 'function') {
             var args=new Object();         
 
-            var hash = window.location.hash;
+            var hash = window.location.hash.replace(/^\s+/g,"").replace(/\s+$/g,"");
             if(hash.indexOf("?")>-1){
               var query = hash.split("?")[1];
               var pairs=query.split("&");//在逗号处断开 
