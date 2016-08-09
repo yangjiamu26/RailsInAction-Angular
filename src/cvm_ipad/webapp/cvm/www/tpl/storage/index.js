@@ -63,7 +63,8 @@ myApp.onPageInit("storage-index", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-
+  window.storage_index_viewModel = viewModel;
+  
   viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {

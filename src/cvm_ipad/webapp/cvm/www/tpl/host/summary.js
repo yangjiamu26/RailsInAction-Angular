@@ -1,6 +1,6 @@
 myApp.onPageInit("host-summary", function(page) {
   // 单个资源池-cpu占比图
-function initSingleHost_cpu_chart() {
+function initSingleHost_cpu_chart(data) {
     $('#singleHost_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -32,7 +32,7 @@ function initSingleHost_cpu_chart() {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -58,12 +58,12 @@ function initSingleHost_cpu_chart() {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: 11.93,
+                  y: data.cpuSpeed-data.availCpu,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 25.19,
+                  y: data.availCpu,
                   color:"#4395d5"
               }
           ]
@@ -71,7 +71,7 @@ function initSingleHost_cpu_chart() {
     });   
 }
 // 单个资源池-内存占比图
-function initSingleHost_memory_chart() {
+function initSingleHost_memory_chart(data) {
     $('#singleHost_memory_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -103,7 +103,7 @@ function initSingleHost_memory_chart() {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -129,12 +129,12 @@ function initSingleHost_memory_chart() {
           name: '内存',
           data: [{
                   name: '已用',
-                  y: 112.64,
+                  y: data.memory-data.availMemory,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 76.11,
+                  y: data.availMemory,
                   color:"#4395d5"
               }
           ]
@@ -142,7 +142,7 @@ function initSingleHost_memory_chart() {
     });   
 }
 // 单个资源池-存储占比图
-function initSingleHost_storage_chart() {
+function initSingleHost_storage_chart(data) {
     $('#singleHost_storage_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -174,7 +174,7 @@ function initSingleHost_storage_chart() {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -200,12 +200,12 @@ function initSingleHost_storage_chart() {
           name: '存储',
           data: [{
                   name: '已用',
-                  y: 4.73,
+                  y: data.storage-data.availStorage,
                   color:"#ffd800"
               },
               {
                   name: '未用',
-                  y: 3.81,
+                  y: data.availStorage,
                   color:"#4395d5"
               }
           ]
@@ -215,10 +215,24 @@ function initSingleHost_storage_chart() {
   function ViewModel(){
     this.summary = ko.observable({
       "hypervisor":'',
-      "vmNum":''
+      "vmNum":'',
+      "cpuUnit":'',
+      "cpuSlots":'',
+      "cpuSpeed":'',
+      "model":'',
+      "vendor":'',
+      "memory":'',
+      "storage":''
     });
     this.loadData = function(data){
       var self = this;
+      console.log(typeof(parseFloat(data.cpuSpeed)/1024))
+      data.cpuSpeed = parseFloat(data.cpuSpeed)/1024;
+      data.memory = parseFloat(data.memory)/1024;
+      data.storage = parseFloat(data.storage)/1024;
+      data.availCpu = parseFloat(data.availCpu)/1024;
+      data.availMemory = parseFloat(data.availMemory)/1024;
+      data.availStorage = parseFloat(data.availStorage)/1024;
       self.summary(data);
       initSingleHost_cpu_chart(data);
       initSingleHost_memory_chart(data);
