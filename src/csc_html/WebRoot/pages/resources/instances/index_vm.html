@@ -677,7 +677,22 @@
       this.isValidateTime = ko.observable(false);
       
       this.addvm = function(){
+    	self.currentVO({
+  			name: ko.observable().extend({required: true}),
+  			vdc: ko.observable().extend({required: true}),
+  			partition: ko.observable().extend({required: true}),
+  			image:  ko.observable().extend({required: true}),
+  			vcpu: ko.observable().extend({required: true}),
+  			memory: ko.observable().extend({required: true}),
+  			storage: ko.observable().extend({required: true}),
+  			vpc: ko.observable().extend({required: true}),
+  			network: ko.observable().extend({required: true}),
+  			ip: ko.observable(),
+  			isBind: ko.observable(),
+  			sshKey: ko.observable()
+  	  	});
         self.isAddvm(true);
+        $("#inlineRadio1").prop("checked",true);
       }
 
       $("#modal_addvm").on("shown.bs.modal",function(){
@@ -939,8 +954,6 @@
 			isBind: ko.observable(),
 			sshKey: ko.observable()
 	  });
-      
-      $("#inlineRadio1")[0].checked;
       
       //是否绑定
       this.add_isBinds = ko.observableArray([]);
@@ -1242,6 +1255,8 @@
     	  self.isDeleteProcess(true);
 		  self.deleteProcessVO().name(object.name);
 		  self.deleteProcessVO().uuid(object.uuid);
+		  self.deleteProcessVO().vdcUuid(object.vdcUuid);
+		  self.deleteProcessVO().azUuid(object.azUuid);
 		  var myDate = new Date();
 		  self.deleteProcessVO().time(myDate.toLocaleString());
 		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
@@ -1250,6 +1265,8 @@
       this.deleteProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
+    	  azUuid: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable()
@@ -1260,9 +1277,11 @@
             	  var orderItem = {};
             	  orderItem.instanceName = self.deleteProcessVO().name();
             	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
-            	  orderItem.resourceType = self.deleteProcessVO().type;
-            	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+            	  orderItem.resourceType = "VM";
+            	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
             	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
+            	  orderItem.vdcUuid = self.deleteProcessVO().vdcUuid();
+            	  orderItem.azUuid = self.deleteProcessVO().azUuid();
             	  
             	  var orderItems = [];
             	  orderItems.push(orderItem);
@@ -1274,13 +1293,15 @@
                 		  volumeItem.instanceName = volumes[i].volumeName();
                 		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
                 		  volumeItem.resourceType = "DISK";
-                		  volumeItem.metaData =  "{\"resBaseInfo\": {}";
+                		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+                		  volumeItem.vdcUuid = volumes[i].vdcUuid;
+                		  volumeItem.azUuid =  volumes[i].azUuid;
                 		  orderItems.push(volumeItem);
                 	  }
             	  }
             	  
             	  var postBody = {}; 
-            	  postBody.resourceType = self.deleteProcessVO().type;;
+            	  postBody.resourceType = "VM";
             	  postBody.orderItems = orderItems;
             	  
             	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -1312,6 +1333,9 @@
 		  self.adjustProcessVO().targetVcpu('');
 		  self.adjustProcessVO().targetMemory('');
 		  self.adjustProcessVO().targetStorage('');
+		  
+		  self.adjustProcessVO().vdcName(object.vdcName);
+		  self.adjustProcessVO().busSysName(object.busSysName);
       }
   
       this.adjustProcessVO = ko.observable({
@@ -1327,12 +1351,17 @@
     	  
     	  targetVcpu: ko.observable(),
     	  targetMemory: ko.observable(),
-    	  targetStorage: ko.observable()
+    	  targetStorage: ko.observable(),
+    	  
+    	  vdcName: ko.observable(),
+    	  busSysName: ko.observable()
       });
       
       //申请
       this.adjustProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
+    		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
+    		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
     	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.adjustProcessVO().name();

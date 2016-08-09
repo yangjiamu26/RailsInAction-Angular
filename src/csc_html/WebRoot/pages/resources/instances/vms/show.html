@@ -415,7 +415,7 @@
       <div class='modal-body form-horizontal'>
         <div>
           <button class="btn btn-default btn-sm pull-right" data-bind="click: installVM">选择软件</button>
-          虚拟机名称:DB2
+          虚拟机名称：<span data-bind="text:vmVO().name"></span>
         </div>
         <hr />
         <p class="text-muted">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
@@ -431,27 +431,16 @@
               <th>操作</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody data-bind="foreach: softwareItems">
             <tr>
-              <td>a</td>
-              <td>1.0</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>是</td>
+              <td data-bind="text: name"></td>
+              <td data-bind="text: version"></td>
+              <td data-bind="text: softTypeName"></td>
+              <td data-bind="text: softType"></td>
+              <td data-bind="text: silentInstall"></td>
+              <td data-bind="text: reInstall"></td>
               <td>
-                <a>移除</a>
-              </td>
-            </tr>
-            <tr>
-              <td>b</td>
-              <td>1.0</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>是</td>
-              <td>
-                <a>移除</a>
+                <a data-bind="click:$root.deleteSoftware">移除</a>
               </td>
             </tr>
           </tbody>
@@ -470,73 +459,61 @@
       </div>
       <div class='modal-body form-horizontal'>
         <div>
-          虚拟机名称：DB2
+          虚拟机名称：<span data-bind="text:vmVO().name"></span>
         </div>
         <hr />
         <div class="form-inline">
-          软件名称：<input type="text" class="form-control" />&nbsp;&nbsp;
+          软件名称：<input type="text" class="form-control" data-bind="value: software_param().name"/>&nbsp;&nbsp;
           软件分类：
-          <select class="form-control">
+          <select class="form-control" data-bind="value: software_param().softType">
             <option>分类1</option>
             <option>分类2</option>
             <option>分类3</option>
           </select>&nbsp;&nbsp;
           软件类型：
-          <select class="form-control">
+          <select class="form-control" data-bind="value: software_param().softTypeName">
             <option>类型1</option>
             <option>类型2</option>
             <option>类型3</option>
           </select>&nbsp;&nbsp;&nbsp;&nbsp;
-          <button class="btn btn-default">搜索</button>
+          <button class="btn btn-default" data-bind="click: $root.software_check_search">搜索</button>
         </div>
         <p>&nbsp;</p>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>选择</th>
-              <th>软件名称</th>
-              <th>软件版本</th>
-              <th>软件类型</th>
-              <th>软件分类</th>
-              <th>静默安装属性</th>
-              <th>是否重复安装</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="checkbox">
-                  <label class="i-checks">
-                    <input type="checkbox" value="">
-                    <i></i>
-                  </label>
-                </div> 
-              </td>
-              <td>a</td>
-              <td>1</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>是</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="checkbox">
-                  <label class="i-checks">
-                    <input type="checkbox" value="">
-                    <i></i>
-                  </label>
-                </div> 
-              </td>
-              <td>a</td>
-              <td>1</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>是</td>
-            </tr>
-          </tbody>
-        </table>
+        <div data-bind="with: software_check_table">
+	        <table class="table">
+	          <thead>
+	            <tr>
+	              <th>选择</th>
+	              <th>软件名称</th>
+	              <th>软件版本</th>
+	              <th>软件类型</th>
+	              <th>软件分类</th>
+	              <th>静默安装属性</th>
+	              <th>是否重复安装</th>
+	            </tr>
+	          </thead>
+	          <tbody>
+	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+	            <tr>
+	              <td>
+	                <div class="checkbox">
+	                  <label class="i-checks">
+	                    <input type="checkbox" value="">
+	                    <i></i>
+	                  </label>
+	                </div> 
+	              </td>
+	              <td data-bind="text: name"></td>
+	              <td data-bind="text: version"></td>
+	              <td data-bind="text: softTypeName"></td>
+	              <td data-bind="text: softType"></td>
+	              <td ></td>
+	              <td ></td>
+	            </tr>
+	            <!-- /ko -->
+	          </tbody>
+	        </table>
+      	</div>
       </div>
       <div class='modal-footer'>
         <input type="button" name="commit" value="选择" class="btn btn-default btn-primary" data-bind="click: installVMConfirm" />
@@ -898,6 +875,7 @@
     		  if(data){
     			  self.vmVO(data);
     			  self.reloadVolume();
+    			  self.reloadSoftware();
     		  }
     	  });
       }
@@ -911,7 +889,46 @@
     	installType: '',
     	softwareName: ''
   	})
+  	
+  	this.reloadSoftware = function(){
+    	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
+    }
+  	
     //------------------------------------------软件列表结束----------------------------
+    
+    //------------------------------------------安装软件开始----------------------------
+    
+    this.softwareItems = ko.observableArray([]);
+              
+    var demoData = {name:'1',version:'1.1',softTypeName:'22',softType:'type',silentInstall:'是',reInstall:'1'};         
+    //增加软件
+    this.addSoftware = function(){
+  	  this.softwareItems.push(demoData);
+    }
+    self.addSoftware();
+    //删除数据
+    this.deleteSoftware = function(){
+      //调用删除接口，成功后回调以下方法
+      self.softwareItems.remove(this);
+    }
+    
+    //备选软件
+    this.software_check_table = new DataTable([]);
+    
+    this.software_param = ko.observable({
+  	  name: '',
+  	  softTypeName: '',
+  	  softType: '',
+  	  firstResult: -1,
+	  maxResult: -1
+    })
+    
+    this.software_check_search = function(){
+  	  	self.software_check_table.params(self.software_param());
+		self.software_check_table.path('api/v5.0.0/soft/softwares');
+    }
+    self.software_check_search();
+    //------------------------------------------安装软件结束----------------------------
     
       //------------------------------------------云硬盘列表开始----------------------------
       this.vm_volume_table = new DataTable([]);
@@ -945,7 +962,7 @@
       
       this.doExpand = function(){
     	  var putBody = {"volumeSize":self.volumeVO().targetSize};
-    	  csc.rest.put('api/v5.0.0/volumes/'+self.volumeVO().uuid, putBody, function(data){
+    	  csc.rest.put('api/v5.0.0/volumes/'+self.volumeVO().uuid(), putBody, function(data){
  	            self.isStorageExpand(false);
  	            if(data.taskId){
 	 	            systemMsg.alert('扩展云硬盘请求成功，任务ID：'+data.taskId+'！');
@@ -1150,10 +1167,12 @@
       //------------------------------------------删除-流程开始--------------------------------
       this.isDeleteProcess = ko.observable(false);
       
-      this.doDeleteProcessPost = function(object){
+      this.doDeleteProcessPost = function(){
     	  self.isDeleteProcess(true);
 		  self.deleteProcessVO().name(self.vmVO().name);
 		  self.deleteProcessVO().uuid(self.vmVO().uuid);
+		  self.deleteProcessVO().vdcUuid(self.vmVO().vdcUuid);
+		  self.deleteProcessVO().azUuid(self.vmVO().azUuid);
 		  var myDate = new Date();
 		  self.deleteProcessVO().time(myDate.toLocaleString());
 		  self.deleteProcessVO().serviceInstanceUuid(self.vmVO().serviceInstanceUuid);
@@ -1162,6 +1181,8 @@
       this.deleteProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
+    	  azUuid: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable()
@@ -1172,9 +1193,11 @@
         	  var orderItem = {};
         	  orderItem.instanceName = self.deleteProcessVO().name();
         	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
-        	  orderItem.resourceType = self.deleteProcessVO().type;
-        	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+        	  orderItem.resourceType = "VM";
+        	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
         	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
+        	  orderItem.vdcUuid = self.deleteProcessVO().vdcUuid();
+        	  orderItem.azUuid = self.deleteProcessVO().azUuid();
         	  
         	  var orderItems = [];
         	  orderItems.push(orderItem);
@@ -1186,13 +1209,15 @@
             		  volumeItem.instanceName = volumes[i].volumeName();
             		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
             		  volumeItem.resourceType = "DISK";
-            		  volumeItem.metaData =  "{\"resBaseInfo\": {}";
+            		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+            		  volumeItem.vdcUuid = volumes[i].vdcUuid;
+            		  volumeItem.azUuid =  volumes[i].azUuid;
             		  orderItems.push(volumeItem);
             	  }
         	  }
         	  
-        	  var postBody = {}; 
-        	  postBody.resourceType = self.deleteProcessVO().type;;
+        	  var postBody = {};
+        	  postBody.resourceType = "VM";
         	  postBody.orderItems = orderItems;
         	  
         	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){

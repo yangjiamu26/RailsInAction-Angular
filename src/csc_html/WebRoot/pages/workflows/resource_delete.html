@@ -2,14 +2,14 @@
     <div class="panel-heading">资源删除</div>
     <div id="orderDetailedList" class="wrapper">
       <div class="row">
-        <div class="col-xs-4">资源名称：<span data-bind="text:vmInfoVo().name"></span> <a>查看</a></div>
+        <div class="col-xs-4">资源名称：<span data-bind="text:vmInfoVo().name"></span> <a hidden>查看</a></div>
         <div class="col-xs-4">所属VDC：<span data-bind="text:vmInfoVo().vdcName"></span></div>
         <div class="col-xs-4">资源类型：<span data-bind="text:vmInfoVo().type"></span></div>
       </div>
       <p>&nbsp;</p>
       <div class="row">
-          <div class="col-xs-4">所属业务系统：<span data-bind="text:vmInfoVo().busSysName"></span></div>
-          <div class="col-xs-4">失效时间：<span data-bind="text:vmInfoVo().name"></span></div>
+          <div class="col-xs-4" style="display:none" id="subsys">所属业务系统：<span data-bind="text:vmInfoVo().busSysName"></span></div>
+          <div class="col-xs-4">失效时间：<span data-bind="text:vmInfoVo().expiryDate"></span></div>
           <!-- 
           <div class="col-xs-4">施工状态：<span data-bind="text:vmInfoVo().name"></span></div>
            -->
@@ -29,7 +29,7 @@
               type:ko.observable(""),
               vdcName:ko.observable(""),
               busSysName:ko.observable(""),
-              expiryDate:ko.observable(""),
+              expiryDate:ko.observable("")
           });
           csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
               var processInstanceId = data.taskInfo[0].processInstanceId;
@@ -38,13 +38,13 @@
                   var orderItems = data.orderItems;
                   if(orderItems.length==0) return;
                   if(resourceType=="VM"){
+                      $("#subsys").css('display', 'block');//显示业务系统
                       //获取订单详情
                       var orderItem = orderItems[0];
                       if(!csc.util.isNotNull(orderItem)) return;
                       //获取订单详情数据
                       var resourceUuid = orderItem.resourceUuid;
                       if(!csc.util.isNotNull(resourceUuid)) return;
-                      
                       csc.rest.get('api/v5.0.0/vms/'+itemListData[0].resourceUuid,function(vmData){
                           if(vmData){
                               self.vmInfoVo.fromJSON({
@@ -67,7 +67,6 @@
                       if(!csc.util.isNotNull(resourceUuid)) return;
                       
                       csc.rest.get("api/v5.0.0/publicIps?uuid="+resourceUuid,function(data){
-                          debugger;
                           var results = data.results;
                           if (results.length==0) return;
                           self.vmInfoVo.fromJSON({
@@ -80,7 +79,7 @@
                       })
                   }else if(resourceType=="DISK"){
                       
-                  }else if(resourceType=="DISK"){
+                  }else if(resourceType=="OBJECT_STORAGE"){
                       
                   }
                  

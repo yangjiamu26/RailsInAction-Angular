@@ -24,7 +24,7 @@
                     <p id="processType"><strong>流程类型：</strong></p>
                 </div>
                 <div class="col-xs-4">
-                    <p><strong>流程状态：</strong><span class="label label-info">审批中</span></p>
+                    <p id="state"><strong>流程状态：</strong></p>
                 </div>
             </div>
             <div class="row">
@@ -98,12 +98,18 @@
     		$("#applyTime").append(info.applyTime);
     		$("#applier").append(info.applyUser);
     		
+    		if(state == 'UNSUBMIT'){
+    			$("#state").append("<span class='label label-warning'>未提交</span>");
+    		}else{
+    			$("#state").append("<span class='label label-info'>审批中</span>");
+    		}
+    		
     		var processInstanceId = info.processInstanceId;
     		//判断是否有前面节点
 			if(taskNode.previousStartEvent){
 				isFirst = true;
 				//$("#btn_task_fallback").hide();
-				$("#btn_task_delegate").hide();
+				//$("#btn_task_delegate").hide();
 			}
 			
 			//判断是否最后一个节点
@@ -130,8 +136,6 @@
 			//加载意见信息
 			get_task_comment(args.taskId);
 			
-			//$("#orderContent").load("pages/workflows/vm_single.html");
-			
 			//加载订单信息
 			csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
 	    		var order = data;
@@ -145,7 +149,9 @@
 	    				url = "pages/workflows/vdc_apply_construct.html";
 	    			}
 	    		}else if(flowType=='VDC_CHANGE'){//VDC变更
-	    			if(formKey=='approve'){
+	    			if(state=='UNSUBMIT'){
+	    				url = "pages/workflows/vdc_change_unsubmit.html";
+	    			}else if(formKey=='approve'){
 	    				url = "pages/workflows/vdc_change_approve.html";
 	    			}else if(formKey=='construct'){
 	    				url = "pages/workflows/vdc_change_construct.html";
@@ -161,7 +167,11 @@
 		    			url = setResureUrl(flowType,productType,isBatch);
 		    		}
 	    		}else if(flowType=='RESOURCE_CHANGE'){
-	    			
+	    			if(state=='UNSUBMIT' || formKey=='construct'){
+		    			url = "pages/workflows/vm_resize_construct.html";
+	    			}else if(formKey=='resure'){
+	    				url = "pages/workflows/vm_resize_resure.html";
+	    			}
 	    		}else if(flowType=='RESOURCE_DELETE'){
 	    		    url = "pages/workflows/resource_delete.html";
 	    		}else if(flowType=='RESOURCE_RECYCLE'){
@@ -203,7 +213,7 @@
 		if(isBatch){
 			url = "pages/workflows/vm_apply_unsubmit.html";
 		}else{
-			url = "";
+			url = "pages/workflows/vm_apply_unsubmit_batch.html";
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
 		if(isBatch){

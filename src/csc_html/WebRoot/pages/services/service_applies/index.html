@@ -564,6 +564,7 @@
 		   
 		    this.vdcChange = function(obj){//根据变化的vdc及服务ID查找其下的可用分区
 		    	var _self = this;
+		    	_self.azList("");
 		        csc.rest.get("api/v5.0.0/cart/getAzList/"+obj.serviceUuid()+"/"+obj.vdcUuid(), function(data){
 		        	_self.azList(data);
 		        });	        
@@ -639,23 +640,35 @@
 						productKey = 'VM';
 					}
 				}else if(self.productType()==2){
-					if(self.model_Vdisk.isValid()){
-						productJsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
-						productData = self.model_Vdisk.toJSON();
-						productKey = 'DISK';
-					}
+ 	        	    for(var i=0; i<self.model_Vdisk().vdiskCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_Vdisk().vdiskCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_Vdisk().vdiskCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productJsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
+					productData = self.model_Vdisk.toJSON();
+					productKey = 'DISK';
 				}else if(self.productType()==3){
-					if(self.model_ObjectStorage.isValid()){
-						productJsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
-						productData = self.model_ObjectStorage.toJSON();
-						productKey= 'OBJECT_STORAGE';
-					}
+ 	        	    for(var i=0; i<self.model_ObjectStorage().objectStorageCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_ObjectStorage().objectStorageCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_ObjectStorage().objectStorageCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productJsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
+					productData = self.model_ObjectStorage.toJSON();
+					productKey= 'OBJECT_STORAGE';
 				}else if(self.productType()==4){
-					if(self.model_PublicNetwork.isValid()){
-						productJsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
-						productData = self.model_PublicNetwork.toJSON();
-						productKey = 'PUBLICIP';
-					}
+ 	        	    for(var i=0; i<self.model_PublicNetwork().publicNetworkCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_PublicNetwork().publicNetworkCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_PublicNetwork().publicNetworkCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productJsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
+					productData = self.model_PublicNetwork.toJSON();
+					productKey = 'PUBLICIP';
 				}else if(self.productType()==5){
 					if(this.model_LB.isValid()){
 						productJsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
@@ -752,64 +765,70 @@
 				if(self.productType()==0){
 					if(self.model_VDC.isValid()){
 						var value = {};
-						value.name=self.model_VDC().vdcCartInfo().name();
+						value.name=self.model_VDC().name();
 					 	csc.rest.put('api/v5.0.0/vdcs/verifyNameExist',value,function(result){	
 						 		 if(result.isExist==true){
 									  systemMsg.alert("VDC名称已存在");
 								  }else{
-									 var orderJson={};
-									 var orderItems = [];
-									 var metaData={};
-									 var resBaseInfo = {};
-									 var vdcQuotaList = [];
-									 if(self.model_VDC().vdcCartInfo().quota()=="-1"){
-										 resBaseInfo.limitQuota="false";
-									 }else{
-										 resBaseInfo.limitQuota="true";
-										 vdcQuotaList.push({type:"CPU",value:self.model_VDC().vdcCartInfo().cpu()});
-										 vdcQuotaList.push({type:"MEMORY",value:self.model_VDC().vdcCartInfo().memory()});
-										 vdcQuotaList.push({type:"STORAGE",value:self.model_VDC().vdcCartInfo().storage()});
-										 vdcQuotaList.push({type:"VPC",value:self.model_VDC().vdcCartInfo().vpcNum()});
-										 vdcQuotaList.push({type:"VM",value:self.model_VDC().vdcCartInfo().vm()});
-										 vdcQuotaList.push({type:"DISK",value:self.model_VDC().vdcCartInfo().disk()});
-										 vdcQuotaList.push({type:"PUBLICIP",value:self.model_VDC().vdcCartInfo().publicIp()});
-										 vdcQuotaList.push({type:"ROUTER",value:self.model_VDC().vdcCartInfo().router()});
-										 vdcQuotaList.push({type:"FIREWALL",value:self.model_VDC().vdcCartInfo().fireWall()});
-										 vdcQuotaList.push({type:"SECRET_KEY",value:self.model_VDC().vdcCartInfo().secretKey()});
-										 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.model_VDC().vdcCartInfo().objectStorage()});
-										 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.model_VDC().vdcCartInfo().loadBalancer()});
-									 }
-									 resBaseInfo.vdcQuotaList=vdcQuotaList;
-									 var expireValue;
-									 if(self.model_VDC().vdcCartInfo().applyType()=="1"){
-										 expireValue = "";
-									 }else if(self.model_VDC().vdcCartInfo().applyType()=="2"){
-										 expireValue = applyNum;
-									 }else{
-										 expireValue = applyTime;
-									 }
-									 metaData.resBaseInfo=resBaseInfo;
-									 metaData.osType=self.model_VDC().vdcCartInfo().osTypesSelelct();
-									 orderItems.push({
-										 resourceType:"VDC",
-										 instanceName:self.model_VDC().vdcCartInfo().name(),
-										 serviceUuid:self.model_VDC().vdcCartInfo().serviceUuid(),
-										 isBill:self.model_VDC().vdcCartInfo().charge(),
-										 billCycle:self.model_VDC().vdcCartInfo().billRuleUuid(),
-										 fee:self.model_VDC().vdcCartInfo().price(),
-										 expireType:self.model_VDC().vdcCartInfo().applyType(),
-										 expireValue:expireValue,
-										 metaData:JSON.stringify(metaData),
-										 desc:self.model_VDC().vdcCartInfo().remark()
-									 })
-									 
-									 orderJson.resourceType = "VDC";
-									 orderJson.orderItems = orderItems;
-	
-								 	 csc.rest.post('api/v5.0.0/orders',orderJson,function(data){
-									 		systemMsg.alert('成功提交订单！');
-									 		self.isAdd_VDC(false);
-									    }); 
+									csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType=VDC&instanceName='+value.name,function(result1){	
+								 		if(result1.isExist==true){
+											  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
+										  }else{
+											     var orderJson={};
+												 var orderItems = [];
+												 var metaData={};
+												 var resBaseInfo = {};
+												 var vdcQuotaList = [];
+												 if(self.model_VDC().quota()=="-1"){
+													 resBaseInfo.limitQuota="false";
+												 }else{
+													 resBaseInfo.limitQuota="true";
+													 vdcQuotaList.push({type:"CPU",value:self.model_VDC().cpu()});
+													 vdcQuotaList.push({type:"MEMORY",value:self.model_VDC().memory()});
+													 vdcQuotaList.push({type:"STORAGE",value:self.model_VDC().storage()});
+													 vdcQuotaList.push({type:"VPC",value:self.model_VDC().vpcNum()});
+													 vdcQuotaList.push({type:"VM",value:self.model_VDC().vm()});
+													 vdcQuotaList.push({type:"DISK",value:self.model_VDC().disk()});
+													 vdcQuotaList.push({type:"PUBLICIP",value:self.model_VDC().publicIp()});
+													 vdcQuotaList.push({type:"ROUTER",value:self.model_VDC().router()});
+													 vdcQuotaList.push({type:"FIREWALL",value:self.model_VDC().fireWall()});
+													 vdcQuotaList.push({type:"SECRET_KEY",value:self.model_VDC().secretKey()});
+													 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.model_VDC().objectStorage()});
+													 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.model_VDC().loadBalancer()});
+												 }
+												 resBaseInfo.vdcQuotaList=vdcQuotaList;
+												 var expireValue;
+												 if(self.model_VDC().applyType()=="1"){
+													 expireValue = "";
+												 }else if(self.model_VDC().applyType()=="2"){
+													 expireValue = applyNum;
+												 }else{
+													 expireValue = applyTime;
+												 }
+												 metaData.resBaseInfo=resBaseInfo;
+												 metaData.osType=self.model_VDC().osTypesSelelct();
+												 orderItems.push({
+													 resourceType:"VDC",
+													 instanceName:self.model_VDC().name(),
+													 serviceUuid:self.model_VDC().serviceUuid(),
+													 isBill:self.model_VDC().charge(),
+													 billCycle:self.model_VDC().billRuleUuid(),
+													 fee:self.model_VDC().price(),
+													 expireType:self.model_VDC().applyType(),
+													 expireValue:expireValue,
+													 metaData:JSON.stringify(metaData),
+													 desc:self.model_VDC().remark()
+												 })
+												 
+												 orderJson.resourceType = "VDC";
+												 orderJson.orderItems = orderItems;
+				
+											 	 csc.rest.post('api/v5.0.0/orders',orderJson,function(data){
+												 		systemMsg.alert('成功提交订单！');
+												 		self.isAdd_VDC(false);
+												    }); 
+										  }
+								    });
 								  }
 						    });
 					}
@@ -820,20 +839,32 @@
 				    	
 					}
 				}else if(self.productType()==2){
-					if(self.model_Vdisk.isValid()){
-						productKey = 'DISK';
-				    	productJsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
-					}
+ 	        	    for(var i=0; i<self.model_Vdisk().vdiskCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_Vdisk().vdiskCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_Vdisk().vdiskCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productKey = 'DISK';
+				    productJsonArray = self.model_Vdisk.toJSON().vdiskCartInfo;
 				}else if(self.productType()==3){
-					if(self.model_ObjectStorage.isValid()){
-						productKey = 'OBJECT_STORAGE';
-				    	productJsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
-					}
+ 	        	    for(var i=0; i<self.model_ObjectStorage().objectStorageCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_ObjectStorage().objectStorageCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_ObjectStorage().objectStorageCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productKey = 'OBJECT_STORAGE';
+			    	productJsonArray = self.model_ObjectStorage.toJSON().objectStorageCartInfo;
 				}else if(self.productType()==4){
-					if(self.model_PublicNetwork.isValid()){
-						productKey = 'PUBLICIP';
-				    	productJsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
-					}
+ 	        	    for(var i=0; i<self.model_PublicNetwork().publicNetworkCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_PublicNetwork().publicNetworkCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_PublicNetwork().publicNetworkCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productKey = 'PUBLICIP';
+			    	productJsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
 				}else if(self.productType()==5){
 					if(this.model_LB.isValid()){
 						productKey = 'LOAD_BALANCING';
@@ -845,26 +876,28 @@
 				    	productJsonArray = self.model_SSH.toJSON().sshKeytCartInfo;
 					}
 				}
-				self.formatOrders(productKey,productJsonArray);
-				nameCheck(productJsonArray,productKey,function(pass){
-					if(pass){
-					 	 csc.rest.post('api/v5.0.0/orders',self.ordersVO.toJSON(),function(data){
-						 		systemMsg.alert('成功提交订单！');
-						 		self.isAdd_VMSingle(false);
-								self.isAdd_VMMore(false);
-								self.isAdd_VdiskSingle(false);
-						 		self.isAdd_VdiskMore(false);
-						 		self.isAdd_ObjectStorageSingle(false);
-						 		self.isAdd_ObjectStorageMore(false);
-						 		self.isAdd_PublicNetworkSingle(false);
-						 		self.isAdd_PublicNetworkMore(false);
-						 		self.isAdd_LBSingle(false);
-						 		self.isAdd_LBMore(false);
-						 		self.isAdd_SSHSingle(false);
-						 		self.isAdd_SSHMore(false);
-						    }); 
-					}
-				});
+				if(productJsonArray!=null){
+					self.formatOrders(productKey,productJsonArray);
+					nameCheck(productJsonArray,productKey,function(pass){
+						if(pass){
+						 	 csc.rest.post('api/v5.0.0/orders',self.ordersVO.toJSON(),function(data){
+							 		systemMsg.alert('成功提交订单！');
+							 		self.isAdd_VMSingle(false);
+									self.isAdd_VMMore(false);
+									self.isAdd_VdiskSingle(false);
+							 		self.isAdd_VdiskMore(false);
+							 		self.isAdd_ObjectStorageSingle(false);
+							 		self.isAdd_ObjectStorageMore(false);
+							 		self.isAdd_PublicNetworkSingle(false);
+							 		self.isAdd_PublicNetworkMore(false);
+							 		self.isAdd_LBSingle(false);
+							 		self.isAdd_LBMore(false);
+							 		self.isAdd_SSHSingle(false);
+							 		self.isAdd_SSHMore(false);
+							    }); 
+						}
+					});
+				}
 			}
 			/************************************ 提交到订单  ************************************/
 			
@@ -934,6 +967,7 @@
 		   }
 		   function networkVO (e){
 			   this.networkId = ko.observable(e.vpcNetworkUuid);
+			   this.ip = ko.observable(e.ip);
 		   }
 			 this.formatOrders = function(productKey,productJsonArray){
 		    	self.ordersVO().orderItems([]);
@@ -964,12 +998,24 @@
 				    	   i.relateUuid(relateUuid);
 				    	   var md=new metaDataVO();
 				    	   var bi =new baseInfoVO(m);
+				    	   if(bi.partitionList && bi.partitionList().length==0){
+				    		   delete bi.partitionList;
+				    	   }
+				    	   if(bi.networkList && bi.networkList().length==0){
+				    		   delete bi.networkList;
+				    	   }
 				    	   md.resBaseInfo(bi);
 				    	   i.metaData(ko.toJSON(md));
 				    	   self.ordersVO().orderItems.push(i);
 			    	   });
 		    	   }
 		    	   
+		    	   if(baseInfo.partitionList && baseInfo.partitionList().length==0){
+		    		   delete baseInfo.partitionList;
+		    	   }
+		    	   if(baseInfo.networkList && baseInfo.networkList().length==0){
+		    		   delete baseInfo.networkList;
+		    	   }
 		    	   meta.resBaseInfo(baseInfo);
 		    	   item.metaData(ko.toJSON(meta));
 		    	   self.ordersVO().orderItems.push(item);
@@ -1237,14 +1283,14 @@
 		    
 		    /************************************ 云硬盘  vo定义 ************************************/
 			function vdiskVO (){
-				this.name = ko.observable("").extend({required:true});
+				this.name = ko.observable("").extend({required:true,cscNameRule:true});
 				this.serviceUuid = ko.observable();
-				this.vdcUuid =  ko.observable("");
-				this.size =  ko.observable("");
-				this.azUuid = ko.observable("");
-				this.mountVmUuid =  ko.observable("");
+				this.vdcUuid =  ko.observable().extend({required:true});
+				this.size =  ko.observable("").extend({required:true,number:true});
+				this.azUuid = ko.observable().extend({required:true});
+				this.mountVmUuid =  ko.observable().extend({required:true});
 				this.remark = ko.observable("");
-				this.billRuleUuid =  ko.observable("");
+				this.billRuleUuid =  ko.observable();
 				this.applyTime = ko.observable("");
 				this.applyType = ko.observable("3");
 				this.azList = ko.observableArray([]);
@@ -1254,6 +1300,15 @@
 				this.billRuleArray = ko.observableArray();
 				this.price = ko.observable("");
 				this.unitPrice = ko.observable("");
+				
+				var item = this;
+	            this.charge.subscribe(function(value){
+	            	if(value=='true'){
+	            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+	            	}else{
+	            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+	            	}
+	            });
 			}
 		    /************************************ 云硬盘  vo定义  ************************************/
 		    
@@ -1262,55 +1317,55 @@
 		    /************************************ 云硬盘  服务列表  ************************************/
 		    
 		    /************************************ 云硬盘 单个申请  ************************************/
-		    this.isAdd_VdiskSingle = ko.observable(false);
-		    this.add_Vdisk = function(obj){
-		        var serviceUuid = obj.serviceUuid;
-	            var uri="serviceUuid="+serviceUuid;
-	            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
-	            	  self.model_Vdisk().vdiskCartInfo([]);
-  		 	    	  var vo = new vdiskVO();
-	  		 	      vo.vdcList(result.vdcList);
-	  		 	      vo.billRuleArray(formatCharge(result.chargeList));
-	  		 	      vo.serviceUuid(serviceUuid);
-	  		 	      vo.charge(obj.isFee=="否"?"false":"true");
-	  		 	      self.model_Vdisk().vdiskCartInfo.push(vo);
-                      self.isAdd_VdiskSingle(true);
-	            });
-		    }
-		    /************************************ 云硬盘 单个申请  ************************************/
-		    
-		    /************************************ 云硬盘 批量申请  ************************************/
-		    this.isAdd_VdiskMore = ko.observable(false);
-		    this.changeList_Vdisk = function(data){
-		        vdcList_more = data.vdcList();
-		    	billRuleList_more = data.billRuleArray();
-		    	serviceUuid_more = data.serviceUuid();
-		    	charge_more = data.charge();
-		    	self.charge_more_view(data.charge());
-		    	self.model_Vdisk().vdiskCartInfo([]);
-		    	self.num_vdisk("");
-		    	self.isAdd_VdiskSingle(false);
-		    	self.isAdd_VdiskMore(true);
-		    }
-		    
-			this.num_vdisk = ko.observable().extend({max:20});
-			this.model_Vdisk = ko.validatedObservable({
-				vdiskCartInfo: ko.observableArray([])
-			});
-				
-			this.num_vdisk.subscribe(function(){
-				if(!self.num_vdisk.isValid()){return;}
-				self.model_Vdisk().vdiskCartInfo([]);
-				var num = self.num_vdisk();
-				for(var i=0; i<num; i++){
-					var vo=new vdiskVO();
-					vo.vdcList(vdcList_more);
-		    		vo.billRuleArray(billRuleList_more);
-		    		vo.serviceUuid(serviceUuid_more);
-		    		vo.charge(charge_more);
-				    self.model_Vdisk().vdiskCartInfo.push(vo)
-				}	
-			});
+				    this.isAdd_VdiskSingle = ko.observable(false);
+				    this.add_Vdisk = function(obj){
+				        var serviceUuid = obj.serviceUuid;
+			            var uri="serviceUuid="+serviceUuid;
+			            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+			            	  self.model_Vdisk().vdiskCartInfo([]);
+		  		 	    	  var vo = new vdiskVO();
+			  		 	      vo.vdcList(result.vdcList);
+			  		 	      vo.billRuleArray(formatCharge(result.chargeList));
+			  		 	      vo.serviceUuid(serviceUuid);
+			  		 	      vo.charge(obj.isFee=="否"?"false":"true");
+			  		 	      self.model_Vdisk().vdiskCartInfo.push(new ko.validatedObservable(vo));
+		                      self.isAdd_VdiskSingle(true);
+			            });
+				    }
+				    /************************************ 云硬盘 单个申请  ************************************/
+				    
+				    /************************************ 云硬盘 批量申请  ************************************/
+				    this.isAdd_VdiskMore = ko.observable(false);
+				    this.changeList_Vdisk = function(data){
+				        vdcList_more = data.vdcList();
+				    	billRuleList_more = data.billRuleArray();
+				    	serviceUuid_more = data.serviceUuid();
+				    	charge_more = data.charge();
+				    	self.charge_more_view(data.charge());
+				    	self.model_Vdisk().vdiskCartInfo([]);
+				    	self.num_vdisk("");
+				    	self.isAdd_VdiskSingle(false);
+				    	self.isAdd_VdiskMore(true);
+				    }
+				    
+					this.num_vdisk = ko.observable().extend({max:20});
+					this.model_Vdisk = ko.validatedObservable({
+						vdiskCartInfo: ko.observableArray([])
+					});
+						
+					this.num_vdisk.subscribe(function(){
+						if(!self.num_vdisk.isValid()){return;}
+						self.model_Vdisk().vdiskCartInfo([]);
+						var num = self.num_vdisk();
+						for(var i=0; i<num; i++){
+							var vo=new vdiskVO();
+							vo.vdcList(vdcList_more);
+				    		vo.billRuleArray(billRuleList_more);
+				    		vo.serviceUuid(serviceUuid_more);
+				    		vo.charge(charge_more);
+						    self.model_Vdisk().vdiskCartInfo.push(new ko.validatedObservable(vo))
+						}
+					});
 			/************************************ 云硬盘 批量申请  ************************************/
 			
 //################################################# 云硬盘申请 end ##################################################
@@ -1437,12 +1492,12 @@
 
             /************************************ 对象存储  vo定义 ************************************/
             function ObjectStorageVO(){
-	    			this.name = ko.observable("").extend({required:true});
+	    			this.name = ko.observable("").extend({required:true,cscNameRule:true});
 	    			this.serviceUuid =ko.observable();
-	    			this.vdcUuid = ko.observable("");
-	    			this.azUuid = ko.observable("");
-	    			this.size = ko.observable("");
-	    			this.billRuleUuid = ko.observable("");
+	    			this.vdcUuid = ko.observable().extend({required:true});
+	    			this.azUuid = ko.observable().extend({required:true});
+	    			this.size = ko.observable("").extend({required:true,number:true});
+	    			this.billRuleUuid = ko.observable();
 	    			this.applyType = ko.observable("1");
 	    			this.applyNum = ko.observable("");
 	    			this.applyTime = ko.observable("");
@@ -1453,6 +1508,15 @@
 	    			this.billRuleArray = ko.observableArray([]);
 	    			this.price = ko.observable("");
 	    			this.unitPrice = ko.observable("");
+	    			
+					var item = this;
+		            this.charge.subscribe(function(value){
+		            	if(value=='true'){
+		            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+		            	}else{
+		            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+		            	}
+		            });
 		    }
 		    /************************************ 对象存储  vo定义 ************************************/
 		    
@@ -1472,7 +1536,7 @@
 	  		 	      vo.billRuleArray(formatCharge(result.chargeList));
 	  		 	      vo.serviceUuid(serviceUuid);
 	  		 	      vo.charge(obj.isFee=="否"?"false":"true");
-	  		 	      self.model_ObjectStorage().objectStorageCartInfo.push(vo);
+	  		 	      self.model_ObjectStorage().objectStorageCartInfo.push(new ko.validatedObservable(vo));
                       self.isAdd_ObjectStorageSingle(true);
 	            });
 		    }
@@ -1507,8 +1571,9 @@
 		    		vo.billRuleArray(billRuleList_more);
 		    		vo.serviceUuid(serviceUuid_more);
 		    		vo.charge(charge_more);
-				    self.model_ObjectStorage().objectStorageCartInfo.push(vo)
-				}	
+				    self.model_ObjectStorage().objectStorageCartInfo.push(new ko.validatedObservable(vo))
+				}
+				changeDateFormat();
 			});
 			/************************************ 对象存储 批量申请  ************************************/
 		    
@@ -1629,14 +1694,14 @@
 
             /************************************ 公网IP  vo定义 ************************************/
             function PublicNetworkVO(){
-	    			this.name = ko.observable("").extend({required:true});
+	    			this.name = ko.observable("").extend({required:true,cscNameRule:true});
 	    			this.serviceUuid =ko.observable();
-	    			this.vdcUuid = ko.observable("");
-	    			this.azUuid = ko.observable("");
-	    			this.vpcUuid= ko.observable("");
-	    			this.netWorkId = ko.observable("");
+	    			this.vdcUuid = ko.observable().extend({required:true});
+	    			this.azUuid = ko.observable().extend({required:true});
+	    			this.vpcUuid= ko.observable().extend({required:true});
+	    			this.netWorkId = ko.observable().extend({required:true});
 	    			this.remark = ko.observable("");
-	    			this.billRuleUuid = ko.observable("");
+	    			this.billRuleUuid = ko.observable();
 	    			this.applyType = ko.observable("1");
 	    			this.applyNum = ko.observable("");
 	    			this.applyTime = ko.observable("");
@@ -1648,6 +1713,15 @@
 	    			this.billRuleArray = ko.observableArray([]);
 	    			this.price = ko.observable("");
 	    			this.unitPrice = ko.observable("");
+	    			
+					var item = this;
+		            this.charge.subscribe(function(value){
+		            	if(value=='true'){
+		            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+		            	}else{
+		            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+		            	}
+		            });
 		    }
 		    /************************************ 公网IP  vo定义 ************************************/
 		    
@@ -1667,7 +1741,7 @@
 	  		 	      vo.billRuleArray(formatCharge(result.chargeList));
 	  		 	      vo.serviceUuid(serviceUuid);
 	  		 	      vo.charge(obj.isFee=="否"?"false":"true");
-	  		 	      self.model_PublicNetwork().publicNetworkCartInfo.push(vo);
+	  		 	      self.model_PublicNetwork().publicNetworkCartInfo.push(new ko.validatedObservable(vo));
                       self.isAdd_PublicNetworkSingle(true);
 	            });
 		    }
@@ -1702,8 +1776,9 @@
 		    		vo.billRuleArray(billRuleList_more);
 		    		vo.serviceUuid(serviceUuid_more);
 		    		vo.charge(charge_more);
-				    self.model_PublicNetwork().publicNetworkCartInfo.push(vo)
-				}	
+				    self.model_PublicNetwork().publicNetworkCartInfo.push(new ko.validatedObservable(vo))
+				}
+				changeDateFormat();
 			});
 			/************************************ 公网IP 批量申请  ************************************/
 			
@@ -1848,36 +1923,36 @@
 		    this.add_VDC = function(obj){
 		    	initVdc();
 		    	var serviceUuid = obj.serviceUuid;
-		    	self.model_VDC().vdcCartInfo().serviceUuid(serviceUuid);
+		    	self.model_VDC().serviceUuid(serviceUuid);
 		        csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
 			    	self.isAdd_VDC(true);
 			    	var osType = data.serviceVDC.osType;
 			    	var isLimit = data.serviceVDC.isLimit;
 			    	self.osTypeArray(getArrayByString(osType));
-			    	self.model_VDC().vdcCartInfo().billRuleArray(setArrayCharge(data.chargeType));
+			    	self.model_VDC().billRuleArray(setArrayCharge(data.chargeType));
 			    	if(data.charge==1){
-			    		self.model_VDC().vdcCartInfo().charge("false");
+			    		self.model_VDC().charge("false");
 			    	}else{
-			    		self.model_VDC().vdcCartInfo().charge("true");
+			    		self.model_VDC().charge("true");
 			    		getArrayByString(data.chargeType);
 			    		//self.model_VDC().vdcCartInfo().billRuleArray(getArrayByString(data.chargeType));
 			    	}
 			    	if(isLimit=="no"){
-			    		self.model_VDC().vdcCartInfo().quota("-1");
+			    		self.model_VDC().quota("-1");
 			    	}else{
-			    		self.model_VDC().vdcCartInfo().quota("1");
-			 	    	self.model_VDC().vdcCartInfo().cpu(data.serviceVDC.maxCpu);
-			 	    	self.model_VDC().vdcCartInfo().memory(data.serviceVDC.maxMemory);
-			 	    	self.model_VDC().vdcCartInfo().storage(data.serviceVDC.maxStorager);
-			 	    	self.model_VDC().vdcCartInfo().vpcNum(data.serviceVDC.maxVPC);
-			 	    	self.model_VDC().vdcCartInfo().vm(data.serviceVDC.maxVmNum);
-			 	    	self.model_VDC().vdcCartInfo().disk(data.serviceVDC.maxDiskNum);
-			 	    	self.model_VDC().vdcCartInfo().publicIp(data.serviceVDC.maxIpNum);
-			 	    	self.model_VDC().vdcCartInfo().router(data.serviceVDC.maxRouterNum);
-			 	    	self.model_VDC().vdcCartInfo().fireWall(data.serviceVDC.maxFireWallNum);
-			 	    	self.model_VDC().vdcCartInfo().secretKey(data.serviceVDC.maxSSHNum);
-			 	    	self.model_VDC().vdcCartInfo().objectStorage(data.serviceVDC.maxObjStorageNum);
-			 	    	self.model_VDC().vdcCartInfo().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
+			    		self.model_VDC().quota("1");
+			 	    	self.model_VDC().cpu(data.serviceVDC.maxCpu);
+			 	    	self.model_VDC().memory(data.serviceVDC.maxMemory);
+			 	    	self.model_VDC().storage(data.serviceVDC.maxStorager);
+			 	    	self.model_VDC().vpcNum(data.serviceVDC.maxVPC);
+			 	    	self.model_VDC().vm(data.serviceVDC.maxVmNum);
+			 	    	self.model_VDC().disk(data.serviceVDC.maxDiskNum);
+			 	    	self.model_VDC().publicIp(data.serviceVDC.maxIpNum);
+			 	    	self.model_VDC().router(data.serviceVDC.maxRouterNum);
+			 	    	self.model_VDC().fireWall(data.serviceVDC.maxFireWallNum);
+			 	    	self.model_VDC().secretKey(data.serviceVDC.maxSSHNum);
+			 	    	self.model_VDC().objectStorage(data.serviceVDC.maxObjStorageNum);
+			 	    	self.model_VDC().loadBalancer(data.serviceVDC.maxLoadBalanceNum);
 			    	}
 		        });	    	
 		    }
@@ -1887,7 +1962,7 @@
 		    	if(typeof(type)=="undefined"){
 		    		return;
 		    	}
-		    	var price = data.unitPrice()*data.size();
+		    	var price = "费用:"+data.unitPrice()*data.size();
 	    		if(type=="DAY"){
 	    			price+="元/天";
 	    		}else if(type=="MONTH"){
@@ -1901,12 +1976,15 @@
 		    }
 		    
 		    this.chargeTypeChange= function(arg,data,event){//vdc使用
-		    	var serviceType;
-		    	var type;
+		    	var serviceType = self.model_VDC();
+		    	var type = serviceType.billRuleUuid();
 		    	var price;
-		    	serviceType = self.model_VDC().vdcCartInfo();
+	    		if(typeof(type)=="undefined"){
+	    			serviceType.price("");
+	    			return;
+	    		}
 		    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceType.serviceUuid()+"&cycle="+serviceType.billRuleUuid(), function(result){
-		    		type = serviceType.billRuleUuid();
+		    		
 		    		price = "费用:"+result.ruleList[0].unitPrice;
 		    		if(type=="DAY"){
 		    			price+="元/天";
@@ -1959,12 +2037,11 @@
 		  	this.model_VDC = ko.validatedObservable();
 		  	function initVdc(){
 		  		self.model_VDC = ko.validatedObservable({
-			    	vdcCartInfo:ko.observable({
 			    		serviceUuid:ko.observable(""),
-						name: ko.observable(""),
+						name: ko.observable("").extend({required:true}),
 						charge:ko.observable(""),
 						osTypes : ko.observable(""),
-						osTypesSelelct:ko.observableArray([]),
+						osTypesSelelct:ko.observableArray([]).extend({required:true}),
 						quota:ko.observable("-1"),
 						cpu: ko.observable(""),
 						memory:ko.observable(""),
@@ -1979,15 +2056,24 @@
 						loadBalancer: ko.observable(""),
 						secretKey: ko.observable(""),
 						remark:ko.observable(""),
-						billRuleUuid: ko.observable(""),
+						billRuleUuid: ko.observable(),
 						applyType: ko.observable("1"),
 						applyNum: ko.observable(""),
 						applyTime: ko.observable(""),
 						price:ko.observable(""),
 						billRuleArray:ko.observableArray([])
-			    	})
 			    });
+		  		
+	            self.model_VDC().charge.subscribe(function(value){
+	            	if(value=='true'){
+	            		self.model_VDC().billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+	            	}else{
+	            		self.model_VDC().billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+	            	}
+	            });
 		  	}
+		  	
+
 		    
 		    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 		  //################## VDC end ##################
@@ -2263,6 +2349,7 @@
 	            this.bussyList=ko.observableArray([]);
 	            this.sshList=ko.observableArray([]);
 	            this.billRuleList=ko.observableArray([]);
+	            this.ipList = ko.observableArray([]);
 	   		}
 		   
 		    function MountDiskVO(){
@@ -2405,12 +2492,24 @@
 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+data.vdcUuid()+"/"+data.azUuid(), function(result){
 		        	data.vpcList(result);
 		        });
+		        
+		        csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+data.azUuid()+"&vcdUuid="+data.vdcUuid(),function(result){
+	            	data.sshList(result);
+	            });
 		    }
 		    this.getOsVersionForOsTypeChange = function(data){
 		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.azUuid()+"/"+data.osType(), function(result){
 		        	data.osVersionList(result);
 		        });
 		    }
+		    this.getIpForNetWorkChange = function(data){
+		    	if(data.vpcNetworkUuid()!=null){
+		    		csc.rest.get("api/v5.0.0/vpcNetworks/" + data.vpcNetworkUuid() + "/availableIp", function(result) {
+			    		data.ipList(result);
+	                });
+		    	}
+		    	
+		    } 
 		    /************************************ 云主机 下拉级联  ************************************/
 		    
 		    /************************************ 云主机 套餐价格  ************************************/
@@ -2928,23 +3027,23 @@
         
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">云硬盘名称：</label>
+              <label class="col-sm-4 control-label">云硬盘名称<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control w" data-bind="value: name">
+                <input type="text" class="form-control" data-bind="value: name">
               </div>
             </div>
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">存储大小(GB)：</label>
+              <label class="col-sm-4 control-label">存储大小(GB)<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control w" data-bind="value: size,event:{change:$root.sizeChange}">
+                <input type="text" class="form-control" data-bind="value: size,event:{change:$root.sizeChange}">
               </div>
             </div>
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">所属VDC：</label>
+              <label class="col-sm-4 control-label">所属VDC<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}"></select>
               </div>
@@ -2952,7 +3051,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">可用分区：</label>
+              <label class="col-sm-4 control-label">可用分区<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVm},optionsCaption:'请选择'"></select>
               </div>
@@ -2960,7 +3059,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">挂载云主机：</label>
+              <label class="col-sm-4 control-label">挂载云主机<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm"  data-bind="options:vmList,optionsText:'name',optionsValue:'uuid',value:mountVmUuid,event:{change:$root.vmChangeGetDate},optionsCaption:'请选择'"></select>
               </div>
@@ -2969,7 +3068,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">备注：</label>
+              <label class="col-sm-4 control-label">备注</label>
               <div class="col-sm-8">
                 <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
               </div>
@@ -2978,7 +3077,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">申请时长：</label>
+              <label class="col-sm-4 control-label">申请时长<i style="color:red">*</i></label>
               <label class="col-xs-2 control-label">有效期至 </label>
               <div class="col-xs-6"><input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}"></div>
             </div>
@@ -2986,7 +3085,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
-              <label class="col-sm-4 control-label">套餐：</label>
+              <label class="col-sm-4 control-label">套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
 				   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
               </div>
@@ -3027,7 +3126,7 @@
               <th>存储大小(G)<i style="color:red">*</i></th>
               <th>所属VDC<i style="color:red">*</i></th>
               <th>可用分区<i style="color:red">*</i></th>
-              <th>挂载云主机</th>
+              <th>挂载云主机<i style="color:red">*</i></th>
               <th>申请时长</th>
               <th data-bind="visible:$root.charge_more_view()=='true'">套餐</th>
               <th data-bind="visible:$root.charge_more_view()=='true'">收费标准</th>
@@ -3086,23 +3185,23 @@
         
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">对象存储名称：</label>
+              <label class="col-sm-4 control-label">对象存储名称<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control w" data-bind="value: name">
+                <input type="text" class="form-control" data-bind="value: name">
               </div>
             </div>
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">存储大小(GB)：</label>
+              <label class="col-sm-4 control-label">存储大小(GB)<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control w" data-bind="value: size,event:{change:$root.sizeChange}" >
+                <input type="text" class="form-control" data-bind="value: size,event:{change:$root.sizeChange}" >
               </div>
             </div>
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">所属VDC：</label>
+              <label class="col-sm-4 control-label">所属VDC<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
               </div>
@@ -3110,7 +3209,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">可用分区：</label>
+              <label class="col-sm-4 control-label">可用分区<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,optionsCaption:'请选择'"></select>
               </div>
@@ -3118,7 +3217,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">备注：</label>
+              <label class="col-sm-4 control-label">备注</label>
               <div class="col-sm-8">
                 <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
               </div>
@@ -3128,7 +3227,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">申请时长：</label>
+              <label class="col-sm-4 control-label">申请时长<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <div class="radio">
                   <label class="form-inline">
@@ -3154,7 +3253,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
-              <label class="col-sm-4 control-label">套餐：</label>
+              <label class="col-sm-4 control-label">套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
 				 <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
               </div>
@@ -3197,8 +3296,8 @@
               <th>存储大小(G)<i style="color:red">*</i></th>
               <th>所属VDC<i style="color:red">*</i></th>
               <th>可用分区<i style="color:red">*</i></th>
-              <th>申请时长</th>
-              <th data-bind="visible:$root.charge_more_view()=='true'">套餐</th>
+              <th>申请时长<i style="color:red">*</i></th>
+              <th data-bind="visible:$root.charge_more_view()=='true'">套餐<i style="color:red">*</i></th>
               <th data-bind="visible:$root.charge_more_view()=='true'">收费标准</th>
             </thead>
             <tbody data-bind="foreach: model_ObjectStorage().objectStorageCartInfo">
@@ -3263,16 +3362,16 @@
         
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">公网IP名称：</label>
+              <label class="col-sm-4 control-label">公网IP名称<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control w" data-bind="value: name">
+                <input type="text" class="form-control" data-bind="value: name">
               </div>
             </div>
           </div>
           <div class="clearfix"></div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">所属VDC：</label>
+              <label class="col-sm-4 control-label">所属VDC<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
               </div>
@@ -3280,7 +3379,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">可用分区：</label>
+              <label class="col-sm-4 control-label">可用分区<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,event:{change:$root.azChangeGetVpc},optionsCaption:'请选择'"></select>
               </div>
@@ -3288,7 +3387,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">所属VPC：</label>
+              <label class="col-sm-4 control-label">所属VPC<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value:vpcUuid,event:{change:$root.vpcChangeByPublic},optionsCaption:'请选择'"></select>
               </div>
@@ -3296,7 +3395,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">网络名称：</label>
+              <label class="col-sm-4 control-label">网络名称<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <select class="form-control input-sm" data-bind="options:networkList,optionsText:'name',optionsValue:'uuid',value:netWorkId,optionsCaption:'请选择'"></select>
               </div>
@@ -3304,7 +3403,7 @@
           </div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">备注：</label>
+              <label class="col-sm-4 control-label">备注</label>
               <div class="col-sm-8">
                 <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
               </div>
@@ -3314,7 +3413,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6">
             <div class="row">
-              <label class="col-sm-4 control-label">申请时长：</label>
+              <label class="col-sm-4 control-label">申请时长<i style="color:red">*</i></label>
               <div class="col-sm-8">
                 <div class="radio">
                   <label class="form-inline">
@@ -3340,7 +3439,7 @@
           <div class="clearfix"></div>
           <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
             <div class="row">
-              <label class="col-sm-4 control-label" >套餐：</label>
+              <label class="col-sm-4 control-label" >套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
 				<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('single',data,event) }},optionsCaption:'请选择'"></select>
               </div>
@@ -3383,9 +3482,9 @@
               <th>所属VDC<i style="color:red">*</i></th>
               <th>可用分区<i style="color:red">*</i></th>
               <th>VPC<i style="color:red">*</i></th>
-              <th>网络名称</th>
+              <th>网络名称<i style="color:red">*</i></th>
               <th>申请时长<i style="color:red">*</i></th>
-              <th data-bind="visible:$root.charge_more_view()=='true'">套餐</th>
+              <th data-bind="visible:$root.charge_more_view()=='true'">套餐<i style="color:red">*</i></th>
               <th data-bind="visible:$root.charge_more_view()=='true'">收费标准</th>
             </thead>
             <tbody  data-bind="foreach: model_PublicNetwork().publicNetworkCartInfo">
@@ -3445,44 +3544,44 @@
       </div>
       <div class='modal-body form-horizontal row'>
         <div class="form-group">
-          <label class="col-sm-3 control-label">VDC名称：</label>
+          <label class="col-sm-3 control-label">VDC名称<i style="color:red">*</i></label>
           <div class="col-sm-8">
-            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:model_VDC().vdcCartInfo().name">
+            <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:model_VDC().name">
           </div>
         </div>
         <div class="form-group">
-          <label class="col-sm-3 control-label">支持操作系统：</label>
+          <label class="col-sm-3 control-label">支持操作系统<i style="color:red">*</i></label>
             <div class="col-sm-8 form-inline" data-bind="foreach:osTypeArray">
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" data-bind="checked: $parent.model_VDC().vdcCartInfo().osTypesSelelct,value:$data"><span data-bind="text:$data"></span>
+                  <input type="checkbox" data-bind="checked: $parent.model_VDC().osTypesSelelct,value:$data"><span data-bind="text:$data"></span>
                 </label>
               </div>
             </div>
         </div>     
         <div class="form-group">
-        	<label class="col-sm-3 control-label">配额限制：</label>
+        	<label class="col-sm-3 control-label">配额限制<i style="color:red">*</i></label>
         	<div class="col-xs-4 form-inline">
         	<div class="form-inline"> 
         	<div class="radio"> 
         		<label class="form-inline"> 
-					<input type="radio" class="form-control" style="top: 2px;" value="1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">限制
+					<input type="radio" class="form-control" style="top: 2px;" value="1" data-bind="checked: model_VDC().quota,name:quota,attr:{disabled:true}">限制
 				</label>
 			</div> 
         	<div class="radio"> 
         		<label class="form-inline"> 
-					<input type="radio" class="form-control" style="top: 2px;" value="-1" data-bind="checked: model_VDC().vdcCartInfo().quota,name:quota,attr:{disabled:true}">不限制
+					<input type="radio" class="form-control" style="top: 2px;" value="-1" data-bind="checked: model_VDC().quota,name:quota,attr:{disabled:true}">不限制
 				</label>
 			</div>			
 			</div>
 			</div>
         </div>
-        <div data-bind="visible:model_VDC().vdcCartInfo().quota()=='1'">
+        <div data-bind="visible:model_VDC().quota()=='1'">
 	        <div class="form-group col-sm-4" >
 	          <div >
 	            <label class="col-xs-8 control-label">CPU配额(个)：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().cpu,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().cpu,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3490,7 +3589,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">内存配额(G)：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().memory,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().memory,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3498,7 +3597,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">存储配额(G)：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().storage,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().storage,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3506,7 +3605,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">云主机最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vm,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vm,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3514,7 +3613,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">云硬盘最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().disk,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().disk,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3522,7 +3621,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">对象存储最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().objectStorage,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().objectStorage,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3530,7 +3629,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">VPC最大可创建数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().vpcNum,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().vpcNum,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3538,7 +3637,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">路由器最大可创建数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().router,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().router,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3546,7 +3645,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">防火墙最大可创建数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().fireWall,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().fireWall,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3554,7 +3653,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">公网IP最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().publicIp,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().publicIp,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3562,7 +3661,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">负载均衡器最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().loadBalancer,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().loadBalancer,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3570,7 +3669,7 @@
 	          <div >
 	            <label class="col-xs-8 control-label">SSH密钥最大申请数：</label>
 	            <div class="col-xs-4">
-	              <input type="text" class="form-control" data-bind="value:model_VDC().vdcCartInfo().secretKey,attr:{disabled:true}">
+	              <input type="text" class="form-control" data-bind="value:model_VDC().secretKey,attr:{disabled:true}">
 	            </div>
 	          </div>
 	        </div>
@@ -3579,7 +3678,7 @@
         <div class="form-group">
           <label class="col-sm-3 control-label">备注：</label>
           <div class="col-sm-8">
-            <textarea class="form-control" cols="30" rows="5" data-bind="value:model_VDC().vdcCartInfo().remark"></textarea>
+            <textarea class="form-control" cols="30" rows="5" data-bind="value:model_VDC().remark"></textarea>
           </div>
         </div>
           <div class="clearfix"></div>
@@ -3588,30 +3687,30 @@
 			<div class="col-sm-8">
 			<div class="radio">
 				<label class="form-inline"> 
-					<input type="radio" value="1" data-bind="checked: model_VDC().vdcCartInfo().applyType,name:vdcRadio" > 永久
+					<input type="radio" value="1" data-bind="checked: model_VDC().applyType,name:vdcRadio" > 永久
 				</label>
 			</div>
 			<div class="radio">
 				<label class="form-inline"> 
-					<input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: model_VDC().vdcCartInfo().applyType,name:vdcRadio"> 
-					<select class="form-control"  data-bind="options:MonthsList,optionsText:'name',optionsValue:'value',value:model_VDC().vdcCartInfo().applyNum"></select> 个月
+					<input type="radio" class="form-control" style="top: 2px;" value="2" data-bind="checked: model_VDC().applyType,name:vdcRadio"> 
+					<select class="form-control"  data-bind="options:MonthsList,optionsText:'name',optionsValue:'value',value:model_VDC().applyNum"></select> 个月
 				</label>
 			</div>
 			<div class="radio disabled">
 				<label class="form-inline"> 
-					<input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: model_VDC().vdcCartInfo().applyType,name:vdcRadio"> 
-					<input type="text" style="width: 206px" class="form-control applyDateFormat" data-bind="value:model_VDC().vdcCartInfo().applyTime">
+					<input type="radio" class="form-control" style="top: 2px;" value="3" data-bind="checked: model_VDC().applyType,name:vdcRadio"> 
+					<input type="text" style="width: 206px" class="form-control applyDateFormat" data-bind="value:model_VDC().applyTime">
 				</label>
 			</div>
 			</div>
         </div>
-        <div class="form-group" data-bind="visible:model_VDC().vdcCartInfo().charge()=='true'">
+        <div class="form-group" data-bind="visible:model_VDC().charge()=='true'">
           <div>
-            <label class="col-sm-3 control-label">套餐：</label>
+            <label class="col-sm-3 control-label">套餐<i style="color:red">*</i></label>
             <div class="col-sm-2">
-                <select class="form-control"  data-bind="options:model_VDC().vdcCartInfo().billRuleArray,optionsText:'name',optionsValue:'value',value:model_VDC().vdcCartInfo().billRuleUuid,event:{change:function(data, event){ $root.chargeTypeChange('vdcCartInfo',data,event) }}"></select>
+                <select class="form-control"  data-bind="options:model_VDC().billRuleArray,optionsText:'name',optionsValue:'value',value:model_VDC().billRuleUuid,optionsCaption:'请选择',event:{change:function(data, event){ $root.chargeTypeChange('vdcCartInfo',data,event) }}"></select>
             </div>
-            <span class="col-sm-3 control-label text-left" data-bind="text:model_VDC().vdcCartInfo().price"></span>
+            <span class="col-sm-3 control-label text-left" data-bind="text:model_VDC().price"></span>
           </div>
         </div>
 
@@ -3717,7 +3816,7 @@
               <div class="row">
                 <label class="col-xs-5 control-label">网络名称：</label>
                 <div class="col-xs-7">
-                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
+                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,event:{change:$root.getIpForNetWorkChange},optionsCaption:'请选择'"></select>
                 </div>
               </div>
             </div>
@@ -3725,7 +3824,7 @@
               <div class="row">
                 <label class="col-xs-5 control-label">指定IP：</label>
                 <div class="col-xs-7">
-                  <input type="text" class="form-control" data-bind="value:  ip">
+                  <select class="form-control w-x" data-bind="options:ipList,optionsText:'ip',optionsValue:'ip',value:ip,optionsCaption:'请选择'"></select>
                 </div>
               </div>
             </div>
@@ -4060,8 +4159,8 @@
 			                       <td><span data-bind="text: ($index()+1)"></span></td>
 			                       <td><span data-bind="text:vmName"></span></td>
 			                       <td><select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcOrIpPoolList,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select></td>
-			                       <td><select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select></td>
-			                       <td><input type="text" class="form-control" data-bind="value:  ip"></td>
+			                       <td><select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,event:{change:$root.getIpForNetWorkChange},optionsCaption:'请选择'"></select></td>
+			                       <td><select class="form-control w-x" data-bind="options:ipList,optionsText:'ip',optionsValue:'ip',value:ip,optionsCaption:'请选择'"></select></td>
 			                       <td>
 			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择'"></select>
 			                       </td>

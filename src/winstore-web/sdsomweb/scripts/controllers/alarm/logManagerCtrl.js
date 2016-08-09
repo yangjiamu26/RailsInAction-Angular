@@ -1,14 +1,13 @@
 /**
     * created by wuchanggui 2014/12/19
     */
-vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory", "$filter", "$state", "$timeout", "$stateParams",
+vsanApp.controller("logManagerCtrl", ["$scope", "alarmFactory", "eventFactory", "$filter", "$state", "$timeout", "$stateParams",
     function ($scope, alarmFactory, eventFactory, $filter, $state, $timeout, $stateParams) {
     "use strict";
     /**
         * 初始化函数
         */
     $scope.initPage = function () {
-
         //初始化告警日志列表查询
         $scope.queryParams = {
             resolved: "",
@@ -23,10 +22,9 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
             pageno: "1",
             pagesize: "10"
         };
-        //查询告警日志
-        $scope.getAlarmList();
-        //显示告警展示框
-        $scope.showTab = "alarm";
+        //查询系统日志
+        $scope.getLogList();
+        $scope.showTab = "log";
     };
 
     /**

@@ -37,8 +37,10 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
         $scope.initNProgress();
         $scope.licenseCheck2();
         $scope.storageManageShow = false;//菜单默认收缩
-        $scope.backGroundColor1 ='mainMenuStyle';
+        $scope.cnwareShow = false;
         $scope.nodeManageShow = false;
+        $scope.mainManageShow = false;
+        $scope.backGroundColor1 ='mainMenuStyle';
         $scope.uName =  urlConfig.get("userName");
         $scope.emergencyModeString = ""
 
@@ -121,10 +123,16 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
     //控制菜单收缩与显示
     $scope.showStorageManage = function(){
         $scope.storageManageShow = !$scope.storageManageShow;
-    }
+    };
+    $scope.showCnwareManage = function(){
+        $scope.cnwareShow = !$scope.cnwareShow;
+    };
     $scope.showNodeManage = function(){
         $scope.nodeManageShow = !$scope.nodeManageShow;
-    }
+    };
+    $scope.showMainManage = function(){
+        $scope.mainManageShow = !$scope.mainManageShow;
+    };
     //控制菜单背景色
     $scope.changeBgColor = function(num){
         $scope.backGroundColor1 ='';
@@ -135,6 +143,19 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
         $scope.backGroundColor6 ='';
         $scope.backGroundColor7 ='';
         $scope.backGroundColor8 ='';
+        $scope.backGroundColor9 ='';
+        $scope.backGroundColor10 ='';
+        $scope.backGroundColor11 ='';
+        $scope.backGroundColor12 ='';
+        $scope.backGroundColor13 ='';
+        $scope.backGroundColor14 ='';
+        $scope.backGroundColor15 ='';
+        $scope.backGroundColor16 ='';
+        $scope.backGroundColor17 ='';
+        $scope.backGroundColor18 ='';
+        $scope.backGroundColor19 ='';
+        $scope.backGroundColor20 ='';
+        $scope.backGroundColor21 ='';
         switch(num){
             case 1:$scope.backGroundColor1 ='mainMenuStyle'; return;
             case 2:$scope.backGroundColor2 ='mainMenuStyle'; return;
@@ -144,6 +165,19 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
             case 6:$scope.backGroundColor6 ='mainMenuStyle'; return;
             case 7:$scope.backGroundColor7 ='mainMenuStyle'; return;
             case 8:$scope.backGroundColor8 ='mainMenuStyle'; return;
+            case 9:$scope.backGroundColor9 ='mainMenuStyle'; return;
+            case 10:$scope.backGroundColor10 ='mainMenuStyle'; return;
+            case 11:$scope.backGroundColor11 ='mainMenuStyle'; return;
+            case 12:$scope.backGroundColor12 ='mainMenuStyle'; return;
+            case 13:$scope.backGroundColor13 ='mainMenuStyle'; return;
+            case 14:$scope.backGroundColor14 ='mainMenuStyle'; return;
+            case 15:$scope.backGroundColor15 ='mainMenuStyle'; return;
+            case 16:$scope.backGroundColor16 ='mainMenuStyle'; return;
+            case 17:$scope.backGroundColor17 ='mainMenuStyle'; return;
+            case 18:$scope.backGroundColor18 ='mainMenuStyle'; return;
+            case 19:$scope.backGroundColor19 ='mainMenuStyle'; return;
+            case 20:$scope.backGroundColor20 ='mainMenuStyle'; return;
+            case 21:$scope.backGroundColor21 ='mainMenuStyle'; return;
             }
     };
     //新增server

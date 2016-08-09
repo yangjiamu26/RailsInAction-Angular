@@ -404,7 +404,7 @@
                     <th>cpu</th>
                     <th>内存</th>
                     <th>存储</th>
-                    <th>操作</th>
+                    <th data-bind="if: $root.isCNware">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -419,13 +419,13 @@
                       <a href="#" data-bind="click: $root.showDetailFun"><span data-bind="text: $row.hostName"></span></a>
                     </td>
                     <td data-bind="text: $row.ip"></td>
-                    <td data-bind="text: $row.cloudPlatform"></td>
+                    <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
                     <td data-bind="visible: false"><span class="label label-success" data-bind="text: $row.state">运行中</span></td>
                     <td data-bind="visible: false"></td>
                     <td data-bind="text: $row.totalLogicalCpu_"></td>
                     <td data-bind="text: $row.totalMemory_"></td>
                     <td data-bind="text: $row.totalStorage_"></td>
-                    <td>
+                    <td data-bind="if: $root.isCNware">
                       <a href="#" data-bind="visible: false">进入维护模式</a><!-- | -->
                       <div class="btn-group" data-bind="visible: false">
                         <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span>
@@ -493,7 +493,7 @@
                   </div>
                   <div class="row m-b">
                     <div class="col-xs-5 font-bold text-nowrap">虚拟机数：</div>
-                    <div class="col-xs-7">100台</div>
+                    <div class="col-xs-7" data-bind="text: hostVo().vmNumber">100台</div>
                   </div>
                   <div class="row m-b">
                     <div class="col-xs-5 font-bold text-nowrap">状态：</div>
@@ -550,8 +550,8 @@
                     </div>
                     <div class="text-primary-lt">
                       <div class="inline m-a text-left l-h-2x">
-                          已用：<span data-bind="text: hostVo().usedCpu_"></span><br/>
-                          未用：<span data-bind="text: hostVo().availCpu_"></span>
+                          	已用：<span data-bind="text: hostVo().usedCpu_"></span><br/>
+                          	未用：<span data-bind="text: hostVo().availCpu_"></span>
                       </div>    
                     </div>            
                   </div>
@@ -564,8 +564,8 @@
                     </div>
                     <div class="text-primary-lt">
                       <div class="inline m-a text-left l-h-2x">
-                          已用：<span data-bind="text: hostVo().usedMemory_"></span><br/>
-                          未用：<span data-bind="text: hostVo().availMemory_"></span>
+                          	已用：<span data-bind="text: hostVo().usedMemory_"></span><br/>
+                          	未用：<span data-bind="text: hostVo().availMemory_"></span>
                       </div>     
                     </div>           
                   </div>
@@ -578,14 +578,14 @@
                     </div>
                     <div class="text-primary-lt">
                       <div class="inline m-a text-left l-h-2x">
-                          已用：<span data-bind="text: hostVo().usedStorage_"></span><br/>
-                          未用：<span data-bind="text: hostVo().availStorage_"></span>
+					                          已用：<span data-bind="text: hostVo().usedStorage_"></span><br/>
+					                          未用：<span data-bind="text: hostVo().availStorage_"></span>
                       </div> 
                     </div>               
                   </div>
                 </div>
 
-                <div class="wrapper m-t-lg">
+                <div class="wrapper m-t-lg" data-bind="if: $root.isCNware">
                   <div class="row">
                     <div class="col-xs-12">
                       <div>
@@ -598,8 +598,8 @@
                       </div>
                       <div class="text-primary-lt">
                       <span class="text-base text-dark">总量：<span data-bind="text: hostVo().totalMemory_"></span></span> 
-                          已用：<span data-bind="text: hostVo().vmUsedMemory_"></span>
-                          未用：<span data-bind="text: hostVo().availMemory_"></span></div>
+                         	 已用：<span data-bind="text: hostVo().vmUsedMemory_"></span>
+                          	未用：<span data-bind="text: hostVo().availMemory_"></span></div>
                     </div>
                   </div>
                 </div> 
@@ -1703,7 +1703,7 @@
       }
       //定义搜索参数
         self.searchParam = ko.observable({
-          azUuid: azUuid,
+            azUuid: azUuid,
             state: "",
             hostNameLike: ""
         });
@@ -1721,60 +1721,64 @@
             perPage: 10,
             path: 'api/v5.0.0/hosts?azUuid=' + azUuid,
             loader: function(result){
-              result.totalLogicalCpu_ = result.totalLogicalCpu + "颗";
+            	if(result.az){
+            		result.azName = result.az.name;
+            	}
+                result.totalLogicalCpu_ = result.totalLogicalCpu + "颗";
               
-              if(!self.isCNware){
-                result.resourcePoolName = "-";
-                result.runningTime = "-";
-                result.state_ = "-";
-                //CPU资源统计
-                result.usedCpu_ = result.usedCpu + "个";
-                result.availCpu_ = result.availCpu + "个";
-                result.totalCpu_ = result.totalCpu + "个";
-                }else{
-                  result.state_ = $.HOST._stateViews[result.state];
-                  result.state_= csc.util.isNull(result.state_)?"-":result.state_;
+                if(!self.isCNware){
+	                result.resourcePoolName = "-";
+	                result.runningTime = "-";
+	                result.state_ = "-";
+	                result.vmNumber = "-";
+	                //CPU资源统计
+	                result.usedCpu_ = result.usedCpu + "个";
+	                result.availCpu_ = result.availCpu + "个";
+	                result.totalCpu_ = result.totalCpu + "个";
+              	}else{
+                  	result.state_ = $.HOST._stateViews[result.state];
+                  	result.state_= csc.util.isNull(result.state_)?"-":result.state_;
                   
-                  result.usedCpu_ = result.usedCpu + "MHz";
-              result.availCpu_ = result.availCpu + "MHz";
-              result.totalCpu_ = result.totalCpu + "MHz";
-                }
-              var pieOptsPreffix = "{percent: ";
-              var pieOptsSuffix = " ,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}";
-              //CPU资源统计
-              result.usedVcpuRate = (result.usedCpu/result.totalCpu * 100.0).toFixed(2);
-            result.usedVcpuRate_ = result.usedVcpuRate + "%";
-            result.usedVcpuUiOpts = pieOptsPreffix + result.usedVcpuRate + pieOptsSuffix;
+                  	result.usedCpu_ = result.usedCpu + "MHz";
+              		result.availCpu_ = result.availCpu + "MHz";
+              		result.totalCpu_ = result.totalCpu + "MHz";
+              	}
+              	var pieOptsPreffix = "{percent: ";
+              	var pieOptsSuffix = " ,lineWidth: 4,trackColor: '#e8eff0',barColor: '#27c24c',scaleColor: false,size: 80,rotate: 0,lineCap: 'butt'}";
+              	//CPU资源统计
+                result.usedVcpuRate = (result.usedCpu/result.totalCpu * 100.0).toFixed(2);
+                 result.usedVcpuRate_ = result.usedVcpuRate + "%";
+                result.usedVcpuUiOpts = pieOptsPreffix + result.usedVcpuRate + pieOptsSuffix;
             
-            //内存资源统计
-            result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
-            result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
-            result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
-            result.usedMemoryRate = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
-            result.usedMemoryRate_ = result.usedMemoryRate + "%";
-            result.usedMemoryUiOpts = pieOptsPreffix + result.usedMemoryRate + pieOptsSuffix;
-            //存储资源统计
+                //内存资源统计
+                result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
+                result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
+                result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
+                result.usedMemoryRate = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
+              result.usedMemoryRate_ = result.usedMemoryRate + "%";
+              result.usedMemoryUiOpts = pieOptsPreffix + result.usedMemoryRate + pieOptsSuffix;
+              //存储资源统计
               result.totalStorage_ = result.totalStorage + "GB";
               result.usedStorage_  = result.usedStorage + "GB";
               result.availStorage_ = result.availStorage + "GB";
               result.usedStorageRate = (result.usedStorage/result.totalStorage * 100.0).toFixed(2);
-            result.usedStorageRate_ = result.usedStorageRate + "%";
-            result.usedStorageUiOpts = pieOptsPreffix + result.usedStorageRate + pieOptsSuffix;
-            //vm已使用内存
-            //hostUsedMemory为主机消耗的内存（已使用内存 - vm使用内存）
-            result.vmUsedMemory_ = (result.vmUsedMemory/1024).toFixed(2) + "GB";
-            result.hostUsedMemory = (result.usedMemory - result.vmUsedMemory/1024).toFixed(2);
-            result.hostUsedMemory_ = result.hostUsedMemory + "GB";
-            result.vmUsedMemoryRate = (result.vmUsedMemory/result.totalMemory * 100.0).toFixed(2);
-            result.vmUsedMemoryRate_ = result.vmUsedMemoryRate + "%";
-            //vm已使用内存bar的样式
-            if(result.vmUsedMemoryRate < 50){
-              result.vmUsedMemoryRateSytle = "progress-bar-success";
-            }else if(result.vmUsedMemoryRate < 80){
-              result.vmUsedMemoryRateSytle = "progress-bar-warning";
-            }else{
-              result.vmUsedMemoryRateSytle = "progress-bar-danger";
-            }
+              result.usedStorageRate_ = result.usedStorageRate + "%";
+              result.usedStorageUiOpts = pieOptsPreffix + result.usedStorageRate + pieOptsSuffix;
+              //vm已使用内存
+              //hostUsedMemory为主机消耗的内存（已使用内存 - vm使用内存）
+              result.vmUsedMemory_ = (result.vmUsedMemory/1024).toFixed(2) + "GB";
+              result.hostUsedMemory = (result.usedMemory - result.vmUsedMemory/1024).toFixed(2);
+              result.hostUsedMemory_ = result.hostUsedMemory + "GB";
+              result.vmUsedMemoryRate = (result.vmUsedMemory/result.totalMemory * 100.0).toFixed(2);
+              result.vmUsedMemoryRate_ = result.vmUsedMemoryRate + "%";
+              //vm已使用内存bar的样式
+              if(result.vmUsedMemoryRate < 50){
+                result.vmUsedMemoryRateSytle = "progress-bar-success";
+              }else if(result.vmUsedMemoryRate < 80){
+                result.vmUsedMemoryRateSytle = "progress-bar-warning";
+              }else{
+                result.vmUsedMemoryRateSytle = "progress-bar-danger";
+              }
             
                 return result;
             }

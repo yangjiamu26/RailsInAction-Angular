@@ -14,8 +14,10 @@
 					<span class="input-group-addon">安装状态</span> <select
 						class="form-control input-sm"
 						data-bind="value: searchParam().status">
-						<option value="1">全部</option>
-						<option value="2">安装中</option>
+						<option value="">全部</option>
+						<option value="0">安装中</option>
+						<option value="1">安装成功</option>
+						<option value="2">安装失败</option>
 					</select>
 				</div>
 			</div>
@@ -69,9 +71,9 @@
 						<td data-bind="text: $row.vmUuid"></td>
 						<td data-bind="text: $row.billingUuid"></td>
 						<td data-bind="text: $row.installTime"></td>
-						<td data-bind="text: $row.progress, attr: {id: $row.uuid}"></td>
+						<td data-bind="attr: {id: $row.uuid}"></td>
 						<td data-bind="text: $row.statusName"></td>
-						<td><a href="#">查看</a> | <a href="#">修改</a></td>
+						<td><a data-bind="click:$root.showLogText">查看</a> | <a href="#">修改</a></td>
 						<td><a href="#">重安装</a> | <a href="#">查看日志</a></td>
 					</tr>
 					<!-- /ko -->
@@ -96,12 +98,49 @@
 	</div>
 </div>
 
+<!-- 安装日志弹窗   start -->
+	<div role="dialog" aria-hidden="true" class="modal fade"
+		data-bind="modal: { show: isLogText }">
+
+		<div class='modal-dialog' role='document'>
+			<div class='modal-content'>
+				<div class='modal-header'>
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h3 class='modal-title'>安装日志</h3>
+				</div>
+				<div class='modal-body form-horizontal'>
+					<div class="form-group">
+						<label class="col-xs-3 control-label"> 日志详情 </label>
+					</div>
+					<div class="form-group">
+						<div class="col-xs-11">
+							<textarea class="form-control" >
+							</textarea>
+						</div>
+					</div>
+					<div class='modal-footer' style="text-align: center">
+						<button name="button" type="submit"
+							class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 安装日志弹窗   end -->
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [ null, 'api/software/software.js', null ]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		function ViewModel() {
 			var self = this;
+			
+			this.isLogText = ko.observable(false);
+			
+			this.progressVO = ko.observable({});
+			
 			this.searchParam = ko.observable({
 				status : "",
 				vmName : "",
@@ -110,12 +149,42 @@
 			});
 			
 			this.search = function() {
-				console.log(this.searchParam())
+				this.table.params(this.searchParam());
 			};
 
 			this.table = new DataTable([], {
 				path : 'api/v5.0.0/install/logs'
 			});
+			
+			//获取进度数据
+			this.getProgress = function(object) {
+				var val = '0%';
+				
+				if (object.status == 0) {
+					var intervalId = setInterval(function() {
+						
+						$('#'+object.uuid).html(val);
+						
+						$.SOFTWARE.getProgress(object.uuid, function(data) {
+							
+							$('#'+object.uuid).html(data.progress);
+							
+							//clearInterval(intervalId);
+							if (data.progress == 'success' || data.progress == 'N/A') {
+								clearInterval(intervalId);	
+								self.table.refreshData();
+							}
+						});
+					},3500);
+				}
+				
+				return val;
+			};
+			
+			//显示安装日志
+			this.showLogText = function(object, event) {
+				
+			};
 		}
 		$(document).ready(function() {
 			var viewModel = new ViewModel();

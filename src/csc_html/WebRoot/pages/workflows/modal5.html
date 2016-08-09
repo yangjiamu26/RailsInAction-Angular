@@ -25,7 +25,7 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
             <div class="col-sm-10">
-              <select class="form-control" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value:currentVO().azUuid">
+              <select class="form-control" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value:currentVO().azUuid,event:{change:$root.azChange}">
               </select>
             </div>
           </div>
@@ -159,7 +159,6 @@
 	      		var vdcUuid = item.vdcUuid;
 	      		var azUuid = item.azUuid;	
 	      		var serviceUuid = item.serviceUuid;
-	      		
 	      		var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid+"&azUuid="+azUuid;
 	      		csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 	      			self.vdcList(result.vdcList);
@@ -192,11 +191,60 @@
 		  })
 		  
 		  this.vdcChange = function(data,event){
-			  
+			    var item = self.currentVO();
+		    	var serviceUuid=item.serviceUuid();
+		    	var vdcUuid=item.vdcUuid();
+		    	if(serviceUuid != "" && vdcUuid != ""){
+		    		csc.rest.get("api/v5.0.0/cart/getAzList/"+serviceUuid+"/"+vdcUuid, function(azList){
+			        	item.azList(azList);	
+			        });
+		    	}
+		        	 
+		        var vdcItem = _.findWhere(self.vdcList(), {uuid: item.vdcUuid()});
+		    	if(typeof(vdcItem)=="undefined"){
+	    	    	item.vdcName("");
+	    	    	item.azName("");
+		    		return;
+		    	}
+		    	item.vdcName(vdcItem.name);
+		    	item.azName(""); 
 		  }
 		  
+		  this.azChange = function(){//根据可用分区变化修改展示可用分区名称
+		    	var item = self.currentVO();
+		    	var azItem = _.findWhere(self.azList(), {uuid: item.azUuid()});
+		    	if(typeof(azItem)=="undefined"){
+		    		return;
+		    	}
+		    	item.azName(azItem.name);
+		    }
+		  
 		  this.chargeChangeCart = function(data,event){
-			  
+			  var item = self.currentVO();
+	          var serviceUuid=item.serviceUuid();
+	          var cycle=item.billCycle();
+	          if(serviceUuid != ""){
+		 	      csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+		              if(typeof(cycle)=="undefined"){
+		           	        item.fee("");
+		  	    			return;
+		              }
+		              var price = "0";
+		              if(result.ruleList[0] != null){
+		            	  price = result.ruleList[0].unitPrice;
+		              }
+			    		if(cycle=="DAY"){
+			    			price+="元/天";
+			    		}else if(cycle=="MONTH"){
+			    			price+="元/月";
+			    		}else if(cycle=="QUARTER"){
+			    			price+="元/季度";
+			    		}else{
+			    			price+="元/年";
+			    		}
+			    		item.fee(price);
+			      });
+	          }
 		  }
 		  
 		  this.save = function(){
@@ -216,7 +264,8 @@
 	                   		"expireType": self.currentVO().expireType(),
 	                   		"expireTime": self.currentVO().expireTime(),
 	                   		"desc": self.currentVO().desc(),
-	                   		"billCycle": self.currentVO().billCycle()
+	                   		"billCycle": self.currentVO().billCycle(),
+	                   		"fee": self.currentVO().fee()
 	                  }
 	                  csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderUuid()+'/modifyItem/'+self.currentVO().uuid(), itemResults, function(data){ 
 	                      alert('保存成功！'); 

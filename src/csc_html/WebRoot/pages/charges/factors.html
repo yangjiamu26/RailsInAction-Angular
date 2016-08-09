@@ -40,7 +40,7 @@
       <div class="col-xs-3">
           <div class="input-group">
             <span class="input-group-addon">规则名称</span>
-            <input class="input-sm form-control" placeholder="请输入规则名称"  data-bind="value: searchParam().name">
+            <input class="input-sm form-control" placeholder="请输入规则名称"  data-bind="value: searchParam().name, enterKey: search">
           </div>   
       </div>
       <div class="col-xs-2">
@@ -389,11 +389,34 @@
        this.search = function(){
         this.table.params(this.searchParam());
       }
-
+       
       this.table = new DataTable([], {path: 'api/v5.0.0/billing/rules'});
     }
 
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+    var ENTER_KEY = 13;
+    function keyhandlerBindingFactory(keyCode) {
+    	return {
+    		init: function (element, valueAccessor, allBindingsAccessor, data, bindingContext) {
+    			var wrappedHandler, newValueAccessor;
 
+    			wrappedHandler = function (data, event) {
+    				if (event.keyCode === keyCode) {
+    					valueAccessor().call(this, data, event);
+    				}
+    			};
+
+    			newValueAccessor = function () {
+    				return {
+    					keyup: wrappedHandler
+    				};
+    			};
+
+    			ko.bindingHandlers.event.init(element, newValueAccessor, allBindingsAccessor, data, bindingContext);
+    		}
+    	};
+    }
+    ko.bindingHandlers.enterKey = keyhandlerBindingFactory(ENTER_KEY);
+    
+    ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
   });
 </script>

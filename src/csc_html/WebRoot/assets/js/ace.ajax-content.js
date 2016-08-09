@@ -70,10 +70,6 @@
           }
           var paramsStr = paramsList.join(",");
           
-          if(hash.indexOf("?")>-1){
-        	  hash = hash.split("?")[0];
-          }
-          
           link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]'),$('a[data-url="'+hash.substring(0,hash.indexOf("?"))+'"][data-url-params*="'+paramsStr+'"]')],function(res){
             if(res.length > 0) return res;
             return [''];
