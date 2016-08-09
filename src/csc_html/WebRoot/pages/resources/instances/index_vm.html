@@ -126,20 +126,33 @@
           </table>
         </div>
         <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-          <ul class="pagination">
-            <li data-bind="css: leftPagerClass, click: prevPage">
-              <a href="#">&laquo;</a>
-            </li>
-            <!-- ko foreach: {data: (new Array(pages()))} -->
-            <li data-bind="css: $parent.pageClass($index() + 1)">
-              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-            </li>
-            <!-- /ko -->
-            <li data-bind="css: rightPagerClass, click: nextPage">
-              <a href="#">&raquo;</a>
-            </li>
-          </ul>
-        </footer>
+				     <ul class="pagination">
+				       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+				         <a href="#">首页</a>
+				       </li>
+				       <li data-bind="css: leftPagerClass, click: prevPage">
+				         <a href="#">&laquo;</a>
+				       </li>
+				       <li >
+				         <a href="#"  data-bind="text: currentPage"></a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: nextPage">
+				         <a href="#">&raquo;</a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+				         <a href="#">末页</a>
+				       </li>
+				       <li class="page-control-li">
+				         <div class="input-group form-group-sm">
+				           <input type="text" class="form-control" data-bind="value: targetPage"  />
+				           <div class="input-group-btn">
+				             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+				           </div>
+				         </div>
+				         <div class="page-info-div" data-bind="text: recordsText"></div>
+				       </li>
+				     </ul>
+				   </footer>
 
 
         <!-- 创建云主机弹窗 -->
@@ -178,13 +191,7 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <label class="col-xs-1 control-label no-padder-h">镜像</label>
-                      <div class="col-xs-2">
-                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId'"></select>
-                      </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-                      </div>
+                      
                       <label class="col-xs-1 control-label no-padder-h">CPU(个)</label>
                       <div class="col-xs-2">
                         <input type="text" class="form-control" data-bind="value: currentVO().vcpu" placeholder="请输入CPU"/>
@@ -199,8 +206,6 @@
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
-                    </div>
-                    <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">存储(GB)</label>
                       <div class="col-xs-2">
                         <input type="text" class="form-control" data-bind="value: currentVO().storage" placeholder="请输入存储"/>
@@ -208,9 +213,18 @@
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
+                    </div>
+                    <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">VPC</label>
                       <div class="col-xs-2">
                         <select class="form-control input-sm" data-bind="optionsCaption: '请选择VPC',value: currentVO().vpc, options: $root.add_vpcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vpcs}"></select>
+                      </div>
+                      <div class="col-xs-1">
+                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                      </div>
+                      <label class="col-xs-1 control-label no-padder-h">镜像</label>
+                      <div class="col-xs-2">
+                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId'"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -278,7 +292,7 @@
                       <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                       <div class="col-xs-10">
                         <label class="radio-inline" style="padding-top: 2px">
-                          <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked="checked"> 永久
+                          <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked> 永久
                         </label>
                         <label class="radio-inline">
                           <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
@@ -926,6 +940,8 @@
 			sshKey: ko.observable()
 	  });
       
+      $("#inlineRadio1")[0].checked;
+      
       //是否绑定
       this.add_isBinds = ko.observableArray([]);
       this.isBinds_def = function(){
@@ -1228,7 +1244,6 @@
 		  self.deleteProcessVO().uuid(object.uuid);
 		  var myDate = new Date();
 		  self.deleteProcessVO().time(myDate.toLocaleString());
-		  self.deleteProcessVO().user("");
 		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
       }
   
@@ -1271,7 +1286,7 @@
             	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
             		  if(data.code){
             			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-          		 		self.isValidateProcess(false);
+          		 		self.isDeleteProcess(false);
             		  }
             	  });
     		  });
@@ -1289,7 +1304,6 @@
 		  self.adjustProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
 		  self.adjustProcessVO().time(myDate.toLocaleString());
-		  self.adjustProcessVO().user("");
 		  
 		  self.adjustProcessVO().vcpu(object.vcpu);
 		  self.adjustProcessVO().memory(object.memory);
@@ -1356,7 +1370,7 @@
 		  var myDate = new Date();
 		  self.validateProcessVO().time(myDate.toLocaleString());
 		  self.validateProcessVO().metaTime(object.expiryTime);
-		  self.validateProcessVO().user("");
+		  
 		  self.validateProcessVO().validateTime(object.expiryTime);
 		  self.validateProcessVO().targetValidateTime("");
 		  

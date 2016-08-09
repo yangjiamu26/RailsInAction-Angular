@@ -215,7 +215,35 @@ csc.util = {
 		return [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'},{name: '4', value:'4'},{name: '5', value:'5'},
 		        {name: '6', value:'6'},{name: '7', value:'7'},{name: '8', value:'8'},{name: '9', value:'9'},{name: '10', value:'10'},
 		        {name: '11', value:'11'},{name: '12', value:'12'}];
+	},
+	/**
+	 * 获取服务的有效时间文本
+	 */
+	getExpireText:function(type,val){
+		 var v = "";
+		 if("1"==type){
+             v="永久";
+         }else if("2"==type){
+             v=val+"个月";
+         }else if("3"==type){
+             v= "有效期至:"+val.substr(0,10); 
+         }
+		 return v;
+	},
+	getBillCycleText:function(billcycle){
+	    var billTxt = "";
+        if(billcycle=="DAY"){
+    	   billTxt = "按天"
+		}else if(billcycle=="MONTH"){
+			billTxt = "按月"
+		}else if(billcycle=="QUARTER"){
+			billTxt = "按季度"
+		}else if(billcycle = "YEAR"){
+			billTxt = "按年"
+		}
+        return billTxt;
 	}
+	  
 }
 
 // 全局上传

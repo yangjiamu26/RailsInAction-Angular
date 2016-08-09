@@ -736,9 +736,10 @@
  		  self.validateProcessVO().name(object.name);
  		  self.validateProcessVO().uuid(object.uuid);
  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+ 		  self.validateProcessVO().vdcName(object.vdcName);
  		  var myDate = new Date();
  		  self.validateProcessVO().time(myDate.toLocaleString());
- 		  self.validateProcessVO().metaTime(object.expiryTime());
+ 		  self.validateProcessVO().metaTime(object.expiryDate);
  		  self.validateProcessVO().user("");
  		  
  		  self.validateProcessVO().validateTime(object.expiryTime);
@@ -767,6 +768,7 @@
      	  user: ko.observable(),
      	  serviceInstanceUuid: ko.observable(),
      	  metaTime: ko.observable(),
+     	  vdcName: ko.observable(),
      	  
      	  validateTime: ko.observable(),
      	  targetValidateTime: ko.observable()
@@ -774,13 +776,14 @@
        
        //申请
        this.validateProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\"" + self.validateProcessVO().metaTime() + "\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vdcName\":\"" + self.validateProcessVO().vdcName() + "\",\"metaExpireTime\":\"" + self.validateProcessVO().metaTime() + "\"}}";
     	  var orderItem = {};
      	  orderItem.instanceName = self.validateProcessVO().name();
      	  orderItem.serviceInstanceUuid = self.validateProcessVO().serviceInstanceUuid();
      	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
      	  orderItem.resourceType = "SECRET_KEY";
      	  orderItem.resourceUuid = self.validateProcessVO().uuid();
+     	  orderItem.metaData = metaData;
      	  
      	  var orderItems = [];
      	  orderItems.push(orderItem);
@@ -788,7 +791,6 @@
      	  var postBody = {};
      	  postBody.resourceType = "SECRET_KEY";
      	  postBody.orderItems = orderItems;
-     	  
      	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
      		  if(data.code){
      			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');

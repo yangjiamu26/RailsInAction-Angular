@@ -4,7 +4,7 @@
     <li>当前位置：</li>
     <li>资源</li>
     <li><a href="#pages/resources/partitions/index">可用分区</a></li>
-    <li class="active">XX可用分区</li>
+    <li class="active" id="positionInfoDIV"><span data-bind="text:azName"></li>
   </ol>
 </div>
 <div class='wrapper-md'>
@@ -446,20 +446,33 @@
             </div>
             <!-- 物理主机分页控件 -->
             <footer class="panel-footer" data-bind="with: hostsTable, visible: hostsTable.pages() > 1">
-            <ul class="pagination">
-              <li data-bind="css: leftPagerClass, click: prevPage">
-                <a href="#">&laquo;</a>
-              </li>
-              <!-- ko foreach: {data: (new Array(pages()))} -->
-              <li data-bind="css: $parent.pageClass($index() + 1)">
-                <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-              </li>
-              <!-- /ko -->
-              <li data-bind="css: rightPagerClass, click: nextPage">
-                <a href="#">&raquo;</a>
-              </li>
-            </ul>
-       </footer>
+              <ul class="pagination">
+		        <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+		          <a href="#">首页</a>
+		        </li>
+		        <li data-bind="css: leftPagerClass, click: prevPage">
+		          <a href="#">&laquo;</a>
+		        </li>
+		        <li >
+		          <a href="#"  data-bind="text: currentPage"></a>
+		        </li>
+		        <li data-bind="css: rightPagerClass, click: nextPage">
+		          <a href="#">&raquo;</a>
+		        </li>
+		        <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+		          <a href="#">末页</a>
+		        </li>
+		        <li class="page-control-li">
+		          <div class="input-group form-group-sm">
+		            <input type="text" class="form-control" data-bind="value: targetPage"  />
+		            <div class="input-group-btn">
+		              <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+		            </div>
+		          </div>
+		          <div class="page-info-div" data-bind="text: recordsText"></div>
+		        </li>
+		      </ul>
+       	  </footer>
           </div>
           <!-- 物理主机详情页面 -->
           <div id="resource_host_detail"  data-bind="visible: isShowDetail()">
@@ -1605,20 +1618,28 @@
     
     //取得URL参数值
     /**可用分区**/
-  var azUuid = args.azUuid;
+    var azUuid = args.azUuid;
+    var azName = args.azName;
     /**虚拟化云平台 **/
     var cloudPlatform = args.cloudPlatform;
     /** 可用分区的底层虚拟化类型 **/
     var virtualHypervisor = args.virtualHypervisor;
     if(csc.util.isNull(azUuid)){
       return;
-  }
+    }
+    
+    /**控制当前位置展示**/
+    function positionInfoViewModel(){
+    	this.azName = ko.observable(azName);
+    }
+    ko.applyBindings(new positionInfoViewModel(),$("#positionInfoDIV")[0]);
+    
     
     /** 控制TAB展示 **/
     function partitionsTabsViewModel(){
       this.activeTab = ko.observable(cloudPlatform);
     }
-    ko.applyBindings(new partitionsTabsViewModel(),$("#partitionsTabs")[0])
+    ko.applyBindings(new partitionsTabsViewModel(),$("#partitionsTabs")[0]);
       
     $('#resource_business_cutover_date').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
           {

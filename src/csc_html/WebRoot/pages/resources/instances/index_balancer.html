@@ -101,16 +101,29 @@
      <!-- 负载均衡器分页 -->
     <footer class="panel-footer" data-bind="with: loadBalancerTable, visible: loadBalancerTable.pages() > 1">
       <ul class="pagination">
+        <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+          <a href="#">首页</a>
+        </li>
         <li data-bind="css: leftPagerClass, click: prevPage">
           <a href="#">&laquo;</a>
         </li>
-        <!-- ko foreach: {data: (new Array(pages()))} -->
-        <li data-bind="css: $parent.pageClass($index() + 1)">
-          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+        <li >
+          <a href="#"  data-bind="text: currentPage"></a>
         </li>
-        <!-- /ko -->
         <li data-bind="css: rightPagerClass, click: nextPage">
           <a href="#">&raquo;</a>
+        </li>
+        <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+          <a href="#">末页</a>
+        </li>
+        <li class="page-control-li">
+          <div class="input-group form-group-sm">
+            <input type="text" class="form-control" data-bind="value: targetPage"  />
+            <div class="input-group-btn">
+              <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+            </div>
+          </div>
+          <div class="page-info-div" data-bind="text: recordsText"></div>
         </li>
       </ul>
     </footer>
@@ -1746,7 +1759,7 @@
          	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
          		  if(data.code){
          			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-       		 		self.isValidateProcess(false);
+         			self.isDeleteProcess(false);
          		  }
          	  });
    		}

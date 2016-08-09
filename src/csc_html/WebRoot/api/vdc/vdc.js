@@ -115,6 +115,41 @@
 				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/networks",param,function(data){
 					 callback(data)
     		    }); 
+			},
+			
+			/**
+			 * 获取vdc下的用户
+			 */
+			getVdcUsers:function(uuid,param,callback,errorCallback){
+				var param = csc.util.httpQueryParamConvert(param);
+				csc.rest.get("api/v5.0.0/vdcs/"+uuid+"/users",function(data){
+					 callback(data);
+	    		});
+			},
+			
+			/**
+			 * 修改VDC下的用户
+			 */
+			modifyVdcUsers:function(uuid,param,callback){
+				 csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/users",param,function(data){
+					 callback(data)
+    		    }); 
+			},
+			/**
+			 * 修改VDC下单个用户
+			 */
+			modifyVdcUserByOne:function(uuid,userUuid,param,callback){
+				 csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/users/"+userUuid,param,function(data){
+					 callback(data)
+   		    }); 
+			},
+			/**
+			 * 删除VDC下的用户
+			 */
+			deleteVdcUsers:function(uuid,userUuid,callback){
+				 csc.rest.del("api/v5.0.0/vdcs/"+uuid+"/users/"+userUuid,function(data){
+					 callback(data)
+    		    }); 
 			}
 	};
 }(window.jQuery);

@@ -1,0 +1,226 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">VDC变更</div>
+        <div id="orderDetailedList" class="wrapper">
+            <div class="panel panel-default">
+              <div class="panel-heading"><strong>VDC名称：</strong><span data-bind="text: vdc().instanceName"></span></div>
+              <div class="panel-body no-padder form-inline">
+                <div class="form-group" style="padding:15px;">
+                  <label for="exampleInputName2">支持的操作系统：</label>
+                  <div class="checkbox"><label><input checked disabled class="form-group" type="checkbox" data-bind="checked: windows"/> Windows</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: linux"/> Linux</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: aix"/> Aix</label></div>
+                </div>
+                <div class="table-responsive no-height">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>CPU(个)</td>
+                        <td data-bind="text: metaVdc().cpu"></td>
+                        <td data-bind="text: changeVdc().cpu"></td>
+                        <td>内存(G)</td>
+                        <td data-bind="text: metaVdc().memory"></td>
+                        <td data-bind="text: changeVdc().memory"></td>
+                      </tr>
+                      <tr>
+                        <td>存储(G)</td>
+                        <td data-bind="text: metaVdc().storage"></td>
+                        <td data-bind="text: changeVdc().storage"></td>
+                        <td>VPC(个)</td>
+                        <td data-bind="text: metaVdc().vpc"></td>
+                        <td data-bind="text: changeVdc().vpc"></td>
+                      </tr>
+                      <tr>
+                        <td>云主机(个)</td>
+                        <td data-bind="text: metaVdc().vm"></td>
+                        <td data-bind="text: changeVdc().vm"></td>
+                        <td>云硬盘(个)</td>
+                        <td data-bind="text: metaVdc().disk"></td>
+                        <td data-bind="text: changeVdc().disk"></td>
+                      </tr>
+                      <tr>
+                        <td>公网IP(个)</td>
+                        <td data-bind="text: metaVdc().publicIp"></td>
+                        <td data-bind="text: changeVdc().publicIp"></td>
+                        <td>路由器(个)</td>
+                        <td data-bind="text: metaVdc().router"></td>
+                        <td data-bind="text: changeVdc().router"></td>
+                      </tr>
+                      <tr>
+                        <td>防火墙(个)</td>
+                        <td data-bind="text: metaVdc().firewall"></td>
+                        <td data-bind="text: changeVdc().firewall"></td>
+                        <td>负载均衡器(个)</td>
+                        <td data-bind="text: metaVdc().loadBalance"></td>
+                        <td data-bind="text: changeVdc().loadBalance"></td>
+                      </tr>
+                      <tr>
+                        <td>SSH密钥(对)</td>
+                        <td data-bind="text: metaVdc().secretKey"></td>
+                        <td data-bind="text: changeVdc().secretKey"></td>
+                        <td>对象存储(GB)</td>
+                        <td data-bind="text: metaVdc().objectStorage"></td>
+                        <td data-bind="text: changeVdc().objectStorage"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+        </div>
+    </div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = ["api/vdc/vdc.js"]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  function ViewModel(){
+		  var self = this;
+		  
+		  this.order = ko.observable("");
+	  	  this.vdc = ko.observable("");
+	  	  this.resBaseInfo = ko.observable("");
+	  	  this.osType = ko.observable("");
+	  	  this.metaData = ko.observable("");
+	  	  this.vdcQuotaList = ko.observable("");
+	  	  this.expireType = ko.observable("");
+	  	  this.expireValue = ko.observable("");
+	  	
+	  	  this.windows = ko.observable("");
+	  	  this.linux = ko.observable("");
+	  	  this.aix = ko.observable("");
+	  	  
+	  	  this.changeVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+		  
+		  this.metaVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+	  	  
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+	      		var orderData = data;
+	      		var itemListData = data.orderItems;
+	      		var metaData = JSON.parse(itemListData[0].metaData);
+	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	      		var osType = metaData.osType;
+	      		var vdcQuotaList = resBaseInfo.vdcQuotaList;
+	      		self.order(orderData);
+	      		self.vdc(itemListData[0]);
+	      		self.metaData(metaData);
+	      		for(var i=0;i<vdcQuotaList.length;i++){
+	      			if(vdcQuotaList[i].type=='CPU'){
+	      				self.changeVdc().cpu(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='MEMORY'){
+	      				self.changeVdc().memory(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='STORAGE'){
+	      				self.changeVdc().storage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VPC'){
+	      				self.changeVdc().vpc(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VM'){
+	      				self.changeVdc().vm(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='DISK'){
+	      				self.changeVdc().disk(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+	      				self.changeVdc().publicIp(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='ROUTER'){
+	      				self.changeVdc().router(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+	      				self.changeVdc().firewall(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+	      				self.changeVdc().secretKey(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+	      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+	      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+	      			}
+	      		}
+	      		for(var i=0;i<osType.length;i++){
+	      			if(osType[i]=='windows'){
+	      				self.windows(true);
+	      			}else if(osType[i]=='linux'){
+	      				self.linux(true);
+	      			}else if(osType[i]=='aix'){
+	      				self.aix(true);
+	      			}
+	      		}
+	      		self.vdcQuotaList(vdcQuotaList);
+	      		
+	      		$.VDC.getVdcQuota(itemListData[0].vdcUuid,"",function(data){
+		    		var vdcQuotaList = data.results;
+		    		for(var i=0;i<vdcQuotaList.length;i++){
+		    			if(vdcQuotaList[i].type=='CPU'){
+		      				self.metaVdc().cpu(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='MEMORY'){
+		      				self.metaVdc().memory(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='STORAGE'){
+		      				self.metaVdc().storage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPC'){
+		      				self.metaVdc().vpc(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VM'){
+		      				self.metaVdc().vm(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='DISK'){
+		      				self.metaVdc().disk(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+		      				self.metaVdc().publicIp(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='ROUTER'){
+		      				self.metaVdc().router(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+		      				self.metaVdc().firewall(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+		      				self.metaVdc().secretKey(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+		      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+		      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
+		      			}
+		    		}
+		    	})
+	      	 })
+		  })
+		  
+		  this.save = function(){
+       		saveComment(args.taskId,function(){
+       			alert("保存成功！");
+       		});
+		  }
+		}
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+  });
+</script>

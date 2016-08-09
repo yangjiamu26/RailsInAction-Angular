@@ -378,7 +378,7 @@
             var results1;
             results1 = [];
             for (key in data) {
-              val = data[key];
+              val = (""+data[key]).replace(/^\s+/g,"").replace(/\s+$/g,"");
               results1.push((encodeURIComponent(key)) + "=" + (encodeURIComponent(val)));
             }
             return results1;
@@ -616,7 +616,7 @@
       return (function(_this) {
         return function() {
           var target = parseInt(_this.targetPage());
-          if(target>0){
+          if(target>0 && target<=_this.pages()){
             return _this.currentPage(parseInt(target));
           }else{
             _this.targetPage("")

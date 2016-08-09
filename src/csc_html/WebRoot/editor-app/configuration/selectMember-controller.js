@@ -9,6 +9,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 	var nodeName = "";
 	var nodeId = "";
 	var treeNodeUrl = "";
+	var userType = "";
 	var settingRoleOrg = {
 		callback: {
 			beforeClick: function(treeId,treeNode,clickFlag){
@@ -21,12 +22,13 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				nodeCode = node.code;
 				nodeName = node.name;
 				nodeId = node.id;
+				userType = node.userType;
 				usersArr = [];
-				var param ="orgId="+node.code+"&userType="+0;//暂时拿本地用户
+				var param ="orgId="+node.code+"&userType="+userType;
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
 			       success(function (data, status, headers, config) {
-			    	   var users = data[0].data;
+			    	   var users = data.results;
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl1").html();
 						for(var i=0; i<users.length; i++){
