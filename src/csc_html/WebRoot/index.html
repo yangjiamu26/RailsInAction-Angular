@@ -79,6 +79,11 @@
                 <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
             </li>
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
+            <li >
+              <a  data-bind="attr:{href: uapUrl}">
+                <i class='fa fa-bell'></i> 认证平台
+                <span class=' up bg-info'></span></a>
+            </li>
             <li class='dropdown'>
               <a class='dropdown-toggle clear' data-toggle='dropdown'>
                 <i class='fa fa-user'></i>
@@ -724,6 +729,14 @@
 	    	//截取浏览器地址
 	    	this.setUrl();
 	    	
+	    	this.uapUrl = ko.observable();
+	    	this.getUapUrl = function(){
+	    		csc.rest.get("api/v5.0.0/homepage/uapUrl", function(data){
+	    			self.uapUrl(data+"/index.html#/app/home");
+	    		});
+	    	}
+	    	this.getUapUrl();
+	    	
 	    	this.roleVO = ko.observable({
 		    	roleName: ko.observableArray([]),
 		    	currentRole: ko.observable(),
@@ -803,7 +816,7 @@
 		    
 		    this.noticeStatVO = ko.observable();
 		    this.loadNoticeStat = function(){
-		    	 csc.rest.get("api/v5.0.0/homepage/notice?noticeState=2", function(data){
+		    	 csc.rest.get("api/v5.0.0/homepage/notice?noticeType=SysNotice&noticeState=NoRealize", function(data){
 		       	 	 self.noticeStatVO(data.results.length);
 		         });
 		    }

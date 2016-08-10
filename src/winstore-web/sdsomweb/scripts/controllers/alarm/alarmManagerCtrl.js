@@ -9,6 +9,8 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
         */
     $scope.initPage = function () {
 
+        //初始化按钮不能用
+         $scope.manrepair_isclicked=true;
         //初始化告警日志列表查询
         $scope.queryParams = {
             resolved: "",
@@ -275,6 +277,13 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
                 $scope.resolveIndex.push(alarm.index);
             }
         });
+
+        if($scope.resolveIndex.length > 0){
+             //如果有复选框选中，使按钮可用
+            $scope.manrepair_isclicked=false;
+        }else{
+             $scope.manrepair_isclicked=true;
+        }
     };
     $scope.checked = function (alarm) {
         alarm.$checked = !alarm.$checked;
@@ -288,6 +297,13 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
             })
         }
         $scope.allIsChecked = ($scope.resolveIndex.length > 0 && $scope.resolveIndex.length == $scope.alarmList.length) ? true : false;
+
+         if($scope.resolveIndex.length > 0){
+             $scope.manrepair_isclicked=false;
+        }else{
+             $scope.manrepair_isclicked=true;
+        }
+
     };
 
     /**

@@ -1,0 +1,214 @@
+    <div class="panel panel-info" id="construct">
+        <div class="panel-heading">申请信息</div>
+        <div id="orderDetailedList" class="wrapper">
+         
+          <div class="table-responsive no-height" data-bind="visible:$root.vdiskNum()>0">
+           <h5 class="text-info">云硬盘数：
+            <span class="badge bg-danger" data-bind="text:vdiskNum"></span>
+           </h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>云硬盘名称</th>
+                        <th>所属VDC</th>
+                        <th>挂载云主机</th>
+                        <th>存储大小（G）</th>
+                        <th>收费标准</th>
+                        <th>可用分区</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:vdiskList">
+                    <tr>
+                        <td data-bind="text:instanceName"></td>
+                        <td data-bind="text:vdcName"></td>
+                        <td data-bind="text:vmName"></td>
+                        <td data-bind="text:size"></td>
+                        <td data-bind="text:fee"></td>
+                        <td data-bind="text:azName"></td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+
+          <div class="table-responsive no-height" data-bind="visible:$root.publicNetworkNum()>0">
+          <h5 class="text-info">公网IP数：1</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>公网IP名称</th>
+                        <th>所属VDC</th>
+                        <th>申请时长</th>
+                        <th>收费标准</th>
+                        <th>VPC名称</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>公网IP1</td>
+                        <td>研发部</td>
+                        <td>永久</td>
+                        <td>0.5元/月</td>
+                        <td>
+                            <select>
+                                <option>VPC01</option>
+                                <option>VPC02</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+
+          <div class="table-responsive no-height" data-bind="visible:$root.lbNum()>0">
+          <h5 class="text-info">负载均衡器数：<span class="badge bg-danger" data-bind="text:lbNum"></span></h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>负载均衡器名称</th>
+                        <th>所属VDC</th>
+                        <th>申请时长</th>
+                        <th>收费标准</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:lbList">
+					<tr>
+						<td data-bind="text: instanceName"></td>
+						<td data-bind="text: vdcName"></td>
+						<td data-bind="text: expireTime"></td>
+						<td data-bind="text: fee"></td>						
+					</tr>
+				</tbody>
+            </table>
+          </div>
+
+          <div class="table-responsive no-height" data-bind="visible:$root.sshNum()>0">
+          <h5 class="text-info">SSH密钥数：1</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SSH密钥名称</th>
+                        <th>所属VDC</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:sshList">
+						<tr>
+							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:vdcName"></td>
+						</tr>
+					</tbody>
+            </table>
+          </div>
+
+          <div class="table-responsive no-height" data-bind="visible:$root.objectStorageNum()>0">
+          <h5 class="text-info">对象存储数：1</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>对象存储名称</th>
+                        <th>所属VDC</th>
+                        <th>存储大小（G）</th>
+                        <th>申请时长</th>
+                        <th>收费标准</th>
+                        <th>可用分区</th>
+                        <th>存储池</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>disk02</td>
+                        <td>研发部</td>
+                        <td>1</td>
+                        <td>永久</td>
+                        <td>0.5元/月</td>
+                        <td>
+                            <select>
+                                <option>可用分区1</option>
+                                <option>可用分区2</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select>
+                                <option>test1,剩余存储：4G，总共8G</option>
+                                <option>test2,剩余存储：4G，总共8G</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+
+        </div>
+</div>
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  if(args.taskId){
+			function ViewModel(){
+			    var self = this;
+	            this.vdiskNum = ko.observable("");
+	            this.objectStorageNum = ko.observable(""); 
+	            this.publicNetworkNum = ko.observable("");
+	            this.lbNum = ko.observable("");
+	            this.sshNum = ko.observable("");
+	            this.ltNum = ko.observable("0"); //路由器数
+	            
+	            this.vdiskList = ko.observableArray();
+	            this.sshList = ko.observableArray();
+	            this.lbList = ko.observableArray();
+			     csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+		    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+		    	     //获取订单数据
+			      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+			      		
+			            var vdiskNum = 0;
+			            var objectStorageNum = 0;
+			            var publicNetworkNum = 0;
+			            var lbNum = 0;
+			            var sshNum = 0;
+			            
+			      		data.orderItems.forEach(function(e){
+			      			var metaData = JSON.parse(e.metaData);
+			      			var resBaseInfo = {};
+			      			if(metaData.resBaseInfo!=""){
+			      				resBaseInfo = JSON.parse(metaData.resBaseInfo);
+			      			}
+			      			
+			      			if(e.resourceType=='DISK'){
+			      				vdiskNum ++;
+			      				
+			      				var disk = e;
+				      			disk.size = resBaseInfo.volumeSize;
+				      			
+				      			var vmName = resBaseInfo.vmName;
+				      			disk.vmName = vmName;
+				      			
+				      			self.vdiskList.push(disk);
+			      			}else if(e.resourceType=='SECRET_KEY'){
+			      				sshNum ++;
+			      				self.sshList.push(e);
+			      			}else if(e.resourceType=='LOAD_BALANCING'){
+			      				lbNum++;
+			      				if(e.expireType == "1"){
+			      					e.expireTime = "永久";
+			      				}else if(e.expireType == "2"){
+			      					e.expireTime = e.expireValue+"月";
+			      				}else if(e.expireType == "3"){
+			      					e.expireTime = e.expireTime;
+			      				}
+			      				self.lbList.push(e);
+			      			}
+			      		})
+			      		
+			      		self.vdiskNum(vdiskNum);
+			      		self.sshNum(sshNum);
+			      		self.lbNum(lbNum);
+			      	 })
+			  })
+		 }
+				
+		ko.applyBindings(new ViewModel(), $('#construct')[0]); 
+	  }
+	});
+</script>

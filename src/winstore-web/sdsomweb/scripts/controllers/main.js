@@ -304,6 +304,14 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
     }
 
     $scope.updateRebalance = function () {
+
+        //验证时间段是否为整数
+        var time_reg= /^[1-9][0-9]*$/ ;
+        if(!time_reg.test($scope.rebalanceTimeNow)) {
+            $scope.showTipMsg('只能输入正整数', 'rebalanceTimeNow');
+            return;
+        }
+
         var time = 0;
         switch($scope.rebalanceTimeOption){
             case "0":
@@ -874,7 +882,7 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
         _this.data("timeoutId", timeoutId);
         _this.focus();
     };
-    var selectors = ["#dNtpSet input" , "#changePassword input"]
+    var selectors = ["#dNtpSet input" , "#changePassword input","#RBSet input"]
     for (var i = 0; i < selectors.length; i++) {
         $(selectors[i]).each(function () {
             var _this = $(this);

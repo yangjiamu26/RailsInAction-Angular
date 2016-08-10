@@ -25,6 +25,9 @@ vsanApp.controller("logManagerCtrl", ["$scope", "alarmFactory", "eventFactory", 
         //查询系统日志
         $scope.getLogList();
         $scope.showTab = "log";
+        //初始化按钮不能用
+        $scope.logacquire_isclicked=true;
+
     };
 
     /**
@@ -192,6 +195,14 @@ vsanApp.controller("logManagerCtrl", ["$scope", "alarmFactory", "eventFactory", 
                 log.$checked = false;
             }
         });
+
+        //根据是否选中复选框决定按钮是否可用
+        if( $scope.selectedHostList.length>0){
+            $scope.logacquire_isclicked=false;
+        }else{
+             $scope.logacquire_isclicked=true;
+        }
+
     };
     $scope.checkedLog = function (log) {
         log.$checked = !log.$checked;
@@ -206,6 +217,14 @@ vsanApp.controller("logManagerCtrl", ["$scope", "alarmFactory", "eventFactory", 
         } else {
             $scope.allLogIsChecked = false;
         }
+
+        //根据是否选中复选框决定按钮是否可用
+        if( $scope.selectedHostList.length>0){
+            $scope.logacquire_isclicked=false;
+        }else{
+             $scope.logacquire_isclicked=true;
+        }
+
     };
 
     /**

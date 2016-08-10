@@ -1,0 +1,1190 @@
+<div class="simple_form form-horizontal" id="serviceDetail">
+<!-- 详情 -->
+<!-- <div role="dialog" aria-hidden="true" class="modal fade"> -->
+  <div class='modal-dialog modal-lg' style="width:800px;">
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title'>查看服务</h3>	
+      </div>
+      <div class='modal-body no-padder'>
+        <ul class="nav nav-tabs service-step-select">
+          <li data-bind="css: {'active': step()==1}">
+            <a >1基本信息</a>
+          </li>
+          <li data-bind="css: {'active': step()==2}">
+            <a >2服务资源</a>
+          </li>
+          <li data-bind="css: {'active': step()==3}">
+            <a >3服务计费</a>
+          </li>
+          <!-- ko if: selected_product()!='VDC' -->
+          <li data-bind="css: {'active': step()==4}">
+            <a >4发布范围</a>
+          </li>
+          <!-- /ko -->
+        </ul>
+        <div class="tab-content service-step-box m-t">
+          <div class="tab-pane" data-bind="css: {'active': step()==1}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务名称：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name" disabled="disabled">
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务目录：</label>
+                <div class="col-xs-7">
+                  <input type="text" class="form-control" placeholder="请选择服务目录" data-bind="value: serviceVO().dirName" id="selectDir"  disabled="disabled">
+                  <input type="hidden" id="dirUuid" data-bind="value: serviceVO().dirUUID"/>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div id="dirContent"
+                style="display: none; position: absolute; z-index: 10000; background-color: white; border-left: 1px #DDDDDD solid; border-bottom: 1px #DDDDDD solid; border-right: 1px #DDDDDD solid; width: 420px; height: 198px; overflow: scroll;">
+	            <div style="width:700px">
+	                <ul id="dirTree" class="ztree" style="z-index: 1000;"></ul>
+	            </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">产品：</label>
+                <div class="col-xs-7">
+                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product" disabled="disabled">
+                  </select>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务图标：</label>
+                <div class="col-xs-7">
+                  <div class="service-img-box" >
+                    <img src="" alt="" width="60" height="60" >
+                    <a data-bind="value: serviceVO().imageUrl" >更改图标</a>
+                  </div>
+                </div>
+              </div>              
+              <div class="form-group">
+                <label class="col-xs-3 control-label">服务介绍：</label>
+                <div class="col-xs-7">
+                  <textarea class="form-control" cols="30" rows="3" data-bind="value: serviceVO().desc" disabled="disabled"></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-3 control-label">有效期：</label>
+                <div class="col-xs-7">
+                  <div class="radio">
+                    <label class="form-inline">
+                      <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked data-bind="checked: serviceVO().validTimeType" disabled="disabled"> 永久
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label class="form-inline">
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType" disabled="disabled"> 
+                      <select class="form-control" data-bind="value: serviceVO().validTimeNum" disabled="disabled">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      </select> 个月
+                    </label>
+                  </div>
+                  <div class="radio disabled">
+                    <label class="form-inline">
+                      <input type="radio" class="form-control" style="top:2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: serviceVO().validTimeType" disabled="disabled">
+                      <input type="text" style="width:206px" class="form-control" id="addServer_daterange" data-bind="value: serviceVO().rangeTime" disabled="disabled">
+                    </label>
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" data-bind="css: {'active': step()==2}">
+            <!-- 云主机 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='VM'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">虚拟化：</label>
+                <div class="col-xs-9">
+                  <select class="form-control" data-bind="options:virtualPlatformList,optionsText:'value',optionsValue:'value',value: serviceVO().serviceVm.virtualName,event:{'change':changeVirtualValue}" disabled="disabled">                    
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" checked="checked" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->                    
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">操作系统类型：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" data-bind="checked: isSelectedOsTypeAll" disabled="disabled"> 全选
+                    </label>
+                  </div>
+                  <!-- ko foreach : vmOsTypeList -->
+                  <div class="checkbox">
+                    <label>
+                       <input type="checkbox" data-bind="value: value,checked: $root.osTypeCheckList" disabled="disabled"><span data-bind="text:value"></span>
+                    </label>
+                  </div>
+                  <!-- /ko -->                 
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">操作系统版本：</label>                
+                <div class="col-xs-9">
+                  <div class="panel panel-default b-blue" style="margin:0;padding-bottom:10px">
+                    <table class="table table-striped">
+                      <thead>
+                        <th>可用分区</th>
+                        <th>操作系统类型</th>
+                        <th>操作系统版本</th>
+                        <th>关联镜象</th>
+                        <th>操作</th>
+                      </thead>
+                      <tbody data-bind="foreach: osType_chosen">
+                        <tr>
+                          <td data-bind="text: zaName"></td>
+                          <td data-bind="text: osType"></td>
+                          <td data-bind="text: osVersion"></td>
+                          <td data-bind="text: imageName"></td>
+                          <td><a class="btn btn-xs btn-default" >删除</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <a class="btn btn-sm btn-default" style="margin-left: 10px;" style="display: none;">添加</a>
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">CPU(核)：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" data-bind="checked: isSelectedCpuAll" disabled="disabled"> 全选
+                    </label>
+                  </div>
+                  <!-- ko foreach : cpuList  -->
+                  <div class="checkbox">
+                    <label>
+                       <input type="checkbox" data-bind="value: value,checked: $root.cpuCheckList" disabled="disabled"><span data-bind="text: value"></span>
+                    </label>
+                  </div>
+                  <!-- /ko -->                  
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">内存：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" data-bind="checked: isSelectedMemoryAll" disabled="disabled"> 全选
+                    </label>
+                  </div>
+                  <!-- ko foreach : memoryList   -->
+                  <div class="checkbox">
+                    <label>
+                       <input type="checkbox" data-bind="value: value,checked: $root.memoryCheckList" disabled="disabled"><span data-bind="text:value"></span>
+                    </label>
+                  </div>
+                  <!-- /ko -->                  
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+            <!-- 云主机 end -->
+            <!-- SSH密钥 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='SECRET_KEY'">
+              
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+            <!-- SSH密钥 end -->
+            <!-- 云硬盘 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='DISK'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">硬盘类型：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                  <!-- ko foreach : diskTypeList   -->
+                    <div class="radio">
+                      <label>
+                         <input type="radio" data-bind="value: value,checked: $root.diskTypeCheck" disabled="disabled"><span data-bind="text:value"></span>
+                      </label>
+                    </div>
+                  <!-- /ko -->            
+                  </div>                  
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+            <!-- 云硬盘 end -->
+            <!-- VDC start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='VDC'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">支持操作系统：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" data-bind="checked: isSelectedVdcOsAll" disabled="disabled"> 全选
+                    </label>
+                  </div>
+                  <!-- ko foreach: osList -->
+                  <div class="checkbox" data-bind="">
+                    <label>
+                      <input type="checkbox" data-bind="value: value,checked: $root.serviceVO().serviceVDC.osTypeList" disabled="disabled"> <span data-bind="text:value"></span>
+                    </label>
+                  </div>
+                  <!-- /ko -->
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">是否限制配额：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="form-inline">
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi1" value="yes" data-bind="checked: showItems" disabled="disabled"> 限制
+                      </label>
+                    </div>
+                    <div class="radio">
+                      <label>
+                        <input type="radio" name="optionsRadiosi" id="optionsRadiosi2" value="no" checked="" data-bind="checked: showItems" disabled="disabled"> 不限制
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div style="padding-right:50px;" class="form-group row" data-bind="visible: showItems()=='yes'">
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大CPU(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxCpu" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大云主机数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVmNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大内存(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxMemory" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大云硬盘数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxDiskNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大存储(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxStorager" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大公网IP数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxIpNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大VPC(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVPC" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大路由器数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxRouterNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大对象存储(GB)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxObjStorageNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大防火墙数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxFireWallNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大SSH密钥数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSSHNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大负载均衡数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum" disabled="disabled">
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <!-- VDC end -->
+            <!-- 公网IP start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='PUBLICIP'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group" style="padding:0 50px;">
+                <div class="panel panel-default b-blue">
+                  <div class="panel-heading clearfix">
+                    <strong>公网IP列表</strong>
+                    <a class="btn btn-default btn-xs pull-right" style="color:#666;display: none;" >添加</a>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>VPC名称</th>
+                          <th>网络名称</th>
+                          <th>IP资源</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody data-bind="foreach: ip_chosen">
+                        <tr>
+                          <td data-bind="text: vpcName"></td>
+                          <td data-bind="text: name"></td>
+                          <td data-bind="text: cidr"></td>
+                          <td><a>删除</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
+            </div>            
+            <!-- 公网IP end -->
+            <!-- 负载均衡 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='LOAD_BALANCING'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+            <!-- 负载均衡 end -->
+            <!-- 对象存储 start -->
+            <div class='form-horizontal row' data-bind="if: selected_product()=='OBJECT_STORAGE'">
+              <div class="form-group">
+                <label class="col-xs-2 control-label">可用分区：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedAzAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : azList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+            <!-- 对象存储 end -->
+          </div>
+
+          <div class="tab-pane" data-bind="css: {'active': step()==3}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">是否计费：</label>
+                <div class="col-xs-9 form-inline">
+                  <div class="radio">
+                    <label>
+                      <input type="radio" name="optionsRadios2" id="optionsRadios21" value="0" checked data-bind="checked: isFee" disabled="disabled"> 是
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label>
+                      <input type="radio" name="optionsRadios2" id="optionsRadios22" value="1" checked data-bind="checked: isFee" disabled="disabled"> 否
+                    </label>
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+              <div class="form-group" data-bind="visible:isFee()=='0'">
+                <label class="col-xs-2 control-label">包含套餐：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline" data-bind="foreach: packages">
+					<div class="checkbox">
+						<label> <input type="checkbox"  data-bind="value: $data, checked: $root.packages_chosen" disabled="disabled"><span data-bind="text: type"></span>
+						</label>
+					</div>
+				  </div>
+				  <div data-bind="foreach: packages_chosen">
+	                  <div class="panel panel-default b-blue jifei-panel">
+	                    <div class="panel-heading jifei-heading">
+	                    <h4 data-bind="text: type"></h4>
+	                    <a class="btn btn-sm btn-info jifei-btn" style="display: none;">添加计费规则</a></div>
+	                    <table class="table table-striped">
+	                      <thead>
+	                        <th>计费因子</th>
+	                        <th>计费规则</th>
+	                        <th>操作</th>
+	                      </thead>
+	                      <tbody data-bind="foreach: feeList">
+	                        <tr>
+	                          <td data-bind="text: attrType"></td>
+                              <td data-bind="text: name"></td>
+	                          <td><a class="btn btn-xs btn-default">删除</a></td>
+	                        </tr>
+	                      </tbody>
+	                    </table>
+	                  </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>                      
+          </div>
+          
+          <div class="tab-pane" data-bind="if: selected_product()!='VDC',  css: {'active': step()==4}">
+            <div class='form-horizontal row'>
+              <div class="form-group">
+                <label class="col-xs-2 control-label">发布范围：</label>
+                <div class="col-xs-9">
+                  <div class="form-inline">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="checked: isSelectedReleaseAll" disabled="disabled"> 全选
+                      </label>
+                    </div>
+                  </div>
+                  <div style="padding:0 20px;">
+                    <!-- ko foreach : vdcList -->
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.releaseRange" disabled="disabled"><span data-bind="text:name"></span>
+                      </label>
+                    </div>
+                    <!-- /ko -->                    
+                  </div>
+                </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info service-step-btn-pre" data-bind="visible: step()>1, click: prevStep">上一步</a>
+        <a class="btn btn-default btn-info service-step-btn-next" data-bind="visible: (selected_product() !='VDC' && step()<4) || (selected_product() =='VDC' && step()<3), click: nextStep">下一步</a>        
+        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3)" data-dismiss="modal">关闭</a>
+<!--         <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3), click: saveServiceAndRelease,enable:buttonEnable">保存并发布</a> -->
+        <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- </div> -->
+<script type="text/javascript">
+	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js',
+			"assets/lib/moment/moment.js", "assets/lib/bootstrap-daterangepicker/daterangepicker.js", 
+			"assets/lib/bootstrap-daterangepicker/date.js",null ];
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {		
+		var serviceUuid = args.serviceUuid;	
+		
+		var setting1 = {
+    		view:{
+    	        showIcon:false,
+    	        showLine:false
+    	    },
+            callback : {
+                onClick : function(srcEvent, treeId, node, clickFlag) {
+                    $("#selectDir").val(node.name);
+                    $("#dirUuid").val(node.uuid);
+                    //给model的服务目录传值
+                    serviceViewModel.serviceVO().dirUUID(node.uuid);
+                    hideMenu2();
+                    srcEvent.preventDefault();
+                }
+            }
+        };
+		
+		//服务目录树
+	    function loadServiceTree(){
+	       csc.rest.get('api/v5.0.0/service/directory',function(data){    	
+	           $.fn.zTree.init($("#dirTree"), setting1, data);
+	       });
+	    }
+	  	//初始化产品列表下拉框
+	    function loadProduct(){
+	    	csc.rest.get('api/v5.0.0/products',function(data){    		
+	    		serviceViewModel.productList(data);
+	        });
+	    }
+	    <!-- vdc -->
+	    //初始化操作系统类型下拉框
+	    function loadVdcOsType(bool){
+	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VDC&configCodeName=osType&urlType=getSource',function(data){      		
+	      		serviceViewModel.osList(data);
+	         });
+	    }
+	    <!-- 云主机   -->
+	    //初始化虚拟化类型下拉框数据
+	    function loadVirtualPlatform(){
+	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getSource',function(data){
+	      		serviceViewModel.virtualPlatformList(data);
+	         });
+	    }
+	      
+		 //初始化虚拟机操作系统类型数据  
+		 function loadVmOsType(bool){
+			 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+serviceViewModel.serviceVO().serviceVm.virtualName(),function(data){   	      		 
+				 serviceViewModel.vmOsTypeList(data);
+		     });
+		 }
+		   
+		 //初始化可用分区数据
+		 function loadVmAzs(bool){
+			 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+serviceViewModel.serviceVO().serviceVm.virtualName(),function(data1){
+				 serviceViewModel.azList(data1.results);
+			 }); 
+		 }
+		 
+	    //初始化云主机CPU
+	    function loadVmCpu(bool){
+	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
+	      		serviceViewModel.cpuList(data);
+	         });
+	    }
+	    //初始化云主机内存
+	    function loadVmMemory(bool){
+	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource',function(data){
+	      		serviceViewModel.memoryList(data);
+	         });
+	    }
+	    //初始化发布范围VDC
+	    function loadReleaseVdc(azUuids, bool){
+	      	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
+	      		serviceViewModel.vdcList(data);
+	        });
+	    } 
+	    <!-- 云盘  -->
+	  	//初始化云盘类型
+	    function loadDiskType(){
+	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=DISK&configCodeName=diskType&urlType=getSource',function(data){
+	      		serviceViewModel.diskTypeList(data);
+	         });
+	    }
+	    
+	    $(document).ready(function(){
+	        loadProduct();	   //获取产品下拉框数据
+	    }); 
+	    
+		//服务基本信息标签页
+	    function ServiceViewModel() {
+	    	var self = this;
+	    	//上一步  下一步 start
+	        this.step = ko.observable(1);
+	           
+	        this.nextStep = function(){
+	      	  this.step(this.step()+1);
+	        }
+	        this.prevStep = function(){
+	      	  this.step(this.step()-1);
+	        }	        
+	        //上一步  下一步 end
+	        
+	        this.selected_product = ko.observable();
+        	this.selected_product("VDC");
+        	this.showItems = ko.observable('no');
+	        
+        	//产品列表
+            this.productList = ko.observableArray();
+            //操作系统类型
+            this.osList = ko.observableArray();
+            //操作系统版本
+            this.osType_chosen = ko.observableArray();
+            this.osType_current = null;
+            //虚拟化平台数据
+    		this.virtualPlatformList = ko.observableArray();
+            //云主机操作系统类型
+            this.vmOsTypeList = ko.observableArray();
+            //可用分区数据
+            this.azList = ko.observableArray();
+            //云主机CPU
+            this.cpuList = ko.observableArray();
+            //云主机内存
+            this.memoryList = ko.observableArray();
+            //获取az
+       	    this.azUuidList = ko.observableArray();
+            //选择IP
+            this.ip_chosen = ko.observableArray();
+            //获取所选择的发布范围以","分隔
+       	    this.releaseRange = ko.observableArray();
+       		//虚拟机的cpu
+       	   this.cpuCheckList = ko.observableArray();
+            //虚拟机的操作系统类型
+       	   this.osTypeCheckList = ko.observableArray();
+            //虚拟机的内存
+       	   this.memoryCheckList = ko.observableArray();
+            
+            <!-- 云盘start  -->
+	        this.diskTypeList = ko.observableArray();
+	        this.diskTypeCheck = ko.observable("HDD");
+	        <!-- 云盘end  -->
+            //是否计费
+       	   this.isFee = ko.observable("1");
+            
+       	   this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
+            //计费规则
+       	   function Package(type,value){
+        	  this.type = ko.observable(type);
+        	  this.value = ko.observable(value);
+        	  this.feeList = ko.observableArray();
+           }
+           this.packages = ko.observableArray([
+        		  new Package("按天","DAY"),
+        		  new Package("按月","MONTH"),
+        		  new Package("按季度","QUARTER"),
+        		  new Package("按年","YEAR")
+           ]); 
+
+           this.packages_chosen = ko.observableArray();
+           this.package_current = null;
+	        
+           function getAzsByUser(viewModel,bool){
+        	   if(viewModel.azUuidList().length > 0){
+         		   viewModel.azUuidList.removeAll();
+         	   }
+           	   //根据当前用户获取可用分区
+           	   csc.rest.get('api/v5.0.0/azs',function(data1){
+             		viewModel.azList(data1.results);
+             		if(bool){
+             			if(data1.results.length > 0){          			
+                 			for(var i = 0;i < data1.results.length;i++){
+                     			viewModel.azUuidList.push(data1.results[i].uuid);
+                       		}
+                 		}
+             		}         		
+                });
+         	}
+           //虚拟化类型选择事件
+           this.changeVirtualValue = function(viewModel, event){      	  
+              if(viewModel.selected_product()=='VM'){
+
+           	
+           	 //初始化虚拟机操作系统类型数据        	 
+      	      	 loadVmOsType(true);
+           	 //初始化可用分区数据
+      	      	 loadVmAzs(true);
+              }else if(viewModel.selected_product()=='VDC'){
+                 
+              }else{
+           	   
+              }
+            }
+        	//服务信息
+      	   this.serviceVO = ko.validatedObservable({
+      		 uuid: ko.observable(),
+      		 name : ko.observable("").extend({required : true,cscNameRule:true}),
+      		 dirName : ko.observable("服务目录"),
+      		 dirUUID : ko.observable("0"),
+      		 productId : this.selected_product,
+      		 imageUrl : ko.observable(),
+      		 desc : ko.observable(),
+      		 validTimeType : ko.observable("1").extend({required : true}),
+      		 validTimeNum : ko.observable(),
+      		 rangeTime : ko.observable(),
+      		 charge : ko.observable(),
+      		 serviceVDC : {
+      			 isLimit : this.showItems,
+      			 osTypeList : ko.observableArray(),
+      			 maxCpu : ko.observable().extend({number : true}),
+      			 maxVmNum : ko.observable().extend({number : true}),
+      			 maxMemory : ko.observable().extend({number : true}),
+      			 maxDiskNum : ko.observable().extend({number : true}),
+      			 maxStorager : ko.observable().extend({number : true}),
+      			 maxIpNum : ko.observable().extend({number : true}),
+      			 maxVPC : ko.observable().extend({number : true}),
+      			 maxRouterNum : ko.observable().extend({number : true}),
+      			 maxObjStorageNum : ko.observable().extend({number : true}),
+      			 maxFireWallNum : ko.observable().extend({number : true}),
+      			 maxSSHNum : ko.observable().extend({number : true}),
+      			 maxLoadBalanceNum : ko.observable().extend({number : true})
+      		 },
+      		 chargeType : ko.observable(),
+      		 rules : ko.observable(),
+      		 serviceVm : {
+      			 virtualName: ko.observable("").extend({required : true}),
+      			 azUuid: ko.observable(),
+      			 osType: ko.observable(),
+      			 osVersion: ko.observable(),
+      			 cpu: ko.observable(),
+      			 memory: ko.observable()
+      		 },
+      		 servicePartitions : ko.observable(),
+      		 azUuids : ko.observable(),
+      		 serviceDisk : {
+      			diskType: ko.observable(),
+      			azUuid: ko.observable()
+      		 },
+      		serviceIp : {
+      			ipUuid: ko.observable()
+      		}
+      	   })
+        	
+
+       	  self.step(1);
+       	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+serviceUuid, function(data){
+       		  loadServiceTree();//加载服务目录树
+       		  
+       		  /**初始化费用数据**/
+       		  var isfee = data.charge;
+       		  self.isFee(isfee+"");
+       		  if(isfee == 0){
+       			  var feeType = data.chargeType;
+       			  var feeTypeList = new Array();
+       			  if(feeType.indexOf(",") != -1){
+       				  feeTypeList = feeType.split(",");
+           		  }else{
+           			  feeTypeList.push(feeType);
+           		  }
+       			  var billRuleList = data.billRules;
+       			  if(feeTypeList.length > 0){
+       				  if(self.packages_chosen().length > 0){
+       					  self.packages_chosen.removeAll();
+       				  }
+       				  for(var i = 0;i < feeTypeList.length;i++){
+       					  var feeList1 = new Array();
+       					  var package1;
+       					  if(feeTypeList[i] == "DAY"){
+       						  package1 = self.packages()[0];
+           				  }else if(feeTypeList[i] == "MONTH"){
+           					  package1 = self.packages()[1];
+           				  }else if(feeTypeList[i] == "QUARTER"){
+           					  package1 = self.packages()[2];
+           				  }else if(feeTypeList[i] == "YEAR"){
+           					  package1 = self.packages()[3];
+           				  }
+       					  if(billRuleList.length > 0){
+       						  for(var j = 0;j < billRuleList.length; j++){
+       							  if(feeTypeList[i] == billRuleList[j].cycle){
+       								  feeList1.push(billRuleList[j]);
+       							  }
+       						  }
+       					  }
+       					  package1.feeList(feeList1);
+       					  self.packages_chosen.push(package1);
+       				  }
+       			  }
+       		  }
+       		  //初始化服务基本信息
+       		  self.serviceVO.fromJSON({
+        			 uuid : data.uuid,
+      	     		 name : data.name,
+      	   	  		 dirName : data.dirName,
+      	   	  		 dirUUID : data.dirUUID,
+      	   	  		 productId : data.productId,
+      	   	  		 imageUrl : data.imageUrl,
+      	   	  		 desc : data.desc,
+      	   	  		 validTimeType : data.validTimeType+"",
+      	   	  		 charge : data.charge+"",
+      	   	  		 serviceVDC : {
+   	  	  			 isLimit : ko.observable(),
+   	  	  			 osTypeList : ko.observableArray(),
+   		   	  		 maxCpu : ko.observable(),
+   		 			 maxVmNum : ko.observable(),
+   		 			 maxMemory : ko.observable(),
+   		 			 maxDiskNum : ko.observable(),
+   		 			 maxStorager : ko.observable(),
+   		 			 maxIpNum : ko.observable(),
+   		 			 maxVPC : ko.observable(),
+   		 			 maxRouterNum : ko.observable(),
+   		 			 maxObjStorageNum : ko.observable(),
+   		 			 maxFireWallNum : ko.observable(),
+   		 			 maxSSHNum : ko.observable(),
+   		 			 maxLoadBalanceNum : ko.observable()
+     	  		    }
+      	     	  });
+       		  //不同产品初始化不同的数据
+       		  if(data.productId == "VDC"){//VDC 产品
+       			  loadVdcOsType(false);
+       			  var limit = data.serviceVDC.isLimit;
+       			  self.showItems(limit);
+       			  var vdcOsType = data.serviceVDC.osType;
+       			  if(vdcOsType.indexOf(",") != -1){
+       				  self.serviceVO().serviceVDC.osTypeList(vdcOsType.split(","));
+           		  }else{
+           			  self.serviceVO().serviceVDC.osTypeList.push(vdcOsType);
+           		  }
+       			  if(limit == "yes"){
+       				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
+       				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
+       				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
+       				  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
+       				  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
+       				  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
+       				  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
+       				  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
+       				  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
+       				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
+       				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
+       				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
+       			  }
+       		  }else{
+       			  //初始化AZ数据
+       			  getAzsByUser(serviceViewModel,false);
+           		  var vdcUuid = data.servicePartition[0].vdcUuid;//初始化已选择的范围
+           		  var azUuid = data.servicePartition[0].azUuid;//初始化可用分区
+           		  loadReleaseVdc(azUuid,false);//加载发布范围列表
+           		  //发布范围赋值
+           		  if(vdcUuid.indexOf(",") != -1){
+           			  self.releaseRange(vdcUuid.split(","));
+           		  }else{
+           			  self.releaseRange.push(vdcUuid);
+           		  }
+           		  //az分区赋值
+           		  if(azUuid.indexOf(",") != -1){
+           			  self.azUuidList(azUuid.split(","));
+           		  }else{
+           			  self.azUuidList.push(azUuid);
+           		  }
+           		  if(data.productId == "DISK"){//云盘
+           			  loadDiskType();
+           			  self.diskTypeCheck(data.serviceDisk.diskType);
+           		  }else if(data.productId == "VM"){//虚拟机
+           			  loadVirtualPlatform();//获取虚拟化平台数据
+                   	  loadVmCpu(false);//获取虚拟机CPU
+                   	  loadVmMemory(false);//获取虚拟机内存
+                   	  
+                   	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
+                   	  //CPU赋值
+                   	  var vmCpu = data.serviceVm.cpu;
+                   	  if(vmCpu.indexOf(",") != -1){
+               			  self.cpuCheckList(vmCpu.split(","));
+               		  }else{
+               			  self.cpuCheckList.push(vmCpu);
+               		  }
+                   	  //memory赋值
+                   	  var vmMemory = data.serviceVm.memory;
+                   	  if(vmMemory.indexOf(",") != -1){
+               			  self.memoryCheckList(vmMemory.split(","));
+               		  }else{
+               			  self.memoryCheckList.push(vmMemory);
+               		  }
+                   	 /*  //当修改时清除已选择的可用分区和操作系统类型数据
+                   	  if(viewModel.azUuidList().length > 0){
+                			 viewModel.azUuidList.removeAll();
+                		  }
+                   	  if(viewModel.osTypeCheckList().length > 0){
+                  			 viewModel.osTypeCheckList.removeAll();
+                  		  }*/
+                   	  //操作系统类型赋值
+                   	  var vmOsType = data.serviceVm.osType;
+                   	   if(vmOsType.indexOf(",") != -1){
+               			  self.osTypeCheckList(vmOsType.split(","));
+               		  }else{
+               			  self.osTypeCheckList.push(vmOsType);
+               		  } 
+                   	  //可用分区赋值
+                   	  var vmAz = data.serviceVm.azUuid;
+                   	  if(vmAz.indexOf(",") != -1){
+               			  self.azUuidList(vmAz.split(","));
+               		  }else{
+               			  self.azUuidList.push(vmAz);
+               		  } 
+               		  //操作系统版本列表赋值
+               		  self.osVersionList.params({
+                     		  azUuid: vmAz,
+                     		  osTypes: vmOsType
+                     	  });
+                     	  var vmOsVersion = data.serviceVm.osVersion;
+                     	  var vmOsVersionList = new Array();
+   	                  if(vmOsVersion.indexOf(",") != -1){
+   	                	  vmOsVersionList(vmOsVersion.split(","));
+   	          		  }else{
+   	          			  vmOsVersionList.push(vmOsVersion);
+   	          		  }
+   	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
+   	                  if(self.osType_chosen().length > 0){
+   	                	  self.osType_chosen.removeAll();
+   	                  }
+                     	  if(self.osVersionList.pagedRows().length > 0 && vmOsVersionList.length > 0){
+                     		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
+                     			  for(var n = 0; n < vmOsVersionList.length; n++){
+                     				  if(self.osVersionList.pagedRows()[m].imageUuid = vmOsVersionList[n]){
+                     					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
+                     				  }
+                     			  }
+                     		  }
+                     	  }
+           		  }else if(data.productId == "PUBLICIP"){//公网IP
+           			  //公网IP列表赋值
+           			  self.ip_chosen(data.serviceIpRef);
+           		  }
+       		  }
+             });
+
+	        
+       	  
+       	//###########    列表、全选     ###############
+        	/**发布范围全选按钮**/
+  	    this.isSelectedReleaseAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.vdcList().length > 0 && this.vdcList().length === this.releaseRange().length;
+  	        },
+  	        write: function (value) {
+  	        	this.releaseRange(value ? _.pluck(this.vdcList(), 'uuid') : []);
+  	        },
+  	        owner: this
+  	      }); 
+        	/** 可用分区全选按钮 ***/
+  	    this.isSelectedAzAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.azList().length >0 && this.azList().length === this.azUuidList().length;
+  	        },
+  	        write: function (value) {
+  	        	this.azUuidList(value ? _.pluck(this.azList(), 'uuid') : []);
+  	        },
+  	        owner: this
+  	      });
+  	    /** 云主机操作系统类型全选按钮 ***/
+  	    this.isSelectedOsTypeAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.vmOsTypeList().length >0 && this.vmOsTypeList().length === this.osTypeCheckList().length;
+  	        },
+  	        write: function (value) {
+  	        	this.osTypeCheckList(value ? _.pluck(this.vmOsTypeList(), 'value') : []);
+  	        },
+  	        owner: this
+  	      });
+  	    /** 云主机CPU全选按钮 ***/
+  	    this.isSelectedCpuAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.cpuList().length >0 && this.cpuList().length === this.cpuCheckList().length;
+  	        },
+  	        write: function (value) {	        	
+  	        	this.cpuCheckList(value ? _.pluck(this.cpuList(), 'value') : []);
+  	        },
+  	        owner: this
+  	      });
+  	    /** 云主机内存全选按钮 ***/
+  	    this.isSelectedMemoryAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.memoryList().length >0 && this.memoryList().length === this.memoryCheckList().length;
+  	        },
+  	        write: function (value) {
+  	        	this.memoryCheckList(value ? _.pluck(this.memoryList(), 'value') : []);
+  	        },
+  	        owner: this
+  	      });	    
+  	    /** 云主机内存全选按钮 ***/
+  	    this.isSelectedMemoryAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.memoryList().length >0 && this.memoryList().length === this.memoryCheckList().length;
+  	        },
+  	        write: function (value) {
+  	        	this.memoryCheckList(value ? _.pluck(this.memoryList(), 'value') : []);
+  	        },
+  	        owner: this
+  	      });
+  	    /** VDC操作系统类型全选按钮 ***/
+  	    this.isSelectedVdcOsAll = ko.pureComputed({
+  	        read: function () {
+  	            return this.osList().length >0 && this.osList().length === this.serviceVO().serviceVDC.osTypeList().length;
+  	        },
+  	        write: function (value) {
+  	        	this.serviceVO().serviceVDC.osTypeList(value ? _.pluck(this.osList(), 'value') : []);
+  	        },
+  	        owner: this
+  	      });
+  	    
+          //发布范围
+          this.vdcList = ko.observableArray();
+	        
+		} 
+		
+		var serviceViewModel = new ServiceViewModel();
+		
+		ko.applyBindings(serviceViewModel,$('#serviceDetail')[0]);
+
+	});
+</script>

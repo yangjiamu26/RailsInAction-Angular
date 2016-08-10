@@ -87,20 +87,34 @@
 			</table>
 			</div>
 			 <footer class="panel-footer" data-bind="with: sgRuleListTable, visible: sgRuleListTable.pages() > 1">
-			      <ul class="pagination">
-			        <li data-bind="css: leftPagerClass, click: prevPage">
-			          <a href="#">&laquo;</a>
-			        </li>
-			        <!-- ko foreach: {data: (new Array(pages()))} -->
-			        <li data-bind="css: $parent.pageClass($index() + 1)">
-			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-			        </li>
-			        <!-- /ko -->
-			        <li data-bind="css: rightPagerClass, click: nextPage">
-			          <a href="#">&raquo;</a>
-			        </li>
-			      </ul>
-			</footer>
+				     <ul class="pagination">
+				       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+				         <a href="#">首页</a>
+				       </li>
+				       <li data-bind="css: leftPagerClass, click: prevPage">
+				         <a href="#">&laquo;</a>
+				       </li>
+				       <li >
+				         <a href="#"  data-bind="text: currentPage"></a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: nextPage">
+				         <a href="#">&raquo;</a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+				         <a href="#">末页</a>
+				       </li>
+				       <li class="page-control-li">
+				         <div class="input-group form-group-sm">
+				           <input type="text" class="form-control" data-bind="value: targetPage"  />
+				           <div class="input-group-btn">
+				             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+				           </div>
+				         </div>
+				         <div class="page-info-div" data-bind="text: recordsText"></div>
+				       </li>
+				     </ul>
+			   </footer>	
+			 
 	        
 			<div role="dialog" aria-hidden="true"   class="modal fade" data-bind="modal: { show: addSGRuleMode}">
 				<div class='modal-dialog' role='document'>
@@ -233,7 +247,19 @@
 					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 	                <tr>
 	                  <td data-bind="text: $row.name"></td>
-	                  <td data-bind="text: $row.state"></td>
+	                  <td>
+	                  	<span class="label label-success" data-bind="if: $row.state == 'ACTIVE' && $row.taskState == null">运行中</span>
+		                <span class="label label-danger" data-bind="if: $row.state == 'SHUTOFF' && $row.taskState == null">已关机</span>
+		                <span class="label label-info" data-bind="if: $row.state == 'SUSPENDED' && $row.taskState == null">已挂起</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'POWERING_OFF'">正在关机</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'POWERING_ON'">正在启动</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'REBOOTING'">正在重启</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'REBOOTING_HARD'">正在强制重启</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'SUSPENDING'">正在挂起</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'RESUMING'">正在恢复</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'DELETING'">正在删除</span>
+		                <span class="label label-warning" data-bind="if: $row.taskState == 'RESIZING'">正在调整</span>
+	                </td>
 	                  <td data-bind="text: $row.ip"></td>
 	                   <td>
 							<a data-bind="click:$root.removeVmFromSg">删除</a>
@@ -243,21 +269,34 @@
 	              </tbody>
 	            </table>
 	          </div>
-	          <footer class="panel-footer" data-bind="with: sgRelVmListTable, visible: sgRelVmListTable.pages() > 1">
-			      <ul class="pagination">
-			        <li data-bind="css: leftPagerClass, click: prevPage">
-			          <a href="#">&laquo;</a>
-			        </li>
-			        <!-- ko foreach: {data: (new Array(pages()))} -->
-			        <li data-bind="css: $parent.pageClass($index() + 1)">
-			          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-			        </li>
-			        <!-- /ko -->
-			        <li data-bind="css: rightPagerClass, click: nextPage">
-			          <a href="#">&raquo;</a>
-			        </li>
-			      </ul>
-		     </footer>
+		      <footer class="panel-footer" data-bind="with: sgRelVmListTable, visible: sgRelVmListTable.pages() > 1">
+				     <ul class="pagination">
+				       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+				         <a href="#">首页</a>
+				       </li>
+				       <li data-bind="css: leftPagerClass, click: prevPage">
+				         <a href="#">&laquo;</a>
+				       </li>
+				       <li >
+				         <a href="#"  data-bind="text: currentPage"></a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: nextPage">
+				         <a href="#">&raquo;</a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+				         <a href="#">末页</a>
+				       </li>
+				       <li class="page-control-li">
+				         <div class="input-group form-group-sm">
+				           <input type="text" class="form-control" data-bind="value: targetPage"  />
+				           <div class="input-group-btn">
+				             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+				           </div>
+				         </div>
+				         <div class="page-info-div" data-bind="text: recordsText"></div>
+				       </li>
+				     </ul>
+			   </footer>	
 	        
 	      	<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addSecretGroupVmModel }">  
 	         <div class='modal-dialog' role='document'>
@@ -318,21 +357,34 @@
 			              </tbody>
 			            </table>
 			          </div>
-			              <footer class="panel-footer" data-bind="with: sgAddRelVmListTable, visible: sgAddRelVmListTable.pages() > 1">
-						      <ul class="pagination">
-						        <li data-bind="css: leftPagerClass, click: prevPage">
-						          <a href="#">&laquo;</a>
-						        </li>
-						        <!-- ko foreach: {data: (new Array(pages()))} -->
-						        <li data-bind="css: $parent.pageClass($index() + 1)">
-						          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-						        </li>
-						        <!-- /ko -->
-						        <li data-bind="css: rightPagerClass, click: nextPage">
-						          <a href="#">&raquo;</a>
-						        </li>
-						      </ul>
-				       </footer>
+				         <footer class="panel-footer" data-bind="with: sgAddRelVmListTable, visible: sgAddRelVmListTable.pages() > 1">
+						     <ul class="pagination">
+						       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+						         <a href="#">首页</a>
+						       </li>
+						       <li data-bind="css: leftPagerClass, click: prevPage">
+						         <a href="#">&laquo;</a>
+						       </li>
+						       <li >
+						         <a href="#"  data-bind="text: currentPage"></a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: nextPage">
+						         <a href="#">&raquo;</a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+						         <a href="#">末页</a>
+						       </li>
+						       <li class="page-control-li">
+						         <div class="input-group form-group-sm">
+						           <input type="text" class="form-control" data-bind="value: targetPage"  />
+						           <div class="input-group-btn">
+						             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+						           </div>
+						         </div>
+						         <div class="page-info-div" data-bind="text: recordsText"></div>
+						       </li>
+						     </ul>
+					   </footer>	
 			      </div>
 			      <div class='modal-footer' style="text-align: center">
 			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVm2Sg" class="btn btn-default btn-info" />
@@ -578,7 +630,7 @@
 		    /*****安全组下虚拟机***/
 		    function sgRelVmViewModel(){
 		    	var self = this;
-		    	self.sgRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/vms', perPage: 1});
+		    	self.sgRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/vms'});
 		    	
 		    	self.searchSgVmParam = ko.observable({
         	        name: ""
@@ -588,7 +640,7 @@
        	            self.sgRelVmListTable.params(this.searchSgVmParam());
        	        }
 		    	
-		    	self.sgAddRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/availbleVms', perPage: 2});
+		    	self.sgAddRelVmListTable = new DataTable([], {path: 'api/v5.0.0/secretGroups/'+sgUuid+'/availbleVms'});
 		    	self.searchAddSgVmNameParam = ko.observable({
         	        name: ""
         	     })

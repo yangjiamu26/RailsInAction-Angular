@@ -122,6 +122,75 @@
 											</div>
 										</div>
 									</div>
+									
+									<h5><i class="fa fa-minus fa-rotate-90 text-info"></i>安装软件</h5>
+				                        <div class="table-responsive no-height">
+				                          <table class="table table-striped table-hover">
+				                            <thead>
+				                              <tr>
+				                                <th>软件名称</th>
+				                                <th>软件分类</th>
+				                                <th>软件类型</th>
+				                                <th>软件版本</th>
+				                                <th>静默安装属性</th>
+				                              </tr>
+				                            </thead>
+				                            <tbody>
+				                              <tr>
+				                                <td>oracle</td>
+				                                <td>数据库</td>
+				                                <td>oracle</td>
+				                                <td>10g企业版</td>
+				                                <td>
+				                                  <a class="expand-btn-detail">查看 <i class="fa fa-angle-double-right"></i></a>
+				                                </td>
+				                              </tr>
+				                              <tr style="display: none">
+				                                  <td colspan="7" class="no-padder">
+				                                    <div class="wrapper-sm sub-detail" style="display: none">
+				                                      <h5 class="text-info">静默安装属性</h5>
+				                                      <div class="bg-light b-t b-b wrapper-sm">
+				                                        <div class="row m-b">
+				                                          <div class="col-xs-1">参数名称：</div>
+				                                          <div class="col-xs-3">15137</div>
+				                                          <div class="col-xs-1">参数代码：</div>
+				                                          <div class="col-xs-3">abc</div>
+				                                          <div class="col-xs-1">默认值：</div>
+				                                          <div class="col-xs-3">000</div>
+				                                        </div>
+				                                      </div>                                      
+				                                    </div>                    
+				                                  </td>
+				                              </tr>                
+				                            </tbody>
+				                          </table>            
+				                        </div>          
+				
+				                     <!--    <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>系统盘分区</h5>
+				                        <table class="table table-striped table-hover">
+				                          <thead>
+				                            <tr>
+				                              <th>分区名称</th>
+				                              <th>分区大小</th>
+				                            </tr>
+				                          </thead>
+				                          <tbody>
+				                            <tr>
+				                              <td>NFS</td>
+				                              <td>100G</td>
+				                            </tr>
+				                          </tbody>
+				                        </table>  -->
+				
+				                        <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>高级选项</h5>
+				                        <div class="bg-light b-t b-b wrapper-sm">
+				                          <div class="row m-b">
+				                            <div class="col-xs-1">所属业务系统：</div>
+				                            <div class="col-xs-3"><span data-bind="text:busSysName"></span></div>
+				                            <div class="col-xs-1">备注：</div>
+				                            <div class="col-xs-7"></div>
+				                          </div>
+				                        </div> 
 	                      </div>
 	                    </td>
                    </tr>                
@@ -162,7 +231,7 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 //"api/workflow/vm_apply_viewmodel.js"
-  var scripts = [null, null]
+  var scripts = ["api/resourceInstance/sshkey/sshkey.js", null];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  
 	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -189,7 +258,7 @@
 				                   },function(){},callbackCustParam);
 				      	      }
 				      	      
-				      	      
+				      	      orderData.orderItems.sort(function(a,b){return a.instanceName > b.instanceName});//排序
 				      		  var vmOrderItems = [];
 				      		  var diskOrderItems= [];
 				      		  for(var i=0;i<orderData.orderItems.length;i++){
@@ -248,7 +317,12 @@
 				      				vmInfo.account(vmInParamData.account);
 				      				vmInfo.password(vmInParamData.password);
 				      				vmInfo.repeatPassword(vmInParamData.repeatPassword);
-				      				vmInfo.sshKeyUuid(vmInParamData.sshKey);
+				      				vmInfo.sshKeyUuid(vmInParamData.sshUuid);
+				      				if(vmInfo.sshKeyUuid()){
+				      					$.SSH_KEY.getSshKeyByUuid(vmInfo.sshKeyUuid(),function(data,textStatus,vmInfo){
+				      						vmInfo.sshKeyName(data.name);
+				      	        		},function(){},vmInfo);
+				      				}
 				      				vmInfo.billCycle(orderItem.billCycle);
 				      				vmInfo.fee(orderItem.fee);
 				      				vmInfo.expireType(orderItem.expireType);
@@ -412,6 +486,14 @@
 				      	        this.expireText=ko.observable(""),
 				      	        this.isBill=ko.observable(""),
 				      	        this.busSysUuid=ko.observable(""),
+				      	        this.busSysName = ko.pureComputed(function(){
+				 	            	var item = _.findWhere(this.bussyList(), {uuid: this.busSysUuid()});
+				 	            	if(item!=null){
+				 	            		return item.name;
+				 	            	}else{
+				 	            		return "";
+				 	            	}
+				 	            }, this);
 				      	        this.relateUuid=ko.observable(""),
 				      	        this.mountDiskList =  ko.observableArray([]),
 				      	        this.vdcList = ko.observableArray([]),

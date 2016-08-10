@@ -590,9 +590,16 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     this.delete = function(object, event){
         confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){        		
 	         api.cloudPlatform.set({"id":object.uuid}).destroy({
-		            success: function(){
-						alert("删除成功！");
-						self.table.refreshData();//刷新列表     
+		            success: function(data){
+		            	//console.log(data);
+		            	if(data.result == 'success'){
+		    				  alert('删除成功');
+		            		  self.table.refreshData();
+		    			  }else if(data.result == 'hasAz'){
+		    				  alert('云管理平台存在可用分区，请先删除云管理平台下的可用分区！');
+		    			  }else{
+		    				  alert('删除失败');
+		    			  }  
 		          	}
 		     });
         });//end confirm    	  

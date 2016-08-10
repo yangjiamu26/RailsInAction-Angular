@@ -13,6 +13,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
     $scope.initPage = function () {
         $scope.snapLun = 'none';
         $scope.snapModel.sure2deleteSnap = "NO";
+        $scope.snapModel.sure2rollbackSnap = "NO";
         $scope.isSnapRollingback = false;
         $scope.snapshotShow = false;//默认不显示快照
         $scope.initiatorShow = false;
@@ -79,7 +80,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             }
         };
         //初始化信息提示
-        var selectors = ["#poolModal input,select", "#poolAclSet input,select" ,]
+        var selectors = ["#poolModal input,select", "#poolAclSet input,select" ,"#del_Snap input,select","#rollback_Snap input,select","#add_Snap input,select,text,textarea","#update_Snap input,select,textarea"]
         for (var i = 0; i < selectors.length ; i++) {
             $(selectors[i]).each(function () {
                 var _this = $(this);
@@ -238,8 +239,37 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                 }
             });
         } else {
-            $scope.setSnapErrMsg("请输入大写 'YES' 以确定操作！");
+            $scope.showTipMsg("请输入大写 'YES' 以确定操作！",'snapModel.sure2deleteSnap');
         }
+
+        //执行回滚
+        if ( $scope.snapModel.sure2rollbackSnap == 'YES') {
+            storageFactory.queryPoolAcl($scope.snapLun.poolName, function (response) {
+                if (response.success) {
+                    var i = 0;
+                    var length = response.data.length;
+                    for ( i=0; i<length; i++) {
+                        if (response.data[i].state == "active") {
+                            if ( $scope.snapLun.sure2Snap != 'YES') {
+                                $scope.sure2Snap = true;
+                                // hint user that there are some initiators has connect.user can select want to continue.
+                                $scope.setSnapErrMsg("请输入大写 'YES' 以确定操作！");
+                                break;
+                            };
+                        }
+                    }
+                    if (i==length) {
+                        addSnapshotOrRollback();
+                        return false;
+                    };
+                }
+            });
+        } else {
+            //----
+            $scope.showTipMsg("请输入大写 'YES' 以确定操作！",'snapModel.sure2rollbackSnap');
+            //$scope.setSnapErrMsg("请输入大写 'YES' 以确定操作！");
+        }
+
     }
     //提交请求：添加/修改/删除快照
     $scope.commitSnap = function(){
@@ -254,30 +284,31 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                 return;
             };
 
-            if($scope.snapModel.snapName===undefined){
-                //$scope.showTipMsg("快照名称不能为空", "snapModel.snapName");
-                $scope.setSnapErrMsg("快照名称不能为空");
+            if($scope.snapModel.snapName===undefined || $scope.snapModel.snapName.trim() == ""){
+                $scope.showTipMsg("快照名称不能为空", "snapModel.snapName");
+                //$scope.setSnapErrMsg("快照名称不能为空");
                 return;
             };
             var nameTest = /^[a-zA-Z0-9]{1,8}$/;
             if(!nameTest.test($scope.snapModel.snapName)){
-                //$scope.showTipMsg("快照名称应由数字或字母组成，长度为8", "snapModel.snapName");
-                $scope.setSnapErrMsg("快照名称应由数字或字母组成，长度为1至8");
+                $scope.showTipMsg("快照名称应由数字或字母组成，长度为8", "snapModel.snapName");
+                //$scope.setSnapErrMsg("快照名称应由数字或字母组成，长度为1至8");
                 return;
             };
-            if($scope.snapModel.remark===undefined){
-                $scope.setSnapErrMsg("快照描述不能为空");
+            if($scope.snapModel.remark===undefined || $scope.snapModel.remark.trim() == ""){
+                $scope.showTipMsg("快照描述不能为空", "snapModel.remark");
+                //$scope.setSnapErrMsg("快照描述不能为空");
                 return;
             };
             if($scope.snapModel.remark.length > 500){
-                //$scope.showTipMsg("描述的字数应在500以内", "snapModel.snapName");
-                $scope.setSnapErrMsg("描述的字数为:" + $scope.snapModel.remark.length + "，超过了500");
+                $scope.showTipMsg("描述的字数应在500以内", "snapModel.remark");
+                //$scope.setSnapErrMsg("描述的字数为:" + $scope.snapModel.remark.length + "，超过了500");
                 return;
             };
             var remarkTest = /^[\x00-\x7F]{1,500}$/;
             if(!remarkTest.test($scope.snapModel.remark)){
-                //$scope.showTipMsg("快照名称应由数字或字母组成，长度为8", "snapModel.snapName");
-                $scope.setSnapErrMsg("描述的字符应为英文字符");
+                $scope.showTipMsg("描述的字符应为英文字符", "snapModel.remark");
+                //$scope.setSnapErrMsg("描述的字符应为英文字符");
                 return;
             };
             var isSnapNameExisted = false;
@@ -287,8 +318,8 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                 };
             });
             if (isSnapNameExisted == true) {
-                //$scope.showTipMsg("快照名称已存在，请使用其它名称", "snapModel.snapName");
-                $scope.setSnapErrMsg("快照名称已存在，请使用其它名称");
+                $scope.showTipMsg("快照名称已存在，请使用其它名称", "snapModel.snapName");
+                //$scope.setSnapErrMsg("快照名称已存在，请使用其它名称");
                 return;
             }
             NProgress.start();
@@ -306,23 +337,24 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             });
         }else if('update'===type){
             if($scope.snapModel.snapName===undefined){
-                //$scope.showTipMsg("快照名称不能为空", "snapModel.snapName");
-                $scope.setSnapErrMsg("快照名称不能为空");
+                $scope.showTipMsg("快照名称不能为空", "snapModel.snapName");
+                //$scope.setSnapErrMsg("快照名称不能为空");
                 return;
             };
-            if($scope.snapModel.remark===undefined){
-                $scope.setSnapErrMsg("快照描述不能为空");
+            if($scope.snapModel.remark===undefined || $scope.snapModel.remark.trim() == ""){
+                $scope.showTipMsg("快照描述不能为空", "snapModel.remark");
+                //$scope.setSnapErrMsg("快照描述不能为空");
                 return;
             };
             if($scope.snapModel.remark.length > 500){
-                //$scope.showTipMsg("描述的字数应在500以内", "snapModel.snapName");
-                $scope.setSnapErrMsg("描述的字数为:" + $scope.snapModel.remark.length + "，超过了500");
+                $scope.showTipMsg("描述的字数应在500以内", "snapModel.remark");
+                //$scope.setSnapErrMsg("描述的字数为:" + $scope.snapModel.remark.length + "，超过了500");
                 return;
             };
             var remarkTest = /^[\x00-\x7F]{1,500}$/;
             if(!remarkTest.test($scope.snapModel.remark)){
-                //$scope.showTipMsg("快照名称应由数字或字母组成，长度为8", "snapModel.snapName");
-                $scope.setSnapErrMsg("描述的字符应为英文字符");
+                $scope.showTipMsg("描述的字符应为英文字符", "snapModel.remark");
+                //$scope.setSnapErrMsg("描述的字符应为英文字符");
                 return;
             };
             NProgress.start();
@@ -342,7 +374,8 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                 return;
             };
             if ($scope.snapModel.sure2deleteSnap != "YES") {
-                $scope.setSnapErrMsg("请输入大写 'YES' 确认删除操作");
+                //$scope.setSnapErrMsg("请输入大写 'YES' 确认删除操作");
+                $scope.showTipMsg("请输入大写 'YES' 以确定操作！",'snapModel.sure2deleteSnap');
                 return;
             };
             NProgress.start();
@@ -367,8 +400,8 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                     return;
                 };
                 //坑！进行回滚确认的输入框和进行删除确认的输入框 用了同一个 ，都叫 snapModel.sure2deleteSnap
-                if ($scope.snapModel.sure2deleteSnap != "YES") {
-                    $scope.setSnapErrMsg("请输入大写 'YES' 确认回滚操作");
+                if ($scope.snapModel.sure2rollbackSnap != "YES") {
+                    $scope.showTipMsg("请输入大写 'YES' 以确定操作！",'snapModel.sure2rollbackSnap');
                     return;
                 };
             };
@@ -1294,7 +1327,8 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                 }
             }
         } else {
-            $scope.setStorageErrMsg("请输入大写 'YES' 以确定删除操作!");
+            $scope.showTipMsg("请输入大写 'YES' 以确定删除操作!",'alun.sure2deleteLun')
+            //$scope.setStorageErrMsg("请输入大写 'YES' 以确定删除操作!");
         }
         $scope.sure2deleteLunAgain = false;
     };

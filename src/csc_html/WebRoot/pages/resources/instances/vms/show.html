@@ -185,7 +185,6 @@
           <div class="wrapper">
             <div class="clear">
               <h5 class="pull-left text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>软件列表</h5>
-              <a class="pull-right m-t-sm text-info" data-bind="click: $root.reloadSoftware">刷新</a>
             </div>
             <div class="row padder-v">
               <div class="col-xs-1">
@@ -194,9 +193,7 @@
               <div class="col-xs-3">
                 <div class="input-group w">
                   <span class="input-group-addon">软件类型</span>
-                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().softTypeName, options: $root.softTypeNamePartitions, optionsText: 'name', optionsValue: 'uuid'">
-                    <option value="name1">name1</option>
-                    <option value="name2">name2</option>
+                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().softTypeName, options: $root.software_check_table_softTypeName_partitions, optionsText: 'name', optionsValue: 'name'">
                   </select>
                 </div>                
               </div>            
@@ -244,17 +241,16 @@
                       <td data-bind="text: version"></td>
                       <td data-bind="text: softTypeName"></td>
                       <td>
-                      	<a>查看</a> | 
-                      	<a>修改</a>
+                      	<a>查看</a>
                       </td>
                       <td data-bind="text: installTime"></td>
                       <td data-bind="text: installState">
                       	安装成功
                       </td>
                       <td>
-                      	<a>重安装</a> | 
-                      	<a>安装日志</a> | 
-                      	<a data-bind="click: update">升级</a>
+                      	<a data-bind="click: $root.doReInstall">重安装</a> | 
+                      	<a data-bind="click: $root.doInstallLog">安装日志</a> | 
+                      	<a data-bind="click: $root.update">升级</a>
                       </td>
                     </tr>
                     <!-- /ko -->
@@ -437,7 +433,7 @@
               <td data-bind="text: version"></td>
               <td data-bind="text: softTypeName"></td>
               <td data-bind="text: softType"></td>
-              <td data-bind="text: silentInstall"></td>
+              <td>查看</td>
               <td data-bind="text: reInstall"></td>
               <td>
                 <a data-bind="click:$root.deleteSoftware">移除</a>
@@ -465,13 +461,10 @@
         <div class="form-inline">
           软件名称：<input type="text" class="form-control" data-bind="value: software_param().name"/>&nbsp;&nbsp;
           软件分类：
-          <select class="form-control" data-bind="value: software_param().softType">
-            <option>分类1</option>
-            <option>分类2</option>
-            <option>分类3</option>
+          <select class="form-control" data-bind="value: software_param().softType, options: $root.software_check_table_softTypeName_partitions, optionsText: 'type', optionsValue: 'type'">
           </select>&nbsp;&nbsp;
           软件类型：
-          <select class="form-control" data-bind="value: software_param().softTypeName, options: $root.software_check_table_softTypeName_partitions, optionsText: 'name', optionsValue: 'uuid'">
+          <select class="form-control" data-bind="value: software_param().softTypeName, options: $root.software_check_table_softTypeName_partitions, optionsText: 'name', optionsValue: 'name'">
           </select>&nbsp;&nbsp;&nbsp;&nbsp;
           <button class="btn btn-default" data-bind="click: $root.software_check_search">搜索</button>
         </div>
@@ -485,8 +478,6 @@
 	              <th>软件版本</th>
 	              <th>软件类型</th>
 	              <th>软件分类</th>
-	              <th>静默安装属性</th>
-	              <th>是否重复安装</th>
 	            </tr>
 	          </thead>
 	          <tbody>
@@ -495,7 +486,7 @@
 	              <td>
 	                <div class="checkbox">
 	                  <label class="i-checks">
-	                    <input type="checkbox" value="">
+	                    <input type="checkbox" name="vm_show_software_install_check" value="" data-bind="value: uuid"/>
 	                    <i></i>
 	                  </label>
 	                </div> 
@@ -504,8 +495,6 @@
 	              <td data-bind="text: version"></td>
 	              <td data-bind="text: softTypeName"></td>
 	              <td data-bind="text: softType"></td>
-	              <td ></td>
-	              <td ></td>
 	            </tr>
 	            <!-- /ko -->
 	          </tbody>
@@ -850,6 +839,114 @@
        </div>
    </div>
 </div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdjustVolumeProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源变更</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustVolumeProcessVO.name"></span></p></div>
+		            <div class="col-xs-6"><p>资源类型：云硬盘</p></div>
+		          </div>
+		           <table class="table">
+			            <thead>
+			              <tr>
+			                <th></th>
+			                <th>调整前</th>
+			                <th>调整后</th>
+			              </tr>
+			            </thead>
+			            <tbody>
+			              <tr>
+			                <td>存储(GB)</td>
+			                <td data-bind="text: adjustVolumeProcessVO().size"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustVolumeProcessVO().targetSize"/></td>
+			              </tr>
+			            </tbody>
+			         </table> 
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: adjustVolumeProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
+</div>
+
+<!-- 安装日志弹窗   start --> 
+   <div role="dialog" aria-hidden="true" class="modal fade" 
+      data-bind="modal: { show: isLogText }"> 
+
+      <div class='modal-dialog' role='document'> 
+         <div class='modal-content'> 
+            <div class='modal-header'> 
+               <button type="button" class="close" data-dismiss="modal"> 
+                  <span aria-hidden="true">&times;</span> 
+               </button> 
+               <h3 class='modal-title'>安装日志</h3> 
+            </div> 
+            <div class='modal-body form-horizontal'> 
+               <div class="form-group"> 
+                  <div class="col-xs-12"> 
+                     <textarea class="form-control" style="min-height: 250px;" data-bind="text: installLogVO().logText"> 
+                     </textarea> 
+                  </div> 
+               </div> 
+               <div class='modal-footer' style="text-align: center"> 
+                  <button name="button" type="submit" 
+                     class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button> 
+               </div> 
+            </div> 
+         </div> 
+      </div> 
+   </div> 
+   <!-- 安装日志弹窗   end -->
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isStorageExpand }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>软件重安装</h3>
+        </div>
+        <div class='modal-body form-horizontal row'>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">IP：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" data-bind="value: volumeVO().name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">用户名：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" data-bind="value: volumeVO().size">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">密码：</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" data-bind="value: volumeVO().targetSize">
+            </div>
+          </div>
+
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: $root.submitReInstall">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+</div>   
+
 <div id="resource_instance_show_vm_console" style="display:none;"></div> 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
@@ -867,6 +964,7 @@
       this.isConfig = ko.observable(false);//告警配置
       this.isInstall = ko.observable(false);//安装软件
       this.isInstallVM = ko.observable(false);//安装软件
+      this.isLogText = ko.observable(false);//已安装软件的安装日志
       this.isUpdate = ko.observable(false);//软件升级
       this.isVmAdjustment = ko.observable(false);//调整资源
       this.isValidateTime = ko.observable(false);//调整有效期
@@ -880,8 +978,46 @@
       this.installVM = function(){
         this.isInstallVM(true);
       }
+      //初始化所有软件列表
+      var software_all_data;
+      this.init_software_all_data = function(){
+	      csc.rest.get('api/v5.0.0/soft/softwares',function(allSoft){
+	      	if(allSoft){
+	      		software_all_data = allSoft.results;
+	      	}
+	      });
+      }
+      //初始化已安装软件
+      var software_installed_data;
+      this.init_software_installed_data = function(){
+	      csc.rest.get('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1',function(vmSoft){
+	        	if(vmSoft){
+	        		software_installed_data = vmSoft.results;
+	        	}
+	      });
+      }
+      
+      //确定选择
       this.installVMConfirm = function(){
         this.isInstallVM(false);
+        //获取选择好的软件更新到待提交列表中
+        var checkedSofts = $("input:checkbox[name='vm_show_software_install_check']:checked");
+        //组装选择的软件
+	    for(var j=0;j<software_all_data.length;j++){
+	      for(var i=0;i<checkedSofts.length;i++){
+		     if(software_all_data[j].uuid == checkedSofts[i].value){
+		    	 //判断是否重复安装
+		    	 software_all_data[j].reInstall = "否";
+		    	 for(var l=0;l<software_installed_data.length;l++){
+		    		 if(software_installed_data[l].uuid == software_all_data[j].uuid){
+		    			 software_all_data[j].reInstall = "是";
+		    			 break;
+		    		 }
+		    	 }
+		         self.addSoftware(software_all_data[j]);
+		     }
+	      }
+	    }
       }
       this.installVMCancel = function(){
         this.isInstallVM(false);
@@ -899,6 +1035,8 @@
     			  self.vmVO(data);
     			  self.reloadVolume();
     			  self.reloadSoftware();
+    			  self.init_software_all_data();
+    			  self.init_software_installed_data();
     		  }
     	  });
       }
@@ -914,22 +1052,92 @@
   	})
   	
   	this.reloadSoftware = function(){
+    	self.vm_software_table.params(self.softwareSearchParam());
     	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
     }
     this.softTypeNamePartitions = ko.observableArray([]);
     
     //------------------------------------------软件列表结束----------------------------
     
+    
+    //------------------------------------------软件重安装开始------------------------
+  	this.doReInstall = function(object,event){
+    	self.isReInstall(true);
+    	self.reInstallVO().uuid(object.uuid);
+    	self.reInstallVO().ip('');
+    	self.reInstallVO().userName('');
+    	self.reInstallVO().password('');
+    }
+    this.isReInstall = ko.observable(false);//初始化重安装的确认提示框（内容包括虚拟机操作系统的用户名和密码，有密钥的不用填）
+    
+    this.reInstallVO = ko.observable({
+    	uuid: ko.observable(),
+    	ip: ko.observable(),
+    	userName: ko.observable(),
+    	password: ko.observable()
+    })
+    
+    this.submitReInstall = function(){
+    	var vm = {};
+    	vm.id = self.vmVO().id;
+    	vm.uuid = self.vmVO().uuid;
+    	vm.ip = self.reInstallVO().ip();
+    	vm.userName = self.reInstallVO().userName();
+    	vm.userPwd = self.reInstallVO().password();
+    		
+    	var vms = [];
+    	vms.push(vm);
+    	
+    	var postBody = {};
+    	postBody.softwareUuids = self.reInstallVO().uuid();
+    	postBody.vms = vms;
+    	
+    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    		//重安装结束
+    		self.isReInstall(false);
+    	});
+    }
+    
+    
+    
+    //------------------------------------------软件重安装结束------------------------
+  
+    //------------------------------------------软件安装日志开始------------------------
+    this.installLogVO = ko.observable({
+    	logText: ko.observable()
+    })
+    this.doInstallLog = function(object,event){
+    	var softwareUuid = object.uuid;
+    	csc.rest.get("api/v5.0.0/install/log/"+softwareUuid,function(logData){
+    		if(logData){
+    			self.installLogVO().logText(logData.logText);
+    		}
+    	});
+	    self.isLogText(true);
+    }
+    //------------------------------------------软件安装日志结束------------------------
+    
     //------------------------------------------安装软件开始----------------------------
     
     this.softwareItems = ko.observableArray([]);
               
-    var demoData = {name:'1',version:'1.1',softTypeName:'22',softType:'type',silentInstall:'是',reInstall:'1'};         
-    //增加软件
-    this.addSoftware = function(){
-  	  this.softwareItems.push(demoData);
+    //增加数据
+	/*人和骰子一样，向自己决定的地方扔出自己，正是因为这样，人才是自由的；
+	    每个人的境遇都不一样，但是无论多么微不足道的选择，都可以投入自己，不是偶然；也不是随波逐流，而是自己选择的结果。 */
+    this.addSoftware = function(softItem){
+      //去重
+      var has = false;
+      for(var ia=0;ia<self.softwareItems().length;ia++){
+    	  if(self.softwareItems()[ia].uuid == softItem.uuid){
+    		  has = true;
+    		  break;
+    	  }
+      }
+      //填装
+      if(!has){
+	  	  self.softwareItems.push(softItem);
+      }
     }
-    self.addSoftware();
     //删除数据
     this.deleteSoftware = function(){
       //调用删除接口，成功后回调以下方法
@@ -958,6 +1166,7 @@
 		self.software_check_table.path('api/v5.0.0/soft/softwares');
     }
     self.software_check_search();
+    
     //------------------------------------------安装软件结束----------------------------
     
       //------------------------------------------云硬盘列表开始----------------------------
@@ -977,10 +1186,15 @@
       this.isStorageExpand = ko.observable(false);
 
       this.storageExpand = function(objcet,event){
-        self.isStorageExpand(true);
-        self.volumeVO().uuid(objcet.uuid);
-        self.volumeVO().name(objcet.volumeName);
-        self.volumeVO().size(objcet.volumeSize);
+    	  if(csc.util.isNotNull(objcet.serviceInstanceUuid)){
+    		  //走流程
+    		  self.doAdjustVolumeProcessPost(objcet);
+    	  }else{
+		        self.isStorageExpand(true);
+		        self.volumeVO().uuid(objcet.uuid);
+		        self.volumeVO().name(objcet.volumeName);
+		        self.volumeVO().size(objcet.volumeSize);
+    	  }
       };
       
       this.volumeVO = ko.validatedObservable({
@@ -1400,10 +1614,63 @@
     	  });
       }
       //------------------------------------------有效期-流程结束--------------------------------
+      
+      //------------------------------------------云硬盘扩展-流程开始--------------------------------
+      this.isAdjustVolumeProcess = ko.observable(false);
+      
+      this.doAdjustVolumeProcessPost = function(object){
+    	  self.isAdjustVolumeProcess(true);
+		  self.adjustVolumeProcessVO().name(object.volumeName);
+		  self.adjustVolumeProcessVO().uuid(object.uuid);
+		  self.adjustVolumeProcessVO().vmUuid(object.vmUuid);
+		  self.adjustVolumeProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  self.adjustVolumeProcessVO().size(object.volumeSize);
+		  self.adjustVolumeProcessVO().targeSize('');
+      }
+  
+      this.adjustVolumeProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  serviceInstanceUuid: ko.observable(),
+    	  vmUuid: ko.observable(),
+    	  size: ko.observable(),
+    	  targetSize: ko.observable()
+      });
+      
+      //申请
+      this.adjustVolumeProcessPost = function(){
+    	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustVolumeProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustVolumeProcessVO().targeSize()+"\"}}";
+    	  
+    	  var orderItem = {};
+    	  orderItem.instanceName = self.adjustVolumeProcessVO().name();
+    	  orderItem.serviceInstanceUuid = self.adjustVolumeProcessVO().serviceInstanceUuid();
+    	  orderItem.resourceType = "DISK";
+    	  orderItem.metaData = metaData;
+    	  orderItem.resourceUuid = self.adjustVolumeProcessVO().uuid();
+    	  
+    	  var orderItems = [];
+    	  orderItems.push(orderItem);
+    	  
+    	  var postBody = {};
+    	  postBody.resourceType = "DISK";
+    	  postBody.orderItems = orderItems;
+    	  
+    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+    		  if(data.code){
+    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+  		 		self.isAdjustVolumeProcess(false);
+    		  }
+    	  });
+      }
+      
+      
+      
+      //------------------------------------------云硬盘扩展-流程结束--------------------------------
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
+    //--------------------------------------------性能监控 开始-------------------------------------
     //cpu使用率
     	cpu_chart = new Highcharts.Chart({
     		chart: {  
@@ -1669,4 +1936,5 @@
 			}
 		});
 	};
+	 //--------------------------------------------性能监控 结束-------------------------------------
 </script>

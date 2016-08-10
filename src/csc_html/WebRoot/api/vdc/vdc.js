@@ -150,6 +150,25 @@
 				 csc.rest.del("api/v5.0.0/vdcs/"+uuid+"/users/"+userUuid,function(data){
 					 callback(data)
     		    }); 
+			},
+			
+			/**
+			 * 查询VDC总配额
+			 */
+			getVdcGlobalQuota:function(callback,errorCallback){
+				 csc.rest.get('api/v5.0.0/vdcs/system/global/quota', function(data){
+					     callback(data);
+	    		    }); 
+			},
+			
+			/**
+			 * 修改VDC总配额
+			 */
+			modifyVdcGlobalQuota:function(param, callback, errorCallback){
+				console.log(param);
+				 csc.rest.put('api/v5.0.0/vdcs/global/quota', param, function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

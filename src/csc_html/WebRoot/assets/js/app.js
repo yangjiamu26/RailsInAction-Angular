@@ -3,11 +3,34 @@ $.ajaxSetup({
 	cache:false
 })
 
+function updateHashWhenModal(url){
+	if(url.indexOf("?")>-1){
+	  var args=new Object();         
+
+      var query = url.split("?")[1];
+      var pairs=query.split("&");//在逗号处断开 
+      for(var i=0;i<pairs.length;i++) 
+      { 
+        var pos=pairs[i].indexOf('=');//查找name=value 
+        if(pos==-1) continue;//如果没有找到就跳过 
+        var argname=pairs[i].substring(0,pos);//提取name 
+        var value=pairs[i].substring(pos+1);//提取value 
+        args[argname]=unescape(value);//存为属性 
+      }
+      window.modal_args = args;
+	}else{
+	  window.modal_args = [];
+	}
+}
+
 //弹出窗
 function showModal(url,callBack){
 	var modal = $("#ajax_modal_0");
+	
+	updateHashWhenModal(url);
+	
 	modal.html("").load(url,function(data){
-		modal.modal('show');
+		modal.modal({'show':true, backdrop:'static'});
 		if(callBack) callBack();
 	});
 };
@@ -16,8 +39,11 @@ function hideModal(){
 };
 function showModalSec(url,callBack){
 	var modal = $("#ajax_modal_1");
+	
+	updateHashWhenModal(url);
+
 	modal.html("").load(url,function(data){
-		modal.modal('show');
+		modal.modal({'show':true, backdrop:'static'});
 		if(callBack) callBack();
 	});
 };
@@ -26,8 +52,11 @@ function hideModalSec(){
 };
 function showModalThir(url,callBack){
 	var modal = $("#ajax_modal_2");
+	
+	updateHashWhenModal(url);
+	
 	modal.html("").load(url,function(data){
-		modal.modal('show');
+		modal.modal({'show':true, backdrop:'static'});
 		if(callBack) callBack();
 	});
 };

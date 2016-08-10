@@ -53,7 +53,7 @@
 	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" data-bind="click: save">保存数据</button>
 	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
 	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="transfer()">转发</button>
-	        <button name="button" id="btn_task_complete" class="btn btn-default btn btn-default" onclick="next()">转交下一步</button>
+	        <button name="button" id="btn_task_complete" class="btn btn-primary" onclick="next()">转交下一步</button>
 	        <a  class="btn btn-default btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">返回</a>
 	      </div>    
         </div>
@@ -69,16 +69,6 @@
   var state = '';
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", "api/vdc/vdc.js", "api/resource/network/network.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    if(!args.type){
-      $(".order-base-info").remove();
-    }else{
-      if(args.type == 'order'){    	  
-        $("#orderBaseInfoType").html('订单号');
-        $("#approveMsgs").hide();
-      }else
-        $("#orderBaseInfoType").html('任务ID');
-    };
-    
     if(args.taskId){
     	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
     		var info = data.taskInfo[0];
@@ -208,17 +198,9 @@
   function setUnsubmitUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'&&productType=='VM'){
-		if(isBatch){
-			url = "pages/workflows/vm_apply_unsubmit.html";
-		}else{
-			url = "pages/workflows/vm_apply_unsubmit_batch.html";
-		}
+		url = "pages/workflows/vm_apply_unsubmit.html";//批量和单个同一个界面
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
-		if(isBatch){
-			url = "pages/workflows/modal2_batch.html";
-		}else{
-			url = "pages/workflows/modal2.html";
-		}
+		url = "pages/workflows/disk_apply_unsubmit.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
 		if(isBatch){
 			url = "pages/workflows/objectStorage_apply_unsubmit_batch.html";
@@ -227,19 +209,15 @@
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
 		if(isBatch){
-			url = "pages/workflows/modal5_batch.html";
+			url = "pages/workflows/loadBalance_apply_unsubmit_batch.html";
 		}else{
-			url = "pages/workflows/modal5.html";
+			url = "pages/workflows/loadBalance_apply_unsubmit.html";
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='SECRET_KEY'){
-		if(isBatch){
-			url = "pages/workflows/modal6_batch.html";
-		}else{
-			url = "pages/workflows/modal6.html";
-		}
+		url = "pages/workflows/ssh_apply_unsubmit.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='PUBLICIP'){
 		if(isBatch){
-			url = "";
+			url = "pages/workflows/ip_apply_unsubmit_batch.html";
 		}else{
 			url = "pages/workflows/ip_apply_unsubmit.html";
 		}
@@ -257,9 +235,8 @@
 			url = "pages/workflows/ip_apply_approve.html";
 		}else if(productType=='OBJECT_STORAGE'){
 			url = "pages/workflows/objectStorage_apply_approve.html";
-		}
-		else{			
-			url = "pages/workflows/handle_others.html";
+		}else{			
+			url = "pages/workflows/apply4approve.html";
 		}
 	}
 	
@@ -276,9 +253,8 @@
 			url = "pages/workflows/ip_apply_construct.html";
 		}else if(productType=='OBJECT_STORAGE'){
 			url = "pages/workflows/objectStorage_apply_construct.html";
-		}
-		else{			
-			url = "pages/workflows/handle_1_others.html";
+		}else{			
+			url = "pages/workflows/apply4construct.html";
 		}
 	}
 	
@@ -296,7 +272,7 @@
 		}else if(productType=='OBJECT_STORAGE'){
 			url = "pages/workflows/objectStorage_apply_construct_confirm.html";
 		}else{			
-			url = "pages/workflows/handle_2_others.html";
+			url = "pages/workflows/apply4resure.html";
 		}
 	}
 	
@@ -318,10 +294,10 @@
   function saveComment(taskId,callback){
   	var message = $("#commentMsg").val();
   	var id = $("#commentId").val();
-  	if(message==''){
+  	/* if(message==''){
   		alert("请填写审批意见！");
   		return;
-  	}
+  	} */
   	csc.rest.post('api/v5.0.0/workflows/tasks/'+taskId+'/comments?message='+message+'&id='+id,'',function(data){
   		callback();
 	});
@@ -345,18 +321,18 @@
 			},function(){alert("操作失败！")});
 		  });
 	  }else{		  
-		  showModal("pages/workflows/next.html?taskId="+taskId);
+		  showModal("pages/workflows/next.html");
 	  }
   }
   
   function transfer(){
 	  var taskId = $("#taskId").text();
-	  showModal("pages/workflows/transfer.html?taskId="+taskId);
+	  showModal("pages/workflows/transfer.html");
   }
   
   function back(){
 	  var taskId = $("#taskId").text();
-	  showModal("pages/workflows/back.html?taskId="+taskId);
+	  showModal("pages/workflows/back.html");
   }
   
 </script>
