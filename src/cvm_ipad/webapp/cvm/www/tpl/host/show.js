@@ -2,6 +2,7 @@ myApp.onPageInit("host-show", function(page) {
   function ViewModel(){
     this.name = ko.observable(page.query.name);
     this.summary = ko.observable({
+      "resourcePoolName":'',
       "ip":'',
       "state":'',
       "runTime":''

@@ -28,6 +28,20 @@ $(function(){
 
   myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
 
+  function assistiveViewModel(){
+    this.isLow = ko.observable('false');
+    this.setLow = function(){
+      this.isLow('true');
+    }
+    this.setHigh = function(){
+      this.isLow('false');
+    }
+  }
+  var assisViewModel = new assistiveViewModel();
+  ko.applyBindings(assisViewModel, document.getElementById("assistive"));
+  window.Assistive_viewModel = assisViewModel;
+
+
   /*filter*/
   function ViewModel(){
     var self = this;
@@ -35,111 +49,11 @@ $(function(){
     this.changePage = function(str){
       this.page(str);
     }
-    this.busdomain = {
-      list:ko.observableArray([]),
-      busdomainNum:'',
-      projectNum:''
-    };
-    this.getSelectedBus = function(id){
-      var name;
-      for(var i=0;i<this.busdomain.list().length;i++){
-        if(this.busdomain.list()[i].id == id){
-          name = this.busdomain.list()[i].name;
-          break;
-        }
-      }
-      return name;
-    }
-    /*busdomain*/
-    this.busdomainSelected = ko.observable("全部");
-    this.setBusdomainSelected = function(object,event){
-      var isAll,busId,busName;
-      if(object.id){
-        isAll = false;
-        busId = object.id;
-        busName = object.name;
-        self.busdomainSelected(object.id);
-      }else{
-        isAll = true;
-        busId = null;
-        busName = null;
-        self.busdomainSelected("全部");
-      }
-      window.business_index_viewModel.loadData(false,busId,busName);
-    }
-    this.getBusinessDomains = function(){
-      RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
-        self.busdomain.busdomainNum=data.busdomainNum;
-        self.busdomain.projectNum=data.projectNum;
-        for(var i=0;i<data.data.length;i++){
-          self.busdomain.list.push(data.data[i]);
-        }
-        window.business_index_viewModel.loadData();
-      })
-    }
-
-    /*pool*/
-    this.poolSelected = ko.observable("全部");
-    this.setPoolSelected = function(object,event){
-      var val = event.currentTarget.attributes["toselect"].nodeValue;
-      self.poolSelected(val);
-      var type = val == "全部" ? "" : val;
-      window.pool_index_viewModel.loadData(false,type);
-    }
-
-    /*host*/
-    this.hosts = {
-      WinServerList: ko.observableArray([]),
-      VMwareList: ko.observableArray([]),
-      PowerVMList: ko.observableArray([])
-    };
-    this.hostSelected = ko.observable("全部");
-    this.setHostSelected = function(object,event){
-      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue;
-      var val = event.currentTarget.attributes["toselect"].nodeValue;
-      self.hostSelected(val);
-      var hype = hypervisor ? hypervisor : "";
-      var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
-      window.HostIndex_viewModel.loadData(false, hype, id);
-    }
-    this.getResPools = function(){
-      self.hosts.WinServerList.removeAll();
-      self.hosts.VMwareList.removeAll();
-      self.hosts.PowerVMList.removeAll();
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"winserver"},function(data){
-        for(var i=0;i<data.data.length;i++){
-          self.hosts.WinServerList.push(data.data[i]);
-        }
-      });
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"VMware"},function(data){
-        for(var i=0;i<data.data.length;i++){
-          self.hosts.VMwareList.push(data.data[i]);
-        }
-      });
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"PowerVM"},function(data){
-        for(var i=0;i<data.data.length;i++){
-          self.hosts.PowerVMList.push(data.data[i]);
-        }
-      });
-      window.HostIndex_viewModel.loadData();
-    }
-
-    /*vm*/
-    this.vmSelected = ko.observable("全部");
-    this.setVmSelected = function(object,event){
-      var hypervisor = event.currentTarget.attributes["hypervisor"].nodeValue || '';
-      var val = event.currentTarget.attributes["toselect"].nodeValue;
-      self.vmSelected(val);
-      var hype = hypervisor ? hypervisor : "";
-      //var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
-      window.vm_index_viewModel.loadData(false, hype);
-    }
-
-    
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, document.getElementById("indexFilter"));
   window.indexFilter_viewModel = viewModel;
+
 
   /*assistive touch*/
   var win_w = parseInt($$("body").width());
