@@ -3,12 +3,13 @@ myApp.onPageInit("vm-index", function(page) {
   function ViewModel(){
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
+    this.hostId = ko.observable("");
     this.dataList = ko.observableArray([]);
     this.vmNum = ko.observable("");
 
     this.loading = false;
     this.page = 1;
-    this.loadData = function(is_loadMore, hypervisor, resPoolId){
+    this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
       }else{
@@ -19,12 +20,17 @@ myApp.onPageInit("vm-index", function(page) {
       }else{
         this.resPoolId("");
       }
+      if(hostId){
+        this.hostId(hostId);
+      }else{
+        this.hostId("");
+      }
       var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/vm").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      RestServiceJs(BASE_URL+"/vm").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
       //$$.getJSON("tpl/vm/index.json?id="+page.query.id+"&page="+self.page,function(data){
         self.loading = false;
         if(!is_loadMore){
@@ -33,28 +39,8 @@ myApp.onPageInit("vm-index", function(page) {
           self.dataList.removeAll();
 
           self.vmNum(data.size);
-          var os = [0,0,0,0], status = [0,0,0];
-          for(var i=0; i<data.data.length; i++){
-            var reg1 = /windows/i,
-                reg2 = /linux/i,
-                reg3 = /aix/i;
-            if(data.data[i].osVersion.match(reg1)&&data.data[i].osVersion.match(reg1).index>-1){
-              os[0]+=1;
-            }else if(data.data[i].osVersion.match(reg2)&&data.data[i].osVersion.match(reg2).index>-1){
-              os[1]+=1;
-            }else if(data.data[i].osVersion.match(reg3)&&data.data[i].osVersion.match(reg3).index>-1){
-              os[2]+=1;
-            }else{
-              os[3]+=1;
-            }
-            if(data.data[i].state=="OK"){
-              status[0]+=1;
-            }else if(data.data[i].state=="STOPPED"){
-              status[1]+=1;
-            }else{
-              status[2]+=1;
-            }
-          }
+          var os = [data.winVm,data.linuxVm,data.othersVm], status = [data.okStateVm,data.stoppeStatedVm,data.otherStatedVm];
+          
           initVm_os_chart(os);
           initVm_status_chart(status);
         }
@@ -162,10 +148,10 @@ myApp.onPageInit("vm-index", function(page) {
   viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId());
+    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId());
+    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
   });  
   
 });
@@ -222,19 +208,14 @@ function initVm_os_chart(os) {
                   color:"#4791d2"
               },
               {
-                  name: 'AIX',
-                  y: os[2],
+                  name: 'Linux',
+                  y: os[1],
                   color:"#ffd800"
               },
               {
-                  name: 'Linux',
-                  y: os[1],
-                  color:"#5bd544"
-              },
-              {
                   name: 'Other',
-                  y: os[3],
-                  color:"#fe9898"
+                  y: os[2],
+                  color:"#5bd544"
               }
           ]
         }]

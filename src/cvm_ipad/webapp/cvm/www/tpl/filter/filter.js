@@ -1,5 +1,6 @@
 myApp.onPageInit("indexFilter-business", function(page) {
   function busdomain_ViewModel(){
+  	var self = this;
     /*busdomain*/
     this.busdomain = {
       list:ko.observableArray([]),
@@ -50,6 +51,7 @@ myApp.onPageInit("indexFilter-business", function(page) {
 
 myApp.onPageInit("indexFilter-pool", function(page) {
   function pool_ViewModel(){
+  	var self = this;
     /*pool*/
     this.poolSelected = ko.observable("全部");
     this.setPoolSelected = function(object,event){
@@ -66,6 +68,7 @@ myApp.onPageInit("indexFilter-pool", function(page) {
 
 myApp.onPageInit("indexFilter-host", function(page) {
   function host_ViewModel(){
+  	var self = this;
     /*host*/
     this.hosts = {
       WinServerList: ko.observableArray([]),
@@ -110,6 +113,7 @@ myApp.onPageInit("indexFilter-host", function(page) {
 
 myApp.onPageInit("indexFilter-vm", function(page) {
   function vm_ViewModel(){
+  	var self = this;
     /*vm*/
     this.vmSelected = ko.observable("全部");
     this.setVmSelected = function(object,event){
@@ -128,6 +132,7 @@ myApp.onPageInit("indexFilter-vm", function(page) {
 
 myApp.onPageInit("indexFilter-storage", function(page) {
   function storage_ViewModel(){
+  	var self = this;
     /*storage*/
     this.storageSelected = ko.observable("全部");
     this.setStorageSelected = function(object,event){

@@ -33,7 +33,7 @@ function init_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>个',
       },
       plotOptions: {
           pie: {
@@ -237,7 +237,7 @@ function init_storage_chart(data) {
         this.busdomainName(name);
       }else{
         this.isShowAll(true);
-        this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
+        this.busdomainNum(window.indexFilter_busdomain_viewModel.busdomain.busdomainNum);
       }
       
       RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
@@ -280,7 +280,7 @@ function init_storage_chart(data) {
     viewModel.loadData(true);
   });
 
-  window.indexFilter_viewModel.getBusinessDomains();
+  window.indexFilter_busdomain_viewModel.getBusinessDomains();
 });
 
 
