@@ -8,8 +8,9 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
         * 初始化函数
         */
     $scope.initPage = function () {
-        //显示告警展示框
-        $scope.showTab = "alarm";
+
+        //初始化按钮不能用
+         $scope.manrepair_isclicked=true;
         //初始化告警日志列表查询
         $scope.queryParams = {
             resolved: "",
@@ -26,19 +27,8 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
         };
         //查询告警日志
         $scope.getAlarmList();
-        //tab切换
-        $(".alarm-tab-header span").click(function (e) {
-            if (this.className == "alarm-tab-active") {
-                return;
-            } else {
-                $(this).removeClass("alarm-tab").addClass("alarm-tab-active");
-                $(this).siblings().removeClass("alarm-tab-active").addClass("alarm-tab");
-            }
-        });
-        if ($stateParams.type == "Event") {
-            $scope.showEventTab();
-            $(".alarm-tab-header span:eq(1)").click();
-        }
+        //显示告警展示框
+        $scope.showTab = "alarm";
     };
 
     /**
@@ -287,6 +277,13 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
                 $scope.resolveIndex.push(alarm.index);
             }
         });
+
+        if($scope.resolveIndex.length > 0){
+             //如果有复选框选中，使按钮可用
+            $scope.manrepair_isclicked=false;
+        }else{
+             $scope.manrepair_isclicked=true;
+        }
     };
     $scope.checked = function (alarm) {
         alarm.$checked = !alarm.$checked;
@@ -300,6 +297,13 @@ vsanApp.controller("alarmManagerCtrl", ["$scope", "alarmFactory", "eventFactory"
             })
         }
         $scope.allIsChecked = ($scope.resolveIndex.length > 0 && $scope.resolveIndex.length == $scope.alarmList.length) ? true : false;
+
+         if($scope.resolveIndex.length > 0){
+             $scope.manrepair_isclicked=false;
+        }else{
+             $scope.manrepair_isclicked=true;
+        }
+
     };
 
     /**

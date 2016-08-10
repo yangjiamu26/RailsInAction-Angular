@@ -66,8 +66,15 @@ vsanApp.controller('nodeAddCtrl', ['$scope', 'nodeFactory', function ($scope, no
      * 开始扫描
      */
     $scope.startDiscover = function () {
-        if (!IP_REGEXP.test($scope.startIp) || !IP_REGEXP.test($scope.endIp)) {
-            $scope.setFailNoticeMsg("请输入正确的IP！");
+        if (!IP_REGEXP.test($scope.startIp)) {
+            //$scope.setFailNoticeMsg("请输入正确的IP！");
+            $scope.showTipMsg('请输入正确IP','startIp');
+            return;
+        }
+
+        if (!IP_REGEXP.test($scope.endIp)) {
+            //$scope.setFailNoticeMsg("请输入正确的IP！");
+            $scope.showTipMsg('请输入正确IP','endIp');
             return;
         }
         $scope.isDiscover = true;
@@ -549,4 +556,38 @@ vsanApp.controller('nodeAddCtrl', ['$scope', 'nodeFactory', function ($scope, no
             event.stopPropagation();
         });
     };
+
+    //提示框
+    $scope.showTipMsg = function (tipMsg, ngModel) {
+        var _this = $("[ng-model='"+ngModel+"']");
+        _this.data("tipMsg", tipMsg);
+        _this.popover("show");
+        if (_this.data("timeoutId")) {
+            clearTimeout(_this.data("timeoutId"));
+    }
+    var timeoutId = setTimeout(function () {
+        _this.popover("hide");
+    }, 3000);
+        _this.data("timeoutId", timeoutId);
+        _this.focus();
+    };
+    var selectors = ["#ip_scan input"]
+    for (var i = 0; i < selectors.length; i++) {
+        $(selectors[i]).each(function () {
+            var _this = $(this);
+            _this.popover({
+                trigger: "manual",
+                placement: "top",
+                html: true,
+                content: function () {
+                    if (_this.data("tipMsg")) {
+                        return "<div style='color:#000;'>" + _this.data("tipMsg") + "</div>";
+                    }
+                    return "";
+                }
+            });
+        });
+
+    }
+
 }]);

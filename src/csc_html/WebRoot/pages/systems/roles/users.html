@@ -22,8 +22,7 @@
 				</ul>
 				<div class="tab-content">
 					<div role="tabpanel" class="tab-pane active" id="tab1">
-						<ul class="ztree" id="orgZtree"
-							data-bind="value:searchParamLeft().orId"></ul>
+						<ul class="ztree" id="orgZtree"></ul>
 					</div>
 				</div>
 			</div>
@@ -108,11 +107,9 @@
 <script type="text/javascript">
 	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js', null ]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-        console.log(args);
         var roleId = args.roleId;
 		function ViewModel() {
 			var self = this;
-
 			var setting = {
 				view : {
 					showIcon : false,
@@ -122,17 +119,27 @@
 					onClick: search
 				}
 			};
-		
+			var searchParamRight;
 			
 			function search(event, treeId, treeNode) {
-				console.log(treeNode.code);
-				var searchParamLeft = {orgId : treeNode.code};
-				
-				var searchParamRight = {
+				if(treeNode.code == '0'){
+				    var searchParamLeft = {
+				    		orgId : "",
+				    		userType : treeNode.userType
+				    		};
+				}else{
+				    searchParamLeft = {
+							orgId : treeNode.code,
+							userType : treeNode.userType
+							};
+				}
+					
+			    searchParamRight = {
 						orgId : treeNode.code,
-						roleId : roleId 
+						roleId : roleId,
+						userType : treeNode.userType
 					};
-	            
+
 	            self.tableLeft.params(searchParamLeft);
 	            self.tableRight.params(searchParamRight);
 	            
@@ -147,77 +154,52 @@
 			
 			
 			this.addRoleUsers = function() {
-				
-				var ids = '';
-				var params = [];
-				
+				var param = {};
+				var temps = '';
 				$.each(self.tableLeft.chosenItems(), function(i,val){
-					params.push({roleId:roleId,id:val.id});
+					temps += (val.id + ',');
 			  	});   
-				csc.rest.get('api/v5.0.0/uap/users',
-				    function(data) {
-					  console.log(data);
-					  for(var i=0;i<data.results.length;i++){
-					  params.push({roleId:roleId,id:data.results[i].id});
-					}
-					console.log(params);
-				});
-				//var params = {ids: ids.substring(0, ids.length-1)};
-				csc.rest.put('api/v5.0.0/uap/users/' + roleId , params,
-					function() {
-					  self.tableLeft.refreshData();
-					  self.tableRight.refreshData();
-				});
-				
-			};
-			
-			this.removeRoleUsers = function() {
-				var ids = '';
-				var params = [];
-				$.each(self.tableRight.chosenItems(), function(i,val){
-					//ids += (val.id + ',');
-					console.log(val);
-					params.push({roleId:roleId,id:val.id});
-					
-			  	}); 
-				csc.rest.get('api/v5.0.0/uap/users',
-					    function(data) {
-						  console.log(data);
-						  for(var i=0;i<data.results.length;i++){
-						  params.push({roleId:roleId,id:data.results[i].id});
-						}
-						console.log(params);
-					});
-				//var params = {ids: ids.substring(0, ids.length-1)};
-				csc.rest.put('api/v5.0.0/uap/users' + roleId , params,
+				param.name = temps;
+				csc.rest.put('api/v5.0.0/uap/'+roleId , param,
 						function() {
 					      self.tableLeft.refreshData();
 					      self.tableRight.refreshData();
 						});
-			}
+				
+			};
+			this.removeRoleUsers = function() {
+				var params = '';
+				$.each(self.tableRight.chosenItems(), function(i,val){
+					params += (val.id + ',') ;
+			  	}); 
+				
+				csc.rest.get('api/v5.0.0/uap/users',
+					    function(data) {
+						  for(var i=0;i<data.results.length;i++){
+						  params.push({roleId:roleId,id:data.results[i].id});
+						}
+					}); 
+				
+				csc.rest.put('api/v5.0.0/uap?roleId='+roleId  , params,
+						function() {
+					      self.tableLeft.refreshData();
+					      self.tableRight.refreshData();
+						});
+			};
+			/* api/v5.0.0/uap/users/12121212
+			api/v5.0.0/uap?users=12121212
+					api/v5.0.0/uap/users12121212
             
-			//获取该组织下角色未分配的用户
-            this.searchParamLeft = ko.observable({
-				orgId : "",
-			});
-            /* //根据组织id,角色id获取该角色在该组织下已分配的用户
-			this.searchParamRight = ko.observable({
-				orgId : "",
-				roleId: "",
-			}); */
-			
-			//点击组织按钮后刷新角色分配表格
-            /*function search() {
-				this.tableLeft.params(this.searchParamLeft());
-				this.tableRight.params(this.searchParamRight())
-			}; */
-
+ */
+            //初始化预分配表格
 			this.tableLeft = new DataTable([], {
-				path : '/csc/api/v5.0.0/uap/roleUsers'
+				path : '/csc/api/v5.0.0/uap/users'
 			});
+			//初始化已分配表格
 			this.tableRight = new DataTable([], {
-				path : '/csc/api/v5.0.0/uap/roleUsers'
+				path : '/csc/api/v5.0.0/uap/users'
 			});
+            self.tableRight.params(searchParamRight);
 
 		}
 		ko.applyBindings(new ViewModel(), $('#page-content')[0]);

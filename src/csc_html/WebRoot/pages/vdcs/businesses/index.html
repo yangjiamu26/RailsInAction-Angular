@@ -50,7 +50,7 @@
               
               <td><a data-bind="attr:{href:'#pages/vdcs/businesses/show?subSysUuid='+uuid+'&vdcUuid='+vdcUuid}"><span data-bind="text:name"></span></a></td>
               <td data-bind="text:vdcName"></td>
-              <td>张三（待取数据）</td>
+              <td data-bind="text: $root.userListName(userList)"></td>
               <td data-bind="text:createTime"></td>
               <td>
                 <a data-bind="click: $root.edit">修改</a> |
@@ -61,34 +61,34 @@
           </tbody>
         </table>
       </div>
-      <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+     <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
         <ul class="pagination">
-          <li>
-            <a href="#">首页</a>
-          </li>
-          <li data-bind="css: leftPagerClass, click: prevPage">
-            <a href="#">&laquo;</a>
-          </li>
-          <li >
-            <a href="#" >1</a>
-          </li>
-          <li data-bind="css: rightPagerClass, click: nextPage">
-            <a href="#">&raquo;</a>
-          </li>
-          <li>
-            <a href="#">末页</a>
-          </li>
-          <li class="page-control-li">
-            <div class="input-group form-group-sm">
-              <input type="text" class="form-control"  />
-              <div class="input-group-btn">
-                <button type="button" class="btn btn-sm btn-default" >跳转</button>
+            <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+              <a href="#">首页</a>
+            </li>
+            <li data-bind="css: leftPagerClass, click: prevPage">
+              <a href="#">&laquo;</a>
+            </li>
+            <li >
+              <a href="#"  data-bind="text: currentPage"></a>
+            </li>
+            <li data-bind="css: rightPagerClass, click: nextPage">
+              <a href="#">&raquo;</a>
+            </li>
+            <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+              <a href="#">末页</a>
+            </li>
+            <li class="page-control-li">
+              <div class="input-group form-group-sm">
+                <input type="text" class="form-control" data-bind="value: targetPage"  />
+                <div class="input-group-btn">
+                  <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+                </div>
               </div>
-            </div>
-            <div class="page-info-div" >共5条记录，每页10条，共1页</div>
-          </li>
-        </ul>
-      </footer>
+              <div class="page-info-div" data-bind="text: recordsText"></div>
+            </li>
+         </ul>
+    </footer>
     </div>
   </div>
 </div>
@@ -111,17 +111,17 @@
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>           
         </div>
-        <div class="form-group" data-bind="ifnot: subsysVo().uuid">
+        <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label" >所属VDC</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:subsysVo().vdcUuid">              
+            <select id="vdc_id_"  class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:subsysVo().vdcUuid, enable: !subsysVo().uuid()">              
             </select>
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div>           
         </div>
-        <div class="form-group" data-bind="ifnot: subsysVo().uuid">
+        <div class="form-group" >
           <label for="inputEmail3" class="col-xs-3 control-label">系统负责人</label>
           <div class="col-xs-8">
             <select multiple="true" max-size="5"  data-bind="options:managerUserList,optionsText:'account',optionsValue:'value',selectedOptions:subsysVo().accounts_string" class="form-control">
@@ -174,12 +174,14 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         	});
         })
         self.subsysVo().vdcUuid.subscribe(function(vdcUuid){//选vdc传uuid作为参数传递
-            if(!vdcUuid) return;
+            if(!vdcUuid||typeof(vdcUuid) == undefined||vdcUuid.length==0) return;
         
-            self.managerUserList([]);
 
             csc.rest.get("api/v5.0.0/vdcs/"+vdcUuid+"/users", function(data){
-                if(data.results.length < 1) return;
+                if(data.results.length < 1) {
+                    self.managerUserList([]);
+                    return;
+                }
                 var results = [];
                 for(var i = 0; i < data.results.length; i++){
                      var authType = data.results[i].authType;
@@ -201,7 +203,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
              });	        
         });
         /*********************显示下拉列表*************************/
-        /********************业务系统新增-start*******************/
+        //显示在列表的值，查找属性type为MANGER出属性为account的值通过‘，’去拼接
+        this.userListName = function(userList){
+            return _.chain(userList).where({type:'MANGER'}).pluck('account').join(",");
+        }
+        /********************业务系统创建-start*******************/
         //vdc下拉列表
         this.vdcList = ko.observableArray([]);
         csc.rest.get("api/v5.0.0/vdcs", function(data){
@@ -209,6 +215,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             self.vdcList(data.results);
         });
         this.add = function(){
+            self.vdcList.removeAll();
+            csc.rest.get("api/v5.0.0/vdcs", function(data){
+                self.vdcList(data.results);
+            });
             self.isAdd(true);
             //清空表单
             self.subsysVo.fromJSON({
@@ -245,24 +255,23 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     $("#add_submit").removeAttr("disabled");
                     systemMsg.alert('修改失败!');
                 }); 
-             }else{// 新增
+             }else{// 创建
                  csc.rest.post('api/v5.0.0/bussys',self.subsysVo.toJSON(),function(data){
-                    systemMsg.alert('新增成功!');
+                    systemMsg.alert('创建成功!');
                     self.isAdd(false);
                     self.table.refreshData();//刷新数据
               },function(data,textStatus) {
                   $("#add_submit").removeAttr("disabled");
-                  systemMsg.alert('新增失败!');
+                  systemMsg.alert('创建失败!');
               }); 
             }
         }
 
-      /************************业务系统新增-end********************/
+      /************************业务系统创建-end********************/
         
       /************************业务系统修改-start******************/
         this.edit = function(object, event){
             if(object.uuid==null)return;
-
             self.isAdd(true); 
             console.log(object)
             /**********获取业务中用户信息，组装用于回显********/

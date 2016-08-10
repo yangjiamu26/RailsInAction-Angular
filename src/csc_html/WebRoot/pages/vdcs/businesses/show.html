@@ -1,9 +1,7 @@
 <div class="bg-light lter b-b wrapper-sm">
   <ol class="breadcrumb">
     <li>当前位置：</li>
-    <li>VDC</li>
     <li><a href="#pages/vdcs/businesses/index">业务系统</a></li>
-    <li class="active">业务系统详情</li>
   </ol>
 </div>
 
@@ -46,16 +44,16 @@
 					  <table class="table">
 				  		<thead>
 				  			<tr>
-				  				<th>虚拟机名称</th>
-				  				<th>虚拟机名称</th>
+				  				<th>云主机名称</th>
 				  				<th>启动顺序</th>
 				  				<th>延迟间隔</th>
 				  			</tr>
 				  		</thead>
 				  		<tbody data-bind="foreach: vmList"	>
 				  			<tr>
-				  				<td data-bind="text:uuid"></td>
-				  				<td data-bind="text:vmUuid"></td>
+				  				<td data-bind="text:uuid" hidden></td>
+				  				<td data-bind="text:vmUuid" hidden></td>
+				  				<td data-bind="text:vmName" ></td>
 				  				<td >
 				  				  <!-- ko if: $root.editMode -->
 				  					<div class="input-append input-append-normal">
@@ -158,8 +156,17 @@
 									<td data-bind="text:storage"></td>
 									<td data-bind="text:ip"></td>
 									<td >
-									    <span class="label label-success" data-bind="if: state == 'ACTIVE' &amp;&amp; taskState == null">运行中</span>
-									    <span class="label label-warning" data-bind="if: state != 'ACTIVE' &amp;&amp; taskState == null">非运行</span>
+									    <span class="label label-success" data-bind="if: state == 'ACTIVE' && taskState == null">运行中</span>
+						                <span class="label label-danger" data-bind="if: state == 'SHUTOFF' && taskState == null">已关机</span>
+						                <span class="label label-info" data-bind="if: state == 'SUSPENDED' && taskState == null">已挂起</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'POWERING_OFF'">正在关机</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'POWERING_ON'">正在启动</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING'">正在重启</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING_HARD'">正在强制重启</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'SUSPENDING'">正在挂起</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'RESUMING'">正在恢复</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'DELETING'">正在删除</span>
+						                <span class="label label-warning" data-bind="if: taskState == 'RESIZING'">正在调整</span>
 									</td>
 									<td data-bind="text:expiryTime"></td>
 									<td>
@@ -234,8 +241,17 @@
 				                <td data-bind="text:storage"></td>
 				                <td data-bind="text:ip"></td>
 				                <td>
-				                     <span class="label label-success" data-bind="if: state == 'ACTIVE' &amp;&amp; taskState == null">运行中</span>
-				                     <span class="label label-warning" data-bind="if: state != 'ACTIVE' &amp;&amp; taskState == null">非运行</span>
+			                        <span class="label label-success" data-bind="if: state == 'ACTIVE' && taskState == null">运行中</span>
+					                <span class="label label-danger" data-bind="if: state == 'SHUTOFF' && taskState == null">已关机</span>
+					                <span class="label label-info" data-bind="if: state == 'SUSPENDED' && taskState == null">已挂起</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'POWERING_OFF'">正在关机</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'POWERING_ON'">正在启动</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING'">正在重启</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'REBOOTING_HARD'">正在强制重启</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'SUSPENDING'">正在挂起</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'RESUMING'">正在恢复</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'DELETING'">正在删除</span>
+					                <span class="label label-warning" data-bind="if: taskState == 'RESIZING'">正在调整</span>
 				                </td>
 				                <td data-bind="text:expiryTime"></td>
 				              </tr>
@@ -284,21 +300,13 @@
     			   desc:ko.observable("")
     		   })
     		 
-    	        //定义虚拟机延时属性
-    	        this.busSysVmSetVo = ko.validatedObservable({
-    	             uuid:ko.observable(""),
-    	             busUuid:ko.observable(""),
-    	             startOrder:ko.observable(""),
-    	             delay:ko.observable(""),
-    	             vmUuid:ko.observable("")
-    		    });
-    	        
     	        var self = this;
     	        this.vmList = ko.observableArray();
     	        
-    	        function VM(busUuid,uuid,vmUuid, startOrder, delay){
+    	        function VM(busUuid,uuid,vmName,vmUuid, startOrder, delay){
     	        	this.busUuid = busUuid;
     	        	this.uuid = uuid;
+    	        	this.vmName = vmName;
     	        	this.vmUuid = vmUuid;
     	        	this.startOrder = ko.observable(startOrder).extend({digit:{params:true,message:' '},required:true});
     	        	this.delay = ko.observable(delay).extend({digit:{params:true,message:' '},required:{params:true,message:' '}});
@@ -325,22 +333,25 @@
     	      		    	vdcName: data.vdcName,
     	      		    	desc: data.desc
     	      		    });
+    	        		if(data.vmList==null&&data.vmList.length==0)return;
+    	        		var showVmList = [];
+    	        		for (var i=0;i<data.vmList.length;i++){
+    	        		    var sOrder = data.vmList[i].startOrder;
+    	        		    if (sOrder!='0'){
+    	        		        showVmList.push(data.vmList[i]);
+    	        		    }
+    	        		}
+    	            	
+    	        		if (showVmList.length==0) return;
+    	        		//转为对象
+    	        		var list = ko.utils.arrayMap(showVmList, function(result, index){
+    	        			console.log(result)
+    	        			return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmName,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
+    	        		});
+    	        		//云主机列表刷新
+    	        		self.vmList(list);
     	        	});
     	        }
-    	        
-    	        this.loadVM = function(initUrl){
-    	        	csc.rest.get(initUrl, function(data){
-    	        		var list = ko.utils.arrayMap(data.results, function(result, index){
-    	        			console.log(result)
-    	        			return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
-    	        		});
-    	        		self.vmList(list);
-    	        		
-    	        	});
-    	        };
-    	        
-    	        //初始化列表值，过滤出启动顺序为0的 ( TODO 待出接口)
-    	       // this.loadVM("api/v5.0.0/bussys/"+args.subSysUuid+"/vms?startOrder=NO_ZERO");
     	        if(args.subSysUuid!=null&&typeof(args.subSysUuid)!="undefined"){
                     this.loadSubSysInfo("api/v5.0.0/bussys/"+args.subSysUuid);
     	        }
@@ -350,21 +361,69 @@
     	        this.editVMOrder = function(){
 	    	        //查询uuid下所有的云主机列表
     	        	self.editMode(true);
-    	        	//self.loadVM("api/v5.0.0/bussys/"+args.subSysUuid+"/vms");
+    	        	csc.rest.get("api/v5.0.0/bussys/"+args.subSysUuid, function(data){
+    	        	    var list = ko.utils.arrayMap(data.vmList, function(result, index){
+    	        	        return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmName,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
+    	        	    });
+    	        	    //云主机列表刷新
+    	        	    self.vmList(list);
+    	        	});
     	        }
     	        this.cancelVMOrder = function(){
     	        	this.editMode(false);
-    	        	this.loadVM();
+    	        	csc.rest.get("api/v5.0.0/bussys/"+args.subSysUuid, function(data){
+    	        	    if(data.vmList.length==0)return;
+    	        		var showVmList = [];
+    	        		for (var i=0;i<data.vmList.length;i++){
+    	        		    var sOrder = data.vmList[i].startOrder;
+    	        		    if (sOrder!='0'){
+    	        		        showVmList.push(data.vmList[i]);
+    	        		    }
+    	        		}
+    	        		
+    	        	    var list = ko.utils.arrayMap(showVmList, function(result, index){
+    	        	        return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmName,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
+    	        	    });
+    	        	    
+    	        	    //云主机列表刷新
+    	        	    self.vmList(list);
+    	        	});
     	        }
+    	        this.editVmList=ko.validatedObservable({
+    	            vms:ko.observableArray()
+    	        })
     	        this.confirmVMOrder = function(){
     	        	var list = this.vmList();
     	        	for(var i=0; i<list.length;i++){
     	        		var vm = list[i];
+    	        		//数据不满足就返回
     	        		if(!vm.isValid()) return;
     	        	}
-    	        	this.editMode(false)
+    	        	self.editVmList().vms(self.vmList);
     	        	
-    	        	console.log(ko.toJSON(this.vmList()));
+    	        	csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmOrders",self.editVmList.toJSON(),function(data){
+                          systemMsg.alert('修改成功!');
+                          csc.rest.get("api/v5.0.0/bussys/"+args.subSysUuid, function(data){
+        	        	      if(data.vmList.length==0)return;
+        	        		  var showVmList = [];
+        	        		  for (var i=0;i<data.vmList.length;i++){
+        	        		      var sOrder = data.vmList[i].startOrder;
+        	        		      if (sOrder!='0'){
+        	        		          showVmList.push(data.vmList[i]);
+        	        		      }
+        	        		  }
+        	        		
+        	        	      var list = ko.utils.arrayMap(showVmList, function(result, index){
+        	        	          return ko.validatedObservable(new VM(result.busUuid,result.uuid,result.vmName,result.vmUuid, parseInt(result.startOrder), parseInt(result.delay)));
+        	        	      });
+        	        	    
+        	        	      //云主机列表刷新
+        	        	      self.vmList(list);
+        	        	  });
+                          self.editMode(false);
+                      },function(data,textStatus) {
+                          systemMsg.alert('修改失败!');
+                      });
     	        }
     	        
     	        //启动顺序加
@@ -386,24 +445,48 @@
     	        }
     	        
                  this.verifyToPass = ko.observable(false);
+                 this.operationParam = ko.validatedObservable({
+                     operate: "",
+                 })
                  /******************开机操作*****************************/
                  this.powerOnVm = function(){
-                     self.verifyToPass(true)
-                     //todo something to on vm ...
+                     //self.verifyToPass(true)
+                      confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机开机操作?",function(arg){
+                          self.operationParam().operate="START";
+                          csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                              systemMsg.alert('开机中!任务 id:'+data.taskId);
+                           },function(data,textStatus) {
+                               systemMsg.alert('开机失败!');
+                           });
+                      });
                   }
                 /******************开机操作*****************************/
                 
                 /******************关机操作*****************************/
                  this.powerOffVm = function(){
-                     self.verifyToPass(true)
-                     //todo something to off vm ...
+                     //self.verifyToPass(true)
+                     confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机关机操作?",function(arg){
+                         self.operationParam().operate="STOP";
+                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                             systemMsg.alert('关机中!任务 id:'+data.taskId);
+                          },function(data,textStatus) {
+                              systemMsg.alert('关机失败!');
+                          });
+                     });
                   }
                 /******************关机操作*****************************/
                 
                 /******************重启操作*****************************/
                  this.powerRestartVm = function(){
-                     self.verifyToPass(true)
-                     //todo something to restart vm ...
+                     //self.verifyToPass(true)
+                     confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机重启操作?",function(arg){
+                         self.operationParam().operate="RESTART";
+                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                             systemMsg.alert('重启中!任务 id:'+data.taskId);
+                          },function(data,textStatus) {
+                              systemMsg.alert('重启失败!');
+                          });
+                     });
                   }
                 /******************重启操作*****************************/
         }
@@ -411,7 +494,7 @@
         ko.applyBindings(new ViewModel(), $('#VM_OPERATION')[0]); 
         
         function ViewVmModel(){
-            //定义虚拟机实例
+            //定义云主机实例
 	        this.vmVo = ko.validatedObservable({
 	             busSysVmRelUuid:ko.observable(""),
 	             name:ko.observable(""),
@@ -433,7 +516,7 @@
                 self.vmAddtable.refreshData();//刷新数据
                 
                 self.isAddHost(true)
-                //查询已经关联的虚拟机
+                //查询已经关联的云主机
                 csc.rest.get(busSysVmUrl, function(data){
                     self.modalVmList(data.results);
                 });
@@ -457,26 +540,27 @@
             
             /********************业务系统删除-start**************/
             this.remove = function(object,event){
-                confirm("确定删除云主机【"+object.name+"】?",function(arg){
+                confirm("确定移除云主机【"+object.name+"】?",function(arg){
                    var delVmList = {};
                    var listJson = [];
-                   listJson.push(new VM(args.subSysUuid,args.vdcUuid,object.uuid,'0','0'));
+                   listJson.push(new VM(args.subSysUuid,args.vdcUuid,object.vmName,object.uuid,'0','0'));
                    delVmList["delVms"] = listJson;
                    
                    csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vms",delVmList,function(data){
-                        systemMsg.alert('删除成功!');
+                        systemMsg.alert('移除成功!');
                         self.vmtable.refreshData();//刷新数据
                         self.isAddHost(false);
                     },function(data,textStatus) {
-                        systemMsg.alert('删除失败!');
+                        systemMsg.alert('移除失败!');
                     });
                 })
             }
            /************************业务系统删除-end**************/
-            //封装虚拟机和业务系统关系，及初始化部分值
-           function VM(busUuid,vdcUuid,vmUuid,startOrder,delay){
+            //封装云主机和业务系统关系，及初始化部分值
+           function VM(busUuid,vdcUuid,vmName,vmUuid,startOrder,delay){
                 this.busUuid = busUuid;
                 this.vdcUuid = vdcUuid;
+                this.vmName = vmName;
                 this.vmUuid = vmUuid;
                 this.startOrder = startOrder;
                 this.delay = delay;
@@ -522,11 +606,12 @@
             	 console.log(chosenItems)
             	 
                  var vmUuids = _.pluck(chosenItems, "uuid")
+                 var vmNames = _.pluck(chosenItems, "name")
                  //组装数据
                  if(vmUuids!=null&&vmUuids.length>0){
                      var listJson = []
                      for (var i=0;i<vmUuids.length;i++){
-                         listJson.push(new VM(args.subSysUuid,args.vdcUuid,vmUuids[i],'0','0'));
+                         listJson.push(new VM(args.subSysUuid,args.vdcUuid,vmNames[i],vmUuids[i],'0','0'));
                      }
                  }else {
  			 		systemMsg.alert('没有选择数据,请检查!');

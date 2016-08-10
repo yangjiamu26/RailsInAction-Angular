@@ -1,0 +1,159 @@
+<div class="panel panel-info resouce-recovery">
+    <div style="display:none" id="resource_delete_" class="panel-heading" >资源删除</div>
+    <div style="display:none" id="resource_recycle_" class="panel-heading" >资源回收</div>
+    <div id="orderDetailedList" class="wrapper">
+      <div class="row">
+        <div class="col-xs-4">资源名称：<span data-bind="text:resourceInfoVo().name"></span> <a hidden>查看</a></div>
+        <div class="col-xs-4">所属VDC：<span data-bind="text:resourceInfoVo().vdcName"></span></div>
+        <div class="col-xs-4">资源类型：<span data-bind="text:resourceInfoVo().type"></span></div>
+      </div>
+      <p>&nbsp;</p>
+      <div class="row">
+          <div class="col-xs-4" style="display:none" id="subsys">所属业务系统：<span data-bind="text:resourceInfoVo().busSysName"></span></div>
+          <div class="col-xs-4">失效时间：<span data-bind="text:resourceInfoVo().expiryDate"></span></div>
+          <!-- 
+          <div class="col-xs-4">施工状态：<span data-bind="text:resourceInfoVo().name"></span></div>
+           -->
+      </div>
+    </div>
+</div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+    var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+        function ViewModel(){
+            var self = this;
+            this.resourceInfoVo = ko.validatedObservable({
+                name:ko.observable(""),
+                type:ko.observable(""),
+                vdcName:ko.observable(""),
+                busSysName:ko.observable(""),
+                expiryDate:ko.observable("")
+            });
+            csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data_){
+                var processInstanceId = data_.taskInfo[0].processInstanceId;
+                csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+                    var operationType = data.type;
+                    if (operationType=="RESOURCE_DELETE"){
+                        $("#resource_delete_").css('display', 'block');//显示类型信息
+                    }else{
+                        $("#resource_recycle_").css('display', 'block');//显示类型信息
+                    }
+                    
+                    var resourceType = data.resourceType;
+                    var orderItems = data.orderItems;
+                    var operationType = data.type;
+                    
+                    if(orderItems.length==0) return;
+                    if(resourceType=="VM"){
+                        $("#subsys").css('display', 'block');//显示业务系统
+                        //获取订单详情
+                        var orderItem = orderItems[0];
+                        if(!csc.util.isNotNull(orderItem)) return;
+                        //获取订单详情数据
+                        var resourceUuid = orderItem.resourceUuid;
+                        if(!csc.util.isNotNull(resourceUuid)) return;
+                        csc.rest.get('api/v5.0.0/vms/'+resourceUuid,function(vmData){
+                            if(vmData){
+                                self.resourceInfoVo.fromJSON({
+                                    name:vmData.name,
+                                    expiryDate:vmData.expiryDate,
+                                    vdcName:vmData.vdcName,
+                                    busSysName:vmData.busSysName,
+                                    type:"云主机"
+                                });
+                            }
+                       });
+                        
+                    }else if(resourceType=="PUBLICIP"){
+                        //获取订单详情
+                        var orderItem = orderItems[0];
+                        if(!csc.util.isNotNull(orderItem)) return;
+                        
+                        //获取订单详情中json数据
+                        var resourceUuid = orderItem.resourceUuid;
+                        if(!csc.util.isNotNull(resourceUuid)) return;
+                        
+                        csc.rest.get("api/v5.0.0/publicIps?uuid="+resourceUuid,function(data){
+                            var results = data.results;
+                            if (results.length==0) return;
+                            self.resourceInfoVo.fromJSON({
+                                name:results[0].name,
+                                expiryDate:results[0].expiredDate,
+                                vdcName:results[0].vdcName,
+                                type:"公网IP"
+                            });
+                            
+                        })
+                    }else if(resourceType=="DISK"){
+                        //获取订单详情
+                        var orderItem = orderItems[0];
+                        if(!csc.util.isNotNull(orderItem)) return;
+                        
+                        //获取订单详情中json数据
+                        var metaData = orderItem.metaData;
+                        if(!csc.util.isNotNull(metaData)) return;
+                        
+                        var metaDataJson = JSON.parse(metaData);
+                        var resBaseInfo = metaDataJson.resBaseInfo;
+                        var resBaseInfoJson = JSON.parse(resBaseInfo);
+                        var vmUuid = resBaseInfoJson.vmUuid;
+                        
+                        if(!csc.util.isNotNull(vmUuid)) return;
+                        csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(vmData){
+                            if(vmData){
+                                self.resourceInfoVo.fromJSON({
+                                    name:vmData.name,
+                                    expiryDate:vmData.expiryDate,
+                                    vdcName:vmData.vdcName,
+                                    busSysName:vmData.busSysName,
+                                    type:"云硬盘"
+                                });
+                            }
+                       });
+                    }else if(resourceType=="OBJECT_STORAGE"){
+                        //获取订单详情
+                        var orderItem = orderItems[0];
+                        if(!csc.util.isNotNull(orderItem)) return;
+                        
+                        //获取订单详情中json数据
+                        var resourceUuid = orderItem.resourceUuid;
+                        if(!csc.util.isNotNull(resourceUuid)) return;
+                        csc.rest.get('api/v5.0.0/objectStorages/'+resourceUuid,function(data){
+                            if(data){
+                                self.resourceInfoVo.fromJSON({
+                                    name:data.name,
+                                    expiryDate:data.expiryDate,
+                                    vdcName:data.vdcName,
+                                    type:"对象存储"
+                                });
+                            }
+                       });
+                    }else if(resourceType=="LOAD_BALANCING"){
+                        //获取订单详情
+                        var orderItem = orderItems[0];
+                        if(!csc.util.isNotNull(orderItem)) return;
+                        
+                        //获取订单详情中json数据
+                        var resourceUuid = orderItem.resourceUuid;
+                        if(!csc.util.isNotNull(resourceUuid)) return;
+                        csc.rest.get('api/v5.0.0/loadBalancers/'+resourceUuid,function(data){
+                            if(data){
+                                self.resourceInfoVo.fromJSON({
+                                    name:data.name,
+                                    expiryDate:data.expiredDate,
+                                    vdcName:data.vdcName,
+                                    type:"负载均衡"
+                                });
+                            }
+                       });
+                    }
+                   
+                });
+            })
+        }
+        ko.applyBindings(new ViewModel(), $('.resouce-recovery')[0]); 
+    });
+</script>

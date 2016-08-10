@@ -7,7 +7,7 @@
   </ol>
 </div>
 
-<div class="wrapper-md" >
+<div class="wrapper-md" id="resourceDetail">
 	<div class="panel panel-info">
 		<div class="panel-heading">基本信息</div>
 		<div class="panel-body" data-bind="with:$root.orderList">
@@ -65,6 +65,7 @@
 					<thead>
 						<tr>
 							<th>VDC名称</th>
+							<th>操作系统种类</th>
 							<th>申请时长</th>
 							<th>收费标准</th>
 							<th>施工状态</th>
@@ -75,20 +76,18 @@
 					<tbody data-bind="foreach:orderItems">
 						<tr>
 							<td data-bind="text:instanceName"></td>
+							<td data-bind="text:osType"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
 							<td data-bind="text:fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -97,13 +96,13 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 			<div item="orderdetailed-VM" >
-				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>云主机 2</strong></h5>
+				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>云主机 </strong></h5>
 				<table class="table table-striped">
 					<thead>
 						<tr>
@@ -123,7 +122,7 @@
 					<tbody data-bind="foreach:orderItems">
 
 						<tr>
-							<td><a class="expand-btn" onclick = "expandForResourceDetailed(this)"><i class="fa fa-arrow-right"></i></a></td>
+							<td><a class="expand-btn" onclick="expandForResourceDetailed(this)"><i class="fa fa-arrow-right"></i></a></td>
 							<td data-bind="text:instanceName"></td>
 							<td data-bind="text:vcpu"></td>
 							<td data-bind="text:memory"></td>
@@ -131,19 +130,15 @@
 							<td data-bind="text:vdcName"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
 							<td data-bind="text:fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -152,7 +147,7 @@
 			                      </div>
 			                    </div>
               				</td>
-              <td><a>失败原因</a></td>
+              				<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 						<tr style="display:none">
 							<td colspan="11">
@@ -168,7 +163,7 @@
 									<div class="col-xs-2">申请时长：
 										<span data-bind="visible: expireType==1">永久</span>
 										<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-										<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+										<span data-bind="visible: expireType==3"><label data-bind="text:expireValue"></label></span>
 									</div>
 									<div class="col-xs-2">收费标准：<label data-bind="text:fee"></label></div>
 									<div class="col-xs-2">备注：<label data-bind="text:desc"></label></div>
@@ -189,7 +184,7 @@
 									<div class="col-xs-2">VPC/IP池：<label data-bind="text:vpcName"></label>/<label data-bind="text:ip"></label></div>
 								</div>
 								<hr />
-								<h5><strong>系统盘分区</strong></h5>
+								<!-- <h5><strong>系统盘分区</strong></h5>
 								<table class="table table-striped table-bordered" style="width:250px">
 									<thead>
 										<tr>
@@ -203,7 +198,7 @@
 											<td>接口缺少</td>
 										</tr>
 									</tbody> 
-								</table>
+								</table> -->
 							</td>
 						</tr>
 						
@@ -236,24 +231,15 @@
 							<td data-bind="text:vmName"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
 							<td data-bind="text: fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='READY_CONSTRUCTION'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
-								<span data-bind="visible: itemState=='INVALID'">失效</span>
-								<span data-bind="visible: itemState=='DELETE'">删除</span>
-								<span data-bind="visible: itemState=='RECOVER'">回收</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -262,7 +248,7 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -280,7 +266,7 @@
 							<th>申请时长</th>
 							<th>施工状态</th>
 							<th>施工进度</th>
-							<th>失败原因</th>
+							<th>操作</th>
 						</tr>
 					</thead>
 					<tbody data-bind="foreach:orderList().orderItems">
@@ -293,8 +279,17 @@
 							</td>
 							<td data-bind="text:vpcName"></td>
 							<td data-bind="text:ip"></td>
-							<td data-bind="text:applyTime"></td>
-							<td ></td>
+							<td>
+								<span data-bind="visible: expireType==1">永久</span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
+							</td>
+							<td >
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
+							</td>
 							<td>
 								<div class="progress progress-sm">
 			                      <div class="progress-bar progress-bar-info" role="progressbar" aria-valuemin="0" aria-valuemax="100" data-bind="style: {width: itemWorkProgress+'%'}">
@@ -302,7 +297,7 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -329,27 +324,18 @@
 							<td data-bind="text:instanceName"></td>
 							<td data-bind="text:vdcName"></td>
 							<td data-bind="text:vpcName"></td>
-							<td data-bind=""></td>
+							<td data-bind="text:ip"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
-							<td data-bing="text: fee"></td>
+							<td data-bind="text: fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='READY_CONSTRUCTION'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
-								<span data-bind="visible: itemState=='INVALID'">失效</span>
-								<span data-bind="visible: itemState=='DELETE'">删除</span>
-								<span data-bind="visible: itemState=='RECOVER'">回收</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -358,7 +344,7 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -375,7 +361,7 @@
 							<th>收费标准</th>
 							<th>施工状态</th>
 							<th>施工进度</th>
-							<th>失败原因</th>
+							<th>操作</th>
 						</tr>
 					</thead>
 					<tbody data-bind="foreach:orderItems">
@@ -384,24 +370,15 @@
 							<td data-bind="text:vdcName"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
 							<td data-bind="text:fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='READY_CONSTRUCTION'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
-								<span data-bind="visible: itemState=='INVALID'">失效</span>
-								<span data-bind="visible: itemState=='DELETE'">删除</span>
-								<span data-bind="visible: itemState=='RECOVER'">回收</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -410,44 +387,11 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			
-			<!-- <div item="orderdetailed-firewall">
-				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>防火墙 1</strong></h5>
-				<table class="table table-striped">
-					<thead>
-						<tr>
-							<th>防火墙名称</th>
-							<th>所属VDC</th>
-							<th>申请时长</th>
-							<th>施工状态</th>
-							<th>施工进度</th>
-							<th>失败原因</th>
-						</tr>
-					</thead>
-					<tbody data-bind="foreach:orderList().orderItem">
-						<tr>
-							<td data-bind="text:instanceName"></td>
-							<td data-bind="text:instanceName"></td>
-							<td data-bind="text:instanceName"></td>
-							<td data-bind="text:instanceName"></td>
-							<td>
-								<div class="progress progress-sm">
-			                      <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-			                        60%
-			                      </div>
-			                    </div>
-							</td>
-							<td></td>
-						</tr>
-					</tbody>
-				</table>
-			</div> -->
-			
 			<div item="orderdetailed-SECRET_KEY">
 				<h5>&nbsp;&nbsp;&nbsp;&nbsp;<strong>SSH密钥 </strong></h5>
 				<table class="table table-striped">
@@ -456,6 +400,7 @@
 							<th>SSH密钥</th>
 							<th>所属VDC</th>
 							<!-- <th>挂载云主机</th> -->
+							<th>申请时长</th>
 							<th>施工状态</th>
 							<th>施工进度</th>
 							<th>操作</th>
@@ -467,19 +412,15 @@
 							<td data-bind="text:vdcName"></td>
 							<!-- <td data-bind="text:vmName"></td> -->
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='READY_CONSTRUCTION'">待施工</span>
+								<span data-bind="visible: expireType==1">永久</span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
+							</td>
+							<td>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
-								<span data-bind="visible: itemState=='INVALID'">失效</span>
-								<span data-bind="visible: itemState=='DELETE'">删除</span>
-								<span data-bind="visible: itemState=='RECOVER'">回收</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -488,7 +429,7 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -516,24 +457,15 @@
 							<td data-bind="text:vdcName"></td>
 							<td>
 								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
+								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue">个月</label></span>
+								<span data-bind="visible: expireType==3">截止时间：<label data-bind="text:expireValue"></label></span>
 							</td>
 							<td data-bind="text: fee"></td>
 							<td>
-								<span data-bind="visible: itemState=='RESOURCE_APPLY'">资源申请</span>
-								<span data-bind="visible: itemState=='RESOURCEC_HANGE'">资源变更</span>
-								<span data-bind="visible: itemState=='RESOURCER_ECYCLE'">资源回收</span>
-								<span data-bind="visible: itemState=='RESOURCE_DELETE'">资源删除</span>
-								<span data-bind="visible: itemState=='VALIDTIME_CHANGE'">有效时间变更</span>
-								<span data-bind="visible: itemState=='READY_CONSTRUCTION'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_READY'">待施工</span>
+								<span data-bind="visible: itemState=='CONSTRUCTION_DOING'">施工中</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_SUCCESS'">施工完成</span>
 								<span data-bind="visible: itemState=='CONSTRUCTION_FAILED'">施工失败</span>
-								<span data-bind="visible: itemState=='VDC_APPLY'">VDC申请</span>
-								<span data-bind="visible: itemState=='VDC_CHANGE'">VDC变更</span>
-								<span data-bind="visible: itemState=='INVALID'">失效</span>
-								<span data-bind="visible: itemState=='DELETE'">删除</span>
-								<span data-bind="visible: itemState=='RECOVER'">回收</span>
 							</td>
 							<td>
 								<div class="progress progress-sm">
@@ -542,7 +474,7 @@
 			                      </div>
 			                    </div>
 							</td>
-							<td><a>失败原因</a></td>
+							<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
 						</tr>
 					</tbody>
 				</table>
@@ -555,9 +487,15 @@
 		$(obj).find('i').toggleClass("fa-arrow-down");
 		$(obj).parents('tr').next("tr").toggle();
 	}
+	
 	var scripts = [null, null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		function ViewModel(){
+			
+			this.detailFail = function(data){
+				alert(data.workFailedMessage);
+			}
+			
 			var flowInstanceUuid = args.flowInstanceId;
 			var self = this;
 			self.orderList = ko.observable();
@@ -574,6 +512,7 @@
 				  	
 				  	if((data.resourceType == orderItem.resourceType) && (orderItem.resourceType == "PUBLICIP")){
 					  	orderItem.vpcName = resInfo.vpcName;
+					  	orderItem.ip = resInfo.publicIp;
 				  	}else if((data.resourceType == orderItem.resourceType) && (orderItem.resourceType == "DISK")){
 				  		orderItem.diskSize = resInfo.volumeSize;
 				  		orderItem.vmName = resInfo.vmName;
@@ -590,8 +529,16 @@
 				  		orderItem.storage = resInfo.applySize;
 				  	}else if(orderItem.resourceType == "LOAD_BALANCING"){
 				  		
-				  	}else if((data.resourceType == orderItem.resourceType) && (orderItem.resourceType == "OBJECT_STORAGE")){
-				  		
+				  	}else if((data.resourceType == orderItem.resourceType) && (orderItem.resourceType == "VDC")){
+				  		var osType = '';
+				  		var osLength = metaData.osType.length;
+				  		for(var i=0;i<osLength;i++){
+				  			osType+=metaData.osType[i];
+				  			if(i != (osLength-1)){
+				  				osType+=','
+				  			}
+				  		}
+				  		orderItem.osType = osType;
 				  	}
 				  	if(data.resourceType == orderItem.resourceType){
 				  		itemArray.push(orderItem);
@@ -599,6 +546,7 @@
 			  	}
 				self.orderItems(itemArray);
 			});
+			
 		}
 		
 		var showItems = args.items.split('-');
@@ -613,7 +561,7 @@
 				$(this).remove();
 		});
 		
-		ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
+		ko.applyBindings(new ViewModel(), $('#resourceDetail')[0]);  
 	});
 	
 </script>

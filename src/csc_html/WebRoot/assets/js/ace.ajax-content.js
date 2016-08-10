@@ -70,10 +70,6 @@
           }
           var paramsStr = paramsList.join(",");
           
-          if(hash.indexOf("?")>-1){
-        	  hash = hash.split("?")[0];
-          }
-          
           link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]'),$('a[data-url="'+hash.substring(0,hash.indexOf("?"))+'"][data-url-params*="'+paramsStr+'"]')],function(res){
             if(res.length > 0) return res;
             return [''];
@@ -297,7 +293,14 @@
                 args[argname]=unescape(value);//存为属性 
               }
             }
-            callback(args);
+            if(window.modal_args){
+            	for(var key in window.modal_args){
+            		if(!args[key]){
+            			args[key] = window.modal_args[key];
+            		}
+            	}
+            }
+            callback(args, window.modal_args);
           }
           $('.btn-group[data-toggle="buttons"] > .btn').button();
           

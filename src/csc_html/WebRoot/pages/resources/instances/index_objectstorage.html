@@ -232,13 +232,13 @@
           <div class="col-sm-9">
             <div>
               <label class="radio-inline" style="padding-top: 2px">
-                <input type="radio"  name="inlineRadioOptions" id="inlineRadio1" value="option1" checked> 永久
+                <input type="radio"  name="inlineRadioOptions" id="inlineRadio1" value="option1"  data-bind="checked: $root.applyTime,click:$root.RadioClick"  > 永久
               </label>
             </div>
             <div>
               <label class="radio-inline">
-                <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                <input type="text" class="form-control inline w-xxs" id="resource_instance_objectStorage_limit_option2">
+                <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 
+                <input type="text" class="form-control inline w-xxs" id="resource_instance_objectStorage_limit_option2" data-bind="value: yearMonth">
                 <select class="form-control inline w-xs" id="resource_instance_objectStorage_limit_option2_unit">
                   <option value="MONTH">月</option>
                   <option value="YEAR">年</option>
@@ -247,8 +247,8 @@
             </div>
             <div>
               <label class="radio-inline">
-                <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                <input type="text" value="" class="form-control inline w input-sm" id="resource_instance_objectStorage_limit_option3">
+                <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"  data-bind="checked: $root.applyTime,click:$root.RadioClick"> 有效期至
+                <input type="text" value="" class="form-control inline w input-sm" id="resource_instance_objectStorage_limit_option3" data-bind="value:toDate">
               </label> 
             </div>                                   
           </div>
@@ -455,12 +455,15 @@
       //初始化vo
       this.currentVO = ko.validatedObservable();
       
-      this.createDisk = function(){ 
+      this.createDisk = function(){
+    	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
     	  this.currentVO({
         	  name: ko.observable().extend({required: true}),
         	  vdcUuid:ko.observable().extend({required: true}),
           	  azUuid:ko.observable().extend({required: true}),
           	  applySize:ko.observable().extend({required: true}),
+          	  yearMonth:ko.observable().extend({required: false}),
+          	  toDate:'',
           	  remark:''
           });
     	//---------------------------弹出添加页面时加载-----------------------------------
@@ -492,9 +495,45 @@
         //初始化创建的弹窗       
         self.isCreateDisk(true);
       };
-      
-      $("#modal_addObjectStorage").on("shown.bs.modal",function(){
 
+      //处理选中年月时输入框的验证问题
+      this.applyTime = ko.observable("option1");
+      this.RadioClick = function(){
+    	  if (self.applyTime() == "option2") {
+    		  self.changeYearMonthValidateYesOrNot(true);
+          }else{
+        	  self.changeYearMonthValidateYesOrNot(false);
+          }
+      }
+      this.changeYearMonthValidateYesOrNot = function(t){
+    	  self.currentVO({
+        	  name: ko.observable(self.currentVO().name()).extend({required: true}),
+        	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
+          	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
+          	  applySize:ko.observable(self.currentVO().applySize()).extend({required: true}),
+          	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: t}),
+          	  toDate:self.currentVO().toDate,
+          	  remark:self.currentVO().remark
+          });
+    	  //重新初始化日期控制，如果不设置清空，具体不明
+    	  $('#resource_instance_objectStorage_limit_option3').val(self.currentVO().toDate).daterangepicker(
+ 	            {
+ 	              format:'YYYY/MM/DD',
+ 	              minDate:moment(),
+ 	              singleDatePicker: true,
+ 	              locale:{
+ 	                applyLabel: '确认',
+ 	                cancelLabel: '取消',
+ 	                weekLabel: '周',
+ 	                daysOfWeek:["日","一","二","三","四","五","六"],
+ 	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+ 	              }
+ 	            }
+ 	          );
+      }
+
+      //弹出框时初始化 日期控件
+      $("#modal_addObjectStorage").on("shown.bs.modal",function(){
           // daterange             
           $('#resource_instance_objectStorage_limit_option3').val(moment().format('YYYY/MM/DD')).daterangepicker(
             {
@@ -509,9 +548,7 @@
                 monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
               }
             }
-
           ); 
-
       })
       
       //保存
@@ -535,7 +572,7 @@
 	    	    	 if(temp[i].value == "option1"){
 	    	    		 expiryTime = "2099-12-30 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
-	    	    		 if($("#resource_instance_vm_limit_option2_unit").val() == "MONTH"){
+	    	    		 if($("#resource_instance_objectStorage_limit_option2_unit").val() == "MONTH"){
 	    	    			 var plusMonth = parseInt($("#resource_instance_objectStorage_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
@@ -547,7 +584,7 @@
 	    	    			 if(m == 0){
 	    	    				 m = selfM;
 	    	    			 }
-	    	    		 }else if($("#resource_instance_vm_limit_option2_unit").val() == "YEAR"){
+	    	    		 }else if($("#resource_instance_objectStorage_limit_option2_unit").val() == "YEAR"){
 	    	    			 var plusYear = parseInt($("#resource_instance_objectStorage_limit_option2").val());
 	    	    			 var dd = new Date();
 	    	    			 var y = dd.getFullYear(); 
@@ -563,7 +600,6 @@
 	    	     }
 	    	  }
 	    	  postBody.expiryDate = expiryTime;
-	    	  
 	    	  $.OBJECT_STORAGE.createObjectStorage(postBody,function(data){
 	    		  //成功
 	    		  if(data.id){
@@ -628,6 +664,8 @@
 			});
     		
     		self.uploader.on('fileQueued', function(file) {
+    			//console.log('fileQueued');
+    			//console.log(file);
 				self.uploadFileName(file.name);
 			});
     	}
@@ -643,16 +681,7 @@
       this.uploadFile = function() {
     	  //显示进度条
     	  self.uploading(true);
-    	  /* 
-    	  var i = 10;
-    	  setInterval(function(){
-    		  i = i+10
-    		  if(i<110){
-    			  self.progressText(i+"%")
-    		  }
-    	  },2000); */
-    	  
-    	 // return ;
+ 
     	  
     	  var myUuid = self.currentUploadContainerUuid();
     		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + myUuid;

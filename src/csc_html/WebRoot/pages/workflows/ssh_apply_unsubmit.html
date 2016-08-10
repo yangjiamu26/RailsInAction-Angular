@@ -1,0 +1,331 @@
+  <div class="panel panel-info" id="modal6batch">
+    <div class="panel-heading">申请信息</div>
+    <div id="orderDetailedList" class="wrapper">
+      <h5 class="text-info">SSH密钥数：
+        <span class="badge bg-danger" data-bind="text:itemListNum"></span>
+      </h5>
+      <div class="table-responsive no-height">
+          <table class="table">
+              <thead>
+                  <tr>
+                      <th>SSH密钥名称</th>
+                      <th>所属VDC</th>
+                      <th>申请时长</th>
+                      <th>收费标准</th>
+                      <th>操作</th>
+                  </tr>
+              </thead>
+              <tbody data-bind="foreach:orderList">
+                  <tr>
+                      <td data-bind="text:instanceName"></td>
+                      <td data-bind="text:vdcName"></td>
+                      <td data-bind="text:applyText"></td>
+                      <td data-bind="text:fee"></td>
+                      <td>
+                          <a class="expand-btn" onclick="expand(this)">查看 <i class="fa fa-angle-double-right"></i></a> | <a class="expand-btn" onclick="expand(this)">修改 <i class="fa fa-angle-double-right"></i></a> | <a data-bind="click:function(data, event){ $root.deleteItem($index(), data, event)}">删除</a>
+                      </td>
+                  </tr>
+                  <tr style="display: none">
+                    <td colspan="7" class="no-padder">
+                      <div id="orderDetailedList" class="wrapper form-horizontal">
+                        <div class="row">
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label" style="white-space:nowrap">SSH密钥名称<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <input type="text" class="form-control"  placeholder="SSH密钥名称" data-bind="value:instanceName">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label">所属VDC<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label">可用分区<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <select class="form-control" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value: azUuid,event:{change:$root.azChange},optionsCaption:'请选择'"></select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label">备注<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <textarea class="form-control" data-bind="value:desc"></textarea>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label">申请时长：<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <div class="radio">
+                                  <label class="form-inline">
+                                    <input type="radio" class="form-control" value="1" data-bind="checked: expireType,name: ($index()+1)"> 永久
+                                  </label>
+                                </div>
+                                <div class="radio">
+                                  <label class="form-inline">
+                                    <input type="radio" class="form-control" style="top:2px;" value="2" data-bind="checked: expireType,name: ($index()+1)"> 
+                                    <select class="form-control" data-bind="options: $root.applyList,optionsText:'name',optionsValue:'value',value: applyNum">
+                                    </select> 个月
+                                  </label>
+                                </div>
+                                <div class="radio disabled">
+                                  <label class="form-inline">
+                                    <input type="radio" class="form-control" style="top:2px;" value="3" data-bind="checked: expireType,name: ($index()+1)">
+                                                                                                  有效期至 <input type="text" class="form-control applyDateFormat" style="display:inline-block;"  data-bind="value:applyTime"/>
+                                  </label>
+                                </div>
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row"  data-bind="visible:isBill()=='true'">
+                          <div class="col-xs-6">
+                            <div class="form-group">
+                              <label class="col-sm-2 control-label">套餐：<i style="color:red">*</i></label>
+                              <div class="col-sm-10">
+                                <select class="form-control" style="width:150px;display:inline-block;" data-bind="options: billCycleList,optionsText:'name',optionsValue:'value',value: billCycle,event:{change:$root.getFee}">
+                                </select>
+                                <span class="control-label"  data-bind="text:fee"></span> 
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+              </tbody>
+          </table>
+      </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    if(args.taskId){
+     	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+   	     //获取订单数据
+      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){
+      		var itemList = orderData.orderItems;
+			function ViewModel(){
+			    var self = this;
+	            this.itemListNum = ko.observable(itemList.length);
+    	      	  
+    	      	this.applyList = ko.observableArray(csc.util.getMonthsList());
+	            
+    	      	itemList.forEach(function(e){
+    	      		setList(e);
+	      		});
+    	      	this.orderList = ko.observableArray();
+	      		
+	      		function setList(e){
+               	   var serviceUuid=e.serviceUuid;
+                     var vdcUuid=e.vdcUuid;
+                     var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vdcUuid;
+                     csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
+                    	 var applyNum="";
+                    	 var applyTime="";
+                    	 var applyText="";
+                        if(e.expireType=='1'){
+                       	 applyText = "永久";
+                        }else if(e.expireType=='2'){
+                       	 applyNum = e.expireValue;
+                       	 applyText = e.expireValue+"个月";
+                        }else{
+                       	 applyTime = e.expireValue;
+                       	 applyText = "有效期至"+e.expireValue;
+                        }
+                        var metaData = JSON.parse(e.metaData);
+                        var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+                        self.orderList.push(new ko.validatedObservable({
+                       	 uuid:ko.observable(e.uuid),
+                       	 instanceName:ko.observable(e.instanceName).extend({required:true}),
+                       	 serviceUuid:ko.observable(e.serviceUuid),
+                       	 vdcUuid:ko.observable(e.vdcUuid).extend({required:true}),
+                       	 vdcName:ko.observable(e.vdcName),
+                       	 azUuid:ko.observable(e.azUuid).extend({required:true}),
+                       	 azName:ko.observable(e.azName),
+                       	 desc:ko.observable(e.desc),
+                       	 expireType:ko.observable(e.expireType),
+                       	 isBill:ko.observable(e.isBill),
+                       	 billCycle:ko.observable(e.billCycle),
+                       	 fee:ko.observable(e.fee),
+                       	 vdcList:ko.observableArray(result.vdcList),
+                       	 azList:ko.observableArray(result.azList),
+                       	 billCycleList:ko.observableArray(setArrayCharge(result.chargeList)),
+                       	 applyNum:ko.observable(applyNum),
+                       	 applyTime:ko.observable(applyTime),
+                       	 applyText:ko.observable(applyText)
+                        })); 
+                        setDateFormmat();
+                     });
+   		      }
+      		  
+      		  this.deleteItem = function(index, data, event){
+      			  var item = data;
+      			  if(self.orderList().length==1){
+      				  systemMsg.alert("删除失败，订单中至少存在一个订单项");
+      			  }else{
+    	  	      		systemMsg.confirm("确定删除 "+data.instanceName()+" 的申请吗?",function(){
+    	  	      			self.orderList.splice(index,1);
+    	  	      			self.itemListNum(self.itemListNum()-1);
+    	  	      			alert("删除成功");
+    		      		});
+      			  }
+      		  }
+      		  
+      		  this.applyChange = function(){
+      			  var item = this;
+                    if(item.expireType()=='1'){
+                   	 item.applyText("永久");
+                    }else if(item.expireType()=='2'){
+                  	 item.applyText(item.applyNum()+"个月");
+                    }else{
+                  	 item.applyText("有效期至"+item.expireValue);
+                    }
+      		  }
+      		  
+          	 this.vdcChange = function(){//根据变化的vdc及服务ID查找其下的可用分区
+       	    	var item = this;
+       	    	var serviceUuid=item.serviceUuid();
+       	    	var vdcUuid=item.vdcUuid();
+       	    	
+       	        csc.rest.get("api/v5.0.0/cart/getAzList/"+serviceUuid+"/"+vdcUuid, function(azList){
+       	        	item.azList(azList);	
+       	        });	 
+       	        var vdcItem = _.findWhere(item.vdcList(), {uuid: item.vdcUuid()});
+       	    	if(typeof(vdcItem)=="undefined"){
+           	    	item.vdcName("");
+           	    	item.azName("");
+       	    		return;
+       	    	}
+       	    	item.vdcName(vdcItem.name);
+       	    	item.azName("");       
+       	    };
+      	    
+       	    this.azChange = function(){//根据可用分区变化修改展示可用分区名称
+       	    	var item = this;
+       	    	var azItem = _.findWhere(item.azList(), {uuid: item.azUuid()});
+       	    	if(typeof(azItem)=="undefined"){
+       	    		return;
+       	    	}
+       	    	item.azName(azItem.name);
+       	    }
+      	    
+              this.getFee =function(){
+              	var item = this;
+                  var serviceUuid=item.serviceUuid();
+                  var cycle=item.billCycle();
+       	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+                    var price = result.ruleList[0].unitPrice*size;
+      	    		if(cycle=="DAY"){
+      	    			price+="元/天";
+      	    		}else if(cycle=="MONTH"){
+      	    			price+="元/月";
+      	    		}else if(cycle=="QUARTER"){
+      	    			price+="元/季度";
+      	    		}else{
+      	    			price+="元/年";
+      	    		}
+      	    		item.fee(price);
+      	    	});	    
+              }
+   	      	  
+               function setArrayCharge(attr){
+         	    	var arrayCharge = [];
+         	    	if(attr !=null){
+         	    		for(var i=0;i<attr.length;i++){
+             	    		if(attr[i]=="DAY"){
+             	    			arrayCharge.push({name:"按天",value:"DAY"});
+             	    		}else if(attr[i]=="MONTH"){
+             	    			arrayCharge.push({name:"按月",value:"MONTH"});
+             	    		}else if(attr[i]=="QUARTER"){
+             	    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+             	    		}else{
+             	    			arrayCharge.push({name:"按年",value:"YEAR"});
+             	    		}
+             	    	}
+         	    	}
+         	    	return arrayCharge;
+         	    }
+               
+               	function setDateFormmat(){
+                  	$('.applyDateFormat').each(function(n,v){
+                 		$(this).daterangepicker({
+                         	startDate: $(this).val()== '' ?moment():$(this).val(), 
+                             endDate: false, 
+                             singleDatePicker:true
+                         });
+                 		})
+               	}
+               	
+               	this.save = function(){
+               		debugger
+ 	        	   for(var i=0; i<self.orderList().length; i++){
+ 	        		   if(!self.orderList()[i].isValid()){
+ 	        			   return false;
+ 	        		   }
+ 	        	   }
+ 	        	   
+        		   var orderItemsModify = [];
+        		   var count = 0;
+        		   self.orderList().forEach(function (e){
+        			   orderData.orderItems.forEach(function (f){
+        				   if(e().uuid()==f.uuid){
+        					    f.instanceName = e().instanceName();
+        					    f.expireType = e().expireType();
+        					    var expireValue = "";
+        					    if(e().expireType()=="2"){
+        					    	expireValue = e().applyNum();
+        					    }else if(e().expireType()=="3"){
+        					    	expireValue = e().applyTime();
+        					    }
+        					    f.expireValue = expireValue;
+        					    f.vdcUuid = e().vdcUuid();
+        					    f.vdcName = e().vdcName();
+								f.azUuid = e().azUuid();
+								f.azName = e().azName();
+								f.billCycle = e().billCycle();
+								f.fee = e().fee();
+								f.desc = e().desc();
+	       						/* var meta = {"resBaseInfo":{"applySize":e().applySize()}};
+	    						meta = JSON.stringify(meta);
+	    						f.metaData = meta; */
+								orderItemsModify.push(f);
+        				   }
+        			   })
+        		   })
+        		   orderData.orderItems=orderItemsModify;
+                   csc.rest.put("api/v5.0.0/orders/"+orderData.uuid,orderData, function(data){ 
+                         alert("保存成功！"); 
+                   }); 
+  	      		}
+		      		
+			}
+			ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+		   })
+		})
+	  }
+  })
+    function expand(obj){
+        $(obj).find('i').toggleClass("fa-angle-double-down");
+        $(obj).parents('tr').next("tr").toggle();
+  	}
+</script>

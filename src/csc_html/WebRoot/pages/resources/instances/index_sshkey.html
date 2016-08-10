@@ -72,21 +72,34 @@
         </tbody>
       </table>
     </div>
-<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-  <ul class="pagination">
-	  <li data-bind="css: leftPagerClass, click: prevPage">
-	    <a href="#">&laquo;</a>
-	  </li>
-	  <!-- ko foreach: {data: (new Array(pages()))} -->
-	<li data-bind="css: $parent.pageClass($index() + 1)">
-	  <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-	</li>
-	<!-- /ko -->
-    <li data-bind="css: rightPagerClass, click: nextPage">
-      <a href="#">&raquo;</a>
-    </li>
-  </ul>
-</footer>
+		<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+		     <ul class="pagination">
+		       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+		         <a href="#">首页</a>
+		       </li>
+		       <li data-bind="css: leftPagerClass, click: prevPage">
+		         <a href="#">&laquo;</a>
+		       </li>
+		       <li >
+		         <a href="#"  data-bind="text: currentPage"></a>
+		       </li>
+		       <li data-bind="css: rightPagerClass, click: nextPage">
+		         <a href="#">&raquo;</a>
+		       </li>
+		       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+		         <a href="#">末页</a>
+		       </li>
+		       <li class="page-control-li">
+		         <div class="input-group form-group-sm">
+		           <input type="text" class="form-control" data-bind="value: targetPage"  />
+		           <div class="input-group-btn">
+		             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+		           </div>
+		         </div>
+		         <div class="page-info-div" data-bind="text: recordsText"></div>
+		       </li>
+		     </ul>
+		</footer>
 </div>
     
 <!-- 云主机列表 -->
@@ -519,8 +532,6 @@
     		  //不走流程
 	    	  confirm("您确定要删除该密钥["+object.name+"]吗？",function(){    
 	    		  $.SSH_KEY.deleteSSHKey(object.uuid,function(data){
-	    			  alert('删除成功');
-	        		  self.table.refreshData();
 	    			  if(data.result == 'success'){
 	    				  alert('删除成功');
 	            		  self.table.refreshData();
@@ -706,15 +717,15 @@
        	  var orderItem = {};
        	  orderItem.instanceName = self.deleteProcessVO().name();
        	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
-       	  orderItem.resourceType = self.deleteProcessVO().type;
-       	  orderItem.metaData =  "{\"resBaseInfo\": {}";
+       	  orderItem.resourceType = "SECRET_KEY";
+       	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
        	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
        	  
        	  var orderItems = [];
        	  orderItems.push(orderItem);
        	  
        	  var postBody = {}; 
-       	  postBody.resourceType = self.deleteProcessVO().type;;
+       	  postBody.resourceType = "SECRET_KEY";
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){

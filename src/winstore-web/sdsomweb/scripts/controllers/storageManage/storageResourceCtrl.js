@@ -13,6 +13,7 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
     $scope.initPage = function () {
         $scope.snapLun = 'none';
         $scope.snapModel.sure2deleteSnap = "NO";
+        $scope.snapModel.sure2rollbackSnap = "NO";
         $scope.isSnapRollingback = false;
         $scope.snapshotShow = false;//默认不显示快照
         $scope.initiatorShow = false;
@@ -81,7 +82,7 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
             }
         };
         //初始化信息提示
-        var selectors = ["#poolModal input,select", "#poolAclSet input,select" ,]
+        var selectors = ["#poolModal input,select", "#poolAclSet input,select" ]
         for (var i = 0; i < selectors.length ; i++) {
             $(selectors[i]).each(function () {
                 var _this = $(this);
@@ -794,7 +795,8 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
             $scope.isAdd = false;
         });
     } else {
-        $scope.setStorageErrMsg("请输入大写 'YES' 以确定删除操作！");
+        //$scope.setStorageErrMsg("请输入大写 'YES' 以确定删除操作！");
+         $scope.showTipMsg("请输入大写 'YES' 以确定删除操作！",'apool.sure2deletePool');
     }
     };
 
@@ -1012,8 +1014,14 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
     }
     /* add initiator */
     $scope.addPoolInitiator = function(initiator, poolName) {
+         var lower_re = /^[a-z]{1,8}$/ ;
         if (initiator == ""){
             $scope.showTipMsg("名称不能为空。","initiator");
+            return ;
+        }
+        //使用正则表达式判断是否为小写字母
+        if(!lower_re.test(initiator)){
+            $scope.showTipMsg("必须由1到8位小写字母组成","initiator");
             return ;
         }
         var params = {initiator:initiator, poolName:poolName};

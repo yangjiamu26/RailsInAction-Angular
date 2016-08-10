@@ -12,7 +12,7 @@ vsanApp.controller('ipManagerCtrl', ['$scope', 'nodeFactory', function ($scope, 
     var IP_REGEXP = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/;
     var ZERO_IP_REGEXP = /^([0]{1,}\.){3}[0]{1,}$/;
     var FULL_IP_REGEXP = /^(255\.){3}255$/;
-
+    var SUB_MASK_REGEXP = /^(254|252|248|240|224|192|128|0)\.0\.0\.0$|^(255\.(254|252|248|240|224|192|128|0)\.0\.0)$|^(255\.255\.(254| 252|248|240|224|192|128|0)\.0)$|^(255\.255\.255\.(254|252|248|240|224|192|128|0))$/;
     $scope.initPage = function () {
         $scope.isOmBizNetAndBizNetSharedNics = true;
         //查询节点IP
@@ -72,7 +72,7 @@ vsanApp.controller('ipManagerCtrl', ['$scope', 'nodeFactory', function ($scope, 
             $scope.setFailNoticeMsg('IP不合法!');
             return;
         };
-        if (!IP_REGEXP.test(server.edit.netmask)) {
+         if (!SUB_MASK_REGEXP.test(server.edit.netmask)) {
             $scope.setFailNoticeMsg('子网掩码不合法!');
             return;
         };

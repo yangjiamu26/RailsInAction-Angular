@@ -79,6 +79,11 @@
                 <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
             </li>
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
+            <li >
+              <a  data-bind="attr:{href: uapUrl}">
+                <i class='fa fa-bell'></i> 认证平台
+                <span class=' up bg-info'></span></a>
+            </li>
             <li class='dropdown'>
               <a class='dropdown-toggle clear' data-toggle='dropdown'>
                 <i class='fa fa-user'></i>
@@ -127,7 +132,7 @@
                 </li>
                 <li class='divider'></li>
                 <li>
-                  <div class="padder"><a href="https://cas.iwinhong.com/uap/logout" class="btn btn-danger btn-xs"><i class='fa fa-power-off'></i> 退出系统</a></div></li>
+                  <div class="padder"><a href="api/logoutServlet" class="btn btn-danger btn-xs"><i class='fa fa-power-off'></i> 退出系统</a></div></li>
               </ul>
               <!-- / dropdown --></li>
           </ul>
@@ -207,7 +212,7 @@
                   </ul>
                 </li>
                 <li>
-                  <a data-url="pages/orders/service_orders?type=order" data-url-params="showTab" href="#pages/orders/service_orders?type=order">
+                  <a data-url="pages/orders/service_orders?type=order" href="#pages/orders/service_orders?type=order">
                     <i class="icon order"></i>
                     <span class='text-base'>订单</span></a>
                 </li>
@@ -520,7 +525,7 @@
                   </a>
                 </li>          
                 <li>
-                  <a data-url="pages/orders/member_orders" href="#pages/orders/member_orders">
+                  <a data-url="pages/orders/member_orders" href="#pages/orders/service_orders">
                     <i class="icon order"></i>
                     <span class='text-base'>我的订单</span>
                   </a>
@@ -656,6 +661,7 @@
 	<script src="api/register.js"></script>  
 	<!-- 解决调用servlet跨域问题 -->
 	<script src="api/file/uploadServlet"></script>
+	
     <script src='assets/js/jquery.min.js'></script>
 
     <script src="assets/js/underscore.js"></script>
@@ -688,6 +694,7 @@
     <script src='assets/js/common.js'></script>
     <script src='assets/lib/moment/moment.js'></script>
     <script src='assets/lib/bootstrap-daterangepicker/daterangepicker.js'></script>
+    <script src="api/img/uploadPreview.js"></script>
     <script>
 
     /* PL.webRoot = "";
@@ -704,8 +711,31 @@
 	    function onPushLetData(event) {
 	    	console.log(event)
 	    } */
+	    
 	    function ViewModel(){
 	    	var self = this;
+	    	
+	    	this.setUrl = function() {
+		    	var url = window.location.href;
+		    	var vals = url.split(";jsessionid=");
+		    	if (vals.length > 1) {
+		    		var newUrl = "";
+		    		if (vals[1].indexOf("#") > 0) {
+		    			newUrl = vals[1].substring(vals[1].indexOf("#"), vals[1].length);
+		    		}
+		    		window.location.href = vals[0] + newUrl;
+		    	}
+		    }
+	    	//截取浏览器地址
+	    	this.setUrl();
+	    	
+	    	this.uapUrl = ko.observable();
+	    	this.getUapUrl = function(){
+	    		csc.rest.get("api/v5.0.0/homepage/uapUrl", function(data){
+	    			self.uapUrl(data+"/index.html#/app/home");
+	    		});
+	    	}
+	    	this.getUapUrl();
 	    	
 	    	this.roleVO = ko.observable({
 		    	roleName: ko.observableArray([]),
@@ -786,7 +816,7 @@
 		    
 		    this.noticeStatVO = ko.observable();
 		    this.loadNoticeStat = function(){
-		    	 csc.rest.get("api/v5.0.0/homepage/notice?noticeState=2", function(data){
+		    	 csc.rest.get("api/v5.0.0/homepage/notice?noticeType=SysNotice&noticeState=NoRealize", function(data){
 		       	 	 self.noticeStatVO(data.results.length);
 		         });
 		    }

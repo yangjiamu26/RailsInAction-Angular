@@ -1,0 +1,264 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">VDC变更</div>
+        <div id="orderDetailedList" class="wrapper">
+            <div class="panel panel-default">
+              <div class="panel-heading"><strong>VDC名称：</strong><span data-bind="value: vdc().instanceName"></span></div>
+              <div class="panel-body no-padder form-inline">
+                <div class="form-group" style="padding:15px;">
+                  <label for="exampleInputName2">支持的操作系统：</label>
+                  <div class="checkbox"><label><input checked disabled class="form-group" type="checkbox" data-bind="checked: windows"/> Windows</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: linux"/> Linux</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: aix"/> Aix</label></div>
+                </div>
+                <div class="table-responsive no-height">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>CPU(个)</td>
+                        <td data-bind="text: metaVdc().cpu"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().cpu"></td>
+                        <td>内存(G)</td>
+                        <td data-bind="text: metaVdc().memory"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().memory"></td>
+                      </tr>
+                      <tr>
+                        <td>存储(G)</td>
+                        <td data-bind="text: metaVdc().storage"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().storage"></td>
+                        <td>VPC(个)</td>
+                        <td data-bind="text: metaVdc().vpc"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().vpc"></td>
+                      </tr>
+                      <tr>
+                        <td>云主机(个)</td>
+                        <td data-bind="text: metaVdc().vm"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().vm"></td>
+                        <td>云硬盘(个)</td>
+                        <td data-bind="text: metaVdc().disk"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().disk"></td>
+                      </tr>
+                      <tr>
+                        <td>公网IP(个)</td>
+                        <td data-bind="text: metaVdc().publicIp"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().publicIp"></td>
+                        <td>路由器(个)</td>
+                        <td data-bind="text: metaVdc().router"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().router"></td>
+                      </tr>
+                      <tr>
+                        <td>防火墙(个)</td>
+                        <td data-bind="text: metaVdc().firewall"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().firewall"></td>
+                        <td>负载均衡器(个)</td>
+                        <td data-bind="text: metaVdc().loadBalance"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().loadBalance"></td>
+                      </tr>
+                      <tr>
+                        <td>SSH密钥(对)</td>
+                        <td data-bind="text: metaVdc().secretKey"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().secretKey"></td>
+                        <td>对象存储(GB)</td>
+                        <td data-bind="text: metaVdc().objectStorage"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().objectStorage"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+        </div>
+    </div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = ["api/vdc/vdc.js"]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  function ViewModel(){
+		  var self = this;
+		  
+		  this.order = ko.observable("");
+	  	  this.vdc = ko.observable("");
+	  	  this.resBaseInfo = ko.observable("");
+	  	  this.osType = ko.observable("");
+	  	  this.metaData = ko.observable("");
+	  	  this.vdcQuotaList = ko.observable("");
+	  	  this.expireType = ko.observable("");
+	  	  this.expireValue = ko.observable("");
+	  	
+	  	  this.windows = ko.observable("");
+	  	  this.linux = ko.observable("");
+	  	  this.aix = ko.observable("");
+	  	  
+	  	  this.changeVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+		  
+		  this.metaVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+	  	  
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+	      		var orderData = data;
+	      		var itemListData = data.orderItems;
+	      		var metaData = JSON.parse(itemListData[0].metaData);
+	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	      		var osType = metaData.osType;
+	      		var vdcQuotaList = resBaseInfo.vdcQuotaList;
+	      		self.order(orderData);
+	      		self.vdc(itemListData[0]);
+	      		self.metaData(metaData);
+	      		for(var i=0;i<vdcQuotaList.length;i++){
+	      			if(vdcQuotaList[i].type=='CPU'){
+	      				self.changeVdc().cpu(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='MEMORY'){
+	      				self.changeVdc().memory(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='STORAGE'){
+	      				self.changeVdc().storage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VPC'){
+	      				self.changeVdc().vpc(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VM'){
+	      				self.changeVdc().vm(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='DISK'){
+	      				self.changeVdc().disk(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+	      				self.changeVdc().publicIp(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='ROUTER'){
+	      				self.changeVdc().router(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+	      				self.changeVdc().firewall(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+	      				self.changeVdc().secretKey(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+	      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+	      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+	      			}
+	      		}
+	      		for(var i=0;i<osType.length;i++){
+	      			if(osType[i]=='windows'){
+	      				self.windows(true);
+	      			}else if(osType[i]=='linux'){
+	      				self.linux(true);
+	      			}else if(osType[i]=='aix'){
+	      				self.aix(true);
+	      			}
+	      		}
+	      		self.vdcQuotaList(vdcQuotaList);
+	      		
+	      		$.VDC.getVdcQuota(itemListData[0].vdcUuid,"",function(data){
+		    		var vdcQuotaList = data.results;
+		    		for(var i=0;i<vdcQuotaList.length;i++){
+		    			if(vdcQuotaList[i].type=='CPU'){
+		      				self.metaVdc().cpu(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='MEMORY'){
+		      				self.metaVdc().memory(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='STORAGE'){
+		      				self.metaVdc().storage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPC'){
+		      				self.metaVdc().vpc(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VM'){
+		      				self.metaVdc().vm(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='DISK'){
+		      				self.metaVdc().disk(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+		      				self.metaVdc().publicIp(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='ROUTER'){
+		      				self.metaVdc().router(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+		      				self.metaVdc().firewall(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+		      				self.metaVdc().secretKey(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+		      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+		      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
+		      			}
+		    		}
+		    	})
+	      	 })
+		  })
+		  
+		  this.save = function(){
+			 var orderItems = [];
+			 var metaData={};
+			 var resBaseInfo = {};
+			 var vdcQuotaList = [];
+			 
+			 resBaseInfo.limitQuota="true";
+			 vdcQuotaList.push({type:"CPU",value:self.changeVdc().cpu()});
+			 vdcQuotaList.push({type:"MEMORY",value:self.changeVdc().memory()});
+			 vdcQuotaList.push({type:"STORAGE",value:self.changeVdc().storage()});
+			 vdcQuotaList.push({type:"VPC",value:self.changeVdc().vpc()});
+			 vdcQuotaList.push({type:"VM",value:self.changeVdc().vm()});
+			 vdcQuotaList.push({type:"DISK",value:self.changeVdc().disk()});
+			 vdcQuotaList.push({type:"PUBLICIP",value:self.changeVdc().publicIp()});
+			 vdcQuotaList.push({type:"ROUTER",value:self.changeVdc().router()});
+			 vdcQuotaList.push({type:"FIREWALL",value:self.changeVdc().firewall()});
+			 vdcQuotaList.push({type:"SECRET_KEY",value:self.changeVdc().secretKey()});
+			 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.changeVdc().objectStorage()});
+			 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.changeVdc().loadBalance()});
+				 
+			 resBaseInfo.vdcQuotaList=vdcQuotaList;
+			 var osType = [];
+			 if(self.windows()){
+				 osType.push('windows');
+			 }
+			 if(self.linux()){
+				 osType.push('linux');
+			 }
+			 if(self.aix()){
+				 osType.push('aix');
+			 }
+			 metaData.osType=osType;
+			 metaData.resBaseInfo=resBaseInfo;
+			 orderItems.push({
+				 metaData: JSON.stringify(metaData)
+			 });
+			 
+			 var itemResults = {"metaData":JSON.stringify(metaData)};
+			 
+			 csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,itemResults,function(data){
+	          	alert('保存成功！');
+ 		     },function(){alert('操作失败！')});
+		  }
+		}
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+  });
+</script>

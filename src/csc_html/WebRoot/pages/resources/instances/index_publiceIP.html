@@ -76,19 +76,16 @@
             <td data-bind="text: $row.expiredDate"></td><!-- 有效期 -->
             <td data-bind="text: $row.userName"></td><!-- 创建人 -->
             <td><!-- 操作 -->
-            	<span data-bind="if: csc.util.isNull($row.vmUuid)">
-            		<a href="#" data-bind="click: $root.showBindingPage">绑定云主机</a>
-            	</span>
-            	<span data-bind="if: csc.util.isNotNull($row.vmUuid)">
-            		<a href="#" data-bind="click: $root.unbindVm">解绑</a>
-            	</span>
-            	| <a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |
-            	<span data-bind="if: $row.isValidate == true">
-            		<a href="#" data-bind="click: $root.terminateService">终止</a>
-            	</span>
-            	<span data-bind="if: $row.isValidate == false">
-            		<a href="#" data-bind="click: $root.deleteIp">删除</a>
-            	</span> 
+            	<a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |
+            	<div class="btn-group">
+                    <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
+                    <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
+                        <li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == true"><a data-bind="click: $root.showBindingPage">绑定云主机</a></li>
+                      	<li data-bind="if: csc.util.isNotNull($row.vmUuid)"><a data-bind="click: $root.unbindVm">解绑</a></li>
+                      	<li data-bind="if: $row.isValidate == true"><a data-bind="click: $root.terminateService">终止</a></li>
+                      	<li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == false"><a data-bind="click: $root.deleteIp">删除</a></li>
+                    </ul>
+                </div> 
             </td>
         	</tr>
         	<!-- /ko -->
@@ -591,7 +588,7 @@
       	  	  }
         	  p.timeType = "0";
         	  p.timeValue = "0";
-        	  p.expiryTime = expiryTime;
+        	  p.expiredDate = expiryTime;
         	  
    	    	  $.PUBLIC_IP.createPublicIp(p, function(data){
    	    		  self.isShowCreatePage(false);
@@ -635,6 +632,7 @@
     	  var portId = self.bindingVo().vm.portId;
     	  var vmUuid = self.bindingVo().vm.vmUuid;
     	  var vmName = self.bindingVo().vm.vmName;
+    	  
     	  var p = {
     			"portId":portId,
     			"vmUuid":vmUuid,
@@ -651,7 +649,8 @@
       this.unbindVm = function(vo){
     	  var name = vo.name;
     	  var p = {
-    			 "vmUuid": vo.vmUuid
+    			 "vmUuid": vo.vmUuid,
+    			 "portId": vo.portId
     	  };
 		  confirm("确定解绑公网IP[" + name + "]？", function(arg){
 			$.PUBLIC_IP.unbindPublicIp(vo.uuid, p, function(data){

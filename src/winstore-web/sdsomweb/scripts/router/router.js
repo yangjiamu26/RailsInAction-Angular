@@ -56,7 +56,7 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
             }
         })
         .state("mainManager.alarm", {
-        	url: "/alarm:type",
+        	url: "/system/alarm",
         	views: {
         		"top_view": {
         			templateUrl: "views/alarm/alarmManager.html",
@@ -64,16 +64,43 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
         		}
         	}
         })
-        .state("mainManager.storageResource", {
+        .state("mainManager.event", {
+        	url: "/system/event",
+        	views: {
+        		"top_view": {
+        			templateUrl: "views/alarm/eventManager.html",
+        			controller: "eventManagerCtrl"
+        		}
+        	}
+        })
+        .state("mainManager.log", {
+        	url: "/system/log",
+        	views: {
+        		"top_view": {
+        			templateUrl: "views/alarm/logManager.html",
+        			controller: "logManagerCtrl"
+        		}
+        	}
+        })
+        .state("mainManager.storagePool", {
         	url: "/storage/resource",
         	views: {
         		"top_view": {
-        			templateUrl: "views/storageManage/resource.html",
+        			templateUrl: "views/storageManage/resourcePool.html",
         			controller: "storageResourceCtrl"
-        		},
-        		"bot_view": {
-        			templateUrl: "views/storageManage/mainPageBot.html",
-        			controller: "mainPageBotCtrl"
+        		}
+        		//"bot_view": {
+        		//	templateUrl: "views/storageManage/mainPageBot.html",
+        		//	controller: "mainPageBotCtrl"
+        		//}
+        	}
+        })
+        .state("mainManager.storageLun", {
+        	url: "/storage/lun",
+        	views: {
+        		"top_view": {
+        			templateUrl: "views/storageManage/resourceLun.html",
+        			controller: "storageLunCtrl"
         		}
         	}
         })

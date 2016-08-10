@@ -48,9 +48,16 @@
 				 csc.rest.get('api/v5.0.0/sshKeys/'+uuid+"/vms",function(data){
 					     callback(data);
 	    		    }); 
+			},
+			/**
+			 * 获取绑定的SSHKey
+			 * 
+			 */
+			getSshKeyByUuid:function(uuid,callback,errorCallback,callbackParam){
+				 csc.rest.get('api/v5.0.0/sshKeys/'+uuid,function(data,textStatus,callbackParam){
+					     callback(data,textStatus,callbackParam);
+	    		    },function(){},callbackParam); 
 			}
-			
-			
 			
 	};
 }(window.jQuery);
