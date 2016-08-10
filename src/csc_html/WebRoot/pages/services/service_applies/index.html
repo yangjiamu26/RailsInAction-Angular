@@ -670,11 +670,15 @@
 					productData = self.model_PublicNetwork.toJSON();
 					productKey = 'PUBLICIP';
 				}else if(self.productType()==5){
-					if(this.model_LB.isValid()){
-						productJsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
-						productData = self.model_LB.toJSON();
-						productKey = 'LOAD_BALANCING';
-					}
+ 	        	    for(var i=0; i<self.model_LB().loadbalancerCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_LB().loadbalancerCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_LB().loadbalancerCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productJsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
+					productData = self.model_LB.toJSON();
+					productKey = 'LOAD_BALANCING';
 				}else if(self.productType()==6){
 					//ko.validation.group(self.model_SSH).showAllMessages(); 
 					if(self.model_SSH.isValid()){
@@ -866,10 +870,14 @@
 					productKey = 'PUBLICIP';
 			    	productJsonArray = self.model_PublicNetwork.toJSON().publicNetworkCartInfo;
 				}else if(self.productType()==5){
-					if(this.model_LB.isValid()){
-						productKey = 'LOAD_BALANCING';
-				    	productJsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
-					}
+ 	        	    for(var i=0; i<self.model_LB().loadbalancerCartInfo().length; i++){
+	 	        		 ko.validation.group(self.model_LB().loadbalancerCartInfo()[i]).showAllMessages();  
+		        		 if(!self.model_LB().loadbalancerCartInfo()[i].isValid()){
+		        			   return;
+		        		 }
+	        	    }
+					productKey = 'LOAD_BALANCING';
+			    	productJsonArray = self.model_LB.toJSON().loadbalancerCartInfo;
 				}else if(self.productType()==6){
 					if(this.model_SSH.isValid()){
 						productKey = 'SECRET_KEY';
@@ -1033,27 +1041,36 @@
 		        loadbalancerCartInfo: ko.observableArray([])
 		    });
 		    function lbVO(){
-		    	this.name = ko.observable();
-				this.vdcUuid = ko.observable();
+		    	this.name = ko.observable("").extend({required:true,cscNameRule:true});
+				this.vdcUuid = ko.observable().extend({required:true});
 				this.applyType = ko.observable("1");
 				this.applyNum = ko.observable();
 				this.applyTime = ko.observable();
 				this.billRuleUuid = ko.observable();
 				this.remark = ko.observable();
 				this.price = ko.observable();
-				this.azUuid = ko.observable();
+				this.azUuid = ko.observable().extend({required:true});
 				this.serviceUuid = ko.observable();
 				this.charge = ko.observable();//是否计费
-				this.loadBalanceWay = ko.observable();
-				this.agreement = ko.observable();
-				this.vpcNetworkUuid = ko.observable();
-				this.vpcUuid = ko.observable();
+				this.loadBalanceWay = ko.observable().extend({required:true});
+				this.agreement = ko.observable().extend({required:true});
+				this.vpcNetworkUuid = ko.observable().extend({required:true});
+				this.vpcUuid = ko.observable().extend({required:true});
 				
 				this.azList = ko.observableArray([]);
 				this.billRuleList = ko.observableArray([]);
 				this.vdcList = ko.observableArray([]);
 				this.networkList = ko.observableArray([]);
 				this.vpcList = ko.observableArray([]); 
+				
+				var item = this;
+	            this.charge.subscribe(function(value){
+	            	if(value=='true'){
+	            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+	            	}else{
+	            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+	            	}
+	            });
 		    }
 		    
 		    function LB_baseInfo(){
@@ -1080,7 +1097,7 @@
 		  		 	      vo.billRuleList(formatCharge(result.chargeList));
 		  		 	      vo.serviceUuid(serviceUuid);
 			    		  vo.charge(obj.isFee=="否"?"false":"true");
-	                      self.model_LB().loadbalancerCartInfo.push(vo);
+	                      self.model_LB().loadbalancerCartInfo.push(new ko.validatedObservable(vo));
 	                      self.isAdd_LBSingle(true);
 	            });
 		    }
@@ -1119,7 +1136,7 @@
 		    		vo.billRuleList(billRuleList_more);
 		    		vo.serviceUuid(serviceUuid_more);
 		    		vo.charge(charge_more);
-		    		self.model_LB().loadbalancerCartInfo.push(vo);
+		    		self.model_LB().loadbalancerCartInfo.push(new ko.validatedObservable(vo));
 		    	}
 		    	changeDateFormat();
 		    }); 
@@ -2492,10 +2509,11 @@
 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+data.vdcUuid()+"/"+data.azUuid(), function(result){
 		        	data.vpcList(result);
 		        });
-		        
-		        csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+data.azUuid()+"&vcdUuid="+data.vdcUuid(),function(result){
-	            	data.sshList(result);
-	            });
+		        if(data.sshList!=null){
+		        	csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+data.azUuid()+"&vcdUuid="+data.vdcUuid(),function(result){
+		            	data.sshList(result);
+		            });
+		        }
 		    }
 		    this.getOsVersionForOsTypeChange = function(data){
 		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.azUuid()+"/"+data.osType(), function(result){
@@ -2641,64 +2659,64 @@
                 
                      <div class="form-group col-md-6">
                         <div class="row">
-                            <label class="col-sm-4 control-label">负载均衡器名称：</label>
+                            <label class="col-sm-4 control-label">负载均衡器名称<i style="color:red">*</i></label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control w" data-bind="value: name">
+                                <input type="text" class="form-control" data-bind="value: name">
                             </div>
                         </div>
                     </div>
                     <div class="clearfix"></div>
                     <div class="form-group col-md-6">
                         <div class="row">
-                            <label class="col-sm-4 control-label">所属VDC：</label>
+                            <label class="col-sm-4 control-label">所属VDC<i style="color:red">*</i></label>
                             <div class="col-sm-8">
-                                <select class="form-control w-xs" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value: vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
+                                <select class="form-control" data-bind="options: vdcList,optionsText:'name',optionsValue:'uuid',value: vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
                             </div>
                         </div>
                     </div>
                     <div class="form-group col-md-6">
                         <div class="row">
-                            <label class="col-sm-4 control-label">可用分区：</label>
+                            <label class="col-sm-4 control-label">可用分区<i style="color:red">*</i></label>
                             <div class="col-sm-8">
-                                <select class="form-control w-xs" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value: azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select>
+                                <select class="form-control" data-bind="options: azList,optionsText:'name',optionsValue:'uuid',value: azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select>
                             </div>
                         </div>
                     </div>
                     <div class="form-group col-md-6">
 		              <div class="row">
-		                <label class="col-sm-4 control-label">VPC：</label>
+		                <label class="col-sm-4 control-label">VPC<i style="color:red">*</i></label>
 		                <div class="col-sm-8">
-		                  <select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+		                  <select class="form-control" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcUuid,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
 		                </div>
 		              </div>
 		            </div>
 		            <div class="form-group col-md-6">
 		              <div class="row">
-		                <label class="col-sm-4 control-label">网络名称：</label>
+		                <label class="col-sm-4 control-label">网络名称<i style="color:red">*</i></label>
 		                <div class="col-sm-8">
-		                  <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
+		                  <select class="form-control" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,optionsCaption:'请选择'"></select>
 		                </div>
 		              </div>
 		            </div>
 		            <div class="form-group col-md-6">
 		              <div class="row">
-		                <label class="col-sm-4 control-label">协议：</label>
+		                <label class="col-sm-4 control-label">协议<i style="color:red">*</i></label>
 		                <div class="col-sm-8">
-		                  <select class="form-control w-xs" data-bind="options: $root.ProtocolList,optionsText:'name',optionsValue:'value',value: agreement,optionsCaption:'请选择'"></select>
+		                  <select class="form-control" data-bind="options: $root.ProtocolList,optionsText:'name',optionsValue:'value',value: agreement,optionsCaption:'请选择'"></select>
 		                </div>
 		              </div>
 		            </div>
 		            <div class="form-group col-md-6">
 		              <div class="row">
-		                <label class="col-xs-4 control-label">负载均衡方式：</label>
+		                <label class="col-xs-4 control-label">负载均衡方式<i style="color:red">*</i></label>
 		                <div class="col-sm-8">
-		                  <select class="form-control w-xs" data-bind="options: $root.LBMothedList,optionsText:'name',optionsValue:'value',value: loadBalanceWay,optionsCaption:'请选择'"></select>
+		                  <select class="form-control" data-bind="options: $root.LBMothedList,optionsText:'name',optionsValue:'value',value: loadBalanceWay,optionsCaption:'请选择'"></select>
 		                </div>
 		              </div>
 		            </div>
                     <div class="form-group col-md-6">
                         <div class="row">
-                            <label class="col-sm-4 control-label">备注：</label>
+                            <label class="col-sm-4 control-label">备注</label>
                             <div class="col-sm-8">
                                 <textarea class="form-control" cols="30" rows="5" data-bind="value: remark"></textarea>
                             </div>
@@ -2707,7 +2725,7 @@
                     <div class="clearfix"></div> 
                      <div class="form-group col-md-6">
                         <div class="row">
-                                    <label class="col-xs-4 control-label">申请时长：</label>
+                                    <label class="col-xs-4 control-label">申请时长<i style="color:red">*</i></label>
                                     <div class="col-sm-8">
                                         <div class="radio">
                                             <label class="form-inline">
@@ -2733,7 +2751,7 @@
                      <div class="clearfix"></div>
                     <div class="form-group col-md-6" data-bind="visible:charge()=='true'">
                         <div class="row">
-                            <label class="col-sm-4 control-label">套餐：</label>
+                            <label class="col-sm-4 control-label">套餐<i style="color:red">*</i></label>
                             <div class="col-sm-3">
                                 <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,event:{change:$root.chargeChangeCart},optionsCaption:'请选择'"></select>
                             </div>
@@ -2775,12 +2793,12 @@
 							<th>负载均衡器名称<i style="color: red">*</i></th>
 							<th>所属VDC<i style="color: red">*</i></th>
 							<th>可用分区<i style="color: red">*</i></th>
-							<th>VPC</th>
-							<th>网络名称</th>
-							<th>协议</th>
-							<th>负载均衡方式</th>
+							<th>VPC<i style="color:red">*</i></th>
+							<th>网络名称<i style="color:red">*</i></th>
+							<th>协议<i style="color:red">*</i></th>
+							<th>负载均衡方式<i style="color:red">*</i></th>
 							<th>申请时长<i style="color: red">*</i></th>
-							<th data-bind="visible:$root.charge_more_view()=='true'">套餐</th>
+							<th data-bind="visible:$root.charge_more_view()=='true'"><i style="color:red">*</i>套餐</th>
 							<th data-bind="visible:$root.charge_more_view()=='true'">收费标准</th>
 						</thead>
 						<tbody id="applyServiceBalancingBox"

@@ -20,17 +20,17 @@
 
           <div class="wrapper">
               <a class="btn btn-sm btn-default" href="#pages/resources/instances/index"><i class="fa fa-arrow-left"></i> 返回</a>
-              <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF'"><button class="btn btn-sm btn-info" >开机</button></a>
-              <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-info" >关机</button></a>
-              <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-info" >重启</button></a>
-              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-info" >强制重启</button></a>
+              <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >开机</button></a>
+              <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >关机</button></a>
+              <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >重启</button></a>
+              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >强制重启</button></a>
               <a data-bind="click: $root.console"><button class="btn btn-sm btn-info" >控制台</button></a>
-              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE'"><button class="btn btn-sm btn-info" >挂起</button></a>
-              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED'"><button class="btn btn-sm btn-info" >恢复</button></a>
-              <a data-bind="click: $root.vmAdjustment"><button class="btn btn-sm btn-info" >调整资源</button></a>
+              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >挂起</button></a>
+              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >恢复</button></a>
+              <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true"><button class="btn btn-sm btn-info" >调整资源</button></a>
               <a data-bind="click: $root.editValidateTime"><button class="btn btn-sm btn-info">有效时间变更</button></a>
-              <a data-bind="click: $root.validate"><button class="btn btn-sm btn-info">终止</button></a>
-              <a data-bind="click: $root.removeOne"><button class="btn btn-sm btn-info" >删除</button></a>
+              <a data-bind="click: $root.validate,if: vmVO().isValidate == true"><button class="btn btn-sm btn-info">终止</button></a>
+              <a data-bind="click: $root.removeOne,if: (vmVO().state == 'SHUTOFF' || vmVO().state == 'ACTIVE') && vmVO().isValidate == false"><button class="btn btn-sm btn-info" >删除</button></a>
           </div>
           
           <div class="wrapper">
@@ -194,7 +194,7 @@
               <div class="col-xs-3">
                 <div class="input-group w">
                   <span class="input-group-addon">软件类型</span>
-                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().softwareType">
+                  <select class="form-control input-sm" data-bind="value: softwareSearchParam().softTypeName, options: $root.softTypeNamePartitions, optionsText: 'name', optionsValue: 'uuid'">
                     <option value="name1">name1</option>
                     <option value="name2">name2</option>
                   </select>
@@ -471,10 +471,7 @@
             <option>分类3</option>
           </select>&nbsp;&nbsp;
           软件类型：
-          <select class="form-control" data-bind="value: software_param().softTypeName">
-            <option>类型1</option>
-            <option>类型2</option>
-            <option>类型3</option>
+          <select class="form-control" data-bind="value: software_param().softTypeName, options: $root.software_check_table_softTypeName_partitions, optionsText: 'name', optionsValue: 'uuid'">
           </select>&nbsp;&nbsp;&nbsp;&nbsp;
           <button class="btn btn-default" data-bind="click: $root.software_check_search">搜索</button>
         </div>
@@ -657,7 +654,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -677,7 +674,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -707,7 +704,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -753,7 +750,7 @@
 			            </tbody>
 			         </table> 
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -763,6 +760,32 @@
 		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustProcessVO().name"></span></p></div>
 		            <div class="col-xs-6"><p>资源类型：云主机</p></div>
 		          </div>
+		          <table class="table">
+			            <thead>
+			              <tr>
+			                <th></th>
+			                <th>调整前</th>
+			                <th>调整后</th>
+			              </tr>
+			            </thead>
+			            <tbody>
+			              <tr>
+			                <td>CPU(个)</td>
+			                <td data-bind="text: adjustProcessVO().vcpu"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetVcpu" /></td>
+			              </tr>
+			              <tr>
+			                <td>内存(MB)</td>
+			                <td data-bind="text: adjustProcessVO().memory"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetMemory"/></td>
+			              </tr>
+			              <tr>
+			                <td>存储(GB)</td>
+			                <td data-bind="text: adjustProcessVO().storage"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetStorage"/></td>
+			              </tr>
+			            </tbody>
+			         </table> 
 		        </div>
 		    </div>
 		</div>         
@@ -783,7 +806,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -803,7 +826,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -885,7 +908,7 @@
     //------------------------------------------软件列表开始----------------------------
     this.vm_software_table = new DataTable([]);
     this.softwareSearchParam = ko.observable({
-    	softwareType: ko.observableArray([]),
+    	softTypeName: '',
     	installType: '',
     	softwareName: ''
   	})
@@ -893,7 +916,8 @@
   	this.reloadSoftware = function(){
     	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
     }
-  	
+    this.softTypeNamePartitions = ko.observableArray([]);
+    
     //------------------------------------------软件列表结束----------------------------
     
     //------------------------------------------安装软件开始----------------------------
@@ -915,6 +939,12 @@
     //备选软件
     this.software_check_table = new DataTable([]);
     
+    this.software_check_table_softTypeName_partitions = ko.observableArray([]);
+    csc.rest.get("api/v5.0.0/soft/softTypes",function(softTypeNameData){
+    	if(softTypeNameData){
+	    	self.software_check_table_softTypeName_partitions(softTypeNameData.results);
+    	}
+    });
     this.software_param = ko.observable({
   	  name: '',
   	  softTypeName: '',
@@ -961,7 +991,9 @@
       });
       
       this.doExpand = function(){
-    	  var putBody = {"volumeSize":self.volumeVO().targetSize};
+    	  var putBody = {};
+    	  putBody.newSize = parseInt(self.volumeVO().targetSize());
+    	  putBody.volumeSize = parseInt(self.volumeVO().size());
     	  csc.rest.put('api/v5.0.0/volumes/'+self.volumeVO().uuid(), putBody, function(data){
  	            self.isStorageExpand(false);
  	            if(data.taskId){
@@ -1113,7 +1145,7 @@
       }
       //------------------------------------------调整配置结束------------------------------
       
-    //------------------------------------------修改有效期开始----------------------------
+      //------------------------------------------修改有效期开始----------------------------
       //modal_edit_validate
      $("#modal_edit_validate_1").on("shown.bs.modal",function(){
 		  

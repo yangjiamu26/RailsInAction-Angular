@@ -244,17 +244,65 @@
       var CurrentVO = function(){
         return ko.validatedObservable({
         	uuid: ko.observable(),
-            name: ko.observable('').extend({required:true}),
-            attrType: ko.observable('CPU').extend({required:true}),
-            attrValue: ko.observable('1').extend({required:true, max: 100}),
-            price: ko.observable('').extend({required:true}),
-            cycle: ko.observable('DAY').extend({required:true}),
-            priceUnit: ko.observable('RMB').extend({required:true})
+            name: ko.observable('').extend(
+            		{
+            			required:true,
+            			maxLength: 255
+            		}
+            ),
+            
+            attrType: ko.observable('CPU').extend(
+            		{required:true}
+            ),
+            
+            attrValue: ko.observable('1').extend(
+            		{
+            			required:true,
+            			maxLength: 11,
+            			number: {  
+                            params: true,  
+                            message: "必须是数字",
+                        },
+                        min: { 
+                        	params: 1,
+                        	message: "请输入大于0的数字" 
+                        },
+                        pattern: {  
+	                        params: /^\d+$/g,  
+	                        message: "必须是整数"
+	                    }
+            		}
+            ),
+            
+            price: ko.observable('').extend(
+            		{
+            			required:true,
+            			maxLength: 17,
+            			number: {  
+                            params: true,  
+                            message: "必须是数字",  
+                        },
+                        min: { 
+                        	params: 0.01,
+                        	message: "请输入大于0的数字" 
+                        },
+	            		pattern: {  
+	                        params: /^\d+[\.]?\d{0,2}$/g,  
+	                        message: "必须是数字，并且最多两位小数"  
+	                    }
+            		}
+            ),
+            
+            cycle: ko.observable('DAY').extend(
+            		{required:true}
+            ),
+            
+            priceUnit: ko.observable('RMB').extend(
+            		{required:true}
+            )
         });
       };
 	
-      this.currentVO = new CurrentVO();;
-
       var self = this;
       
       var attrUnits = {
@@ -319,11 +367,12 @@
       };
       
       this.edit = function(object, event){
+    	  self.currentVO = new CurrentVO();
     	  self.currentVO(object);
     	  self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
           self.isAdd(true);
-
-      }
+      };
+      
       this.save = function(){
        console.log(this.currentVO.toJSON());
        ko.validation.group(this.currentVO).showAllMessages();   
@@ -343,11 +392,15 @@
               alert('添加规则成功！');
         })
         }
-      }
-      }
+       }
+      };
 
       this.remove = function(){
-        var uuids = _.pluck(this.table.chosenItems(), "uuid")
+        var uuids = _.pluck(this.table.chosenItems(), "uuid");
+        if (uuids === null || uuids === undefined || uuids.length===0) {
+         	alert('请选择计费规则!');
+         	return;
+         }
         console.log(uuids)
           csc.rest.post('api/v5.0.0/billing/rules/batch', {uuids: uuids,"action":"delete"}, function(){
             self.isAdd(false);
@@ -356,10 +409,14 @@
           })
 
         //this.table.refreshData();
-      }
+      };
 
       this.start = function(){
-         var uuids = _.pluck(this.table.chosenItems(), "uuid") 
+         var uuids = _.pluck(this.table.chosenItems(), "uuid");
+         if (uuids === null || uuids === undefined || uuids.length===0) {
+          	alert('请选择计费规则!');
+          	return;
+          }
           csc.rest.post('api/v5.0.0/billing/rules/batch', {uuids: uuids,"action":"enable"}, function(){
             self.isAdd(false);
             self.table.refreshData();
@@ -367,10 +424,14 @@
           })
        // console.log(this.table.chosenItems())
         this.table.refreshData();
-      }
+      };
 
       this.stop = function(){
-        var uuids = _.pluck(this.table.chosenItems(), "uuid") 
+        var uuids = _.pluck(this.table.chosenItems(), "uuid");
+        if (uuids === null || uuids === undefined || uuids.length===0) {
+         	alert('请选择计费规则!');
+         	return;
+         }
           csc.rest.post('api/v5.0.0/billing/rules/batch', {uuids: uuids,"action":"disable"}, function(){
             self.isAdd(false);
             self.table.refreshData();
@@ -378,17 +439,18 @@
           })
        // console.log(this.table.chosenItems())
         this.table.refreshData();
-      }
+      };
+      
       this.reset = function(){
         this.searchParam({
           name: ""
-         
         })
         this.table.params({});
-      }
-       this.search = function(){
+      };
+      
+      this.search = function(){
         this.table.params(this.searchParam());
-      }
+      };
        
       this.table = new DataTable([], {path: 'api/v5.0.0/billing/rules'});
     }

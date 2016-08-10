@@ -93,19 +93,19 @@
 	                <span class="label label-danger" data-bind="if: isValidate == false">已过期</span>
                 </td>
                 <td data-bind="text: userName"></td>
-                <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.vmAdjustment">调整资源</a> |
+                <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |
                   <div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                       更多<span class="fa fa-caret-down"></span>
                     </a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                         <li><a data-bind="click: $root.editValidateTime">有效时间变更</a></li>
-                        <li data-bind="if: state == 'SHUTOFF'"><a data-bind="click: $root.startOne">开机</a></li>
-                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.shutoffOne">关机</a></li>
-                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.restartOne">重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE'"><a data-bind="click: $root.suspend">挂起</a></li>
-                        <li data-bind="if: state == 'SUSPENDED'"><a data-bind="click: $root.resume">恢复</a></li>
+                         <li data-bind="if: isValidate == true"><a data-bind="click: $root.vmAdjustment">调整资源</a></li>
+                        <li data-bind="if: state == 'SHUTOFF' && isValidate == true"><a data-bind="click: $root.startOne">开机</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.shutoffOne">关机</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.restartOne">重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.suspend">挂起</a></li>
+                        <li data-bind="if: state == 'SUSPENDED' && isValidate == true"><a data-bind="click: $root.resume">恢复</a></li>
                         
                        <!--  <a data-bind="click: $root.startOne">开机</a>
                         <a data-bind="click: $root.shutoffOne">关机</a>
@@ -113,8 +113,8 @@
                         <a data-bind="click: $root.restartForceOne">强制重启</a>
                         <a data-bind="click: $root.suspend">挂起</a>
                         <a data-bind="click: $root.resume">恢复</a> -->
-                        <li><a data-bind="click: $root.validate">终止</a></li>
-                        <li data-bind="if: state == 'SHUTOFF' || state == 'ACTIVE'"><a data-bind="click: $root.removeOne">删除</a></li>
+                        <li data-bind="if: isValidate == true"><a data-bind="click: $root.validate">终止</a></li>
+                        <li data-bind="if: (state == 'SHUTOFF' || state == 'ACTIVE') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
                         <!--  <li><a data-bind="click: $root.removeOne">删除</a></li> -->
                       
                     </ul>
@@ -487,7 +487,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -507,7 +507,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -537,7 +537,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -583,7 +583,7 @@
 			            </tbody>
 			         </table> 
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -593,6 +593,33 @@
 		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustProcessVO().name"></span></p></div>
 		            <div class="col-xs-6"><p>资源类型：云主机</p></div>
 		          </div>
+		          
+		          <table class="table">
+			            <thead>
+			              <tr>
+			                <th></th>
+			                <th>调整前</th>
+			                <th>调整后</th>
+			              </tr>
+			            </thead>
+			            <tbody>
+			              <tr>
+			                <td>CPU(个)</td>
+			                <td data-bind="text: adjustProcessVO().vcpu"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetVcpu" /></td>
+			              </tr>
+			              <tr>
+			                <td>内存(MB)</td>
+			                <td data-bind="text: adjustProcessVO().memory"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetMemory"/></td>
+			              </tr>
+			              <tr>
+			                <td>存储(GB)</td>
+			                <td data-bind="text: adjustProcessVO().storage"></td>
+			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetStorage"/></td>
+			              </tr>
+			            </tbody>
+			         </table> 
 		        </div>
 		    </div>
 		</div>         
@@ -613,7 +640,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+<!-- 		    <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -633,7 +660,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>

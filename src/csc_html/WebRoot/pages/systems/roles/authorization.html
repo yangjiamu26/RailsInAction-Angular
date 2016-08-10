@@ -11,42 +11,46 @@
   <a class="btn btn-sm btn-default" href="#pages/systems/roles/index"><i class="fa fa-arrow-left"></i> 返回</a>
 </div>
 
-<input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked>运营门户
-<input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 自助门户
-                          
-                          
-<div class='wrapper'>
-	<div class="clearfix">
-	
-	
-		<div class="col-xs-3 bg-white">
-			<h4>运营门户：</h4>
-			<div>
-				<ul class="ztree" id="notHaveZtree"></ul>
-			</div>
-			<div class="col-xs-2">
-				<button class="btn btn-info" type="button" style="margin-top:50px" data-bind="click:menuSave1">授权</button>
-			</div>
-		</div>		
-		
-		
-		<div class="col-xs-3 bg-white">
-			<h4>自助门户：</h4>
-			<div>
-				<ul class="ztree" id="selfZtree"></ul>
-			</div>
-			<div class="col-xs-2">
-				<button class="btn btn-info" type="button" style="margin-top:50px" data-bind="click:menuSave2">授权</button>
-			</div>
+
+<div class="wrapper">
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">运营门户</a></li>
+    <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">自助门户</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="home">
+    	<div>
+			<ul class="ztree" id="notHaveZtree"></ul>
 		</div>
-	</div>
+		<div>
+			<button class="btn btn-info" type="button" style="margin-bottom:50px" data-bind="click:menuSave1">授权</button>
+		</div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="profile">
+    	<div>
+			<ul class="ztree" id="selfZtree"></ul>
+		</div>
+		<div>
+			<button class="btn btn-info" type="button" style="margin-bottom:50px" data-bind="click:menuSave2">授权</button>
+		</div>
+    </div>
+  </div>
+
 </div>
+
+
 <script type="text/javascript">
 var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js', "api/systems/role/role.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	var uuid = args.uuid;
 	function RoleViewModel() {
 		var self = this;
+		
+		
 		this.isAdd = ko.observable(false);
 			var setting = {
 				check: {
@@ -58,7 +62,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		      	}
 		    };
 			
-			var zNodes1 =[        
+			var zNodes =[        
 					      { id:"firstPage",name:"首页", isParent:true,checked:false},
 					      
 					      { id:"service",name:"服务", isParent:true,open:false,checked:false,
@@ -405,65 +409,45 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 					alert("授权成功！");
 		      		});
 			}; 
-			//var i=0;
-			//var j=0;
-			//var g=0;
-			var m=0;
-			  //递归调用为权限列表初始化
-			this.setChecked = function(zNodes,privMenu){
-				if(privMenu.length>0){
-					debugger;
-					  for(var i=0;i<privMenu.length;i++){
-						 for(var j=0;j<zNodes.length;j++){
-							//zNodes1[j] = self.setChecked(zNodes1[j],privMenus[i]);
-							if(zNodes[j].id==privMenu[i].substring(1,privMenu[i].length-1)){
-								zNodes[j].checked=true;
-								m++;							
-							}
-							if(csc.util.isNotNull(zNodes[j].children)){
-								zNodes[j].children = self.setChecked(zNodes[j].children,privMenu);
-							}
-						}
-					}
-					  return zNodes;
-				}
-			}
-			
 			//初始化运营门户的权限列表
-		     this.initOperoPriMenu = function(){
-				csc.rest.get("api/v5.0.0/roles/" + uuid + "/initPriMenu", function(data){
-					var str = data.uuid.substring(1,data.uuid.length-1);
-					var privMenus = str.split(",");
-					zNodes1 = self.setChecked(zNodes1,privMenus);
-					$(document).ready(function(){
-					      $.fn.zTree.init($("#notHaveZtree"), setting, zNodes1);
-					    });
-				});
-			
-			}
-			this.initOperoPriMenu(); 
-			
-			
-			//初始化自助门户的权限列表
-			 this.initSelfPriMenu = function(){
-					csc.rest.get("api/v5.0.0/roles/" + uuid + "/initSelfPriMenu", function(data){
+			 $(document).ready(function(){
+			      $.fn.zTree.init($("#notHaveZtree"), setting, zNodes);
+			      var treeObj = $.fn.zTree.getZTreeObj("notHaveZtree");
+			      csc.rest.get("api/v5.0.0/roles/" + uuid + "/initPriMenu", function(data){
 						var str = data.uuid.substring(1,data.uuid.length-1);
 						var privMenus = str.split(",");
 						if(privMenus.length>0){
-							debugger;
-							  for(var i=0;i<privMenus.length-1;i++){
-								 for(var j=0;j<zNodes2.length-1;j++){
-									zNodes2[j] = self.setChecked(zNodes2[j],privMenus[i]);
-								}
-							}  
+							for(var i=0;i<privMenus.length;i++){
+								var node=treeObj.getNodeByParam("id", privMenus[i].substring(1,privMenus[i].length-1), null);
+								treeObj.checkNode(node,true);
+							}	
 						}
-						$(document).ready(function(){
-						      $.fn.zTree.init($("#selfZtree"), setting, zNodes2);
-						    });
-					});
-				
-				}
-				this.initSelfPriMenu();  
+						
+			      });
+			      
+			    });
+			
+			//
+			//初始化自助门户的权限列表
+			 $(document).ready(function(){
+			      $.fn.zTree.init($("#selfZtree"), setting, zNodes2);
+			      var treeObj = $.fn.zTree.getZTreeObj("selfZtree");
+			      csc.rest.get("api/v5.0.0/roles/" + uuid + "/initPriMenu", function(data){
+						var str = data.uuid.substring(1,data.uuid.length-1);
+						var privMenus = str.split(",");
+						for(var i=0;i<privMenus.length;i++){
+							var node=treeObj.getNodeByParam("id", privMenus[i].substring(1,privMenus[i].length-1), null);
+							treeObj.checkNode(node,true);
+						}					
+						
+			      });
+			      
+			    });
+			
+			
+			
+			
+			
 
 	}
 	ko.applyBindings(new RoleViewModel(), $('#page-content')[0]);
