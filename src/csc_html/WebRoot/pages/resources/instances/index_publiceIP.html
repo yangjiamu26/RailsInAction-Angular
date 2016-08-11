@@ -238,7 +238,7 @@
         </div>
         
         <div class='modal-footer'>
-          <button name="button" type="submit" class="btn btn-primary "  data-bind="click: createPublicIp">确定</button>
+          <button name="button" type="submit" class="btn btn-primary "  data-bind="attr: {disabled: disableCreateBtn()}, click: createPublicIp">确定</button>
           <button name="button" type="submit" class="btn btn-default " data-dismiss="modal">取消</button>
         </div>
       </div>
@@ -270,7 +270,7 @@
 
         </div>
         <div class='modal-footer' style="text-align:center;">
-          <a class="btn btn-default btn-info" data-bind="click: $root.bindVm">确定</a>
+          <a class="btn btn-default btn-info" data-bind="attr: {disabled: $root.disableBindingBtn()}, click: $root.bindVm">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
@@ -477,8 +477,12 @@
       var subscriptionVdc;//subscription.dispose();
       var subscriptionAz;
       var subscriptionVpc;
+      //置灰创建按钮
+      this.disableCreateBtn = ko.observable(false);
       this.showCreatePage = function(){
       		self.isShowCreatePage(true);
+      		self.disableCreateBtn(false);
+      		
       		self.vdcList([]);
 			self.azList([]);
 			self.vpcList([]);
@@ -512,11 +516,24 @@
 			    }
     	    	
     	    });
-			//AZ获取VPC
+			//vdc和AZ获取VPC
 			subscriptionAz = self.currentIpVo().azUuid.subscribe(function(val){
 			    self.vpcList([]);
 			    if(csc.util.isNotNull(val)){
-			    	$.VPC.getVpcs({azUuid:val},function(data){
+			    	var vpcParams = {
+			    		vdcUuid: self.currentIpVo().vdcUuid(),
+			    		azUuid:val
+			    	};
+			    	$.VPC.getVpcs(vpcParams,function(data){
+		   				 if(data && data.results){
+		   					 self.vpcList(data.results);
+		   				 }
+		   			});
+			    }else{
+			    	var vpcParams = {
+			    		vdcUuid: self.currentIpVo().vdcUuid()
+			    	};
+			    	$.VPC.getVpcs(vpcParams,function(data){
 		   				 if(data && data.results){
 		   					 self.vpcList(data.results);
 		   				 }
@@ -537,8 +554,13 @@
     	    });
       		
       };
+      
       //创建
       this.createPublicIp = function(object, event){
+    	  if(self.disableCreateBtn()){
+    		  return;
+    	  }
+    	  self.disableCreateBtn(true);
     	  //console.log(self.currentIpVo());
     	  ko.validation.group(self.currentIpVo).showAllMessages();
     	  
@@ -589,7 +611,6 @@
         	  p.timeType = "0";
         	  p.timeValue = "0";
         	  p.expiredDate = expiryTime;
-        	  
    	    	  $.PUBLIC_IP.createPublicIp(p, function(data){
    	    		  self.isShowCreatePage(false);
    	    		  self.publicIpTable.refreshData();
@@ -597,7 +618,8 @@
    	    	  })
           }
       };
-      
+      //置灰绑定按钮
+      this.disableBindingBtn = ko.observable(false);
       //弹出绑定云主机页面
       this.isShowBindingPage = ko.observable(false);
       this.bindingVo = ko.validatedObservable({
@@ -608,6 +630,7 @@
       this.vmList = ko.observableArray();
       this.showBindingPage = function(vo){
            self.isShowBindingPage(true);
+           self.disableBindingBtn(false);
            //对当前公网IP对象进行绑定
            self.bindingVo({
         	   uuid: vo.uuid,
@@ -628,6 +651,10 @@
       };
 	  
       this.bindVm = function(){
+    	  if(self.disableBindingBtn()){
+    		  return;
+    	  }
+    	  self.disableBindingBtn(true);
     	  var uuid = self.bindingVo().uuid;
     	  var portId = self.bindingVo().vm.portId;
     	  var vmUuid = self.bindingVo().vm.vmUuid;
@@ -661,7 +688,6 @@
       }
       
       //修改有效时间
-      //修改有效时间
       $("#modal_publicIp_valiTime").on("shown.bs.modal",function(){
           // daterange             
           $('#resource_publicIp_validate_edit').val(self.validateTimeVO().time()).daterangepicker(
@@ -694,6 +720,7 @@
 	    	  //设置修改对象的uuid
 	    	  self.validateTimeVO().uuid(object.uuid);
 	    	  self.validateTimeVO().name(object.name);
+	    	  self.validateTimeVO().time(object.expiredDate);
      	  }
       }
       
@@ -808,6 +835,7 @@
               path: 'api/v5.0.0/publicIps',
               loader: function(result){
                   //result.account_ = "超级管理员"; 
+                  result.expiredDate = result.expiredDate && result.expiredDate.length >10?result.expiredDate.substring(0, 10):result.expiredDate;
                   return result;
               }
       });

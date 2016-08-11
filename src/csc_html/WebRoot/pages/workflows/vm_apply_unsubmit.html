@@ -164,33 +164,14 @@
 				                                <th>静默安装属性</th>
 				                              </tr>
 				                            </thead>
-				                            <tbody>
+				                            <tbody data-bind="foreach:softwareList">
 				                              <tr>
-				                                <td>oracle</td>
-				                                <td>数据库</td>
-				                                <td>oracle</td>
-				                                <td>10g企业版</td>
-				                                <td>
-				                                  <a class="expand-btn-detail">查看 <i class="fa fa-angle-double-right"></i></a>
-				                                </td>
+				                                  <td data-bind="text:name"></td>
+							                      <td data-bind="text:softType"></td>
+							                      <td data-bind="text:softTypeName"></td>
+							                      <td data-bind="text:version"></td>
+							                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a></td>
 				                              </tr>
-				                              <tr style="display: none">
-				                                  <td colspan="7" class="no-padder">
-				                                    <div class="wrapper-sm sub-detail" style="display: none">
-				                                      <h5 class="text-info">静默安装属性</h5>
-				                                      <div class="bg-light b-t b-b wrapper-sm">
-				                                        <div class="row m-b">
-				                                          <div class="col-xs-1">参数名称：</div>
-				                                          <div class="col-xs-3">15137</div>
-				                                          <div class="col-xs-1">参数代码：</div>
-				                                          <div class="col-xs-3">abc</div>
-				                                          <div class="col-xs-1">默认值：</div>
-				                                          <div class="col-xs-3">000</div>
-				                                        </div>
-				                                      </div>                                      
-				                                    </div>                    
-				                                  </td>
-				                              </tr>                
 				                            </tbody>
 				                          </table>            
 				                        </div>          
@@ -403,7 +384,7 @@
 					          </div>    
 					          <div class="clear">
 		                        <h5 class="pull-left"><i class="fa fa-minus fa-rotate-90 text-info"></i>安装软件</h5>
-		                          <a href="#" class="pull-right text-info m-t-sm">添加软件</a>
+		                          <a href="#" class="pull-right text-info m-t-sm" data-bind="click: $root.selectSoftware_VM" >添加软件</a>
 		                        </div>
 		                        <div class="table-responsive no-height">
 		                          <table class="table table-striped table-hover">
@@ -417,43 +398,16 @@
 		                                <th>操作</th>
 		                              </tr>
 		                            </thead>
-		                            <tbody>
-		                              <tr>
-		                                <td>oracle</td>
-		                                <td>数据库</td>
-		                                <td>oracle</td>
-		                                <td>10g企业版</td>
-		                                <td>
-		                                  <a class="expand-btn">查看 <i class="fa fa-angle-double-right"></i></a> |
-		                                  <a class="expand-btn">修改 <i class="fa fa-angle-double-right"></i></a>
-		                                </td>
-		                                <td><a href="#">删除</a></td>
-		                              </tr>
-		                              <tr style="display: none">
-		                                  <td colspan="7" class="no-padder">
-		                                    <div class="b wrapper-sm">
-		                                      <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>静默安装属性</h5>
-		                                      <div class="form-horizontal">
-		                                        <div class="form-group">
-		                                          <label class="col-xs-1 control-label">参数名称</label>
-		                                          <div class="col-xs-3">
-		                                            <input class="form-control" type="text" value="test1">
-		                                          </div>
-		                                          <label class="col-xs-1 control-label">参数代码</label>
-		                                          <div class="col-xs-3">
-		                                            <input class="form-control" type="text" value="test1">
-		                                          </div>
-		                                          <label class="col-xs-1 control-label">默认值</label>
-		                                          <div class="col-xs-3">
-		                                            <input class="form-control" type="text" value="test1">
-		                                          </div>
-		                                        </div>                        
-		                                      </div>
-		                                      <div class="wrapper-sm text-center"><button class="btn btn-sm btn-info">保存</button></div>
-		                                    </div>                    
-		                                  </td>
-		                              </tr>                
-		                            </tbody>
+		                               <tbody data-bind="foreach:softwareList">
+				                              <tr>
+				                                  <td data-bind="text:name"></td>
+							                      <td data-bind="text:softType"></td>
+							                      <td data-bind="text:softTypeName"></td>
+							                      <td data-bind="text:version"></td>
+							                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a> <a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(false,data,event)}">修改</a></td>
+							                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delSoftwart_VM($parent,data,event) }}">删除</a></td>
+					                    </tr>
+					                  </tbody>
 		                          </table>            
 		                        </div>
 		<!-- 
@@ -558,6 +512,114 @@
    </div>
  </div>
  <!-- 选择云服务页面 -->
+  
+  
+  
+ <!-- 查看/修改软件参数 --> 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: showSoftwareAttr , backdrop: 'static'}"> 
+     <div class='modal-dialog modal-lg' role='document'> 
+       <div class='modal-content'> 
+         <div class='modal-header'> 
+           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>静默安装属性</h3> 
+         </div> 
+         <div class='modal-body form-horizontal'> 
+           <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px"> 
+            <table class="table table-striped"> 
+              <thead> 
+                <th>参数名称<i style="color:red">*</i></th> 
+                <th>参数代码<i style="color:red">*</i></th> 
+                <th>默认值<i style="color:red">*</i></th> 
+				<th>修改值</th> 
+              </thead> 
+              <tbody  data-bind="foreach: $root.attrList_VM"> 
+                <tr>
+                <td data-bind="text:name"></td>
+                <td data-bind="text:code"></td>
+                <td data-bind="text:defaultValue"></td>
+                <td><input type="text" class="form-control" data-bind="value:value,disable:$root.disableAttr_VM" /></td>
+                </tr> 
+              </tbody> 
+            </table> 
+          </div> 
+        </div> 
+        <div class='modal-footer' style="text-align:center;"> 
+           <a class="btn btn-default btn-info" data-bind="click:saveSoftwareAttr">保存</a> 
+           <a class="btn btn-default btn btn-default" data-dismiss="modal">关闭</a> 
+         </div> 
+       </div> 
+     </div> 
+   </div> 
+   <!-- 查看/修改软件参数 -->
+   
+   
+    <!-- 添加软件 -->
+    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: selectSoftware , backdrop: 'static'}">
+      <div class='modal-dialog modal-lg' role='document'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择软件</h3>
+          </div>
+          <div class='modal-body form-horizontal'>
+            <div class="form-inline" style="margin-bottom: 10px;">
+			<div class="input-group">
+				<span class="input-group-addon">软件名称</span> <input class="form-control input-sm" data-bind="value:searchSoftwareParam().softwareName"/>
+			</div>
+			<div class="input-group">
+				<span class="input-group-addon">软件分类</span> <select name=""
+					id="" class="form-control input-sm" data-bind="options:$root.AllSoftTypeList,optionsText:'name',optionsValue:'name',value:searchSoftwareParam().softType ,optionsCaption:'请选择'" ></select>
+			</div>
+			<div class="input-group">
+				<span class="input-group-addon">软件类型</span> <select name=""
+					id="" class="form-control input-sm" data-bind="options:$root.AllSoftTypeNameList,optionsText:'name',optionsValue:'name',value:searchSoftwareParam().softTypeName ,optionsCaption:'请选择'"></select>
+			</div>
+			<a class="btn btn-default btn-sm" data-bind="click: searchSoftware">搜索</a>
+		</div>
+          
+          
+            <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: $root.table_Software_VM">
+             <table class="table table-striped">
+               <thead>
+                 <th></th>
+                 <th>软件名称</th>
+                 <th>软件类型</th>
+                 <th>软件版本</th>
+               </thead>
+               <tbody>
+                 <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+                 <tr>
+                   <td><input type="checkbox" style="top:-2px;" name="optionsRadios0"  data-bind="checkedValue: $data, checked: $parent.chosenItems"></td>
+                   <td data-bind="text:name"></td>
+                   <td data-bind="text:softType"></td>
+                   <td data-bind="text:version"></td>
+                 </tr>
+                 <!-- /ko -->
+               </tbody>
+             </table>
+           </div>
+           <footer class="panel-footer" data-bind="with: $root.table_Software_VM">
+		        <ul class="pagination">
+		            <li data-bind="css: leftPagerClass, click: prevPage">
+		              <a href="#">&laquo;</a>
+		            </li>
+		            <!-- ko foreach: {data: (new Array(pages()))} -->
+		            <li data-bind="css: $parent.pageClass($index() + 1)">
+		              <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+		            </li>
+		            <!-- /ko -->
+		            <li data-bind="css: rightPagerClass, click: nextPage">
+		              <a href="#">&raquo;</a>
+		            </li>
+		        </ul>
+        	  </footer>
+         </div>
+         <div class='modal-footer' style="text-align:center;">
+            <a class="btn btn-default btn-info" data-bind="click: submitSoftwareService">确定选择</a>
+            <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 添加软件 -->
   
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
@@ -672,6 +734,56 @@
 				      				vmInfo.expireValue(orderItem.expireValue);
 				      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 				      				vmInfo.relateUuid(orderItem.relateUuid);
+				      				/**************加载云软件数据**************************/
+				      				var softwareList = vmInParamData.softwareList;
+				      				if(softwareList){
+				      				  vmInfo.softwareTempList = softwareList;
+				      				  csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,vmInfo) {
+				      					    var softwareTempList = vmInfo.softwareTempList;
+					      					for(var i=0;i<softwareTempList.length;i++){
+					      						var tempSoft = softwareTempList[i];
+					      						var software = new Software();
+					      						software.uuid(tempSoft.softwareUuid);
+					      						software.scriptUuid(tempSoft.scriptUuid);
+					      						for(var j=0;j<softList.results.length;j++){
+					      							var querySoftVO = softList.results[j];
+					      							if(software.uuid() == querySoftVO.uuid){
+					      								software.name(querySoftVO.name);
+					      								software.softType(querySoftVO.softType);
+					      								software.softTypeName(querySoftVO.softTypeName);
+					      								software.version(querySoftVO.version);
+					      							}
+					      						}
+					      						
+					      						software.softwareParamsTemp = tempSoft.softwareParamsList;
+					      		                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
+					      		                	var attrArray = attrList.results;
+					      		                	var softwareParamsTemp = software.softwareParamsTemp;
+					      		                    for(var i=0;i<attrArray.length;i++){
+					      		                    	var attrVO = attrArray[i];
+						      		                  	var param = new SoftwareParam();
+						      		                    param.softwareUuid(software.softwareUuid);
+									      		        param.scriptUuid(software.scriptUuid);
+									      		        param.uuid(attrVO.uuid);
+									      		        param.code(attrVO.code);
+									      		        param.defaultValue(attrVO.value);
+									      		        param.name(attrVO.name);
+					      		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
+					      		                    		 var softwareParamsVO = softwareParamsTemp[j];
+					      		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
+					      		                    			param.value(softwareParamsVO.paramsValue);
+					      		                    			break;
+					      		                    		 }
+					      		                    	 }
+					      		               		    software.softwareParams.push(param);
+					      		                    } 
+					      		                	
+					      		                },function(){},software);
+					      		               vmInfo.softwareList.push(software);  
+					      					}
+				      				  },function(){},vmInfo);
+				      				}
+				      				/**************加载云软件数据**************************/
 				      				self.currentVO().vmApplyList.push(vmInfo);
 				      			  }else if(orderItem.resourceType == "DISK"){
 				      				  var serviceUuid=orderItem.serviceUuid;
@@ -911,7 +1023,112 @@
 				      	  	    	return arrayCharge;
 				      	  	 }
 			                 
+				      		
+			            	/***************云软件详情和编辑页面***********************/  
+			                var editSoftwareObject = null;
+				      	    self.showSoftwareAttr = ko.observable(false);
+				      	    self.disableAttr_VM = ko.observable();
+				      	    self.attrList_VM = ko.observableArray([]);
+				          	self.showAttr_VM = function(viewOrEdit,object,event){
+					        	self.attrList_VM(object.softwareParams());
+					        	self.disableAttr_VM(viewOrEdit);
+					        	self.showSoftwareAttr(true);
+					           	editSoftwareObject = object;
+					        }  
+				          	
+				          	self.saveSoftwareAttr = function(){
+					        	var item = this;
+					        	editSoftwareObject.softwareParams(self.attrList_VM());
+					        	self.showSoftwareAttr(false);
+					        	systemMsg.alert('保存成功');
+					        }
+				          	/***************云软件详情和编辑页面***********************/  
+				          	
+				          	 
+						    /************************************ 云主机软件查询  ************************************/
+					      	self.searchSoftwareParam = ko.observable({
+					      		softwareName : "",
+					      		softType:"",
+					      		softTypeName:""
+					      	})
+					      	self.searchSoftware = function(){
+					        	self.table_Software_VM.params(self.searchSoftwareParam());
+					      	}
+				          	
+					      	self.AllSoftTypeList = ko.observableArray();
+					        csc.rest.get("api/v5.0.0/soft/list/softTypes?type=true", function(data){
+					        	self.AllSoftTypeList(data);
+					        });
+					        
+					        self.AllSoftTypeNameList = ko.observableArray();
+					        csc.rest.get("api/v5.0.0/soft/list/softTypes", function(data){
+					        	self.AllSoftTypeNameList(data);
+					        });
+					      	/************************************ 云主机 软件查询  ************************************/
+				          	
+				            /************************************ 云主机 软件添加  ************************************/
+					        self.selectSoftware = ko.observable(false);
+					        self.table_Software_VM = null;
+					        self.selectSoftware_VM = function(object){
+						    	self.table_Software_VM = new DataTable([], {path: 'api/v5.0.0/soft/softwares?status=1&osType='+object.osType(),perPage:10});
+						    	self.selectSoftware(true);
+						    	editSoftwareObject = object;
+						    }
+					        self.submitSoftwareService = function(){
+						    	self.table_Software_VM.chosenItems().forEach(function(e){
+						    		var vo=new Software();
+							    	vo.uuid(e.uuid);
+							    	vo.scriptUuid(e.scriptUuid);
+							    	vo.name(e.name);
+							    	vo.softType(e.softType);
+							    	vo.softTypeName(e.softTypeName);
+							    	vo.version(e.version);
+					                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+e.scriptUuid, function(attrList) {
+					                	var attrArray = attrList.results;
+					                	attrArray.forEach(function (f){
+			      		                  	var param = new SoftwareParam();
+			      		                    param.softwareUuid(e.softwareUuid);
+						      		        param.scriptUuid(e.scriptUuid);
+						      		        param.uuid(f.uuid);
+						      		        param.code(f.code);
+						      		        param.defaultValue(f.value);
+						      		        param.name(f.name);
+						      		        vo.softwareParams.push(param);
+					                	})
+					                });
+					                editSoftwareObject.softwareList.push(vo);
+						    	});
+					            self.selectSoftware(false);
+						    }
+						    
+					        self.delSoftwart_VM = function(obj,data,event){
+						    	obj.softwareList.remove(data);
+						    }
+					        /************************************ 云主机 软件添加  ************************************/
+				          	
+				          	
 				      		  
+				      		/******************实体对象定义**********************/  
+				      		function Software(){
+				      		    this.uuid = ko.observable();
+						    	this.scriptUuid = ko.observable();
+						    	this.name = ko.observable();
+						    	this.softType = ko.observable();
+						    	this.softTypeName = ko.observable();
+						    	this.version = ko.observable();
+						    	this.softwareParams=ko.observableArray([]);
+				      		}
+				      		
+				      		function SoftwareParam(){
+				      			this.softwareUuid = ko.observable();
+						    	this.scriptUuid = ko.observable();
+						    	this.uuid = ko.observable();
+						    	this.code = ko.observable();
+						    	this.value = ko.observable();
+						    	this.name = ko.observable();
+						    	this.defaultValue = ko.observable();
+				      		}
+			                
 				      		function DiskInfo(){
 				      			this.uuid= ko.observable(""),
 				      			this.serviceUuid= ko.observable(""),
@@ -1033,6 +1250,7 @@
 				 	            }, this);
 				      	        this.relateUuid=ko.observable(""),
 				      	        this.mountDiskList =  ko.observableArray([]),
+				      	        this.softwareList = ko.observableArray([]);
 				      	        this.vdcList = ko.observableArray([]),
 				 	      	    this.vpcList = ko.observableArray([]),
 				 	      	    this.azList = ko.observableArray([]),
@@ -1100,6 +1318,25 @@
 					        		 	metaDataResBaseInfo.ip = vmVO.ip();
 					        		 	metaDataResBaseInfo.busSysUuid = vmVO.busSysUuid();
 					        		   	metaDataResBaseInfo.sshUuid = vmVO.sshKeyUuid();
+					        		   	
+					        		   	metaDataResBaseInfo.softwareList = []
+					        		   	var softwareList = vmVO.softwareList();
+					        		   	for(var k=0;k<softwareList.length;k++){
+					        		   		var softwareVo = softwareList[k];
+					        		   		var software = {};
+					        		   		software.softwareUuid = softwareVo.uuid();
+					        		   		software.scriptUuid =softwareVo.scriptUuid();
+					        		   		software.softwareParamsList = [];
+					        		   		var softwareParamList = softwareVo.softwareParams();
+					        		   		for(var p=0;p<softwareParamList.length;p++){
+					        		   			var param = softwareParamList[p];
+					        		   			var softwareParam = {};
+					        		   			softwareParam.paramsUuid = param.uuid();
+					        		   			softwareParam.paramsValue = param.value();
+					        		   			software.softwareParamsList.push(softwareParam);
+					        		   		}
+					        		   		metaDataResBaseInfo.softwareList.push(software);
+					        		   	}
 					        			metaData.resBaseInfo =  metaDataResBaseInfo;
 			    		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
 			    		  		    	vmOrderItemVONew.push(vmOrderItemVO);

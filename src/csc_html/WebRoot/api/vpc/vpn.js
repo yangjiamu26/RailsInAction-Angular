@@ -65,6 +65,16 @@
 				csc.rest.del('api/v5.0.0/vpns/'+vpnUuid+'/ipsecSite/'+uuid,function(data){
 					 callback(data)
    		        })
+			},
+			/**
+			 * 查看Site下的策略(policy)
+			 *  @param vpnUuid vpnUuid
+			 *  @param ipseceUuid ipseceUuid
+			 */
+			getVpnIpsecSitePolicy:function(vpnUuid, ipseceUuid, callback){
+				csc.rest.get('api/v5.0.0/vpns/'+vpnUuid+'/ipsecSite/'+ipseceUuid+'/policy', function(data){
+					callback(data)
+				})
 			}
 	};
 }(window.jQuery);
