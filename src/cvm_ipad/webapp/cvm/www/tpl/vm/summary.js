@@ -1,18 +1,24 @@
 myApp.onPageInit("vm-summary", function(page) {
   
   function ViewModel(){
+    var self = this;
     this.summary = ko.observable({
-
+      "osVersion": "",
+      "cpu": "",
+      "maxcpu": "",
+      "mincpu": "",
+      "vcpu": "",
+      "maxVcpu": "",
+      "minVcpu": "",
+      "memory": "",
+      "maxMemory": "",
+      "minMemory": "",
+      "type":'',
+      "network": []
     });
-    this.loadData = function(){
-      var self = this;
-      $$.getJSON("tpl/vm/summary.json?id="+page.query.id, function(data){
-        myApp.pullToRefreshDone();
-        self.summary(data);
-
-        initsingleStorage_use_chart();
-        initsingleStorage_assigned_chart();
-      });      
+    this.loadData = function(data){
+      myApp.pullToRefreshDone();
+      self.summary(data);
     };
   }
   var viewModel = new ViewModel();

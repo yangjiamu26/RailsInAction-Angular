@@ -1,6 +1,8 @@
 myApp.onPageInit("host-summary", function(page) {
   // 单个资源池-cpu占比图
 function initSingleHost_cpu_chart(data) {
+  var unit = "GHz";
+  if(data.hypervisor=="PowerVM") unit = "核";
     $('#singleHost_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -32,7 +34,7 @@ function initSingleHost_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>'+unit,
       },
       plotOptions: {
           pie: {
@@ -103,7 +105,7 @@ function initSingleHost_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -174,7 +176,7 @@ function initSingleHost_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+        labelFormat: '{name}：<b>{y:.2f}</b>TB',
       },
       plotOptions: {
           pie: {
@@ -216,6 +218,7 @@ function initSingleHost_storage_chart(data) {
     this.summary = ko.observable({
       "hypervisor":'',
       "vmNum":'',
+      "runningVmNum":'',
       "cpuUnit":'',
       "cpuSlots":'',
       "cpuSpeed":'',
@@ -226,13 +229,12 @@ function initSingleHost_storage_chart(data) {
     });
     this.loadData = function(data){
       var self = this;
-      console.log(typeof(parseFloat(data.cpuSpeed)/1024))
-      data.cpuSpeed = parseFloat(data.cpuSpeed)/1024;
-      data.memory = parseFloat(data.memory)/1024;
-      data.storage = parseFloat(data.storage)/1024;
-      data.availCpu = parseFloat(data.availCpu)/1024;
-      data.availMemory = parseFloat(data.availMemory)/1024;
-      data.availStorage = parseFloat(data.availStorage)/1024;
+      data.cpuSpeed = Number((parseFloat(data.cpuSpeed)/1024).toFixed(2));
+      data.memory = Number((parseFloat(data.memory)/1024).toFixed(2));
+      data.storage = Number((parseFloat(data.storage)/1024).toFixed(2));
+      data.availCpu = Number((parseFloat(data.availCpu)/1024).toFixed(2));
+      data.availMemory = Number((parseFloat(data.availMemory)/1024).toFixed(2));
+      data.availStorage = Number((parseFloat(data.availStorage)/1024).toFixed(2));
       self.summary(data);
       initSingleHost_cpu_chart(data);
       initSingleHost_memory_chart(data);
