@@ -10,14 +10,18 @@ myApp.onPageInit("vm-performance", function(page) {
           monthNames: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
           dayNames: ['周日','周一','周二','周三','周四','周五','周六'],
           dayNamesShort: ['周日','周一','周二','周三','周四','周五','周六']
-      });     
-      initMemoryUse_chart();
-      initcpuUse_chart1();
-      initcpuUse_chart2();    
+      });
+      RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
+        console.log(data)
+        initMemoryUse_chart();
+        initcpuUse_chart1();
+        initcpuUse_chart2();
+      }); 
     };
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-  
+
   viewModel.loadData();
+
 });

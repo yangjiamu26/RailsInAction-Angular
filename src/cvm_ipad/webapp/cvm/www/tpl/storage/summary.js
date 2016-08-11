@@ -103,7 +103,7 @@ function initsingleStorage_assigned_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GHz',
+        labelFormat: '{name}：<b>{y}</b>GB',
       },
       plotOptions: {
           pie: {

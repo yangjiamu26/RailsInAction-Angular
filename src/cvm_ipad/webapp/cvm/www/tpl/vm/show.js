@@ -1,11 +1,12 @@
 myApp.onPageInit("vm-show", function(page) {
+  var url;
   if(page.query.hypervisor=="PowerVM"){
     url = 'tpl/vm/summary.html';
   }else{
     url = 'tpl/vm/summary2.html'
   }
   myApp.addView('#view_vm_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: url+"?hypervisor="+page.query.hypervisor,animatePages: false});
-  myApp.addView('#view_vm_performance',      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html',animatePages: false});
+  myApp.addView('#view_vm_performance',      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html?hypervisor='+page.query.hypervisor+'&id='+page.query.id,animatePages: false});
   myApp.addView('#view_vm_volumn', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html?fromPage=vm&hypervisor='+page.query.hypervisor+'&id='+page.query.id,animatePages: false});
   function ViewModel(){
     var self = this;
@@ -33,7 +34,6 @@ myApp.onPageInit("vm-show", function(page) {
           window.vm_summary2_viewModal.loadData(data);
         }
       });
-      var url;
       
     };
   }

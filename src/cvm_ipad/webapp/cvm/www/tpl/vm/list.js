@@ -3,6 +3,7 @@ myApp.onPageInit("vm-list", function(page) {
   function ViewModel(){
     this.dataList = ko.observableArray([]);
     this.fromPage = ko.observable();
+    this.hypervisor = ko.observable(page.query.hypervisor);
 
     this.loading = false;
     this.page = 1;
