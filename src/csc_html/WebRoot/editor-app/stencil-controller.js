@@ -223,7 +223,7 @@ angular.module('activitiModeler')
             });
 
           //modified by zhouheng 2016-1-6 start
-        	var modelId = EDITOR.UTIL.getParameterByName('modelId');
+        	/*var modelId = EDITOR.UTIL.getParameterByName('modelId');
         	var modelIdUrl = KISBPM.URL.getNodesByModelId(modelId);
             $http({method: 'GET', url: modelIdUrl}).
                success(function (data, status, headers, config) {            	   
@@ -237,8 +237,15 @@ angular.module('activitiModeler')
             
             
         	$scope.users = [{id : "null" ,name : "--请选择--"}];
-        	$scope.users1 = [];
-        	//modified by zhouheng 2016-1-6 start
+        	$scope.users1 = [];*/
+            //modified by zhouheng 2016-1-6 start
+            
+            /************modified by wujie 2016-8-9 start**************************/
+            formKeyList.push({key:'approve',name:'approve'});
+            formKeyList.push({key:'construct',name:'construct'});
+            formKeyList.push({key:'resure',name:'resure'});
+            /************modified by wujie 2016-8-9 end****************************/
+            
     		var userUrl = KISBPM.URL.getUsers();
     	    $http({method: 'GET', url: userUrl}).
     	       success(function (data, status, headers, config) {     	    	   

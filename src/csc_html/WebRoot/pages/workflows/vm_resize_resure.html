@@ -1,0 +1,139 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">申请信息</div>
+        <div id="orderDetailedList" class="wrapper">
+
+          <div class="row">
+            <div class="col-xs-4"><p>资源名称：<span data-bind="text: currentVO().resourceName"></span><a>查看</a></p></div>
+            <div class="col-xs-4"><p>所属VDC：<span data-bind="text: currentVO().vdcName"></span></p></div>
+          </div>
+          <div class="row">
+            <div class="col-xs-4"><p>所属业务系统：<span data-bind="text: currentVO().busSysName"></span></p></div>
+            <div class="col-xs-4"><p>资源类型：
+            	<span data-bind="visible: currentVO().type()=='VM'">云主机</span>
+            	<span data-bind="visible: currentVO().type()=='DISK'">云硬盘</span></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-4"><p>施工状态：
+            	<span class="label label-success" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_SUCCESS'">施工成功</span>
+                <span class="label label-danger" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_FAILED'">施工失败</span>
+                <span class="label label-info" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_READY'">待施工</span>
+                <span class="label label-warning" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_DOING'">施工中</span>
+            </p></div>
+            <div class="col-xs-4" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_FAILED'"><p>失败原因：
+            	<span data-bind="text: currentVO().workFailedMessage">失败原因</span>
+            </p></div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>调整前</th>
+                <th>调整后</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CPU(个)</td>
+                <td><span data-bind="text: currentVO().vcpu"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetVcpu" disabled/></td>
+              </tr>
+              <tr>
+                <td>内存(G)</td>
+                <td><span data-bind="text: currentVO().memory"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetMemory" disabled/></td>
+              </tr>
+              <tr>
+                <td>存储(G)</td>
+                <td><span data-bind="text: currentVO().storage"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetStorage" disabled/></td>
+              </tr>
+            </tbody>
+          </table>   
+        </div>
+  </div>
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = [null, null]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  function ViewModel(){
+  		  var self = this;
+  		  this.currentVO = ko.observable({
+  			orderId: ko.observable(),
+  			itemId: ko.observable(),
+  			
+  	        taskId: ko.observable(),
+  	        processType: ko.observable(),
+  	        processState: ko.observable(),
+  	        processNode: ko.observable(),
+  	        
+  	        user: ko.observable(),
+  	        time: ko.observable(),
+  	        resourceName: ko.observable(),
+  	        vdcName: ko.observable(),
+  	        busSysName: ko.observable(),
+  	      	type: ko.observable(),
+  	        
+  	        vcpu: ko.observable(),
+  	        memory: ko.observable(),
+  	        storage: ko.observable(),
+  	        
+  	        targetVcpu: ko.observable(),
+  	        targetMemory: ko.observable(),
+  	        targetStorage: ko.observable(),
+  	        
+  	        itemState: ko.observable(),
+  	        workFailedMessage: ko.observable()
+  	        
+  	      });
+  		  
+  		csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(taskData){
+  	   	     var processInstanceId = taskData.taskInfo[0].processInstanceId;
+  	   		 
+  			 //获取订单数据
+  	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(processData){
+  	      		var orderData = processData;
+  	      	    self.currentVO().orderId(orderData.uuid);
+  	      		var itemListData = processData.orderItems;
+  	      		var metaData = JSON.parse(itemListData[0].metaData);
+  	      		self.currentVO().itemId(itemListData[0].uuid);
+  	      	    self.currentVO().itemState(itemListData[0].itemState);
+  	      		self.currentVO().workFailedMessage(itemListData[0].workFailedMessage);
+  	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+  	      		
+  	      		self.currentVO().taskId(args.taskId);
+  	      		self.currentVO().user(orderData.userName);
+  	      		self.currentVO().time(orderData.createTime);
+  	      		
+	  	      	self.currentVO().resourceName(itemListData[0].instanceName);
+	  	      	self.currentVO().type(itemListData[0].resourceType);
+	  	      	
+	  	        self.currentVO().resourceName(itemListData[0].instanceName);
+	  	      	self.currentVO().type(itemListData[0].resourceType);
+	  	      	
+	      		self.currentVO().vdcName(resBaseInfo.vdcName);
+	      		if(resBaseInfo.busSysName != 'null'){  	      			
+	  	      		self.currentVO().busSysName(resBaseInfo.busSysName);
+	      		}
+	      		
+	      		self.currentVO().vcpu(resBaseInfo.metaVcpu);
+	      		self.currentVO().memory(resBaseInfo.metaMemory);
+	      		self.currentVO().storage(resBaseInfo.metaStorage);
+  	      		
+  	      		self.currentVO().targetVcpu(resBaseInfo.vcpu);
+  	      		self.currentVO().targetMemory(resBaseInfo.memory);
+  	      		self.currentVO().targetStorage(resBaseInfo.storage);
+  	      		
+  	      	 });
+  		});
+  		
+  		this.save = function(){
+       		saveComment(args.taskId,function(){
+       			alert("保存成功！");
+       		});
+        }
+  	  }
+  	 ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+  });
+</script>

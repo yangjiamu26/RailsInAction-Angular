@@ -1,0 +1,703 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">VDC变更</div>
+        <div id="orderDetailedList" class="wrapper">
+            <div class="panel panel-default">
+              <div class="panel-heading"><strong>VDC名称：</strong><span data-bind="text: vdc().instanceName"></span></div>
+              <div class="panel-body no-padder form-inline">
+                <div class="form-group" style="padding:15px;">
+                  <label for="exampleInputName2">支持的操作系统：</label>
+                  <div class="checkbox"><label><input checked disabled class="form-group" type="checkbox" data-bind="checked: windows"/> Windows</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: linux"/> Linux</label></div>&nbsp;&nbsp;
+                  <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: aix"/> Aix</label></div>
+                </div>
+                <div class="table-responsive no-height">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>CPU(个)</td>
+                        <td data-bind="text: metaVdc().cpu"></td>
+                        <td data-bind="text: changeVdc().cpu"></td>
+                        <td>内存(G)</td>
+                        <td data-bind="text: metaVdc().memory"></td>
+                        <td data-bind="text: changeVdc().memory"></td>
+                      </tr>
+                      <tr>
+                        <td>存储(G)</td>
+                        <td data-bind="text: metaVdc().storage"></td>
+                        <td data-bind="text: changeVdc().storage"></td>
+                        <td>VPC(个)</td>
+                        <td data-bind="text: metaVdc().vpc"></td>
+                        <td data-bind="text: changeVdc().vpc"></td>
+                      </tr>
+                      <tr>
+                        <td>云主机(个)</td>
+                        <td data-bind="text: metaVdc().vm"></td>
+                        <td data-bind="text: changeVdc().vm"></td>
+                        <td>云硬盘(个)</td>
+                        <td data-bind="text: metaVdc().disk"></td>
+                        <td data-bind="text: changeVdc().disk"></td>
+                      </tr>
+                      <tr>
+                        <td>公网IP(个)</td>
+                        <td data-bind="text: metaVdc().publicIp"></td>
+                        <td data-bind="text: changeVdc().publicIp"></td>
+                        <td>路由器(个)</td>
+                        <td data-bind="text: metaVdc().router"></td>
+                        <td data-bind="text: changeVdc().router"></td>
+                      </tr>
+                      <tr>
+                        <td>防火墙(个)</td>
+                        <td data-bind="text: metaVdc().firewall"></td>
+                        <td data-bind="text: changeVdc().firewall"></td>
+                        <td>负载均衡器(个)</td>
+                        <td data-bind="text: metaVdc().loadBalance"></td>
+                        <td data-bind="text: changeVdc().loadBalance"></td>
+                      </tr>
+                      <tr>
+                        <td>SSH密钥(对)</td>
+                        <td data-bind="text: metaVdc().secretKey"></td>
+                        <td data-bind="text: changeVdc().secretKey"></td>
+                        <td>对象存储(GB)</td>
+                        <td data-bind="text: metaVdc().objectStorage"></td>
+                        <td data-bind="text: changeVdc().objectStorage"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+            <h5 class="text-info">可用分区 <button class="btn btn-sm btn-info" data-bind="click:addVdcAZ">添加</button></h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>可用分区</th>
+                        <th>云管理平台</th>
+                        <th>虚拟化类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="vdcRelAcList" data-bind="foreach: azs">
+                	<tr>
+                		<input type="hidden" data-bind="value: uuid" name="azUuid">
+                		<td data-bind="text: name"></td>
+                		<td data-bind="text: cloudPlatform"></td>
+                		<td data-bind="text: virtualHypervisor"></td>
+                		<td><a data-bind="click: $root.removeAz">移除</a></td>
+                	</tr>
+                </tbody>
+            </table>
+            
+            <h5 class="text-info">网络 <button class="btn btn-sm btn-info" data-bind="click:addVdcNetwork">添加</button></h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>网络名称/IP池</th>
+                        <th>云管理平台</th>
+                        <th>可用分区</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: networks">
+                	<tr>
+                		<input type="hidden" data-bind="value: networkUuid,attr:{azUuid:azUuid}" name="networkUuid">
+                		<td data-bind="text: networkName"></td>
+                		<td data-bind="text: cloudPlatformName"></td>
+                		<td data-bind="text: azName"></td>
+                		<td><a data-bind="click: $root.removeNetwork">移除</a></td>
+                	</tr>
+                </tbody>
+            </table>
+
+	        </div>
+	        
+	        <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcAZModel }">
+		      <div class='modal-dialog modal-lg' role='document'>
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加分区</h3>
+			      </div>
+			      <div class='modal-body'>
+			        <div>
+			          <div class="row" id="net_0">
+			            <div class="col-xs-5">
+			              <p>待选择：</p>
+			              <div class="table-responsive">
+			              <div style="height:400px; overflow:scroll;">
+				              <table class="table table-striped">
+				                <thead>
+				                  <th>
+				                    <div class="checkbox">
+				                      <label class="i-checks">
+				                        <input type="checkbox" value="">
+				                        <i></i>
+				                      </label>
+				                    </div> 
+				                  </th>
+				                  <th>云管理平台</th>
+				                  <th>虚拟化类型</th>
+				                  <th>可用分区</th>
+				                </thead>
+				                <tbody  id="availableAzListTableId">
+				                  <tr>
+				                    <td>
+				                      <div class="checkbox">
+				                        <label class="i-checks">
+				                          <input type="checkbox"  value="">
+				                          <i></i>
+				                        </label>
+				                      </div> 
+				                    </td>
+				                    <td>wincenter</td>
+				                    <td>WinServer</td>
+				                    <td>zone1</td>
+				                  </tr>
+				                </tbody>
+				              </table>
+				             </div>
+			              </div>
+			            </div>
+			            <div class="col-xs-2">
+			              <button class="btn btn-block btn-default" id="addAz2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+			              <button class="btn btn-block btn-default" id="removeAz2PreAddList" >&lt;&lt;</button>
+			            </div>
+			            <div class="col-xs-5">
+			              <p>已选择：</p>
+			              <div class="table-responsive">               
+			              <table class="table table-striped">
+			                <thead>
+			                  <th>
+			                    <div class="checkbox">
+			                      <label class="i-checks">
+			                        <input type="checkbox" value="">
+			                        <i></i>
+			                      </label>
+			                    </div> 
+			                  </th>
+			                  <th>云管理平台</th>
+			                  <th>虚拟化类型</th>
+			                  <th>可用分区</th>
+			                </thead>
+			                <tbody id="preAddAzListTableId">
+			                </tbody>
+			              </table>
+			              </div>
+			            </div>
+			          </div>
+			          <div id="net_1" style="display:none">
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>子网名称
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>生成IP方式
+			              </label>
+			              <div class="col-xs-3">
+			                <select class="form-control" >
+			                  <option>网段</option>
+			                </select>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>开始地址
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>结束地址
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>掩码
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>网关
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>主DNS
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			            <div class="form-group string required">
+			              <label class="string required col-xs-2 control-label">
+			                <abbr title="必填项">*</abbr>备DNS
+			              </label>
+			              <div class="col-xs-3">
+			                <input class="string required form-control" type="text"/>
+			              </div>
+			            </div>
+			          </div>
+			        </div>
+			      </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddAz" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
+		    </div>
+		    
+		    <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVdcNetworkModel }" >   
+		    <div class='modal-dialog modal-lg' role='document'>
+				<div class='modal-content'>
+					<div class='modal-header'>
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加网络</h3>
+					</div>
+					<div class='modal-body form-horizontal'>
+						<div class="row">
+							<div class="col-xs-5" style="width:380px">
+								<p>待选择：</p>
+								<div class="form-inline text-right" style="margin-bottom:10px;">
+									<select class="form-control input-sm"  data-bind="options:addVdcNetworkAzList,optionsText:'name',optionsValue:'uuid',value: addVdcNetworkAzVO().uuid">
+									</select>
+									<div class="form-group input-group">
+		                            	<input type="text" class="input-sm form-control" style="width:100px;" placeholder="请输入名称" data-bind="value:addVdcNetworkSearchParam().name">
+		                            	<button class="btn btn-sm btn-default" type="button" data-bind="click:addVdcNetworkSearch"  >搜索</button>
+		                            </div>
+								</div>
+								<div style="height:400px; overflow:scroll;">
+									<table class="table table-striped">
+										<thead>
+											<th>
+							                  <div class="checkbox">
+							                    <label class="i-checks">
+							                      <input type="checkbox" value="">
+							                      <i></i>
+							                    </label>
+							                  </div> 
+							                </th>
+											<th>可用分区</th>
+											<th>外部网络/IP池</th>
+										</thead>
+										<tbody id="availableAzNetworkListTableId">
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-xs-1">
+								<button class="btn btn-block btn-default" id="addNetwork2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+								<button class="btn btn-block btn-default" id="removeNetwork2PreAddList" >&lt;&lt;</button>
+							</div>
+							<div class="col-xs-5" style="width:380px">
+								<p>已选择：</p>
+								<table class="table table-striped">
+									<thead>
+										<th>
+						                  <div class="checkbox">
+						                    <label class="i-checks">
+						                      <input type="checkbox" value="">
+						                      <i></i>
+						                    </label>
+						                  </div> 
+						                </th>
+										<th>可用分区</th>
+										<th>外部网络/IP池</th>
+									</thead>
+									<tbody id="preAddAzNetworkListTableId">
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					<div class='modal-footer'>
+						<input type="button" name="commit" value="确定"  data-bind="click:confirmVdcAddNetwork" class="btn btn-default btn-info" />
+						<button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+	    </div>
+
+    </div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = ["api/vdc/vdc.js"]
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  function ViewModel(){
+		  var self = this;
+		  
+		  this.order = ko.observable("");
+	  	  this.vdc = ko.observable("");
+	  	  this.resBaseInfo = ko.observable("");
+	  	  this.osType = ko.observable("");
+	  	  this.metaData = ko.observable("");
+	  	  this.vdcQuotaList = ko.observable("");
+	  	  this.expireType = ko.observable("");
+	  	  this.expireValue = ko.observable("");
+	  	
+	  	  this.windows = ko.observable("");
+	  	  this.linux = ko.observable("");
+	  	  this.aix = ko.observable("");
+	  	  
+	  	  this.changeVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+		  
+		  this.metaVdc = ko.validatedObservable({
+  	        cpu: ko.observable(""),
+  	        memory: ko.observable(""),
+  	        storage: ko.observable(""),
+  	        vpc: ko.observable(""),
+  	        vm: ko.observable(""),
+  	        disk: ko.observable(""),
+  	        publicIp: ko.observable(""),
+  	        router: ko.observable(""),
+  	        firewall: ko.observable(""),
+  	        loadBalance: ko.observable(""),
+  	        secretKey: ko.observable(""),
+  	        objectStorage: ko.observable("")
+  	      });
+	  	  
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+	      		var orderData = data;
+	      		var itemListData = data.orderItems;
+	      		var metaData = JSON.parse(itemListData[0].metaData);
+	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	      		var osType = metaData.osType;
+	      		var vdcQuotaList = resBaseInfo.vdcQuotaList;
+	      		var azs = resBaseInfo.azs;
+	      		self.order(orderData);
+	      		self.vdc(itemListData[0]);
+	      		self.metaData(metaData);
+	      		for(var i=0;i<vdcQuotaList.length;i++){
+	      			if(vdcQuotaList[i].type=='CPU'){
+	      				self.changeVdc().cpu(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='MEMORY'){
+	      				self.changeVdc().memory(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='STORAGE'){
+	      				self.changeVdc().storage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VPC'){
+	      				self.changeVdc().vpc(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VM'){
+	      				self.changeVdc().vm(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='DISK'){
+	      				self.changeVdc().disk(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+	      				self.changeVdc().publicIp(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='ROUTER'){
+	      				self.changeVdc().router(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+	      				self.changeVdc().firewall(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+	      				self.changeVdc().secretKey(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+	      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+	      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+	      			}
+	      		}
+	      		for(var i=0;i<osType.length;i++){
+	      			if(osType[i]=='windows'){
+	      				self.windows(true);
+	      			}else if(osType[i]=='linux'){
+	      				self.linux(true);
+	      			}else if(osType[i]=='aix'){
+	      				self.aix(true);
+	      			}
+	      		}
+	      		self.vdcQuotaList(vdcQuotaList);
+	      		
+	      		$.VDC.getVdcQuota(itemListData[0].vdcUuid,"",function(data){
+		    		var vdcQuotaList = data.results;
+		    		for(var i=0;i<vdcQuotaList.length;i++){
+		    			if(vdcQuotaList[i].type=='CPU'){
+		      				self.metaVdc().cpu(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='MEMORY'){
+		      				self.metaVdc().memory(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='STORAGE'){
+		      				self.metaVdc().storage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPC'){
+		      				self.metaVdc().vpc(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VM'){
+		      				self.metaVdc().vm(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='DISK'){
+		      				self.metaVdc().disk(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+		      				self.metaVdc().publicIp(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='ROUTER'){
+		      				self.metaVdc().router(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+		      				self.metaVdc().firewall(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+		      				self.metaVdc().secretKey(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+		      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+		      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
+		      			}
+		    		}
+		    	});
+	      		
+	      		var azList = [];
+	      		var networks = [];
+	      		if(azs != undefined){	      			
+		      		for(var i=0;i<azs.length;i++){
+		      			$.VDC.getAvailableToVdc({uuid:azs[i].uuid},function(data){
+			      			azList.push(data.results[0]);
+			      			self.azs(azList);
+		      			});
+		      			/* debugger
+		      			var nwUuids = azs[i].networks;
+		      			for(var j=0;j<nwUuids.length;j++){
+		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
+		      					console.log(data);
+			      				networks.push(data);
+		   					});
+		      			} */
+		      		}
+	      		}
+	      	 })
+		  })
+		  
+		  this.azs = ko.observable("");//可用分区列表
+    	  this.networks = ko.observable("");//网络列表
+		  /*****添加AZ start*****/
+	        this.addVdcAZModel = ko.observable(false);
+	        self.addVdcAZ = function(){
+				$("#availableAzListTableId").html("");
+				$("#preAddAzListTableId").html("");
+				$.VDC.getAvailableToVdc({},function(data){
+					  var tableBody = "";
+					  if(data && data.results){
+						  var azList = data.results;
+						  for(var i=0;i<azList.length;i++){
+							  var az = azList[i];
+							  tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" name=\"azUuid\"/><i></i></label></div></td>"
+							  	+"<td id='cloudPlatform"+i+"'>"+az.cloudPlatform+"</td><td id=\"virtualHypervisor"+i+"\">"+az.virtualHypervisor+"</td><td id=\"name"+i+"\">"+az.name+"</td></tr>";
+						  } 
+					  }
+					  $("#availableAzListTableId").html(tableBody);
+				});
+				self.addVdcAZModel(true);
+				
+				$("#addAz2PreAddList").bind("click",function(data){
+				    $("#availableAzListTableId input[type='checkbox']:checked").each(function(){
+				    	$("#preAddAzListTableId").append($(this).parents("tr").prop("outerHTML")) 
+				    	$(this).parents("tr").remove()
+				    })
+				})
+				
+				$("#removeAz2PreAddList").bind("click",function(data){
+					$("#preAddAzListTableId input[type='checkbox']:checked").each(function(){
+						$("#availableAzListTableId").append($(this).parents("tr").prop("outerHTML")) 
+						$(this).parents("tr").remove()
+				    })
+				})
+			}
+	        
+	        
+	        self.confirmAddAz = function(){
+				var azs = [];
+				$("#preAddAzListTableId input[type='checkbox']").each(function(index){
+					//azs.push({uuid:$(this).val()});
+					var cloudPlatform = $("#cloudPlatform"+index).text();
+					var virtualHypervisor = $("#virtualHypervisor"+index).text();
+					var name = $("#name"+index).text();
+					var az={uuid:$(this).val(),cloudPlatform:$("#cloudPlatform"+index).text(),
+							virtualHypervisor:$("#virtualHypervisor"+index).text(),name:$("#name"+index).text()};
+					azs.push(az);
+					/* $("#vdcRelAcList").append("<tr id='"+$(this).val()+"'><td><input type='hidden' value='"+$(this).val()+"'>"
+							+name+"</td><td>"+cloudPlatform+"</td><td>"
+							+virtualHypervisor+"</td><td><a data-bind='click: removeAz'>移除</a></td></tr>"); */
+			    })
+			    self.azs(azs);
+			    self.addVdcAZModel(false);
+			}
+	        this.removeAz = function(object){
+	        	$("input[name='azUuid'][value='"+object.uuid+"']").parent().remove();
+	        }
+	        /*****添加AZ end*****/
+	        
+	        
+	        /*****添加AZ下的网络*****/
+			self.addVdcNetworkModel = ko.observable(false);
+			
+			self.addVdcNetworkAzList = ko.observableArray();
+			self.addVdcNetworkAzVO = ko.observable({"uuid":""})
+			self.addVdcNetworkSearchParam = ko.observable({
+	    	        name: ""
+	    	    })
+	    	self.addVdcNetworkAzList([]);
+			
+		    self.addVdcNetworkSearch = function(){
+				var azUuid = self.addVdcNetworkAzVO().uuid ;
+				var name = self.addVdcNetworkSearchParam().name;
+				$("#availableAzNetworkListTableId").html("");
+				csc.rest.get('api/v5.0.0/networks?azUuid='+azUuid+"&name="+name,function(data){
+					var tableBody = "";
+				   if(data && data.results){
+					   for(var i=0;i<data.results.length;i++){
+						   var network = data.results[i];
+						   tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" az=\""
+						   		+ network.azUuid+"\" azName=\""+network.azName+"\" cloudPlatformName=\""+network.cloudPlatformName +"\" networkName=\""+network.name+"\" value=\""+network.uuid+"\"><i></i></label></div>";
+                           tableBody += "</td><td>"+network.azName+"</td><td>"+network.name+"</td>/tr>"
+					   }
+				   }
+				   $("#availableAzNetworkListTableId").html(tableBody);
+   		    	}); 
+       	    }
+			
+			self.addVdcNetwork = function(){
+				$("#availableAzNetworkListTableId").html("");
+				$("#preAddAzNetworkListTableId").html("");
+				self.addVdcNetworkAzList(this.azs());
+				
+				self.addVdcNetworkModel(true)
+				
+				$("#addNetwork2PreAddList").bind("click",function(data){
+				    $("#availableAzNetworkListTableId input[type='checkbox']").each(function(){
+				        if($(this).prop("checked")){
+				    	   $("#preAddAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
+				    	   $(this).parents("tr").remove();
+				        } 
+				    })
+				})
+				
+				$("#removeNetwork2PreAddList").bind("click",function(data){
+					$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
+					   if($(this).prop("checked")){
+						  $("#availableAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
+						  $(this).parents("tr").remove()
+					    }
+				    })
+				})
+			}
+			
+			this.itemResults = ko.observable("");
+			self.confirmVdcAddNetwork = function(){
+				var azs = [];
+				var networks = [];
+				$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
+					var azUuid = $(this).attr("az");
+					var networkName =  $(this).attr("networkName");
+					var azName =  $(this).attr("azName");
+					var cloudPlatformName =  $(this).attr("cloudPlatformName");
+					var networkUuid = $(this).val();
+				    var notFound = true;
+				    
+				    var net = '';
+					for(var az in azs){
+						var azVo = azs[az];
+						if(azVo.uuid == azUuid){
+							if(!azVo.networks){
+								azVo.networks = [];
+							}
+							azVo.networks.push({"uuid":networkUuid,"networkName":networkName});
+							
+							net = {"azUuid":azUuid,"networkName":networkName,"azName":azName,
+									"cloudPlatformName":cloudPlatformName,"networkUuid":networkUuid};
+							networks.push(net);
+							notFound = false;
+							break;
+						}
+					}
+					if(notFound){
+						azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid,"name":networkName}]});
+						net = {"azUuid":azUuid,"networkName":networkName,"azName":azName,
+								"cloudPlatformName":cloudPlatformName,"networkUuid":networkUuid};
+						networks.push(net);
+					}
+			    })
+			    self.networks(networks);
+			    self.addVdcNetworkModel(false);
+				 
+			}
+			this.removeNetwork = function(object){
+				$("input[name='networkUuid'][value='"+object.networkUuid+"']").parent().remove();
+			}
+			/*****添加AZ下的网络*****/
+	        
+	        
+	        this.save = function(){
+	          	saveComment(args.taskId,function(){
+	          		var azs = [];
+					$("input[name='networkUuid']").each(function(){					
+		          		var azUuid = $(this).attr("azuuid");
+						var networkUuid = $(this).val();
+					    var notFound = true;
+					    
+						for(var az in azs){
+							var azVo = azs[az];
+							if(azVo.uuid == azUuid){
+								if(!azVo.networks){
+									azVo.networks = [];
+								}
+								azVo.networks.push({"uuid":networkUuid});
+								notFound = false;
+								break;
+							}
+						}
+						if(notFound){
+							azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid}]});
+						}
+					})
+					var metaData = self.metaData();
+					var osType = metaData.osType;
+					var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+					var limitQuota = resBaseInfo.limitQuota;
+					var vdcQuotaList = resBaseInfo.vdcQuotaList;
+					
+					var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
+					meta = JSON.stringify(meta);
+				    var itemResults = {"metaData":meta};
+					
+				    self.itemResults(itemResults);
+					csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,self.itemResults(),function(data){
+		          		alert('保存成功！');
+	    		    });
+	          	});
+			}
+		}
+		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+  });
+</script>

@@ -2,6 +2,7 @@ myApp.onPageInit("volumn-list", function(page) {
 
   function ViewModel(){
     this.dataList = ko.observableArray([]);
+    this.fromPage = ko.observable('');
 
     this.loading = false;
     this.page = 1;
@@ -11,18 +12,31 @@ myApp.onPageInit("volumn-list", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      $$.getJSON("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page, function(data){
+      var url;
+      switch(page.query.fromPage){
+        case "vm":
+          this.fromPage("vm");
+          url=BASE_URL+"/vm/"+page.query.id+"/disk";
+          break;
+        case "storage":
+          this.fromPage("storage");
+          url=BASE_URL+"/storagePool/"+page.query.id+"/disk";
+          break;
+      }
+
+      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      //$$.getJSON("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page, function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
         }
-        for(var i=0; i<data.dataList.length; i++){       
-          self.dataList.push(data.dataList[i]);
+        for(var i=0; i<data.data.length; i++){       
+          self.dataList.push(data.data[i]);
         }
         self.page++;
-        if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }

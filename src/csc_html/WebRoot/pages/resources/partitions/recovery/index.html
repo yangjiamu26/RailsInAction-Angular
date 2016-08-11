@@ -59,7 +59,7 @@
           <tr>
             <td data-bind="text:name"></td>
             <td data-bind="text:azName"></td>
-            <td >
+            <td>
             	<span data-bind="if: type == 'VM'">云主机</span>
             	<span data-bind="if: type == 'DISK'">云硬盘</span>
             	<span data-bind="if: type == 'PUBLICIP'">公网IP</span>
@@ -79,28 +79,100 @@
         </tbody>
       </table>
     </div>
-    <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
-      <ul class="pagination">
-        <li data-bind="css: leftPagerClass, click: prevPage">
-          <a href="#">&laquo;</a>
-        </li>
-        <!-- ko foreach: {data: (new Array(pages()))} -->
-        <li data-bind="css: $parent.pageClass($index() + 1)">
-          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-        </li>
-        <!-- /ko -->
-        <li data-bind="css: rightPagerClass, click: nextPage">
-          <a href="#">&raquo;</a>
-        </li>
-      </ul>
-    </footer>
+            <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+				     <ul class="pagination">
+				       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+				         <a href="#">首页</a>
+				       </li>
+				       <li data-bind="css: leftPagerClass, click: prevPage">
+				         <a href="#">&laquo;</a>
+				       </li>
+				       <li >
+				         <a href="#"  data-bind="text: currentPage"></a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: nextPage">
+				         <a href="#">&raquo;</a>
+				       </li>
+				       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+				         <a href="#">末页</a>
+				       </li>
+				       <li class="page-control-li">
+				         <div class="input-group form-group-sm">
+				           <input type="text" class="form-control" data-bind="value: targetPage"  />
+				           <div class="input-group-btn">
+				             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+				           </div>
+				         </div>
+				         <div class="page-info-div" data-bind="text: recordsText"></div>
+				       </li>
+				     </ul>
+				   </footer>
   </div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isRecoverProcess }">
+          <div class='modal-dialog modal-md'>
+            <div class='modal-content'>
+              <div class='modal-header'>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源回收</h3>
+              </div>
+              <div class='modal-body form-horizontal row'>
+		<div class='wrapper-md'>
+<!-- 		    <div class="panel panel-info">
+		        <div class="panel-heading">基本信息</div>
+		        <div class="panel-body">
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>流程类型：</strong>资源回收</p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col-xs-6">
+		                    <p><strong>申请人：<span data-bind="text: recoverProcessVO().user"></span></strong></p>
+		                </div>
+		                <div class="col-xs-6">
+		                    <p><strong>申请日期：<span data-bind="text: recoverProcessVO().time"></span></strong></p>
+		                </div>
+		            </div>
+		        </div>
+		    </div> -->
+
+		    <div class="panel panel-info">
+		        <div class="panel-heading">申请信息</div>
+		        <div id="orderDetailedList" class="wrapper">
+		
+		          <div class="row">
+		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: recoverProcessVO().name"></span></p></div>
+		            <div class="col-xs-6">
+			            <p>资源类型：
+				            <span data-bind="if: recoverProcessVO().type() == 'VM'">云主机</span>
+			            	<span data-bind="if: recoverProcessVO().type() == 'DISK'">云硬盘</span>
+			            	<span data-bind="if: recoverProcessVO().type() == 'PUBLICIP'">公网IP</span>
+			            	<span data-bind="if: recoverProcessVO().type() == 'LOAD_BALANCING'">负载均衡器</span>
+			            	<span data-bind="if: recoverProcessVO().type() == 'SECRET_KEY'">SSH密钥</span>
+			            	<span data-bind="if: recoverProcessVO().type() == 'OBJECT_STORAGE'">对象存储</span>
+			            </p>
+		            </div>
+		          </div>
+		        </div>
+		    </div>
+		</div>         
+		</div>     
+			<div class='modal-footer' style="text-align:center;">
+              <a class="btn btn-default btn-info" data-bind="click: recoverProcessPost">确定</a>
+              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+           </div>
+       </div>
+   </div>
 </div>
 <script type="text/javascript">
   var scripts = [null, null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel(){
-    	
+    	var self = this;
     	//查询条件初始化
         this.searchParam = ko.observable({
           name: '',
@@ -114,19 +186,120 @@
       
       //回收方法
       this.recover = function(object, event){
-    	  systemMsg.confirm("确定要回收资源实例 "+object.name+"？",function(){
-    			csc.rest.del('api/v5.0.0/resourceInstances/'+object.uuid,function(data){
-    				if(csc.util.isNotNull(data.taskId)){
-				 		systemMsg.alert('回收资源实例请求成功，任务ID：'+data.taskId+"！");
-    				}else{
-    					systemMsg.alert('回收资源实例请求成功!');
-    				}
-			 		self.table.refreshData();
-			    });
-    	  });
+    	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
+    		  //服务实例走流程
+    		  self.doRecoverProcess(object);
+    	  }else{
+    		  //非服务实例不走流程
+    		  systemMsg.confirm("确定要回收资源实例 "+object.name+"？",function(){
+      			csc.rest.del('api/v5.0.0/resourceInstances/'+object.uuid,function(data){
+      				if(csc.util.isNotNull(data.taskId)){
+  				 		systemMsg.alert('回收资源实例请求成功，任务ID：'+data.taskId+"！");
+      				}else{
+      					systemMsg.alert('回收资源实例请求成功!');
+      				}
+  			 		self.table.refreshData();
+  			    });
+      	  	  });
+    	  }
       }
-      //导出
+      //导出 
       this.exportURL = ko.observable("api/v5.0.0/resourceInstances/export?isValidate=false");
+      
+      //--------------------------------------回收-流程开始----------------------------------------
+      this.isRecoverProcess = ko.observable(false);
+      
+      this.doRecoverProcess = function(object){
+    	  self.isRecoverProcess(true);
+		  self.recoverProcessVO().name(object.name);
+		  self.recoverProcessVO().uuid(object.uuid);
+		  self.recoverProcessVO().vdcUuid(object.vdcUuid);
+		  self.recoverProcessVO().azUuid(object.azUuid);
+		  self.recoverProcessVO().type(object.type);
+		  self.recoverProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+		  var myDate = new Date();
+		  self.recoverProcessVO().time(myDate.toLocaleString()); 
+      }
+  
+      this.recoverProcessVO = ko.observable({
+    	  name: ko.observable(),
+    	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
+    	  azUuid: ko.observable(),
+    	  type: ko.observable(),
+    	  time: ko.observable(),
+    	  user: ko.observable(),
+    	  serviceInstanceUuid: ko.observable()
+      });
+      //申请
+      this.recoverProcessPost = function(){
+    	  if("VM" == self.recoverProcessVO().type()){
+    		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.recoverProcessVO().uuid(),function(volumeData){
+            	  var orderItem = {};
+            	  orderItem.instanceName = self.recoverProcessVO().name();
+            	  orderItem.serviceInstanceUuid = self.recoverProcessVO().serviceInstanceUuid();
+            	  orderItem.resourceType = self.recoverProcessVO().type();
+            	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
+            	  orderItem.resourceUuid = self.recoverProcessVO().uuid();
+            	  orderItem.vdcUuid = self.recoverProcessVO().vdcUuid();
+            	  orderItem.azUuid = self.recoverProcessVO().azUuid();
+            	  
+            	  var orderItems = [];
+            	  orderItems.push(orderItem);
+            	  
+            	  if(volumeData.results){
+            		  var volumes = volumeData.results;
+                	  for(var i=0;i<volumes.length;i++){
+                		  var volumeItem = {};
+                		  volumeItem.instanceName = volumes[i].volumeName();
+                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+                		  volumeItem.resourceType = "DISK";
+                		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+                		  volumeItem.resourceUuid = volumes[i].uuid();
+                		  volumeItem.vdcUuid = volumes[i].vdcUuid();
+                		  volumeItem.azUuid = volumes[i].azUuid();
+                		  orderItems.push(volumeItem);
+                	  }
+            	  }
+            	  
+            	  var postBody = {}; 
+            	  postBody.resourceType = self.recoverProcessVO().type();
+            	  postBody.orderItems = orderItems;
+            	  
+            	  csc.rest.post("api/v5.0.0/orders/recycleResource",postBody,function(data){
+            		  if(data.code){
+            			systemMsg.alert('资源回收申请成功，订单编号：'+data.code+'！');
+          		 		self.isRecoverProcess(false);
+            		  }
+            	  });
+    		  });
+    	  }else{
+        	  var orderItem = {};
+        	  orderItem.instanceName = self.recoverProcessVO().name();
+        	  orderItem.serviceInstanceUuid = self.recoverProcessVO().serviceInstanceUuid();
+        	  orderItem.resourceType = self.recoverProcessVO().type();
+        	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
+        	  orderItem.resourceUuid = self.recoverProcessVO().uuid();
+        	  orderItem.vdcUuid = self.recoverProcessVO().vdcUuid();
+        	  orderItem.azUuid = self.recoverProcessVO().azUuid();
+        	  
+    		  var orderItems = [];
+        	  orderItems.push(orderItem);
+        	  
+        	  var postBody = {};
+        	  postBody.resourceType = self.recoverProcessVO().type();
+        	  postBody.orderItems = orderItems;
+        	  
+        	  csc.rest.post("api/v5.0.0/orders/recycleResource",postBody,function(data){
+        		  if(data.code){
+        			systemMsg.alert('资源回收申请成功，订单编号：'+data.code+'！');
+      		 		self.isRecoverProcess(false);
+        		  }
+        	  });
+    	  }
+    	  
+      }
+      //--------------------------------------回收-流程结束----------------------------------------
     }
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);
   });

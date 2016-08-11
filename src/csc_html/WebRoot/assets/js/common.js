@@ -59,7 +59,7 @@ csc.rest = {
 			}
 		});
 	},
-	get : function(url, successFun, errorFun) {
+	get : function(url, successFun, errorFun,callbackCustParam) {
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -73,7 +73,7 @@ csc.rest = {
 				}
 			},
 			success : function(data, textStatus) {
-				successFun(data, textStatus);
+				successFun(data, textStatus,callbackCustParam);
 			}
 		});
 	}
@@ -191,7 +191,59 @@ csc.util = {
 	        sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
 	        i = Math.floor(Math.log(bytes) / Math.log(k));
 	   return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+	},
+	getUuid:function(){
+		var s = [];
+		var hexDigits = "0123456789abcdef";
+		for (var i = 0; i < 36; i++) {
+		s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+		}
+		s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+		s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+		s[8] = s[13] = s[18] = s[23] = "-";
+		
+		var uuid = s.join("");
+		return uuid;
+	},
+	getLBMothedList : function (){
+		return [{name:'轮训',value:'ROUND_ROBIN'},{name:'最少连接',value:'LEAST_CONNECTIONS'},{name:'源IP',value:'SOURCE_IP'}];
+	},
+	getProtocolList : function (){
+		return [{name:'TCP',value:'TCP'},{name:'HTTP',value:'HTTP'},{name:'HTTPS',value:'HTTPS'}];
+	},
+	getMonthsList : function (){
+		return [{name:'1',value:'1'},{name: '2',value:'2'},{name: '3', value:'3'},{name: '4', value:'4'},{name: '5', value:'5'},
+		        {name: '6', value:'6'},{name: '7', value:'7'},{name: '8', value:'8'},{name: '9', value:'9'},{name: '10', value:'10'},
+		        {name: '11', value:'11'},{name: '12', value:'12'}];
+	},
+	/**
+	 * 获取服务的有效时间文本
+	 */
+	getExpireText:function(type,val){
+		 var v = "";
+		 if("1"==type){
+             v="永久";
+         }else if("2"==type){
+             v=val+"个月";
+         }else if("3"==type){
+             v= "有效期至:"+val.substr(0,10); 
+         }
+		 return v;
+	},
+	getBillCycleText:function(billcycle){
+	    var billTxt = "";
+        if(billcycle=="DAY"){
+    	   billTxt = "按天"
+		}else if(billcycle=="MONTH"){
+			billTxt = "按月"
+		}else if(billcycle=="QUARTER"){
+			billTxt = "按季度"
+		}else if(billcycle = "YEAR"){
+			billTxt = "按年"
+		}
+        return billTxt;
 	}
+	  
 }
 
 // 全局上传

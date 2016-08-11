@@ -17,8 +17,7 @@ myApp.onPageInit("vm-summary", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-  
-  viewModel.loadData();
+  window.vm_summary_viewModal = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();

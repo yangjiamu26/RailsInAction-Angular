@@ -60,8 +60,8 @@
 								<div class="panel panel-default b-blue">
 									<div class="row wrapper">
 										<div class="col-xs-1">
-											<a class="btn btn-sm btn-info"  data-bind="click: createService" >创建服务</a>
-												<!-- -->
+											<a class="btn btn-sm btn-info" data-bind="click: createService" >创建服务</a>
+												<!--  -->
 										</div>
 										<div class="col-xs-3">
 											<div class="input-group">
@@ -116,7 +116,7 @@
 												</tr>
 												<!-- ko foreach: {data: pagedRows, as: '$row'} -->
 												<tr>
-													<td data-bind="text: $row.name"></td>
+													<td ><a data-bind="text: $row.name,click: $root.showDetail"></a></td>
 													<td data-bind="text: $row.productName"></td>
 													<td>
 														<span class="label label-success" data-bind="visible: $row.stateDesc=='已发布',text: $row.stateDesc"></span>
@@ -137,20 +137,34 @@
 											</tbody>
 										</table>
 									</div>
-									<footer class="panel-footer" data-bind="with: table">
-										<ul class="pagination">
-											<li data-bind="css: leftPagerClass, click: prevPage"><a
-												href="#">&laquo;</a></li>
-											<!-- ko foreach: {data: (new Array(pages()))} -->
-											<li data-bind="css: $parent.pageClass($index() + 1)"><a
-												href="#"
-												data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-											</li>
-											<!-- /ko -->
-											<li data-bind="css: rightPagerClass, click: nextPage"><a
-												href="#">&raquo;</a></li>
-										</ul>
-									</footer>
+									<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 0">
+									    <ul class="pagination">
+								        <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+								          <a href="#">首页</a>
+								        </li>
+								        <li data-bind="css: leftPagerClass, click: prevPage">
+								          <a href="#">&laquo;</a>
+								        </li>
+								        <li >
+								          <a href="#"  data-bind="text: currentPage"></a>
+								        </li>
+								        <li data-bind="css: rightPagerClass, click: nextPage">
+								          <a href="#">&raquo;</a>
+								        </li>
+								        <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+								          <a href="#">末页</a>
+								        </li>
+								        <li class="page-control-li">
+								          <div class="input-group form-group-sm">
+								           <input type="text" class="form-control" data-bind="value: targetPage"  />
+								           <div class="input-group-btn">
+								             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+								           </div>
+								          </div>
+								          <div class="page-info-div" data-bind="text: recordsText"></div>
+								       </li>
+								     </ul>
+								   </footer>
 								</div>
 							</div>
 						</div>
@@ -205,7 +219,7 @@
 var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js', 
                "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js",
                "assets/lib/bootstrap-daterangepicker/date.js", null];               
-	//弹窗服务目录下拉框树start
+	//弹窗服务目录下拉框树start	
 	function selectDirClick(){ 	
 		var cityObj = $("#selectDir");
 	    var cityOffset = $("#selectDir").offset();
@@ -229,6 +243,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	    }
 	}
 	//弹窗服务目录下拉框树end
+	
+ 	function preViewImage() {
+		$("#up").uploadPreview({ Img: "ImgPr", Width: 120, Height: 120, ImgType: ["gif", "jpg", "bmp", "png"] });
+	} 
 
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
@@ -345,6 +363,35 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       		viewModel.virtualPlatformList(data);
          });
     }
+      
+	 //初始化虚拟机操作系统类型数据  
+	 function loadVmOsType(bool){
+		 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+viewModel.serviceVO().serviceVm.virtualName(),function(data){   	      		 
+	   		viewModel.vmOsTypeList(data);
+	   		if(bool){
+	   			if(data.length > 0){   	      			
+			      	for(var i = 0;i < data.length;i++){
+		    			viewModel.osTypeCheckList.push(data[i].value);
+		      		}
+		   		}
+	   		}
+	     });
+	 }
+	   
+	 //初始化可用分区数据
+	 function loadVmAzs(bool){
+		 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+viewModel.serviceVO().serviceVm.virtualName(),function(data1){
+			viewModel.azList(data1.results);
+			if(bool){
+				if(data1.results.length > 0){          			
+					for(var i = 0;i < data1.results.length;i++){
+			    		viewModel.azUuidList.push(data1.results[i].uuid);
+			        }
+				}
+			}
+		 }); 
+	 }
+	 
     //初始化云主机CPU
     function loadVmCpu(bool){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
@@ -375,7 +422,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     function loadReleaseVdc(azUuids, bool){
       	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
       		viewModel.vdcList(data);
-      		if(bool){
+      		if(bool && !viewModel.serviceVO().uuid()){
       			if(data.length > 0){
           			for(var i = 0;i < data.length;i++){
               			viewModel.releaseRange.push(data[i].uuid);
@@ -556,10 +603,64 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.productList = ko.observableArray();            
       <!--服务信息列表end-->
       
+       //服务信息
+ 	   this.serviceVO = ko.validatedObservable({
+ 		 uuid: ko.observable(),
+ 		 name : ko.observable("").extend({required : true,cscNameRule:true}),
+ 		 dirName : ko.observable("服务目录"),
+ 		 dirUUID : ko.observable("0"),
+ 		 productId : this.selected_product,
+ 		 imageUrl : ko.observable(),
+ 		 desc : ko.observable(),
+ 		 validTimeType : ko.observable("1").extend({required : true}),
+ 		 validTimeNum : ko.observable(),
+ 		 rangeTime : ko.observable(),
+ 		 charge : ko.observable(),
+ 		 serviceVDC : {
+ 			 isLimit : this.showItems,
+ 			 osTypeList : ko.observableArray(),
+ 			 maxCpu : ko.observable().extend({number : true}),
+ 			 maxVmNum : ko.observable().extend({number : true}),
+ 			 maxMemory : ko.observable().extend({number : true}),
+ 			 maxDiskNum : ko.observable().extend({number : true}),
+ 			 maxStorager : ko.observable().extend({number : true}),
+ 			 maxIpNum : ko.observable().extend({number : true}),
+ 			 maxVPC : ko.observable().extend({number : true}),
+ 			 maxRouterNum : ko.observable().extend({number : true}),
+ 			 maxObjStorageNum : ko.observable().extend({number : true}),
+ 			 maxFireWallNum : ko.observable().extend({number : true}),
+ 			 maxSSHNum : ko.observable().extend({number : true}),
+ 			 maxLoadBalanceNum : ko.observable().extend({number : true})
+ 		 },
+ 		 chargeType : ko.observable(),
+ 		 rules : ko.observable(),
+ 		 serviceVm : {
+ 			 virtualName: ko.observable("").extend({required : true}),
+ 			 azUuid: ko.observable(),
+ 			 osType: ko.observable(),
+ 			 osVersion: ko.observable(),
+ 			 cpu: ko.observable(),
+ 			 memory: ko.observable()
+ 		 },
+ 		 servicePartitions : ko.observable(),
+ 		 azUuids : ko.observable(),
+ 		 serviceDisk : {
+ 			diskType: ko.observable(),
+ 			azUuid: ko.observable()
+ 		 },
+ 		serviceIp : {
+ 			ipUuid: ko.observable()
+ 		}
+ 	   })
+      
+      
       <!-- 修改服务弹窗-->
       this.editService = function(object, event){
+    	  self.step(1);
     	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+object.uuid, function(data){
     		  loadServiceTree();//加载服务目录树
+    		  
+    		  /**初始化费用数据**/
     		  var isfee = data.charge;    		  
     		  self.isFee(isfee+"");
     		  if(isfee == 0){
@@ -570,8 +671,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         		  }else{
         			  feeTypeList.push(feeType);
         		  }
-//    			  self.packages_chosen(feeTypeList);
-debugger
     			  var billRuleList = data.billRules;
     			  if(feeTypeList.length > 0){
     				  if(self.packages_chosen().length > 0){
@@ -581,17 +680,13 @@ debugger
     					  var feeList1 = new Array();
     					  var package1;
     					  if(feeTypeList[i] == "DAY"){
-    						  package1 = new Package("按天","DAY");
-    						  //package1 = new Package("DAY");
+    						  package1 = self.packages()[0];
         				  }else if(feeTypeList[i] == "MONTH"){
-        					  package1 = new Package("按月","MONTH");
-        					  //package1 = new Package("MONTH");
+        					  package1 = self.packages()[1];
         				  }else if(feeTypeList[i] == "QUARTER"){
-        					  package1 = new Package("按季度","QUARTER");
-        					  //package1 = new Package("QUARTER");
+        					  package1 = self.packages()[2];
         				  }else if(feeTypeList[i] == "YEAR"){
-        					  package1 = new Package("按年","YEAR");
-        					  //package1 = new Package("YEAR");
+        					  package1 = self.packages()[3];
         				  }
     					  if(billRuleList.length > 0){
     						  for(var j = 0;j < billRuleList.length; j++){
@@ -600,11 +695,12 @@ debugger
     							  }
     						  }
     					  }
-    					  package1.feeList = feeList1;
+    					  package1.feeList(feeList1);
     					  self.packages_chosen.push(package1);
     				  }
     			  }
     		  }
+    		  //初始化服务基本信息
     		  self.serviceVO.fromJSON({
      			 uuid : data.uuid,
    	     		 name : data.name,
@@ -614,9 +710,26 @@ debugger
    	   	  		 imageUrl : data.imageUrl,
    	   	  		 desc : data.desc,
    	   	  		 validTimeType : data.validTimeType+"",
-   	   	  		 charge : data.charge+""  	  		 
+   	   	  		 charge : data.charge+"",
+   	   	  		 serviceVDC : {
+	  	  			 isLimit : ko.observable(),
+	  	  			 osTypeList : ko.observableArray(),
+		   	  		 maxCpu : ko.observable(),
+		 			 maxVmNum : ko.observable(),
+		 			 maxMemory : ko.observable(),
+		 			 maxDiskNum : ko.observable(),
+		 			 maxStorager : ko.observable(),
+		 			 maxIpNum : ko.observable(),
+		 			 maxVPC : ko.observable(),
+		 			 maxRouterNum : ko.observable(),
+		 			 maxObjStorageNum : ko.observable(),
+		 			 maxFireWallNum : ko.observable(),
+		 			 maxSSHNum : ko.observable(),
+		 			 maxLoadBalanceNum : ko.observable()
+  	  		    }
    	     	  });
-    		  if(data.productId == "VDC"){
+    		  //不同产品初始化不同的数据
+    		  if(data.productId == "VDC"){//VDC 产品
     			  loadVdcOsType(false);
     			  var limit = data.serviceVDC.isLimit;
     			  self.showItems(limit);
@@ -624,7 +737,7 @@ debugger
     			  if(vdcOsType.indexOf(",") != -1){
     				  self.serviceVO().serviceVDC.osTypeList(vdcOsType.split(","));
         		  }else{
-        			  self.serviceVO().serviceVDC.osTypeList(vdcOsType);
+        			  self.serviceVO().serviceVDC.osTypeList.push(vdcOsType);
         		  }
     			  if(limit == "yes"){
     				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
@@ -641,24 +754,98 @@ debugger
     				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
     			  }
     		  }else{
-    			  loadReleaseVdc(false);//加载发布范围列表
+    			  //初始化AZ数据
     			  getAzsByUser(viewModel,false);
         		  var vdcUuid = data.servicePartition[0].vdcUuid;//初始化已选择的范围
         		  var azUuid = data.servicePartition[0].azUuid;//初始化可用分区
+        		  loadReleaseVdc(azUuid,false);//加载发布范围列表
+        		  //发布范围赋值
         		  if(vdcUuid.indexOf(",") != -1){
         			  self.releaseRange(vdcUuid.split(","));
         		  }else{
-        			  self.releaseRange(vdcUuid);
+        			  self.releaseRange.push(vdcUuid);
         		  }
-        		  
+        		  //az分区赋值
         		  if(azUuid.indexOf(",") != -1){
         			  self.azUuidList(azUuid.split(","));
         		  }else{
-        			  self.azUuidList(azUuid);
+        			  self.azUuidList.push(azUuid);
+        		  }
+        		  if(data.productId == "DISK"){//云盘
+        			  loadDiskType();
+        			  self.diskTypeCheck(data.serviceDisk.diskType);
+        		  }else if(data.productId == "VM"){//虚拟机
+        			  loadVirtualPlatform();//获取虚拟化平台数据
+                	  loadVmCpu(false);//获取虚拟机CPU
+                	  loadVmMemory(false);//获取虚拟机内存
+                	  
+                	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
+                	  //CPU赋值
+                	  var vmCpu = data.serviceVm.cpu;
+                	  if(vmCpu.indexOf(",") != -1){
+            			  self.cpuCheckList(vmCpu.split(","));
+            		  }else{
+            			  self.cpuCheckList.push(vmCpu);
+            		  }
+                	  //memory赋值
+                	  var vmMemory = data.serviceVm.memory;
+                	  if(vmMemory.indexOf(",") != -1){
+            			  self.memoryCheckList(vmMemory.split(","));
+            		  }else{
+            			  self.memoryCheckList.push(vmMemory);
+            		  }
+                	 /*  //当修改时清除已选择的可用分区和操作系统类型数据
+                	  if(viewModel.azUuidList().length > 0){
+             			 viewModel.azUuidList.removeAll();
+             		  }
+                	  if(viewModel.osTypeCheckList().length > 0){
+               			 viewModel.osTypeCheckList.removeAll();
+               		  }*/
+                	  //操作系统类型赋值
+                	  var vmOsType = data.serviceVm.osType;
+                	  /* if(vmOsType.indexOf(",") != -1){
+            			  self.osTypeCheckList(vmOsType.split(","));
+            		  }else{
+            			  self.osTypeCheckList.push(vmOsType);
+            		  } */
+                	  //可用分区赋值
+                	  var vmAz = data.serviceVm.azUuid;
+                	  /*if(vmAz.indexOf(",") != -1){
+            			  self.azUuidList(vmAz.split(","));
+            		  }else{
+            			  self.azUuidList.push(vmAz);
+            		  } */
+            		  //操作系统版本列表赋值
+            		  self.osVersionList.params({
+                  		  azUuid: vmAz,
+                  		  osTypes: vmOsType
+                  	  });
+                  	  var vmOsVersion = data.serviceVm.osVersion;
+                  	  var vmOsVersionList = new Array();
+	                  if(vmOsVersion.indexOf(",") != -1){
+	                	  vmOsVersionList(vmOsVersion.split(","));
+	          		  }else{
+	          			  vmOsVersionList.push(vmOsVersion);
+	          		  }
+	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
+	                  if(self.osType_chosen().length > 0){
+	                	  self.osType_chosen.removeAll();
+	                  }
+                  	  if(self.osVersionList.pagedRows().length > 0 && vmOsVersionList.length > 0){
+                  		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
+                  			  for(var n = 0; n < vmOsVersionList.length; n++){
+                  				  if(self.osVersionList.pagedRows()[m].imageUuid = vmOsVersionList[n]){
+                  					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
+                  				  }
+                  			  }
+                  		  }
+                  	  }
+        		  }else if(data.productId == "PUBLICIP"){//公网IP
+        			  //公网IP列表赋值
+        			  self.ip_chosen(data.serviceIpRef);
         		  }
     		  }    		  
     		  
-    		  debugger
         	  self.isCreateService(true);
           });
       }
@@ -671,32 +858,41 @@ debugger
     	  //初始化数据start
           this.step(1);
     	  this.serviceVO.fromJSON({
-    		 uuid : "",
+    		 uuid : null,
      		 name : "",
-   	  		 dirName : "",
-   	  		 dirUUID : "",
+   	  		 dirName : "服务目录",
+   	  		 dirUUID : "0",
    	  		 productId : "VDC",
    	  		 imageUrl : "",
    	  		 desc : "",
    	  		 validTimeType : "1",
    	  		 charge : "1",
    	  		 serviceVDC : {
-   	  			 isLimit : this.showItems,
+   	  			 isLimit : ko.observable(),
    	  			 osTypeList : ko.observableArray(),
-	   	  		 maxCpu : ko.observable(),
-	 			 maxVmNum : ko.observable(),
-	 			 maxMemory : ko.observable(),
-	 			 maxDiskNum : ko.observable(),
-	 			 maxStorager : ko.observable(),
-	 			 maxIpNum : ko.observable(),
-	 			 maxVPC : ko.observable(),
-	 			 maxRouterNum : ko.observable(),
-	 			 maxObjStorageNum : ko.observable(),
-	 			 maxFireWallNum : ko.observable(),
-	 			 maxSSHNum : ko.observable(),
-	 			 maxLoadBalanceNum : ko.observable()
+	   	  		 maxCpu : ko.observable().extend({number : true}),
+	 			 maxVmNum : ko.observable().extend({digit : true}),
+	 			 maxMemory : ko.observable().extend({digit : true}),
+	 			 maxDiskNum : ko.observable().extend({digit : true}),
+	 			 maxStorager : ko.observable().extend({digit : true}),
+	 			 maxIpNum : ko.observable().extend({digit : true}),
+	 			 maxVPC : ko.observable().extend({digit : true}),
+	 			 maxRouterNum : ko.observable().extend({digit : true}),
+	 			 maxObjStorageNum : ko.observable().extend({digit : true}),
+	 			 maxFireWallNum : ko.observable().extend({digit : true}),
+	 			 maxSSHNum : ko.observable().extend({digit : true}),
+	 			 maxLoadBalanceNum : ko.observable().extend({digit : true})
    	  		 }   	  		 
      	  });
+    	  this.showItems("no");
+    	  /* this.showItems.subscribe(function(value){
+          	if(value=='yes'){
+        		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: true, onlyIf:function(){return true}},number : true})
+        	}else{
+        		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: false, onlyIf:function(){return true}}})
+        	}
+          }) */
+    	  this.isFee("1");
     	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
     	  loadVdcOsType(true);  //获取VDC操作系统数据
@@ -713,6 +909,17 @@ debugger
       this.step = ko.observable(1);
          
       this.nextStep = function(){
+    	  if(this.step() == 1){
+    		  ko.validation.group(this.serviceVO).showAllMessages();
+    		  if(this.serviceVO().name() == ""){
+    			  //alert("服务名称是必填项！")
+    			  return;
+    		  }
+    		  var nameExp =new RegExp("[\\^`~!@#\\$%&\\*=\\+\\[\\]\\{\\}\\|;:\\', <>\\\\\\/?\"！￥【】：；“’？》《 ]+");
+	  	      if(nameExp.test(this.serviceVO().name())){
+	  	          return;
+	  	      }
+    	  }
     	  //debugger
     	  if(this.step() == 2 && this.selected_product()!='VDC'){
     		  //根据azUuid获取发布范围接口数据调用
@@ -721,9 +928,92 @@ debugger
     			  alert("请选择可用分区！");
     			  return;
     		  }
-    		  //debugger
     		  loadReleaseVdc(azStrs,true);
-    		  console.log(azStrs);
+    		  
+    		  if(this.selected_product() == 'VM'){
+    			  if(this.osType_chosen().length <= 0){
+                	  alert("请至少选择一个操作系统版本！");
+                	  return;
+                  }
+    			  if(this.cpuCheckList().length <= 0){
+                	  alert("请至少勾选一个CPU(核)！");
+                	  return;
+                  }
+    			  if(this.memoryCheckList().length <= 0){
+                	  alert("请至少勾选一个内存！");
+                	  return;
+                  }
+    		  }
+    	  }else if(this.step() == 2 && this.selected_product()=='VDC'){
+    		  var isLimit = this.showItems();
+    		  if(isLimit == "yes"){
+    			  ko.validation.group(this.serviceVO).showAllMessages();
+          		  if(this.serviceVO.isValid()){
+          			  
+          		  }
+    			  var obj = this.serviceVO().serviceVDC;
+    			  var reg = /^[1-9]\d*$/;//正整数校验
+    	    	  var maxCpu = obj.maxCpu(); 
+    	    	  if(typeof(maxCpu) == "undefined" || maxCpu == "" || !reg.test(maxCpu)){
+    	    		  alert("【最大CPU(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxVmNum = obj.maxVmNum(); 
+    	    	  if(typeof(maxVmNum) == "undefined" || maxVmNum == "" || !reg.test(maxVmNum)){
+    	    		  alert("【最大云主机数(台)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxMemory = obj.maxMemory(); 
+    	    	  if(typeof(maxMemory) == "undefined" || maxMemory == "" || !reg.test(maxMemory)){
+    	    		  alert("【最大内存(GB)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxDiskNum = obj.maxDiskNum(); 
+    	    	  if(typeof(maxDiskNum) == "undefined" || maxDiskNum == "" || !reg.test(maxDiskNum)){
+    	    		  alert("【最大云硬盘数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxStorager = obj.maxStorager(); 
+    	    	  if(typeof(maxStorager) == "undefined" || maxStorager == "" || !reg.test(maxStorager)){
+    	    		  alert("【最大存储(GB)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxIpNum = obj.maxIpNum(); 
+    	    	  if(typeof(maxIpNum) == "undefined" || maxIpNum == "" || !reg.test(maxIpNum)){
+    	    		  alert("【最大公网IP数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxVPC = obj.maxVPC(); 
+    	    	  if(typeof(maxVPC) == "undefined" || maxVPC == "" || !reg.test(maxVPC)){
+    	    		  alert("【最大VPC(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxRouterNum = obj.maxRouterNum(); 
+    	    	  if(typeof(maxRouterNum) == "undefined" || maxRouterNum == "" || !reg.test(maxRouterNum)){
+    	    		  alert("【最大路由器数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxObjStorageNum = obj.maxObjStorageNum(); 
+    	    	  if(typeof(maxObjStorageNum) == "undefined" || maxObjStorageNum == "" || !reg.test(maxObjStorageNum)){
+    	    		  alert("【最大对象存储(GB)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxFireWallNum = obj.maxFireWallNum(); 
+    	    	  if(typeof(maxFireWallNum) == "undefined" || maxFireWallNum == "" || !reg.test(maxFireWallNum)){
+    	    		  alert("【最大防火墙数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxSSHNum = obj.maxSSHNum(); 
+    	    	  if(typeof(maxSSHNum) == "undefined" || maxSSHNum == "" || !reg.test(maxSSHNum)){
+    	    		  alert("【最大SSH密钥数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    	    	  var maxLoadBalanceNum = obj.maxLoadBalanceNum(); 
+    	    	  if(typeof(maxLoadBalanceNum) == "undefined" || maxLoadBalanceNum == "" || !reg.test(maxLoadBalanceNum)){
+    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
+    	    		  return;
+    	    	  }
+    		  }
     	  }
     	  this.step(this.step()+1);
       }
@@ -783,27 +1073,18 @@ debugger
         <!--选择产品end-->  	    
         
         <!--  添加计费规则start -->
-        function Package(type,value,feeList){
+        function Package(type,value){
       	  this.type = ko.observable(type);
       	  this.value = ko.observable(value);
-      	  this.feeList = ko.observableArray(feeList);
+      	  this.feeList = ko.observableArray();
         }
-        /* function Package(value){
-       	  this.value = ko.observable(value);
-       	  this.feeList = ko.observableArray();
-        } */
         this.packages = ko.observableArray([
-      		  new Package("按天","DAY",[]),
-      		  new Package("按月","MONTH",[]),
-      		  new Package("按季度","QUARTER",[]),
-      		  new Package("按年","YEAR",[])
+      		  new Package("按天","DAY"),
+      		  new Package("按月","MONTH"),
+      		  new Package("按季度","QUARTER"),
+      		  new Package("按年","YEAR")
         ]); 
-        /* this.packages = ko.observableArray([
-      		  new Package("DAY"),
-      		  new Package("MONTH"),
-      		  new Package("QUARTER"),
-      		  new Package("YEAR")
-        ]); */
+
         this.packages_chosen = ko.observableArray();
         this.package_current = null;
         
@@ -812,7 +1093,6 @@ debugger
         this.feeList = new DataTable([], {path: "api/v5.0.0/billing/rules"});
         
         this.addFeeDay = function(package,event){
-          debugger
       	  self.package_current = package;
       	  self.feeList.params({
       		  attrType: self.selected_product(),
@@ -824,55 +1104,12 @@ debugger
       	  this.package_current.feeList(this.feeList.chosenItems());
       	  self.isAdd_Fee(false);
         }
+        
+        this.deleteRuleFee = function(feeList,data,event){
+        	feeList.remove(data);
+        }
         <!-- 添加计费规则end -->
-        //服务信息
-  	   this.serviceVO = ko.validatedObservable({
-  		 name : ko.observable().extend({required : true}),
-  		 dirName : ko.observable(),
-  		 dirUUID : ko.observable(),
-  		 productId : this.selected_product,
-  		 imageUrl : ko.observable(),
-  		 desc : ko.observable(),
-  		 validTimeType : ko.observable("1").extend({required : true}),
-  		 validTimeNum : ko.observable(),
-  		 rangeTime : ko.observable(),
-  		 charge : ko.observable(),
-  		 serviceVDC : {
-  			 isLimit : this.showItems,
-  			 osTypeList : ko.observableArray(),
-  			 maxCpu : ko.observable(),
-  			 maxVmNum : ko.observable(),
-  			 maxMemory : ko.observable(),
-  			 maxDiskNum : ko.observable(),
-  			 maxStorager : ko.observable(),
-  			 maxIpNum : ko.observable(),
-  			 maxVPC : ko.observable(),
-  			 maxRouterNum : ko.observable(),
-  			 maxObjStorageNum : ko.observable(),
-  			 maxFireWallNum : ko.observable(),
-  			 maxSSHNum : ko.observable(),
-  			 maxLoadBalanceNum : ko.observable()
-  		 },
-  		 chargeType : ko.observable(),
-  		 rules : ko.observable(),
-  		 serviceVm : {
-  			 virtualName: ko.observable().extend({required : true}),
-  			 azUuid: ko.observable(),
-  			 osType: ko.observable(),
-  			 osVersion: ko.observable(),
-  			 cpu: ko.observable(),
-  			 memory: ko.observable()
-  		 },
-  		 servicePartitions : ko.observable(),
-  		 azUuids : ko.observable(),
-  		 serviceDisk : {
-  			diskType: ko.observable(),
-  			azUuid: ko.observable()
-  		 },
-  		serviceIp : {
-  			ipUuid: ko.observable()
-  		}
-  	   })
+        
   	   //虚拟机的cpu
   	   this.cpuCheckList = ko.observableArray();
        //虚拟机的操作系统类型
@@ -937,8 +1174,11 @@ debugger
 	     	  return rule;
 	     }
   	   	
+  	   	this.buttonEnable = ko.observable(true);
+  	   	
         //保存方法
   	    this.saveService = function(){
+  	      this.buttonEnable(false);
   	      this.serviceVO().charge(this.isFee());//是否计费
   		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
   		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
@@ -947,65 +1187,182 @@ debugger
   			  this.serviceVO().serviceVm = null;
   			  this.serviceVO().serviceDisk = null;
   			  this.serviceVO().serviceIP = null;
-//  			  this.serviceVO().serviceVDC.isLimit(this.showItems());
-  	      }else if(this.selected_product()=='VM'){//云主机保存时的数据
-	  	      var releaseRange = getReleaseRanges(this.releaseRange());
-	  	      if(releaseRange == ""){
-	  	      	alert("请选择发布范围！");
-	  	      	return;
+  			  this.serviceVO().serviceVDC.isLimit(this.showItems());
+  			  var limit = this.showItems();
+  			  if(limit == "yes"){
+				  self.serviceVO().serviceVDC.maxCpu.extend({required : true});
+				  self.serviceVO().serviceVDC.maxVmNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxMemory.extend({required : true});
+				  self.serviceVO().serviceVDC.maxDiskNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxStorager.extend({required : true});
+				  self.serviceVO().serviceVDC.maxIpNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxVPC.extend({required : true});
+				  self.serviceVO().serviceVDC.maxRouterNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxObjStorageNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxFireWallNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxSSHNum.extend({required : true});
+				  self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required : true});
+			  }
+  	      }else {
+  	    	  //当修改时根据选择的可用分区联动过滤已选择的发布范围
+  	    	  var range = "";
+  	    	  if(this.serviceVO().uuid()){
+  	    		  var rangeList = new Array();
+  	    		  if(this.releaseRange().length > 0 && this.vdcList().length > 0){
+    	    		  for(var i = 0; i < this.vdcList().length; i++){
+    	    			  for(var j = 0; j < this.releaseRange().length; j++){
+    	    				  if(this.vdcList()[i].uuid == this.releaseRange()[j]){
+    	    					  rangeList.push(this.releaseRange()[j])
+    	    				  }
+    	    			  }
+    	    		  }
+    	    	  }
+  	    		  range = getReleaseRanges(rangeList);
+  	    	  }else{
+  	    		  range = getReleaseRanges(this.releaseRange());
+  	    	  }
+  	    	  if(range == ""){
+	      		  alert("请选择发布范围！");
+	      		  return;
 	  	      }
-  	    	  this.serviceVO().serviceVDC = null;
-  	    	  this.serviceVO().serviceDisk = null;
-  	    	  this.serviceVO().serviceIP = null;
-  	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
-  	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
-  	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
-  	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
-//  	    	  this.serviceVO().serviceVm.azUuid(getAzUuids(this.azUuidList()));//虚拟机可用分区
-  	    	  this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
-  	    	  this.serviceVO().servicePartitions(releaseRange);//发布范围
-  	      }else if(this.selected_product()=='DISK'){//云盘保存时的数据
-  	    	var releaseRange = getReleaseRanges(this.releaseRange());
-  	      	if(releaseRange == ""){
-  	      		alert("请选择发布范围！");
-  	      		return;
-  	      	}
-  	    	this.serviceVO().serviceVm = null;
-  	    	this.serviceVO().serviceVDC = null;
-  	    	this.serviceVO().serviceIP = null;
-  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
-  	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
-  	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
-  	      }else if(this.selected_product()=="PUBLICIP"){//公网IP
-  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
-  	    	this.serviceVO().servicePartitions(getReleaseRanges(this.releaseRange()));//发布范围 
-  	    	this.serviceVO().serviceIp.ipUuid(getIpUuids(this.ip_chosen()));//ip列表
-  	      }else{
-  	    	var releaseRange = getReleaseRanges(this.releaseRange());
-  	      	if(releaseRange == ""){
-  	      		alert("请选择发布范围！");
-  	      		return;
-  	      	}
-  	    	this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区
-  	    	this.serviceVO().servicePartitions(releaseRange);//发布范围
+	  	  	  this.serviceVO().servicePartitions(range);//发布范围  	    	    	    	  
+	  	      this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区	    	  
+	    	  
+  	    	  if(this.selected_product()=='VM'){//云主机保存时的数据
+  	  	      	
+    	    	  this.serviceVO().serviceVDC = null;
+    	    	  this.serviceVO().serviceDisk = null;
+    	    	  this.serviceVO().serviceIP = null;
+    	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
+    	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
+    	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
+    	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
+    	    	  
+    	      }else if(this.selected_product()=='DISK'){//云盘保存时的数据
+    	    	
+    	    	this.serviceVO().serviceVm = null;
+    	    	this.serviceVO().serviceVDC = null;
+    	    	this.serviceVO().serviceIP = null;
+    	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
+    	      }else if(this.selected_product()=="PUBLICIP"){//公网IP
+    	    	this.serviceVO().serviceIp.ipUuid(getIpUuids(this.ip_chosen()));//ip列表
+    	      }else{
+    	    	this.serviceVO().serviceVm = null;
+      	    	this.serviceVO().serviceVDC = null;
+      	    	this.serviceVO().serviceIP = null;
+      	    	this.serviceVO().serviceDisk = null;
+    	      }
   	      }
-  		  debugger
-  		  if(this.serviceVO().uuid){
-  			csc.rest.put('api/v5.0.0/service/updateService/'+this.serviceVO().uuid,this.serviceVO.toJSON(),function(data){
-  				self.table.refreshData();
-  				self.isCreateService(false);
-                alert('修改成功！');
-            });
+  		  ko.validation.group(this.serviceVO).showAllMessages();
+  		  if(this.serviceVO.isValid()){	  
+	  		  if(this.serviceVO().uuid()){
+	  			csc.rest.put('api/v5.0.0/service/updateService/'+this.serviceVO().uuid(),this.serviceVO.toJSON(),function(data){
+	  				self.buttonEnable(true);
+	  				self.table.refreshData();
+	  				self.isCreateService(false);
+	                alert('修改成功！');
+	            });
+	  		  }else{
+	  			csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
+	  				self.buttonEnable(true);
+	  				self.table.refreshData();
+	  				self.isCreateService(false);
+	                alert('创建成功！');
+	            });  
+	  		  }
   		  }else{
-  			csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
-  				self.table.refreshData();
-  				self.isCreateService(false);
-                alert('创建成功！');
-            });  
+  			  alert("请检查必填项！");
   		  }
-  		  
   	    }
-  	     
+        //保存并发布
+  	    this.saveServiceAndRelease = function(){
+  	    	  this.buttonEnable(false);
+  	    	  this.serviceVO().charge(this.isFee());//是否计费
+    		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
+    		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
+
+    		  if(this.selected_product()=='VDC'){//VDC保存时的数据
+    			  this.serviceVO().serviceVm = null;
+    			  this.serviceVO().serviceDisk = null;
+    			  this.serviceVO().serviceIP = null;
+//    			  this.serviceVO().serviceVDC.isLimit(this.showItems());
+    	      }else {
+    	    	  //当修改时根据选择的可用分区联动过滤已选择的发布范围
+    	    	  var range = "";
+    	    	  if(this.serviceVO().uuid()){
+    	    		  var rangeList = new Array();
+    	    		  if(this.releaseRange().length > 0 && this.vdcList().length > 0){
+      	    		  for(var i = 0; i < this.vdcList().length; i++){
+      	    			  for(var j = 0; j < this.releaseRange().length; j++){
+      	    				  if(this.vdcList()[i].uuid == this.releaseRange()[j]){
+      	    					  rangeList.push(this.releaseRange()[j])
+      	    				  }
+      	    			  }
+      	    		  }
+      	    	  }
+    	    		  range = getReleaseRanges(rangeList);
+    	    	  }else{
+    	    		  range = getReleaseRanges(this.releaseRange());
+    	    	  }
+    	    	  if(range == ""){
+  	      		  alert("请选择发布范围！");
+  	      		  return;
+  	  	      }
+  	  	  	  this.serviceVO().servicePartitions(range);//发布范围  	    	    	    	  
+  	  	      this.serviceVO().azUuids(getAzUuids(this.azUuidList()));//可用分区	    	  
+  	    	  
+    	      if(this.selected_product()=='VM'){//云主机保存时的数据
+    	  	      	
+      	    	  this.serviceVO().serviceVDC = null;
+      	    	  this.serviceVO().serviceDisk = null;
+      	    	  this.serviceVO().serviceIP = null;
+      	    	  this.serviceVO().serviceVm.osVersion(getOsVersion(this.osType_chosen()));//操作系统版本
+      	    	  this.serviceVO().serviceVm.osType(getAzUuids(this.osTypeCheckList()));//操作系统类型
+      	    	  this.serviceVO().serviceVm.cpu(getAzUuids(this.cpuCheckList()));//cpu
+      	    	  this.serviceVO().serviceVm.memory(getAzUuids(this.memoryCheckList()));//内存
+      	    	  
+      	      }else if(this.selected_product()=='DISK'){//云盘保存时的数据
+      	    	
+      	    	this.serviceVO().serviceVm = null;
+      	    	this.serviceVO().serviceVDC = null;
+      	    	this.serviceVO().serviceIP = null;
+      	    	this.serviceVO().serviceDisk.diskType(this.diskTypeCheck());//云盘类型
+      	      }else if(this.selected_product()=="PUBLICIP"){//公网IP
+      	    	this.serviceVO().serviceIp.ipUuid(getIpUuids(this.ip_chosen()));//ip列表
+      	      }else{
+      	    	this.serviceVO().serviceVm = null;
+        	    	this.serviceVO().serviceVDC = null;
+        	    	this.serviceVO().serviceIP = null;
+        	    	this.serviceVO().serviceDisk = null;
+      	      }
+    	      }
+    		  ko.validation.group(this.serviceVO).showAllMessages();
+      		  if(this.serviceVO.isValid()){	  
+	    		  if(this.serviceVO().uuid()){
+	    			csc.rest.put('api/v5.0.0/service/updateService/'+this.serviceVO().uuid(),this.serviceVO.toJSON(),function(data){
+	    				data.state = "1";
+	    				csc.rest.put('api/v5.0.0/service/changeState/'+data.uuid,data,function(data1){
+	    					self.buttonEnable(true);
+	    					self.table.refreshData();
+	        				self.isCreateService(false);
+	                      	alert('保存并发布成功！');
+	    		        });
+	                });
+	    		  }else{
+	    			csc.rest.post('api/v5.0.0/service',this.serviceVO.toJSON(),function(data){
+	    				data.state = "1";
+	    				csc.rest.put('api/v5.0.0/service/changeState/'+data.uuid,data,function(data1){
+	    					self.buttonEnable(true);
+	    					self.table.refreshData();
+	        				self.isCreateService(false);
+	                      	alert('保存并发布成功！');
+	    		        });
+	                });  
+	    		  }
+      		  }else{
+      			  alert("请检查必填项！");
+      		  }
+  	    }
         //产品列表
         this.productList = ko.observableArray();
         //操作系统类型
@@ -1015,6 +1372,7 @@ debugger
         //虚拟化类型选择事件
         this.changeVirtualValue = function(viewModel, event){      	  
            if(viewModel.selected_product()=='VM'){
+
         	  //当选择不同的虚拟化时得清空初始化数据，重新加载
    			  if(viewModel.azUuidList().length > 0){
     			 viewModel.azUuidList.removeAll();
@@ -1022,25 +1380,15 @@ debugger
        	   	  if(viewModel.osTypeCheckList().length > 0){
       			  viewModel.osTypeCheckList.removeAll();
       		  }
+       	   	  
+	       	  if(viewModel.osType_chosen().length > 0){
+	   			  viewModel.osType_chosen.removeAll();
+	   		  }
+       	   	 
         	 //初始化虚拟机操作系统类型数据        	 
-   	      	 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+this.serviceVO().serviceVm.virtualName(),function(data){   	      		 
-   	      		viewModel.vmOsTypeList(data);   	      		
-   	      		if(data.length > 0){   	      			
-	   	      		for(var i = 0;i < data.length;i++){
-	          			viewModel.osTypeCheckList.push(data[i].value);
-	            	}
-   	      		}
-   	         });
-        	   
+   	      	 loadVmOsType(true);
         	 //初始化可用分区数据
-          	 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+this.serviceVO().serviceVm.virtualName(),function(data1){
-          		viewModel.azList(data1.results);          		
-          		if(data1.results.length > 0){          			
-          			for(var i = 0;i < data1.results.length;i++){
-              			viewModel.azUuidList.push(data1.results[i].uuid);
-                	}
-          		}
-             });
+   	      	 loadVmAzs(true);
            }else if(viewModel.selected_product()=='VDC'){
               
            }else{
@@ -1050,7 +1398,7 @@ debugger
         
         //添加操作系统版本start
        // this.packages = ko.observableArray();
-        this.osType_chosen = ko.observableArray()
+        this.osType_chosen = ko.observableArray();
         this.osType_current = null;
         
         this.isAdd_osType = ko.observable(false);
@@ -1087,6 +1435,10 @@ debugger
         		osVersion = osVersion.substring(0,osVersion.length-1);
         	}
         	return osVersion;
+        }
+        //删除操作系统版本
+        this.deleteOsType = function(obj){
+        	self.osType_chosen.remove(obj);
         }
         //添加操作系统版本end
         
@@ -1140,9 +1492,13 @@ debugger
         	}
         	return ipUuid;
 		}
+        //删除所选择的公网IP
+		this.deleteIp = function(obj){
+			self.ip_chosen.remove(obj);
+		}
         //添加IP  end
         
-         <!-- 公网IP   start-->
+         <!-- 公网IP   end-->
       	//###########    列表、全选     ###############
       	/**发布范围全选按钮**/
 	    this.isSelectedReleaseAll = ko.pureComputed({
@@ -1217,13 +1573,21 @@ debugger
 	    
         //发布范围
         this.vdcList = ko.observableArray();
+        
+        //查看详情
+        this.showDetail = function(object,event){
+      	  showModal("pages/services/service_definitions/showDetail.html?serviceUuid="+object.uuid);
+        }
     }
     
     var viewModel = new ViewModel();
     ko.applyBindings(viewModel, $('#page-content')[0]);
   });
 </script>
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isCreateService }">
+
+
+ <!-- 创建 --> 
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isCreateService }">
   <div class='modal-dialog modal-lg' style="width:800px;">
     <div class='modal-content'>
       <div class='modal-header'>
@@ -1256,13 +1620,19 @@ debugger
                 <div class="col-xs-7">
                   <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name">
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务目录：</label>
                 <div class="col-xs-7">
                   <input type="text" class="form-control" placeholder="请选择服务目录" data-bind="value: serviceVO().dirName" id="selectDir" onclick="selectDirClick(event)">
-                  <input type="hidden" id="dirUuid" data-bind="value: serviceVO().dirUUID" />
+                  <input type="hidden" id="dirUuid" data-bind="value: serviceVO().dirUUID"/>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div id="dirContent"
                 style="display: none; position: absolute; z-index: 10000; background-color: white; border-left: 1px #DDDDDD solid; border-bottom: 1px #DDDDDD solid; border-right: 1px #DDDDDD solid; width: 420px; height: 198px; overflow: scroll;">
@@ -1276,6 +1646,9 @@ debugger
                   <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
                   </select>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务图标：</label>
@@ -1316,6 +1689,9 @@ debugger
                     </label>
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
           </div>
@@ -1350,6 +1726,9 @@ debugger
                     <!-- /ko -->                    
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">操作系统类型：</label>
@@ -1367,6 +1746,9 @@ debugger
                   </div>
                   <!-- /ko -->                 
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">操作系统版本：</label>                
@@ -1386,13 +1768,16 @@ debugger
                           <td data-bind="text: osType"></td>
                           <td data-bind="text: osVersion"></td>
                           <td data-bind="text: imageName"></td>
-                          <td><a class="btn btn-xs btn-default" onclick="confirm('确定删除吗？')">删除</a></td>
+                          <td><a class="btn btn-xs btn-default" data-bind="click: $root.deleteOsType">删除</a></td>
                         </tr>
                       </tbody>
                     </table>
                     <a class="btn btn-sm btn-success" style="margin-left: 10px;" data-bind="click: addOsType">添加</a>
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">CPU(核)：</label>
@@ -1410,6 +1795,9 @@ debugger
                   </div>
                   <!-- /ko -->                  
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">内存：</label>
@@ -1427,6 +1815,9 @@ debugger
                   </div>
                   <!-- /ko -->                  
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
             <!-- 云主机 end -->
@@ -1453,6 +1844,9 @@ debugger
                     <!-- /ko -->
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
             <!-- SSH密钥 end -->
@@ -1471,6 +1865,9 @@ debugger
                   <!-- /ko -->            
                   </div>                  
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">可用分区：</label>
@@ -1492,6 +1889,9 @@ debugger
                     <!-- /ko -->
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
             <!-- 云硬盘 end -->
@@ -1512,8 +1912,10 @@ debugger
                     </label>
                   </div>
                   <!-- /ko -->
-
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group">
                 <label class="col-xs-2 control-label">是否限制配额：</label>
@@ -1531,6 +1933,9 @@ debugger
                     </div>
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div style="padding-right:50px;" class="form-group row" data-bind="visible: showItems()=='yes'">
                 <div class="col-xs-6">
@@ -1655,6 +2060,9 @@ debugger
                     <!-- /ko -->
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group" style="padding:0 50px;">
                 <div class="panel panel-default b-blue">
@@ -1677,7 +2085,7 @@ debugger
                           <td data-bind="text: vpcName"></td>
                           <td data-bind="text: name"></td>
                           <td data-bind="text: cidr"></td>
-                          <td><a onclick="confirm('确定删除吗？')">删除</a></td>
+                          <td><a data-bind="click: $root.deleteIp">删除</a></td>
                         </tr>
                       </tbody>
                     </table>
@@ -1709,6 +2117,9 @@ debugger
                     <!-- /ko -->
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
             <!-- 负载均衡 end -->
@@ -1734,6 +2145,9 @@ debugger
                     <!-- /ko -->
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
             <!-- 对象存储 end -->
@@ -1755,6 +2169,9 @@ debugger
                     </label>
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
               <div class="form-group" data-bind="visible:isFee()=='0'">
                 <label class="col-xs-2 control-label">包含套餐：</label>
@@ -1780,7 +2197,7 @@ debugger
 	                        <tr>
 	                          <td data-bind="text: attrType"></td>
                               <td data-bind="text: name"></td>
-	                          <td><a class="btn btn-xs btn-default" onclick="confirm('确定删除吗？')">删除</a></td>
+	                          <td><a class="btn btn-xs btn-default" data-bind="click: function(data, event) { $root.deleteRuleFee($parent.feeList, data, event) }">删除</a></td>
 	                        </tr>
 	                      </tbody>
 	                    </table>
@@ -1797,9 +2214,6 @@ debugger
               <div class="form-group">
                 <label class="col-xs-2 control-label">发布范围：</label>
                 <div class="col-xs-9">
-                  <!-- <div class="panel panel-default b-blue" style="margin:0;padding-bottom:10px">
-                    <div id="serviceModalTree" class="ztree release"></div>
-                  </div> -->
                   <div class="form-inline">
                     <div class="checkbox">
                       <label>
@@ -1817,6 +2231,9 @@ debugger
                     <!-- /ko -->                    
                   </div>
                 </div>
+                <div class="col-xs-1">
+					<span class="text-danger inline m-l-n m-t-sm">*</span>
+				</div>
               </div>
             </div>
           </div>
@@ -1826,13 +2243,15 @@ debugger
       <div class='modal-footer' style="text-align:center;">
         <a class="btn btn-default btn-info service-step-btn-pre" data-bind="visible: step()>1, click: prevStep">上一步</a>
         <a class="btn btn-default btn-info service-step-btn-next" data-bind="visible: (selected_product() !='VDC' && step()<4) || (selected_product() =='VDC' && step()<3), click: nextStep">下一步</a>        
-        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3), click: saveService">保存</a>
-        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3)">保存并发布</a>
+        <a class="btn btn-default btn-info service-step-btn-save" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3), click: saveService, enable:buttonEnable">保存</a>
+        <a class="btn btn-default btn-success service-step-btn-saveAndRelease" data-bind="visible: step()==4 || (selected_product() =='VDC' &&  step()==3), click: saveServiceAndRelease,enable:buttonEnable">保存并发布</a>
         <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
       </div>
     </div>
   </div>
 </div>
+
+
 <!-- 选择计费 -->
 <div role="dialog" aria-hidden="true" id="addFeeDialog" class="modal fade" data-bind="modal: { show: isAdd_Fee }">
   <div class='modal-dialog modal-lg'>
@@ -2002,19 +2421,23 @@ debugger
         <div class='modal-header'>
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传图片</h3>
         </div>
-        <div class='modal-body row'>
-          <div class="col-xs-6">
-            <img src="" alt="" width="100%" height="150">
-          </div>
-          <div class="col-xs-6">
-            <p><a class="btn btn-success">上传图片</a></p>
-        <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
-          </div>
-        </div>
+        <form action="/api/v5.0.0/file/upload/rest" enctype="multipart/form-data">
+	        <div class='modal-body row'>
+	          <div class="col-xs-6">
+	            <img src="" alt="" width="100%" height="150" id="ImgPr">
+	          </div>
+	          <div class="col-xs-6">
+	            <p><a href="javascript:;" class="btn btn-success" style="margin-left: 10px;display: inline-block;width: 80px;height: 34px;overflow: hidden;position:relative;">
+					<input id="up" type="file" name="file" style="opacity: 0;position: absolute;left:0;right:0;" 
+					 data-bind="" onclick="preViewImage()"/>上传图片</a></p>
+	        	   <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
+	          </div>
+	        </div>
+        </form>
         <div class='modal-footer' style="text-align:center;">
           <a class="btn btn-default btn-info" data-bind="click: setImg">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
         </div>
       </div>
     </div>
-  </div>
+  </div> 

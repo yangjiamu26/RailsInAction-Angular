@@ -121,7 +121,6 @@ var DrapCommon = {
             displayVisible:dataList,
             dispalySequence:DrapCommon.getCookie("configArr")
           }, function(data){
-          console.info("更新成功");
         });
     }
 }

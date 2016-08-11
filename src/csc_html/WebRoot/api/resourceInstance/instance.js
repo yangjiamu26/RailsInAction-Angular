@@ -38,6 +38,19 @@
 					"expiryDate":"2099-12-30 23:59:59"
 			};
 			$.INSTANCE.setExpiredDate(uuid, {}, callback, errorCallback);
+		},
+		/**
+		 * 是否有重名
+		 * 
+		 *            
+		 * @param param
+		 *            name: 资源实例名称
+		 *            type: 资源实例类型
+		 */
+		hasSameName : function(params, callback, errorCallback) {
+			csc.rest.get('api/v5.0.0/resourceInstances/hasSameName', param, function(data) {
+				callback(data);
+			});
 		}
 	};
 }(window.jQuery);

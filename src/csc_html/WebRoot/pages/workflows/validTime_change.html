@@ -1,0 +1,110 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">有效时间变更修改</div>
+        <div id="orderDetailedList" class="wrapper">
+          <div class="row">
+            <div class="col-xs-4">资源名称：<span data-bind="text: instanceName"></span> </div>
+            <div class="col-xs-4">所属VDC：<span data-bind="text: vdcName"></span></div>
+          </div>
+          <p>&nbsp;</p>
+          <div class="row">
+            <div class="col-xs-4">所属业务系统：<span data-bind="text: busSysName"></span></div>
+            <div class="col-xs-4">资源类型：
+            	<span data-bind="visible: resourceType()=='VM' ">云主机</span>
+            	<span data-bind="visible: resourceType()=='DISK' ">云硬盘</span>
+            	<span data-bind="visible: resourceType()=='SECRET_KEY' ">SSH密钥对</span>
+            	<span data-bind="visible: resourceType()=='OBJECT_STORAGE' ">对象存储</span>
+            	<span data-bind="visible: resourceType()=='PUBLICIP' ">公网IP</span>
+            	<span data-bind="visible: resourceType()=='LOAD_BALANCING' ">负载均衡</span>
+            </div>
+          </div>
+          <p>&nbsp;</p>
+          <div class="row form-inline">
+              <div class="col-xs-4">调整前失效时间：<span data-bind="text: metaExpireTime"></span></div>
+              <div class="col-xs-4">调整后失效时间：<input type="text" class="form-control input-sm w-sm daterange" data-bind="value: expireTime"></div>
+          </div>
+        </div>
+    </div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	  
+	  function ViewModel(){
+		  var self = this;
+		  
+		  this.orderUuid = ko.observable("");
+		  this.itemUuid = ko.observable("");
+	  	  
+	  	  this.instanceName = ko.observable("");
+	  	  this.expireTime = ko.observable("");
+	  	  this.vdcName = ko.observable("");
+	  	  this.busSysName = ko.observable("");
+	  	  this.resourceType = ko.observable("");
+	  	  this.metaExpireTime = ko.observable("");
+	  	
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			 //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+	      		var orderData = data;
+	      		var itemListData = data.orderItems;
+	      		var metaData = JSON.parse(itemListData[0].metaData);
+	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+	      		 
+	      		self.orderUuid(orderData.uuid);
+	      		self.itemUuid(itemListData[0].uuid);
+	      		self.resourceType(orderData.resourceType);
+	      		self.instanceName(itemListData[0].instanceName);
+	      		self.expireTime(itemListData[0].expireTime);
+	      		if(resBaseInfo.vdcName != 'null'){	      			
+		      		self.vdcName(resBaseInfo.vdcName);
+	      		}
+	      		if(resBaseInfo.busSysName != 'undefined'){	      			
+		      		self.busSysName(resBaseInfo.busSysName);
+	      		}
+	      		if(resBaseInfo.metaExpireTime != 'undefined'){
+	      			self.metaExpireTime(resBaseInfo.metaExpireTime);
+	      		}
+	      		
+	      	 })
+		  });
+		  
+		  this.save = function(){
+			  if(args.state=='UNSUBMIT'){
+				  var expireTime = self.expireTime() + " 23:59:59";
+				  var itemResults = {"expireTime":expireTime};
+				  csc.rest.put('api/v5.0.0/orders/'+self.orderUuid()+'/modifyItem/'+self.itemUuid(),itemResults,function(data){
+		          	alert('保存成功！');
+	  		      });
+			  }else{
+        		  saveComment(args.taskId,function(){
+        			alert("保存成功！");
+        		  });
+	          }
+		  }
+	  
+	    $('.daterange').val(moment().format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+	      {
+	        format:'YYYY/MM/DD',
+	        startDate: moment(),
+	        endDate: moment(),
+	        separator:'至',
+	        singleDatePicker:true,
+	        locale:{
+	          applyLabel: '确认',
+	          cancelLabel: '取消',
+	          fromLabel: '开始日期',
+	          toLabel: '结束日期',
+	          weekLabel: '周',
+	          customRangeLabel: '自定义范围',                            
+	          daysOfWeek:["日","一","二","三","四","五","六"],
+	          monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+	        }
+	      }
+	    );
+	  }
+	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+  });
+</script>

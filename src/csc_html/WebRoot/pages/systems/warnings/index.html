@@ -98,7 +98,7 @@
                   <td>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox"  value=""  data-bind="text:id,disable:alarmInfoStatus==1">
+                        <input type="checkbox"  value=""  data-bind="text:id,disable:alarmInfoStatus==1,checkedValue: $data, checked: $parent.chosenItems">
                         <i></i>
                       </label>
                     </div>
@@ -109,7 +109,7 @@
                   <td data-bind="text:createTime"></td>
                   <td>
                     <span class="label label-success" data-bind="if:alarmInfoStatus=='1'">已阅</span>
-                    <span class="label label-warning" data-bind="if:alarmInfoStatus=='2'">未阅</span>
+                    <span class="label label-danger" data-bind="if:alarmInfoStatus=='2'">未阅</span>
                   </td>
                   <td><a data-bind="click: $root.readOne,visible:alarmInfoStatus==2">设为已阅</a></td>
                 </tr>
@@ -211,7 +211,7 @@
                   <td>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="" data-bind="disable:alarmInfoStatus==1">
+                        <input type="checkbox" value="" data-bind="disable:alarmInfoStatus==1,checkedValue: $data, checked: $parent.chosenItems">
                         <i></i>
                       </label>
                     </div>
@@ -222,7 +222,7 @@
                   <td data-bind="text:createTime"></td>
                   <td>
                     <span class="label label-success" data-bind="if:alarmInfoStatus=='1'">已阅</span>
-                    <span class="label label-warning" data-bind="if:alarmInfoStatus=='2'">未阅</span>
+                    <span class="label label-danger" data-bind="if:alarmInfoStatus=='2'">未阅</span>
                   </td>
                   <td><a data-bind="click: $root.readOne,visible:alarmInfoStatus==2">设为已阅</a></td>
                 </tr>
@@ -324,7 +324,7 @@
                   <td>
                     <div class="checkbox">
                       <label class="i-checks">
-                        <input type="checkbox" value="" data-bind="disable:alarmInfoStatus==1">
+                        <input type="checkbox" value="" data-bind="disable:alarmInfoStatus==1,checkedValue: $data, checked: $parent.chosenItems">
                         <i></i>
                       </label>
                     </div>
@@ -335,7 +335,7 @@
                   <td data-bind="text:createTime"></td>
                   <td>
                     <span class="label label-success" data-bind="if:alarmInfoStatus=='1'">已阅</span>
-                    <span class="label label-warning" data-bind="if:alarmInfoStatus=='2'">未阅</span>
+                    <span class="label label-danger" data-bind="if:alarmInfoStatus=='2'">未阅</span>
                   </td>
                   <td><a data-bind="click: $root.readOne,visible:alarmInfoStatus==2">设为已阅</a></td>
                 </tr>
@@ -458,13 +458,32 @@
     function ViewModel(index){
     
       
+      var jsonArray = new Array();
       // 复选框选中后执行此事件;
       this.read = function(){
-        console.log(this.table.chosenItems());
+      	jsonArray =[];
+        jsonArray = this.table.chosenItems();
+        if(jsonArray.length>0){
+          // 有效数据列表;
+          var validArray = new Array();
+          $.each(jsonArray,function(index,obj){
+              if(obj.alarmInfoStatus=='2'){
+              	validArray.push(obj);
+              }
+          });
+          if(validArray.length>0){
+            systemMsg.confirm("您确定将"+validArray.length+"条信息设为已阅？", function () {
+              ajaxUpdate(validArray);
+            });
+          }else{
+          	systemMsg.alert("暂无可设置的告警信息！");
+          }
+        }else{
+          systemMsg.alert("勾选列表为空，请重新提交！");
+        };
       };
       var self = this;
       
-      var jsonArray = new Array();
       // 单个设置已阅事件;
       this.readOne = function (object, event) {
         jsonArray =[];
@@ -472,33 +491,37 @@
           // 处理ajax请求;
           var json = {
             'alarmSource': object.alarmSource,
-            'id': object.id
+            'id': object.id,
+            'alarmInfoStatus':object.alarmInfoStatus
           };
           jsonArray.push(json);
-          if (json.length != 0) {
-            $.ajax({
-              type: 'PUT',
-              url: "api/v5.0.0/alarmInfos/updateAlarmInfos",
-              data:JSON.stringify(jsonArray),
-              dataType:'json',
-              success: function (data) {
-                systemMsg.alert("设置成功!");
-                // 关闭模态框窗口;
-                var modal = $("#systemMessageAlertModal");
-                modal.on("hidden.bs.modal", function () {
-                  modal.remove();
-                  $("#alartModal”").modal('hide');
-                  self.table.refreshData(); // 重新加载table;
-                });
-              },
-              error: function () {
-                systemMsg.alert("设置时发生内部错误！");
-              }
-            });
-          } ;
+          ajaxUpdate(jsonArray);
         });
       };
-
+      // 后台请求参数;
+      function  ajaxUpdate(array){
+        if (array.length != 0) {
+          $.ajax({
+            type: 'PUT',
+            url: "api/v5.0.0/alarmInfos/updateAlarmInfos",
+            data:JSON.stringify(array),
+            dataType:'json',
+            success: function (data) {
+              systemMsg.alert("设置成功!");
+              // 关闭模态框窗口;
+              var modal = $("#systemMessageAlertModal");
+              modal.on("hidden.bs.modal", function () {
+                modal.remove();
+                self.table.refreshData(); // 重新加载table;
+              });
+            },
+            error: function () {
+              systemMsg.alert("设置时发生内部错误！");
+            }
+          });
+        } ;
+      };
+      
       this.searchParam = ko.observable({
         alarmInfoStatus: '',    // 告警状态   已阅, 未阅
         daterange: '', //  时间
@@ -509,7 +532,7 @@
 
       this.reset = function(){
         this.searchParam({
-          alarmInfoStatus: '',
+          alarmInfoStatus: '0',
           daterange: '',
           alarmName: '',
           alarmEventName: '',
@@ -519,7 +542,7 @@
       };
 
       this.search = function(){
-      	console.log(this.searchParam());
+//      	console.log(this.searchParam());
         this.table.params(this.searchParam());
       };
 

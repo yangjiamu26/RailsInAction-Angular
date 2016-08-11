@@ -93,12 +93,20 @@
 	    		    }); 
 			},
 			/**
-			 * 修改VDC下AZ
+			 * 修改VDC下AZ,这里接口要把VDC下的所有AZ都传过去
 			 */
 			modifyVdcAzs:function(uuid,param,callback){
 				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/azs",param,function(data){
 					 callback(data)
     		    }); 
+			},
+			/**
+			 * 添加AZ到VDC下
+			 */
+			addVzsToVdc:function(uuid,param,callback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/addAzs",param,function(data){
+					 callback(data)
+   		    }); 
 			},
 			/**
 			 * 修改VDC下AZ 网络
@@ -107,6 +115,60 @@
 				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/networks",param,function(data){
 					 callback(data)
     		    }); 
+			},
+			
+			/**
+			 * 获取vdc下的用户
+			 */
+			getVdcUsers:function(uuid,param,callback,errorCallback){
+				var param = csc.util.httpQueryParamConvert(param);
+				csc.rest.get("api/v5.0.0/vdcs/"+uuid+"/users",function(data){
+					 callback(data);
+	    		});
+			},
+			
+			/**
+			 * 修改VDC下的用户
+			 */
+			modifyVdcUsers:function(uuid,param,callback){
+				 csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/users",param,function(data){
+					 callback(data)
+    		    }); 
+			},
+			/**
+			 * 修改VDC下单个用户
+			 */
+			modifyVdcUserByOne:function(uuid,userUuid,param,callback){
+				 csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/users/"+userUuid,param,function(data){
+					 callback(data)
+   		    }); 
+			},
+			/**
+			 * 删除VDC下的用户
+			 */
+			deleteVdcUsers:function(uuid,userUuid,callback){
+				 csc.rest.del("api/v5.0.0/vdcs/"+uuid+"/users/"+userUuid,function(data){
+					 callback(data)
+    		    }); 
+			},
+			
+			/**
+			 * 查询VDC总配额
+			 */
+			getVdcGlobalQuota:function(callback,errorCallback){
+				 csc.rest.get('api/v5.0.0/vdcs/system/global/quota', function(data){
+					     callback(data);
+	    		    }); 
+			},
+			
+			/**
+			 * 修改VDC总配额
+			 */
+			modifyVdcGlobalQuota:function(param, callback, errorCallback){
+				console.log(param);
+				 csc.rest.put('api/v5.0.0/vdcs/global/quota', param, function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

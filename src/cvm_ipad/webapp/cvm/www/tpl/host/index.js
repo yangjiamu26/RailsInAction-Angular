@@ -69,12 +69,13 @@ function initHost_status_chart(nums) {
   function ViewModel(){
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
+    this.hostId = ko.observable("");
     this.dataList = ko.observableArray([]);
     this.hostSize = ko.observable("");
 
     this.loading = false;
     this.page = 1;
-    this.loadData = function(is_loadMore,hypervisor,resPoolId){
+    this.loadData = function(is_loadMore,hypervisor,resPoolId,hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
       }else{
@@ -84,6 +85,11 @@ function initHost_status_chart(nums) {
         this.resPoolId(resPoolId);
       }else{
         this.resPoolId("");
+      }
+      if(hostId){
+        this.hostId(hostId);
+      }else{
+        this.hostId("");
       }
       var self = this;
       if (self.loading) return;
@@ -151,13 +157,13 @@ function initHost_status_chart(nums) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.HostIndex_viewModel = viewModel;
 
-  window.indexFilter_viewModel.getResPools();
+  window.indexFilter_host_viewModel.getResPools();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId());
+    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(), viewModel.hostId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId());
+    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId(), viewModel.hostId());
   });  
   
 });

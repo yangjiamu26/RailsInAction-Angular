@@ -10,17 +10,17 @@
   <div class='nav-tabs-alt bg-white-only b b-blue'>
     <ul class='nav nav-tabs' role='tablist' id="instancesListBox">
       <li class='active' role='presentation'>
-        <a aria-controls='partition_vms' data-toggle='tab' href='#partition_vms' role='tab'>云主机</a></li>
+        <a id='vmsTab' aria-controls='partition_vms' data-toggle='tab' href='#partition_vms' role='tab'>云主机</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>云硬盘</a></li>
+        <a id='storagesTab' aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>云硬盘</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_publicips' data-toggle='tab' href='#partition_publicips' role='tab'>公网IP</a></li>
+        <a id='publicipsTab' aria-controls='partition_publicips' data-toggle='tab' href='#partition_publicips' role='tab'>公网IP</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_balancer' data-toggle='tab' href='#partition_balancer' role='tab'>负载均衡器</a></li>
+        <a id='balancerTab' aria-controls='partition_balancer' data-toggle='tab' href='#partition_balancer' role='tab'>负载均衡器</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_sshkeys' data-toggle='tab' href='#partition_sshkeys' role='tab'>SSH密钥</a></li>
+        <a id='sshkeysTab' aria-controls='partition_sshkeys' data-toggle='tab' href='#partition_sshkeys' role='tab'>SSH密钥</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab'>对象存储</a></li>
+        <a id='objectStoragesTab' aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab'>对象存储</a></li>
       <li role='presentation'>
         <a aria-controls='partition_tasks' data-toggle='tab' href='#partition_tasks' role='tab'>调度任务</a></li>
     </ul>
@@ -55,5 +55,31 @@
     $("#partition_object_storages").load("pages/resources/instances/index_objectstorage.html");
     $("#partition_tasks").load("pages/resources/instances/index_task.html");
    
+  	//获取URL参数对象
+	function UrlSearch() {
+		var name,value; 
+		var str=location.href; //取得整个地址栏
+		var num=str.indexOf("?") 
+		str=str.substr(num+1); //取得所有参数   stringvar.substr(start [, length ]
+	
+		var arr=str.split("&"); //各个参数放到数组里
+		for(var i=0;i < arr.length;i++){ 
+			num=arr[i].indexOf("="); 
+			if(num>0){ 
+				name=arr[i].substring(0,num);
+				value=arr[i].substr(num+1);
+				this[name]=value;
+			}
+		}
+	}
+  	
+	var requestParam = new UrlSearch();
+	
+	//显示不同的tab，待办/已办
+	if(requestParam.showTab == 'vmsTab' || requestParam.showTab == 'storagesTab'
+		 || requestParam.showTab == 'publicipsTab' || requestParam.showTab == 'balancerTab'
+			 || requestParam.showTab == 'sshkeysTab' || requestParam.showTab == 'objectStoragesTab'){
+		$("#"+requestParam.showTab).tab("show");
+	}
   });
 </script>

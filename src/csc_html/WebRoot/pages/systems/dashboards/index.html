@@ -7,11 +7,6 @@
 </div>
 <div class='wrapper-md'>
     <div class="panel panel-default b-blue">
-      <div class="row wrapper">
-        <div class="col-xs-9">
-          <button class="btn btn-sm btn-info">保存</button>
-        </div>        
-      </div>
 		<!-- 数据列表DIV -->
 		<div class="table-responsive" data-bind="with: table">
 			<table class="table table-striped">
@@ -32,7 +27,7 @@
 						<td data-bind="text: $row.homeModleName"></td>
 						<td data-bind="text: $row.configRoles"></td>
 						<td><label class="i-switch v-middle"> <input
-								type="checkbox" data-bind=""> <i></i>
+								type="checkbox" checked> <i></i>
 						</label></td>
 						<td><a data-bind="click:$root.edit">角色配置</a></td>
 					</tr>
@@ -118,6 +113,7 @@
 			function(args) {
 				function LogViewModel() {
 					var self = this;
+					this.wantsSpam = ko.observable(true);
 					csc.rest.get('api/v5.0.0/roles', function(data) {
 						self.fields(data.results);
 					})
@@ -132,7 +128,6 @@
 							console.log(value);
 							this.fields_selected_ids(value ? _.pluck(this
 									.fields(), 'name') : []);
-							console.log(this.fields_selected_ids());
 						},
 						owner : this
 					});
@@ -140,10 +135,12 @@
 					this.isEdit = ko.observable(false);
 					
 					this.uuid = ko.observable("");
+					this.state = ko.observable("");
 					
 					this.configSave = function() {
 						var params = {
 							configRoles : "" + self.fields_selected_ids() + "",
+							state : self.state
 						} 
 						csc.rest.put('api/v5.0.0/homeConfigs/' + self.uuid(), params,
 								function(data) {
@@ -160,7 +157,7 @@
 						self.isEdit(true);
 					};
 					self.table = new DataTable({
-						perPage : 5,
+						perPage : 10,
 						path : 'api/v5.0.0/homeConfigs',
 					})
 				}

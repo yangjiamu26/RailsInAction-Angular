@@ -38,7 +38,7 @@
 				<tbody>
 		            <tr data-bind="visible: showNoData">
 		           		<td colspan="6" class="aligncenter">
-		              		This table has no data.
+		              		暂无记录
 		           		</td>
 		            </tr>
 		          	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -55,21 +55,34 @@
 				</tbody>
 			</table>
 		</div>
-		<footer class="panel-footer" data-bind="with: table">
-			<ul class="pagination">
-		        <li data-bind="css: leftPagerClass, click: prevPage">
-		          <a href="#">&laquo;</a>
-		        </li>
-		        <!-- ko foreach: {data: (new Array(pages()))} -->
-		        <li data-bind="css: $parent.pageClass($index() + 1)">
-		          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-		        </li>
-		        <!-- /ko -->
-		        <li data-bind="css: rightPagerClass, click: nextPage">
-		          <a href="#">&raquo;</a>
-		        </li>
-		    </ul>
-    	</footer>
+		<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+	     <ul class="pagination">
+	       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+	         <a href="#">首页</a>
+	       </li>
+	       <li data-bind="css: leftPagerClass, click: prevPage">
+	         <a href="#">&laquo;</a>
+	       </li>
+	       <li >
+	         <a href="#"  data-bind="text: currentPage"></a>
+	       </li>
+	       <li data-bind="css: rightPagerClass, click: nextPage">
+	         <a href="#">&raquo;</a>
+	       </li>
+	       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+	         <a href="#">末页</a>
+	       </li>
+	       <li class="page-control-li">
+	         <div class="input-group form-group-sm">
+	           <input type="text" class="form-control" data-bind="value: targetPage"  />
+	           <div class="input-group-btn">
+	             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+	           </div>
+	         </div>
+	         <div class="page-info-div" data-bind="text: recordsText"></div>
+	       </li>
+	     </ul>
+	   </footer>
 	</div>		
 </div>
 
@@ -142,8 +155,8 @@
       	
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info" data-bind="click:save">确定</a>
-        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        <a id="btnSave" class="btn btn-default btn-info" data-bind="click:save">确定</a>
+        <a id="btnBack" class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
   </div>
@@ -181,13 +194,11 @@
       		//删除
       		this.deleteFile = function(type){
       			if(type == 'report'){
-      				this.currentVO.fromJSON({
-      					defineFile: ""
-              		});
+      				this.currentVO().defineFile('');
+      				this.currentVO().reportSaveFile('');
       			}else if(type == 'param'){
-      				this.currentVO.fromJSON({
-      					paramFile: ""
-              		});
+      				this.currentVO().paramFile('');
+      				this.currentVO().paramSaveFile('');
       			}
       		}
       		// 获取文件名称
@@ -255,11 +266,15 @@
       				$("#nameError").text("报表名称不能为空！");
       				return;
       			}
+      			if(self.currentVO().name().length > 32){
+      				$("#nameError").text("报表名称最多只能输入32个字符！");
+      				return;
+      			}
       			if(!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(self.currentVO().name())){
       				$("#nameError").text("报表名称只能输入中文、数字、字母、下划线！");
       				return;
       			}
-      			if(self.currentVO().remark() > 255){
+      			if(self.currentVO().remark().length > 255){
       				$("#t_remarkError").text("最多只能输入255个字符！");
       				return;
       			}
@@ -300,6 +315,9 @@
 	        	self.currentVO().reportShowFile(dfShowName);
 	        	self.currentVO().paramShowFile(pfShowName);
 	        	
+	        	//禁用按钮
+    			$("#btnSave").attr('disabled','disabled');
+    			$("#btnBack").attr('disabled','disabled');
 	        	//检查报表名称是否存在
 	        	if(self.currentVO().id){
 	        		csc.rest.get('api/v5.0.0/reports/customReports/check?id='+self.currentVO().id+'&name='+self.currentVO().name(),function(data){
@@ -307,12 +325,18 @@
 	        				self.uploadDfile(function(){
 	        					csc.rest.put('api/v5.0.0/reports/customReports/'+self.currentVO().id,self.currentVO.toJSON(),function(data){
 							 		systemMsg.alert('修改自定义报表成功！');
+							 		//启用按钮
+			            			$("#btnSave").removeAttr('disabled');
+			            			$("#btnBack").removeAttr('disabled');
 							 		self.isAdd(false);
 						        	self.table.refreshData();
 							    });
 	        				});
 	        			}else{
 	        				$('#nameError').text('报表名称已经存在！');
+	        				//启用按钮
+	            			$("#btnSave").removeAttr('disabled');
+	            			$("#btnBack").removeAttr('disabled');
 	        			}
 		        	});
 	        	}else{
@@ -321,12 +345,18 @@
 	        				self.uploadDfile(function(){
 	        					csc.rest.post('api/v5.0.0/reports/customReports',self.currentVO.toJSON(),function(data){
 							 		systemMsg.alert('添加自定义报表成功！');
+							 		//启用按钮
+			            			$("#btnSave").removeAttr('disabled');
+			            			$("#btnBack").removeAttr('disabled');
 							 		self.isAdd(false);
 						        	self.table.refreshData();
 							    });
 	        				});
 	        			}else{
 	        				$('#nameError').text('报表名称已经存在！');
+	        				//启用按钮
+	            			$("#btnSave").removeAttr('disabled');
+	            			$("#btnBack").removeAttr('disabled');
 	        			}
 	        		});
 	        	}
@@ -379,11 +409,17 @@
       		            	//上传参数模板文件
       		            	self.uploadPfile(callback);
       		            }else{  
-      		                systemMsg.alert('报表定义'+data['msg']);  
+      		                systemMsg.alert('报表定义'+data['msg']);
+      		            	//启用按钮
+	            			$("#btnSave").removeAttr('disabled');
+	            			$("#btnBack").removeAttr('disabled');
       		            }  
       		        },
       		        error:function(data){
       		        	systemMsg.alert('上传文件异常'); 
+      		        	//启用按钮
+            			$("#btnSave").removeAttr('disabled');
+            			$("#btnBack").removeAttr('disabled');
       		        }
       		    };    
       		    var form = $("form[name=uploadDFileForm]");  
@@ -405,11 +441,17 @@
   			            	self.currentVO().paramSaveFile(data['filename']);
   			            	callback();
   			            }else{  
-  			                systemMsg.alert('参数模板'+data['msg']);  
+  			                systemMsg.alert('参数模板'+data['msg']);
+  			            	//启用按钮
+	            			$("#btnSave").removeAttr('disabled');
+	            			$("#btnBack").removeAttr('disabled');
   			            }  
   			        },
   			        error:function(data){
-  			        	systemMsg.alert('上传文件异常'); 
+  			        	systemMsg.alert('上传文件异常');
+  			        	//启用按钮
+            			$("#btnSave").removeAttr('disabled');
+            			$("#btnBack").removeAttr('disabled');
   			        }
   			    };    
   				form = $("form[name=uploadPFileForm]");  

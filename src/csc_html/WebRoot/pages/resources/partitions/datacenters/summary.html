@@ -9,9 +9,13 @@
 <div class='wrapper-md'>
 	<div class='bg-white-only b b-blue'>
 		<div class="wrapper">
-			<a class="btn btn-sm btn-default" href="#pages/resources/partitions/datacenters/index"><i class="fa fa-arrow-left"></i> 返回</a>
-			<button class="btn btn-sm btn-info">修改</button>
-			<button class="btn btn-sm btn-info">删除</button>
+			<a class="btn btn-sm btn-default"
+				href="#pages/resources/partitions/datacenters/index"><i
+				class="fa fa-arrow-left"></i> 返回</a>
+			<button class="btn btn-sm btn-info"
+				data-bind="click: editDataCenterInfo">修改</button>
+			<button class="btn btn-sm btn-info"
+				data-bind="click: deleteDataCenter">删除</button>
 		</div>
 
 		<div class="wrapper">
@@ -175,6 +179,44 @@
 </div>
 
 <div role="dialog" aria-hidden="true" class="modal fade"
+	data-bind="modal: { show: isEditDataCenter }">
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title'>修改数据中心</h3>
+			</div>
+			<div class='modal-body form-horizontal row'
+				data-bind="with:dataCenterInfoVO()">
+				<div class="form-group">
+					<label class="col-xs-3 control-label">名称</label>
+					<div class="col-xs-8">
+						<input type="email" class="form-control" placeholder="请输入名称"
+							data-bind="value:name">
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">描述</label>
+					<div class="col-xs-8">
+						<textarea class="form-control" cols="30" rows="3"
+							data-bind="value:description"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class='modal-footer' style="text-align: center;">
+				<a class="btn btn-default btn-info" data-bind="click:saveDataCenter">确定</a> <a
+					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div role="dialog" aria-hidden="true" class="modal fade"
 	data-bind="modal: { show: isEdit }">
 	<div class='modal-dialog'>
 		<div class='modal-content'>
@@ -320,6 +362,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
  function ViewModel(){
     this.isEdit = ko.observable(false);
+    this.isEditDataCenter = ko.observable(false);
     this.currentVO = ko.validatedObservable({});
     
     //数据中心基础信息VO
@@ -332,6 +375,33 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //从url中拿到参数设置
     self.dataCenterName = args.datacenterName;
     self.dataCenterUUID = args.datacenterId;
+    
+    //修改数据中心
+    this.editDataCenterInfo = function(){
+      self.isEditDataCenter(true);  
+    }
+    
+    this.saveDataCenter = function(){
+    	csc.rest.put('api/v5.0.0/datacenters/'+self.dataCenterUUID, this.dataCenterInfoVO(), function(data){
+            self.isEditDataCenter(false);
+    		systemMsg.alert("修改成功");
+            //location.href = "#pages/resources/partitions/datacenters/index";
+		});
+    }
+    
+    //删除数据中心
+    this.deleteDataCenter = function(){
+    	var dcName = self.dataCenterInfoVO().name;
+		var datacenterUuid = self.dataCenterInfoVO().uuid;
+		confirm("确定删除数据中心["+dcName+"]？",function(arg){
+			csc.rest.del('api/v5.0.0/datacenters/'+datacenterUuid, function(data){
+				systemMsg.alert("删除数据中心：["+dcName+"]成功！");
+				location.href = "#pages/resources/partitions/datacenters/index";
+		    });
+		 });
+    }
+    
+    
     
     this.loadDataCenterInfo = function(){
     	$.ajax("api/v5.0.0/datacenters/"+self.dataCenterUUID).done(function(data){
@@ -359,7 +429,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     		  }
     		  azDatas[index] = obj;
    		  });
-    	　　console.log(azDatas);
+    	　　//console.log(azDatas);
     	  
     	 //可用分区占比图
     	  $('#partitions_chart').highcharts({
@@ -485,9 +555,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
 	    //点击接入按钮时，初始化数据
 	this.add = function(){
-		
-		//console.log(this.table.chosenItems());
-		//return;
 	      this.currentVO({
 	        id: null,
 	        name	:	ko.observable('').extend({ required: true, maxLength: 32 }),
@@ -504,7 +571,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	    };
 
     this.edit = function(object, event){
-      //console.log(object)
       self.currentVO({
     	  	id: object.uuid,//这个会加到put的路径
     	  	uuid: object.uuid,//uuid，保存的时候会有这个
@@ -522,54 +588,36 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     };
     
     this.delete = function(object, event){
-        //console.log(object)
-        confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){        	
-        	/*csc.rest.del("api/v5.0.0/cloudPlatforms/"+object.uuid,function(){       	  
-	      	  	console.log("\n-------删除记录-------\n");
-		            console.log("destroy success");
-		            //刷新列表
-		            self.table.refreshData();
-	      	  }); */	
+        confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){        		
 	         api.cloudPlatform.set({"id":object.uuid}).destroy({
-		            success: function(){
-		            	console.log("destroy success");
-						alert("删除成功！");
-						self.table.refreshData();//刷新列表     
-		          	},
-			        error: function(){
-			            console.log("destroy error");
-			        }
+		            success: function(data){
+		            	//console.log(data);
+		            	if(data.result == 'success'){
+		    				  alert('删除成功');
+		            		  self.table.refreshData();
+		    			  }else if(data.result == 'hasAz'){
+		    				  alert('云管理平台存在可用分区，请先删除云管理平台下的可用分区！');
+		    			  }else{
+		    				  alert('删除失败');
+		    			  }  
+		          	}
 		     });
-        	
-        	
         });//end confirm    	  
-
       };
 
     this.ok = function(){ 	  
-   		//console.log(this.currentVO());  	
    		//接入
       	if(this.currentVO().id == null){
-        	//systemMsg.alert("你创建了一个资源属性");
-        	console.log(this.currentVO.toJSON());         
-        	console.log(this.currentVO.isValid()); 
-        
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {
       			//保存
             	api.cloudPlatforms.create(this.currentVO.toJSON(),{
               		success: function(data){
-                		console.log("\n-------新建记录成功-------\n");
-                		console.log(data);
                 		self.isEdit(false);//关闭modal
                 		if(data.attributes.uuid){
               				alert("接入成功！")               	  
     	            		self.table.refreshData();//刷新列表                	
                 		}
-                
-             		},
-              		error: function(){
-                		console.log("\n-------新建记录失败-------\n");
              		}
            		});
       	  
@@ -577,32 +625,25 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	      	  //显示错误提示
 	      	  this.currentVO.errors.showAllMessages();
 	        }
-        
 
       //修改
       }else{
-        //systemMsg.alert("你修改了一个资源属性");        
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {     	  		
      	  		api.cloudPlatform.save(this.currentVO.toJSON(),{
      		      	success: function(){
-     		        	console.log("\n-------更新记录成功-------\n");
      		        	alert("修改成功")
      		        	self.table.refreshData();//刷新列表    	        	
      	        		self.isEdit(false);//关闭modal
      		      	},
      		      	error: function(){
-     		        	console.log("\n-------更新记录失败-------\n");
      		      	}
      	    	});
-     	  		
      	  	}else{
      	  	 //显示错误提示
   	      	  this.currentVO.errors.showAllMessages();    	  		
      	  	}
-
       }
-      
     };
 
     this.searchParam = ko.observable({

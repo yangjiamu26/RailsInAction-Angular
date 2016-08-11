@@ -15,8 +15,9 @@
 			if ($element.attr("tabindex") === undefined) {
 				$element.attr("tabindex", -1);
 			}
-
-			$element.modal(ko.toJS(optionsAccessor()));
+			var modalOptions = ko.toJS(optionsAccessor());
+			modalOptions["backdrop"] = "static";
+			$element.modal(modalOptions);
 
 			$element.on("hidden.bs.modal", function() {
 				var options = ko.utils.unwrapObservable(optionsAccessor());

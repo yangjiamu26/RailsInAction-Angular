@@ -24,7 +24,7 @@
                     <p id="processType"><strong>流程类型：</strong></p>
                 </div>
                 <div class="col-xs-4">
-                    <p><strong>流程状态：</strong><span class="label label-info">审批中</span></p>
+                    <p id="state"><strong>流程状态：</strong></p>
                 </div>
             </div>
             <div class="row">
@@ -41,17 +41,19 @@
 	<div id="orderContent"></div>
 
       <div class="panel panel-info" id="approveMsgs">
-        <div class="panel-heading">审批信息</div>
+        <div class="panel-heading" id="approveTitle">审批信息</div>
         <div class="wrapper">
-          <h4>审批意见:</h4>
-          <textarea id="commentMsg" class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>    
-          <input id="commentId" type="hidden">
-          <hr />
+          <div id="commentDiv">
+	          <h4>审批意见:</h4>
+	          <textarea id="commentMsg" class="input-sm form-control w-sm" style="width:100%;min-height:100px;"></textarea>    
+	          <input id="commentId" type="hidden">
+	          <hr />
+          </div>
           <div>
 	        <button name="button" id="btn_task_saveAndNext" class="btn btn-default btn btn-info" data-dismiss="modal" data-bind="click: save">保存数据</button>
 	        <button name="button" id="btn_task_fallback" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="back()">回退</button>
 	        <button name="button" id="btn_task_delegate" class="btn btn-default btn btn-default" data-dismiss="modal" onclick="transfer()">转发</button>
-	        <button name="button" id="btn_task_complete" class="btn btn-default btn btn-default" onclick="next()">转交下一步</button>
+	        <button name="button" id="btn_task_complete" class="btn btn-primary" onclick="next()">转交下一步</button>
 	        <a  class="btn btn-default btn btn-default" data-dismiss="modal" data-url="pages/workflows/tasks?type=work" href="#pages/workflows/tasks?type=work">返回</a>
 	      </div>    
         </div>
@@ -64,72 +66,85 @@
 <script type="text/javascript">
   var isLast = false;
   var isFirst = false;
+  var state = '';
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", "api/vdc/vdc.js", "api/resource/network/network.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-    if(!args.type){
-      $(".order-base-info").remove();
-    }else{
-      if(args.type == 'order'){    	  
-        $("#orderBaseInfoType").html('订单号');
-        $("#approveMsgs").hide();
-      }else
-        $("#orderBaseInfoType").html('任务ID');
-    };
-    
     if(args.taskId){
     	csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
     		var info = data.taskInfo[0];
     		var taskNode = data.taskActivity[0];
     		var formKey = info.formKey;
-    		var isBatch = args.isBatch;
-    		var state = args.state;
-    		
+    		var isBatchBol = args.isBatch;
+    		var isBatch;
+    		if(isBatchBol=="true"){
+    			isBatch = true;
+    		}else{
+    			isBatch = false;
+    		}
+    		state = args.state;
     		$("#taskId").append(info.id);
     		$("#taskName").append(info.name);
     		$("#processType").append(info.processTypeName);
     		$("#applyTime").append(info.applyTime);
+    		$("#applier").append(info.applyUser);
+    		
+    		if(state == 'UNSUBMIT'){
+    			$("#state").append("<span class='label label-warning'>未提交</span>");
+    		}else{
+    			$("#state").append("<span class='label label-info'>审批中</span>");
+    		}
     		
     		var processInstanceId = info.processInstanceId;
     		//判断是否有前面节点
 			if(taskNode.previousStartEvent){
 				isFirst = true;
-				$("#btn_task_fallback").hide();
-				$("#btn_task_delegate").hide();
+				//$("#btn_task_fallback").hide();
+				//$("#btn_task_delegate").hide();
 			}
 			
 			//判断是否最后一个节点
-			if(taskNode.nextEndEvent){
+			if(taskNode.nextEndEvent && state != 'UNSUBMIT'){
 				isLast = true;
 				$("#btn_task_complete").text("完成审核");
 				$("#btn_task_complete").attr("title","完成审核");
 			}
 			
+			//未提交节点
+			if(state == 'UNSUBMIT'){
+				$("#commentDiv").hide();
+				$("#approveMsgs").removeClass("panel panel-info");
+				$("#approveTitle").hide();
+				$("#btn_task_fallback").hide();
+				$("#btn_task_delegate").hide();
+			}
+			
+			//施工确认节点不能回退
+			if(formKey=='resure'){
+				$("#btn_task_fallback").hide();
+			}
+			
 			//加载意见信息
 			get_task_comment(args.taskId);
 			
-			//$("#orderContent").load("pages/workflows/vm_single.html");
-			
-			if(args.state){
-				
-			}
-			
 			//加载订单信息
 			csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
-	    		var order = data.order;
+	    		var order = data;
 	    		var flowType = order.type;
 	    		var productType = order.resourceType;
 	    		var url = '';
 	    		if(flowType=='VDC_APPLY'){//VDC申请
-	    			if(args.type == 'order' || formKey=='approve'){
+	    			if(state=='UNSUBMIT' || args.type == 'order' || formKey=='approve'){
 	    				url = "pages/workflows/vdc_apply_single.html";
 	    			}else if(formKey=='construct'){
 	    				url = "pages/workflows/vdc_apply_construct.html";
 	    			}
 	    		}else if(flowType=='VDC_CHANGE'){//VDC变更
-	    			if(formKey=='approve'){
-	    				url = "pages/workflows/vdc_change.html";
+	    			if(state=='UNSUBMIT'){
+	    				url = "pages/workflows/vdc_change_unsubmit.html";
+	    			}else if(formKey=='approve'){
+	    				url = "pages/workflows/vdc_change_approve.html";
 	    			}else if(formKey=='construct'){
-	    				url = "pages/workflows/vdc_change.html";
+	    				url = "pages/workflows/vdc_change_construct.html";
 	    			}
 	    		}else if(flowType=='RESOURCE_APPLY'){
 	    			if(state=='UNSUBMIT'){
@@ -141,6 +156,16 @@
 		    		}else if(formKey=='resure'){
 		    			url = setResureUrl(flowType,productType,isBatch);
 		    		}
+	    		}else if(flowType=='RESOURCE_CHANGE'){
+	    			if(state=='UNSUBMIT' || formKey=='construct'){
+		    			url = "pages/workflows/vm_resize_construct.html";
+	    			}else if(formKey=='resure'){
+	    				url = "pages/workflows/vm_resize_resure.html";
+	    			}
+	    		}else if(flowType=='RESOURCE_DELETE'||flowType=='RESOURCE_RECYCLE'){
+	    		    url = "pages/workflows/resource_recovery_delete.html";
+	    		}else if(flowType=='VALIDTIME_CHANGE'){
+	    			url = "pages/workflows/validTime_change.html";
 	    		}
 	    		
 				$("#orderContent").load(url);
@@ -172,29 +197,29 @@
    //未提交url
   function setUnsubmitUrl(flowType,productType,isBatch){
 	var url = '';
-	if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
-		if(isBatch){
-			url = "pages/workflows/modal2_batch.html";
-		}else{
-			url = "pages/workflows/modal2.html";
-		}
+	if(flowType=='RESOURCE_APPLY'&&productType=='VM'){
+		url = "pages/workflows/vm_apply_unsubmit.html";//批量和单个同一个界面
+	}else if(flowType=='RESOURCE_APPLY'&&productType=='DISK'){
+		url = "pages/workflows/disk_apply_unsubmit.html";
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='OBJECT_STORAGE'){
 		if(isBatch){
-			url = "pages/workflows/modal3_batch.html";
+			url = "pages/workflows/objectStorage_apply_unsubmit_batch.html";
 		}else{
-			url = "pages/workflows/modal3.html";
+			url = "pages/workflows/objectStorage_apply_unsubmit.html";
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='LOAD_BALANCING'){
 		if(isBatch){
-			url = "pages/workflows/modal5_batch.html";
+			url = "pages/workflows/loadBalance_apply_unsubmit_batch.html";
 		}else{
-			url = "pages/workflows/modal5.html";
+			url = "pages/workflows/loadBalance_apply_unsubmit.html";
 		}
 	}else if(flowType=='RESOURCE_APPLY'&&productType=='SECRET_KEY'){
+		url = "pages/workflows/ssh_apply_unsubmit.html";
+	}else if(flowType=='RESOURCE_APPLY'&&productType=='PUBLICIP'){
 		if(isBatch){
-			url = "pages/workflows/modal6_batch.html";
+			url = "pages/workflows/ip_apply_unsubmit_batch.html";
 		}else{
-			url = "pages/workflows/modal6.html";
+			url = "pages/workflows/ip_apply_unsubmit.html";
 		}
 	}
 	return url;
@@ -204,7 +229,15 @@
   function setApproveUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_approve.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_approve.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_approve.html";
+		}else{			
+			url = "pages/workflows/apply4approve.html";
+		}
 	}
 	
 	return url;
@@ -214,7 +247,15 @@
   function setConstructUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_1_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_construct.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_construct.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_construct.html";
+		}else{			
+			url = "pages/workflows/apply4construct.html";
+		}
 	}
 	
 	return url;
@@ -224,7 +265,15 @@
   function setResureUrl(flowType,productType,isBatch){
 	var url = '';
 	if(flowType=='RESOURCE_APPLY'){
-		url = "pages/workflows/handle_2_others.html";
+		if(productType=='VM'){
+			url = "pages/workflows/vm_apply_construct_confirm.html";
+		}else if(productType=='PUBLICIP'){
+			url = "pages/workflows/ip_apply_construct_confirm.html";
+		}else if(productType=='OBJECT_STORAGE'){
+			url = "pages/workflows/objectStorage_apply_construct_confirm.html";
+		}else{			
+			url = "pages/workflows/apply4resure.html";
+		}
 	}
 	
 	return url;
@@ -245,10 +294,10 @@
   function saveComment(taskId,callback){
   	var message = $("#commentMsg").val();
   	var id = $("#commentId").val();
-  	if(message==''){
+  	/* if(message==''){
   		alert("请填写审批意见！");
   		return;
-  	}
+  	} */
   	csc.rest.post('api/v5.0.0/workflows/tasks/'+taskId+'/comments?message='+message+'&id='+id,'',function(data){
   		callback();
 	});
@@ -256,7 +305,14 @@
   
   function next(){
 	  var taskId = $("#taskId").text();
-	  if(isLast){
+	  
+	  if(state == 'UNSUBMIT'){
+		var databody = {"action":"reSubmit"};
+		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+		  alert("提交成功！");
+		  location.href = "#pages/workflows/tasks?type=work";
+		},function(){alert("操作失败！")});
+	  }else if(isLast){
 		  saveComment(taskId,function(){
 			var databody = {"userId":"","action":"designated"};
 			csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
@@ -265,18 +321,18 @@
 			},function(){alert("操作失败！")});
 		  });
 	  }else{		  
-		  showModal("pages/workflows/next.html?taskId="+taskId);
+		  showModal("pages/workflows/next.html");
 	  }
   }
   
   function transfer(){
 	  var taskId = $("#taskId").text();
-	  showModal("pages/workflows/transfer.html?taskId="+taskId);
+	  showModal("pages/workflows/transfer.html");
   }
   
   function back(){
 	  var taskId = $("#taskId").text();
-	  showModal("pages/workflows/back.html?taskId="+taskId);
+	  showModal("pages/workflows/back.html");
   }
   
 </script>

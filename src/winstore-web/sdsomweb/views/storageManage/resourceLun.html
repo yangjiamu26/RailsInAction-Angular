@@ -1,0 +1,700 @@
+<!--<div class="alarm-tab-header" ng-init="initPage()">-->
+    <!--<span class="alarm-tab-active" ng-click="showPoolTab()"><img src="images/storage/pic_storage-pool.png">存储池 </span>-->
+    <!--<span class="alarm-tab" ng-click="showLunTab()"><img src="images/storage/pic_lun.png">LUN</span>-->
+    <!--<span class="alarm-tab" ng-click="showViewTab()" ng-show="false"><img src="images/storage/pic_hostcomputer.png">主机映射视图</span>-->
+<!--</div>-->
+<div class="storage-container div-radius" style="margin-bottom:0px;" ng-init="initPage()">
+    <div ng-show="showTab=='lun'">
+        <div style="border:1px solid #000;background-color:#253144;line-height:35px;padding:5px;margin:0;">
+            <span style="color:#488fd2;">LUN详细信息</span>
+            <button class="btn-add pull-right" type="button" ng-disabled="!systemMode.isNormal" ng-click="showModal('addLun')" href="#poolModal" role="button" data-toggle="modal">
+                <img src="images/storage/pic_add.png">&nbsp;&nbsp;创建LUN
+            </button>
+        </div>
+        <div>
+            <table class="table table-bordered" id="no-radius-table">
+                <thead>
+                    <tr>
+                        <th>LUN ID</th>
+                        <th>存储池</th>
+                        <th>容量</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="lun in lunList" id="lunTr{{$index+1}}">
+                        <td>{{lun.lunId}}</td>
+                        <td>{{lun.poolName}}</td>
+                        <td>{{lun.capacity_bytes | BytesToKMGTB}}</td>
+                        <td>{{lun.status}}</td>
+                        <td>
+                            <span ng-class="{true: 'pool-lun-item-green-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && !lun.disabled]" ng-click="lun.disabled || showSnapshot(lun, $index+1)" role="button">快照管理</span>
+                            <span ng-class="{true: 'pool-lun-item-blue-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && !lun.disabled]" ng-click="lun.disabled || showModal('updateLun', lun)" role="button" data-toggle="modal">&nbsp;调整容量</span>
+                            <span ng-class="{true: 'pool-lun-item-orange-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && !lun.disabled]" ng-click="lun.disabled || showModal('deleteLun', lun)" role="button" data-toggle="modal">&nbsp;删除</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div ng-show="showTab=='view'">
+        <div class="row">
+            <div class="span8">
+                <div style="border:1px solid #000;background-color:#253144;line-height:30px;padding:5px;margin:0;">
+            <span style="color:#488fd2;">主机内容</span>
+            <button class="btn btn-success pull-right" ng-click="doView('createHost','创建主机')" role="button" data-toggle="modal">
+                <img src="images/storage/pic_add.png">创建主机
+            </button>
+        </div>
+        <div>
+            <table class="table table-bordered" id="no-radius-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:center;">主机名称</th>
+                        <th style="text-align:center;">IP 地址</th>
+                        <th style="text-align:center;">操作系统</th>
+                        <th style="text-align:center;">所属主机组</th>
+                        <th style="text-align:center;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="lun in lunList">
+                        <td>{{pool.poolName}}</td>
+                        <td>{{pool.ip}}</td>
+                        <td>{{pool.usedBytes | GBorTB}}</td>
+                        <td>{{pool.capacityBytes | GBorTB}}</td>
+                        <td>
+                            <span style="color:blue;" ng-click="doView('updateHost','修改主机')">修改</span>
+                            <span style="color:yellow;" ng-click="doView('deleteHost','删除')">删除</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+            </div>
+            <div class="span4">
+                <div style="border:1px solid #000;background-color:#253144;line-height:30px;padding:5px;margin:0;">
+                    <span style="color:#488fd2;">主机组内容</span>
+                    <button class="btn btn-success pull-right" ng-click="doView('createGroup','创建主机组')" role="button" data-toggle="modal">
+                        <img src="images/storage/pic_add.png">创建主机组
+                    </button>
+            </div>
+            <div>
+                <table class="table table-bordered" id="no-radius-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center;">主机组名称</th>
+                            <th style="text-align:center;">描述</th>
+                            <th style="text-align:center;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="lun in lunList">
+                            <td>{{pool.poolName}}</td>
+                            <td>{{pool.replication}}</td>
+                            <td>
+                                <span style="color:blue;" ng-click="doView('updateGroup','修改主机组')">修改</span>
+                                <span style="color:yellow;" ng-click="doView('deleteGroup','删除')">删除</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+        <br/>
+            <div >
+                <div style="border:1px solid #000;background-color:#253144;line-height:30px;padding:5px;margin:0;">
+                <span>映射视图内容</span>
+                <button class="btn btn-success pull-right" ng-click="showView=!showView" role="button">
+                    <img src="images/storage/pic_add.png">创建映射视图
+                </button>
+                <div ng-show="showView" style="border: 1px solid #60718d;margin: 10px 10px 20px 30px;background-color:#303e53">
+                <div style="padding: 60px;">
+                    <lable style="color: #97acc1">名称</lable>
+                    <p>
+                        <input type="text" placeholder="请输入映射视图名称" style="width:300px;color:#5c6d83;background-color: #3d4d62;border: 1px solid #60718d" />
+                    </p>
+                        <lable style="color: #97acc1">描述</lable>
+                        <p>
+                            <input type="text" placeholder="请描述..." style="width:300px;color:#5c6d83;background-color: #3d4d62;border: 1px solid #60718d" />
+                        </p>
+                        <lable style="color: #97acc1">请选择映射视图中包含的对象</lable>
+                        <h3 style="background: url('images/configure/pic_line.png') no-repeat left top;height:1px;"></h3>
+
+    <div class="row" style="padding: 20px 20px 0 20px;">
+        <div class="span7">
+            <div style="margin: 0 2px 5px 0;">
+            <span>选择LUN</span>
+            <button class="btn btn-info pull-right" href="#addlun" role="button" data-toggle="modal">
+                <img src="images/storage/pic_add.png">创建 LUN
+            </button>
+            </div>
+            <table class="table view-table" style="border: 1px solid #60718d;">
+                <tr>
+                    <td><input type="checkbox"/></td>
+                    <td>名称</td>
+                    <td>ID</td>
+                    <td>未归属映射视图的LUN</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"/></td>
+                    <td>对象1</td>
+                    <td>123456</td>
+                    <td>LUN 1</td>
+                </tr>
+            </table>
+        </div>
+        <div class="span5">
+            <div style="margin: 0 2px 5px 0;">
+            <span>选择主机组</span>
+            <button class="btn btn-info pull-right" ng-click="doView('createGroup')" role="button" data-toggle="modal">
+                <img src="images/storage/pic_add.png">创建主机组
+            </button>
+            </div>
+            <table class="table view-table" style="border: 1px solid #60718d;">
+                <tr>
+                    <td><input type="checkbox"/></td>
+                    <td>名称</td>
+                    <td>ID</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox"/></td>
+                    <td>对象1</td>
+                    <td>123456</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style="float:right">
+        <button type="submit" class="btn btn-success" ng-click="doView('confirm','map')">&nbsp;&nbsp;&nbsp;确 定&nbsp;&nbsp;&nbsp;</button>
+        <button type="button" class="btn" ng-click="dolView('cancel','map')">&nbsp;&nbsp;&nbsp;取 消&nbsp;&nbsp;&nbsp;</button>
+    </div>
+</div>
+</div>
+</div>
+
+    <div>
+        <table class="table table-bordered" id="no-radius-table">
+            <thead>
+                <tr>
+                    <th style="text-align:center;">映射视图名称</th>
+                    <th style="text-align:center;">描述</th>
+                    <th style="text-align:center;">主机组名称</th>
+                    <th style="text-align:center;">有建立映射关系的LUN名称</th>
+                    <th style="text-align:center;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="lun in lunList" id="poolTr{{$index+1}}" ng-dblclick="dblClick($index+1, pool)">
+                    <td>{{pool.poolName}}</td>
+                    <td>{{pool.replication}}</td>
+                    <td>{{pool.replication}}</td>
+                    <td>{{pool.replication}}</td>
+                    <td>
+                        <span style="color:green;">详情</span>
+                        <span style="color:blue;">修改</span>
+                        <span style="color:yellow;">删除</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</div>
+</div>
+
+<div id="snapTableDiv" ng-show='snapshotShow' style="display:none;position:absolute;left:20%;top:50%;color:#adbdd2;">
+    <div style="margin:10px 0">
+    <span style="padding:15px 0 0 20px;font-size:15px;color:#4bd37e;font-weight:bold;">
+        快照详细信息
+    </span>
+    <span class="fontSize16"  style="margin: 0 0 0 150px; color:red;font-style:italic">{{NoSnapErrMsg}}</span>
+    <span class="btn-add pull-right" style="color:white" ng-click="showSnapModal('add')" href="#snapModal" role="button" data-toggle="modal">
+        <img src="images/storage/pic_add.png">&nbsp;&nbsp;创建快照
+    </span>
+    </div>
+    <table class="table table-bordered" id="no-radius-table" style="width:100%;height:100%;">
+        <thead>
+            <tr>
+                <th>快照ID</th>
+                <th>快照名称</th>
+                <th>描述</th>
+                <th>大小</th>
+                <th>创建时间</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="snap in snapshots" style="height:30px">
+                <td>{{snap.id}}</td>
+                <td>{{snap.snapName}}</td>
+                <td>{{snap.remark | lessWorld:"32"}}</td>
+                <td>{{snap.size | BytesToKMGTB}}</td>
+                <td>{{snap.createTime}}</td>
+                <td>{{snap.status}}</td>
+                <td>
+                    <span ng-class="{true: 'pool-lun-item-green-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && snap.stauts != '正在删除']" role="button" data-toggle="modal" ng-click="snap.stauts == '正在删除' || showSnapModal('update',snap)">修改描述</span>
+                    <span ng-class="{true: 'pool-lun-item-blue-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && !isSnapRollingback && snap.stauts != '正在删除']" role="button" data-toggle="modal" ng-click="isSnapRollingback || snap.stauts == '正在删除' || showSnapModal('rollback',snap)">&nbsp;回滚至此快照</span>
+                    <span ng-class="{true: 'pool-lun-item-orange-finger-show', false: 'pool-lun-item-finger-not-show'}[systemMode.isNormal && !isSnapRollingback && snap.stauts != '正在删除']" role="button" data-toggle="modal" ng-click="isSnapRollingback || snap.stauts == '正在删除' || showSnapModal('delete', snap)">&nbsp;删除</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<div id="initiatorTabDiv" ng-show='initiatorShow' style="display:none;position:absolute;left:20%;top:50%;color:#adbdd2;">
+    <div style="margin:10px 0">
+    <span style="padding:15px 0 0 20px;font-size:15px;color:#4bd37e;font-weight:bold;">
+        iSCSI发起程序详细信息
+    </span>
+    <span class="fontSize16"  style="margin: 0 0 0 150px; color:red;font-style:italic">{{initiatorErrMsg}}</span>
+    <span class="btn-add pull-right" style="color:white" ng-click="!initiators.length && showPoolAclSet(pool)" role="button" data-toggle="modal">
+        <img src="images/storage/pic_add.png">&nbsp;&nbsp;添加客户端
+    </span>
+    </div>
+    <table class="table table-bordered" id="no-radius-table" style="width:100%;height:100%;">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>客户端IP</th>
+                <th>iSCSI发起程序名</th>
+                <th>是否授权</th>
+                <th>是否连接</th>
+                <th style="width:90px;letter-spacing:1px">授权操作</th>
+                <th style="width:90px;letter-spacing:1px">删除？</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="initiator in initiators" style="height:30px">
+                <td>{{$index+1}}</td>
+                <td>{{initiator.ip}}</td>
+                <td>{{initiator.name}}</td>
+                <td ng-if="initiator.approved=='yes'">已授权</td>
+                <td ng-if="initiator.approved!='yes'">未授权</td>
+                <td ng-if="initiator.state=='active'">已连接</td>
+                <td ng-if="initiator.state!='active'">未连接</td>
+                <td ng-if="initiator.approved!='yes'" style="color:#92caff;cursor:pointer;" ng-click="addPoolAcl(initiator.name, pool.poolName)">添加授权</td>
+                <td ng-if="initiator.approved=='yes'" style="color:#92caff;cursor:pointer;" ng-click="deletePoolAcl(initiator.name, pool.poolName)">取消授权</td>
+                <td><span style="color:#f67c05;cursor:pointer;" ng-click="delPoolInitiator(pool.poolName,initiator.name)">删除</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- 存储池详情图形DIV -->
+
+<div id="chartDiv" style="display:none;position:absolute;left:20%;top:50%;color:#adbdd2;width:900px;height:600px;">
+    <div class="row-fluid">
+        <div style="padding:15px 0 0 20px;font-size:15px;color:#4bd37e;font-weight:bold;">
+            <div ng-show="!poolOrLun.lunId">存储池详情</div>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span5 offset1">
+            <div class="row-fluid">
+
+    <div class="span6" style="padding:10px 0 10px 16px;line-height:25px;">
+        <div ng-show="poolOrLun.lunId" style="background: url('images/storage/pic_line3.png') no-repeat left bottom;">LUN名称：{{poolOrLun.lunId}}</div>
+        <div ng-show="poolOrLun.lunId" style="background: url('images/storage/pic_line3.png') no-repeat left bottom;">所属资源池：{{poolOrLun.poolName}}</div>
+        <div ng-show="!poolOrLun.lunId" style="background: url('images/storage/pic_line3.png') no-repeat left bottom;">存储池：{{poolOrLun.poolName}}</div>
+        <div ng-show="!poolOrLun.lunId" style="background: url('images/storage/pic_line3.png') no-repeat left bottom;">存储策略：{{poolOrLun.replication}}</div>
+    </div>
+</div>
+</div>
+
+    </div>
+    <div class="row-fluid" ng-show="!poolOrLun.lunId">
+        <div class="span5 offset1" style="padding:10px 0;">
+            <div class="row-fluid">
+                <div class="span6" style="line-height:30px;padding-left:15px;">IOPS</div>
+                <div class="span6 text-right" style="line-height:30px;color:#02cd4e;padding-right:20px;">{{poolOrLun.iops | unit:'iops'}}</div>
+            </div>
+            <div id="iops" style="width:100%;height:260px;"></div>
+        </div>
+        <div class="span5" style="padding:10px 0px;">
+            <div class="row-fluid">
+                <div class="span6" style="line-height:30px;padding-left:15px;">吞吐量</div>
+                <div class="span6 text-right" style="line-height:30px;color:#00acff;padding-right:20px;">{{poolOrLun.mbps | unit:'mbps'}}</div>
+            </div>
+            <div id="mbps" style="width:100%;height:260px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 存储池信息展示Modal -->
+<div id="poolModal" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header" style="font-size:15px;">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">{{modal.message}}</h3>
+    </div>
+    <div class="modal-body" style="background-color:#fff;padding:20px 50px 10px 50px;color:#97acc1;">
+        <form style="margin-bottom: 5px">
+            <div ng-show="modal.to=='addPool'">
+                <label>名称</label>
+                <input type="text" style="width:100%;" placeholder="请输入存储池名称，由1到16个小写字母组成" ng-model="apool.poolName">
+
+    <br>
+    <div class="checkbox" style="cursor:pointer;margin-top:20px;padding-bottom:15px;" ng-click="showRepSelect()">
+        <span style="padding:10px;margin-left:-20px;" ng-style="{'background': checkedOrNot(apoolCheck)}"></span>
+        <span style="color:#97acc1;">高级选项</span>
+    </div>
+    <div ng-show="apoolCheck">
+        <label>存储策略</label>
+        <select ng-model="apool.storagePolicy.selected" id="policySelect">
+            <option value='replicated'>副本策略</option>
+        </select>
+        <div ng-show="apool.storagePolicy.selected == 'replicated'">
+            <label>副本数</label>
+            <select ng-model="apool.storagePolicy.replicated.selected" ng-options="rep for rep in apool.storagePolicy.replicated.options">
+                <option value="apool.storagePolicy.replicated.default">{{apool.storagePolicy.replicated.default}}</option>
+            </select>
+        </div>
+        <div ng-show="apool.storagePolicy.selected == 'erasure'">
+            <label>数据块个数</label>
+            <select ng-model="apool.storagePolicy.erasure.datablock.selected" ng-change="updateErasurePolicy(apool.storagePolicy.erasure.datablock.selected)" ng-options="rep for rep in apool.storagePolicy.erasure.datablock.options">
+                <option value="apool.storagePolicy.erasure.datablock.default">{{apool.storagePolicy.erasure.datablock.default}}</option>
+            </select>
+            <label>校验块个数</label>
+            <select ng-model="apool.storagePolicy.erasure.parityblock.selected" ng-options="rep for rep in apool.storagePolicy.erasure.parityblock.options">
+                <option value="apool.storagePolicy.erasure.parityblock.default">{{apool.storagePolicy.erasure.parityblock.default}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- 修改部分 -->
+<div ng-show="modal.to=='updatePool'">
+    <label>原名称</label>
+    <input type="text" ng-model="apool.poolName" readOnly>
+    <label>新名称</label>
+    <input type="text" placeholder="请输入新存储池名称，由1到16个小写字母组成" ng-model="apool.newName">
+</div>
+
+<!-- 删除提示信息 -->
+<div ng-show="modal.to=='deletePool'" style="color:#000;">
+    <div class="fontSize16" style="color:#000;margin:10px 0 10px 0">请先确认存储池对应的LUN已被删除，否则将删除失败！</div>
+    <div class="fontSize16" style="color:#000;">存储池&nbsp;<text style="color:#f00;font-weight:bold;">{{pool4Delete.poolName}}</text>&nbsp;将被永久删除！
+    </div>
+    <div class="fontSize16" style="color:#000;">
+        <span>请输入大写&nbsp;'YES'&nbsp;以确定删除操作</span>
+        <input type="text" style="width:40px;height:20px;margin:10px" ng-model="apool.sure2deletePool" placeholder="NO">
+    </div>
+</div>
+
+<div ng-show="modal.to=='setChap'">
+    <label>启用正向验证</label>
+    <div>
+        <input type="text" ng-model="poolChap.username" class="inline" placeholder="请输入新增用户名">
+        <input type="password" ng-model="poolChap.password" class="inline" placeholder="请输入新增用户密码">
+    </div>
+    <div class="input-append" style="width=400px">
+        <label style="margin-top:20px">
+            <input type="checkbox" ng-model="poolChap.mutul" name="mutulAuth" >启用反向验证
+        </label>
+        <br/>
+    </div>
+    <div style="margin-top:-20px">
+        <input type="text" ng-model="poolChap.mutulUsername" class="inline" placeholder="请输入反向验证用户名" ng-disabled="!poolChap.mutul">
+        <input type="password" ng-model="poolChap.mutulPassword" class="inline" placeholder="请输入反向验证用户密码" ng-disabled="!poolChap.mutul" >
+    </div>
+    <div>
+        <button style="margin-left:377px;" class="btn btn-primary" ng-click="addPoolChap()">+ 新增</button>
+    </div>
+
+    <div style="height:30px;width:100%;line-height:10px;margin-top:10px;">
+        已有用户名<br/>
+        <img src="images/storage/pic_line3.png" style="height:1px;width:100%;">
+    </div>
+    <div ng-repeat="chap in poolChapList" style="margin:10px 0;border:1px dotted #e14a07;height:25px;line-height:25px;padding:1px 10px;width:95%;color:#e14a07;">
+        <span style="color:#4F97DC" ng-show="chap.level=='level1'">正向验证</span>
+        <span style="color:#4F97DC" ng-show="chap.level=='level2'">反向验证</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color:green;">{{chap.username}}</span>
+        <span style="float:right;color:#e14a07;cursor:pointer;" ng-click="deletePoolChap(chap)">×</span>
+    </div>
+</div>
+
+    <!-- 新增lun -->
+    <div ng-show="modal.to=='addLun'">
+        <label>LUN ID</label>
+        <input type="text" ng-model="alun.lunId" placeholder="请输入1至254数字作为LUN ID，相同存储池内ID不能重复。" style="width:100%;">
+        <label>所属存储池</label>
+        <div class="input-append">
+            <select ng-model="alun.poolName" ng-options="pool.poolName as pool.poolName for pool in apoolList">
+                <option value="">-请选择存储池-</option>
+            </select>
+        </div>
+        <label>容量</label>
+        <input type="text" ng-model="alun.capacity_display" style="width:100%;" placeholder="支持MB、GB或TB，最大支持200TB。示例：50GB">
+    </div>
+
+    <!-- 修改lun -->
+    <div ng-show="modal.to=='updateLun'">
+        <label>ID</label>
+        <input type="text" ng-model="alun.lunId" style="width:100%;" readOnly>
+        <label>容量</label>
+        <input type="text" ng-model="alun.capacity_display" style="width:100%;" placeholder="支持MB、GB或TB，最大支持200TB。示例：50GB">
+    </div>
+
+    <!-- 删除提示信息 -->
+    <div ng-show="modal.to=='deleteLun'">
+        <div class="fontSize16"  style="color:#000;">存储池&nbsp;<text style="color:#f00;font-weight:bold;">{{lun4Delete.poolName}}</text>&nbsp;的LUN&nbsp;
+            <text style="color:#f00;font-weight:bold;">{{lun4Delete.lunId}}</text>&nbsp;数据将被永久删除！
+        </div>
+        <div class="fontSize16"  style="color:#000;">
+            <span>请输入大写&nbsp;'YES'&nbsp;以确定删除操作</span>
+            <input type="text" style="width:40px;height:20px;margin:10px" ng-model="alun.sure2deleteLun" placeholder="NO">
+        </div>
+    </div>
+
+    <div ng-show="sure2deleteLunAgain">
+        <div class="fontSize16" style="color:#000;">
+            <text style="color:#000;">该存储池已连接客户端，请确认该LUN已经不再使用</text>
+            <span>请输入大写&nbsp;'YES'&nbsp;以确定删除操作</span>
+            <input type="text" style="width:40px;height:20px;margin:10px" ng-model="alun.sure2deleteLunAgain" placeholder="NO">
+        </div>
+    </div>
+
+    <!-- 开启Ceph文件系统部分 -->
+    <div ng-show="modal.to=='enableCephFS'">
+        <label>你确定要开启Ceph文件系统吗？^_^</label>
+    </div>
+
+    <div class="fontSize16"  style="color:red;">{{errMsg}}</div>
+</form>
+<!-- 加载中 -->
+<div class="spin"></div>
+</div>
+<div class="modal-footer" ng-show="modal.to!='setChap'">
+    <button class="btn btn-success" ng-click="modal.sure()" ng-disabled="!systemMode.isNormal || isAdd">确定</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true" ng-disabled="isAdd">取消</button>
+</div>
+<div class="modal-footer" ng-show="modal.to=='setChap'">
+    <button class="btn" data-dismiss="modal" aria-hidden="true" ng-disabled="isAdd">关闭</button>
+</div>
+</div>
+<!-- 存储池弹出框信息控制DIV展示完 -->
+
+    <!-- 快照信息展示Modal -->
+    <div id="snapModal" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header" style="font-size:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 style="color:#fff;padding-top:20px;">{{snapMessage}}</h3>
+        </div>
+        <div class="modal-body" style="background-color:#fff;padding:20px 50px 10px 50px;color:#97acc1;">
+            <form style="margin-bottom: 5px">
+                <div ng-show="snapModelAdd" id="add_Snap">
+                    <label style="color: red">创建快照时只对已写入LUN的数据保存快照</label>
+                    <label style="color: red">强烈建议此时停止对LUN的写IO以保证一致性</label>
+                    <br>
+                    <label>名称</label>
+                    <input type="text" style="width:100%;" placeholder="请输入快照名称，由数字或字母组成，长度为1至8。" ng-model="snapModel.snapName">
+                    <br>
+                    <label>描述</label>
+                    <textarea ng-model="snapModel.remark" placeholder="请输入快照描述，字数在500以内。" style="margin: 0px 0px 10px; width: 460px; height: 100px;"></textarea>
+                </div>
+                <!-- 修改部分 -->
+                <div ng-show="snapModelUpdate"  id="update_Snap">
+                    <label>名称:&nbsp;</label>
+                    <input type="text" ng-model="snapModel.snapName" readOnly>
+                    <br>
+                    <label>描述</label>
+                    <textarea ng-model="snapModel.remark" style="margin: 0px 0px 10px; width: 460px; height: 100px;"></textarea>
+                </div>
+                <!-- 删除提示部分 -->
+
+    <div ng-show="snapModelDelete" style="color:#000;"  id="del_Snap">
+        <div class="fontSize16" style="color:#000;">存储池&nbsp;<text style="color:#f00;font-weight:bold;">{{snapLun.poolName}}</text>
+        &nbsp;LUN&nbsp;<text style="color:#f00;font-weight:bold;">{{snapLun.lunId}}</text>
+        &nbsp;的快照&nbsp;<text style="color:#f00;font-weight:bold;">{{snapModel.snapName}}</text>
+        &nbsp;将被永久删除！
+        </div>
+        <div class="fontSize16" style="color:#000;">
+            <span>请输入大写&nbsp;'YES'&nbsp;以确定删除操作</span>
+            <input type="text" style="width:40px;height:20px;margin:10px" ng-model="snapModel.sure2deleteSnap" placeholder="NO">
+        </div>
+    </div>
+
+    <div ng-show="snapModelRollback" style="color:#000;" id="rollback_Snap">
+        <div class="fontSize16" style="color:#000;">存储池&nbsp;<text style="color:#f00;font-weight:bold;">{{snapLun.poolName}}</text>
+        &nbsp;的LUN&nbsp;<text style="color:#f00;font-weight:bold;">{{snapLun.lunId}}</text>
+        &nbsp;即将回滚到快照&nbsp;<text style="color:#f00;font-weight:bold;">{{snapModel.snapName}}</text>
+        </div>
+        <div class="fontSize16" style="color:#000;">此操作不可逆
+        </div>
+        <div class="fontSize16" style="color:#000;">最晚创建的快照的时间点和回滚操作开始的时间点之间，写入LUN的数据将被清除且不可恢复！
+        </div>
+        <div class="fontSize16" style="color:#000;">
+            <span>请输入大写&nbsp;'YES'&nbsp;以确定回滚操作</span>
+            <input type="text" style="width:40px;height:20px;margin:10px" ng-model="snapModel.sure2deleteSnap" placeholder="NO">
+        </div>
+    </div>
+    
+    <!-- 确认有initiator连接情况下继续打快照和快照回滚 -->
+    <div ng-show="sure2Snap" style="color:#000;">
+        <div class="fontSize16" style="color:#F00;margin:10px 0 10px 0">POOL:&nbsp;{{snapLun.poolName}}&nbsp;该存储池已连接客户端，建议断开连接后操作，继续操作存在数据丢失风险！</div>
+        <div class="fontSize16" style="color:#000;">
+            <span>如果要强行继续，请输入大写&nbsp;'YES'&nbsp;以确定继续操作</span>
+            <input type="text" style="width:40px;height:20px;margin:10px" ng-model="snapLun.sure2Snap" placeholder="NO">
+        </div>
+    </div>
+     
+<div class="fontSize16"  style="color:red;">{{snapErrMsg}}</div>
+</form>
+<!-- 加载中 -->
+<div class="spin"></div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-success" ng-click="commitSnap()" ng-disabled="!systemMode.isNormal || isAdd">确定</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true" ng-disabled="isAdd" ng-click="cancelSnap()">取消</button>
+</div>
+</div>
+
+    <!-- 存储池ACL管理 add by masi 20150409 -->
+    <div id="poolAclSet" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
+        <div class="modal-header" style="font-size:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 id="myModalLabelE" style="color:#fff;padding-top:20px;">iSCSI客户端设置:存储池&nbsp;{{pool.poolName}}</h4>
+        </div>
+        <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
+        <form>
+            <label>iSCSI发起程序名称</label>
+            <div class="input-append" style="width=400px">
+                <input type="text"  ng-model="initiator" placeholder="请输入新增iscsi发起程序名"/>
+                <button class="btn btn-primary" ng-click="addPoolInitiator(initiator, pool.poolName)">+ 新增</button>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <!-- <button class="btn btn-success">确定</button> -->
+        <button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+    </div>
+
+</div>
+<div>
+    <div id="sure2AddAcl" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
+        <div class="modal-header" style="font-size:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 id="myModalLabelE" style="color:#fff;padding-top:20px;">授权确认:存储池&nbsp;{{pool.poolName}}</h4>
+        </div>
+        <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
+        <form>
+            <label style="color:#F60510">警告：授权多个客户端访问，只适用于集群文件、集群卷(cLVM)系统，否则多个客户端同时写同一个LUN会造成数据丢失！</label>
+            <div style="width=400px;color:#000">
+                <span>请输入大写 'YES' 确认继续操作</span>
+                <input type="text" style="width:40px;height:20px;margin:10px"  ng-model="sure2AddApproved" placeholder="NO" ng-pristine ng-valid/>
+            </div>
+        </form>
+        <div class="fontSize16"  style="color:red;">{{aclErrMsg}}</div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" ng-click="sure2AddApprovedOperate()">确定</button> 
+        <button class="btn" data-dismiss="modal" aria-hidden="true" ng-click="sure2AddApprovedHide()">关闭</button>
+    </div>
+
+
+</div>
+<!--存储池ACL管理 add by masi 20150409 END-->
+
+    <!-- 主机映射 主机div -->
+    <div id="hostMapView" class="modal hide fade" style="width:380px;left: 60%;background-color:#4f97dc;" tabindex="10" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header" style="font-size:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">{{viewTitle}}</h3>
+        </div>
+        <div class="modal-body" style="background-color: white;padding: 30px;color:#97acc1;">
+            <div ng-show="view=='createHost' || view=='updateHost'">
+                <lable>名称</lable>
+                <p>
+                    <input type="text" placeholder="请输入主机名称" id="hostIdShow" ng-model="host.hostid" rel="popover" data-toggle="popover" data-placement="bottom" style="width:300px;">
+                </p>
+                <lable>操作系统</lable>
+                <p>
+                    <select ng-model="host.osType" style="color:grey;" id="osTypeShow" rel="popover" data-toggle="popover" data-placement="bottom">
+                        <option value="">请选择操作系统</option>
+                        <option value="IOS系统">IOS系统</option>
+                        <option value="android系统">android系统</option>
+                    </select>
+                </p>
+                <lable>IP地址</lable>
+            <p><input type="text" ng-model="host.hostIp"  placeholder="请输入IP地址" id="ipShow" rel="popover" data-toggle="popover" data-placement="bottom"></p>
+            <span style="color:red">未使用空间还有 11.6 TB</span>
+        </div>
+        <div ng-show="view=='createGroup' || view=='updateGroup'">
+            <lable>名称</lable>
+            <p>
+                <input type="text" ng-model="hostGroup.hostGroupName" placeholder="请输入主机组名称" style="width:300px;">
+            </p>
+                <lable>描述</lable>
+                <p>
+                    <textarea ng-model="hostGroup.desc" placeholder="请描述..." style="width:300px;"></textarea>
+                </p>
+                <lable>可选主机</lable>
+                <img src="images/configure/pic_line.png" />
+            <p>
+                <table class="table table-hover" style="border-left: 1px solid #ADADAD;border-bottom: 1px solid #ADADAD;border-right: 1px solid #ADADAD;">
+                    <tr ng-repeat="host in hostGroup.hosts"><td><input type="checkbox" ng-checked="host.$checked"/></td><td>{{host.ip}}</td></tr>
+                </table>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" ng-click="confirmView(view)">&nbsp;&nbsp;&nbsp;确&nbsp;定&nbsp;&nbsp;&nbsp;</button>
+        <button class="btn disabled" data-dismiss="modal" aria-hidden="true" ng-click="cancel('{{view}}')">&nbsp;&nbsp;&nbsp;取&nbsp;消&nbsp;&nbsp;&nbsp;</button>
+    </div>
+</div>
+
+<!--存储池ACL管理 --add by masi 20150409 END-->
+
+<!-- 主机映射 主机div -->
+<div id="hostMapView" class="modal hide fade" style="width:380px;left: 60%;background-color:#4f97dc;" tabindex="10" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header" style="font-size:15px;">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">{{viewTitle}}</h3>
+    </div>
+    <div class="modal-body" style="background-color: white;padding: 30px;color:#97acc1;">
+        <div ng-show="view=='createHost' || view=='updateHost'">
+            <lable>名称</lable>
+            <p>
+                <input type="text" placeholder="请输入主机名称" id="hostIdShow" ng-model="host.hostid" rel="popover" data-toggle="popover" data-placement="bottom" style="width:300px;">
+            </p>
+                <lable>操作系统</lable>
+                <p>
+                    <select ng-model="host.osType" style="color:grey;" id="osTypeShow" rel="popover" data-toggle="popover" data-placement="bottom">
+                        <option value="">请选择操作系统</option>
+                        <option value="IOS系统">IOS系统</option>
+                        <option value="android系统">android系统</option>
+                    </select>
+                </p>
+                <lable>IP地址</lable>
+            <p><input type="text" ng-model="host.hostIp"  placeholder="请输入IP地址" id="ipShow" rel="popover" data-toggle="popover" data-placement="bottom"></p>
+            <span style="color:red">未使用空间还有 11.6 TB</span>
+        </div>
+        <div ng-show="view=='createGroup' || view=='updateGroup'">
+            <lable>名称</lable>
+            <p>
+                <input type="text" ng-model="hostGroup.hostGroupName" placeholder="请输入主机组名称" style="width:300px;">
+            </p>
+                <lable>描述</lable>
+                <p>
+                    <textarea ng-model="hostGroup.desc" placeholder="请描述..." style="width:300px;"></textarea>
+                </p>
+                <lable>可选主机</lable>
+                <img src="images/configure/pic_line.png" />
+            <p>
+                <table class="table table-hover" style="border-left: 1px solid #ADADAD;border-bottom: 1px solid #ADADAD;border-right: 1px solid #ADADAD;">
+                    <tr ng-repeat="host in hostGroup.hosts"><td><input type="checkbox" ng-checked="host.$checked"/></td><td>{{host.ip}}</td></tr>
+                </table>
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" ng-click="confirmView(view)">&nbsp;&nbsp;&nbsp;确&nbsp;定&nbsp;&nbsp;&nbsp;</button>
+        <button class="btn disabled" data-dismiss="modal" aria-hidden="true" ng-click="cancel('{{view}}')">&nbsp;&nbsp;&nbsp;取&nbsp;消&nbsp;&nbsp;&nbsp;</button>
+    </div>
+</div>
