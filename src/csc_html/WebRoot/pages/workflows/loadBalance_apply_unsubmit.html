@@ -247,7 +247,7 @@
 	          }
 		  }
 		  
-		  this.save = function(){
+		  this.save = function(obj,event,callback){
 			 if(args.state=='UNSUBMIT'){
 	             if(self.currentVO.isValid()){
 	                  var expireValue=''; 
@@ -267,7 +267,11 @@
 	                   		"billCycle": self.currentVO().billCycle(),
 	                   		"fee": self.currentVO().fee()
 	                  }
-	                  csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderUuid()+'/modifyItem/'+self.currentVO().uuid(), itemResults, function(data){ 
+	                  csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderUuid()+'/modifyItem/'+self.currentVO().uuid(), itemResults, function(data){
+	                	  if(typeof(callback) != 'undefined'){
+		      					callback();
+		      					return;
+		      				}
 	                      alert('保存成功！'); 
 	                  }); 
 	             }
@@ -277,6 +281,16 @@
         		 });
 			 }
           }
+		  
+		  this.next = function(){
+			self.save("","",function(){
+				var databody = {"action":"reSubmit"};
+				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+				  alert("提交成功！");
+				  location.href = "#pages/workflows/tasks?type=work";
+				},function(){alert("操作失败！")});
+			})
+		  }
 		}
 		
 		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 

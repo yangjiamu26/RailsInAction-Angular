@@ -447,7 +447,7 @@
 	      		}
 	      		self.vdcQuotaList(vdcQuotaList);
 	      		
-	      		$.VDC.getVdcQuota(itemListData[0].vdcUuid,"",function(data){
+	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
 		    		var vdcQuotaList = data.results;
 		    		for(var i=0;i<vdcQuotaList.length;i++){
 		    			if(vdcQuotaList[i].type=='CPU'){
@@ -486,14 +486,15 @@
 			      			azList.push(data.results[0]);
 			      			self.azs(azList);
 		      			});
-		      			/* debugger
 		      			var nwUuids = azs[i].networks;
 		      			for(var j=0;j<nwUuids.length;j++){
 		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
 		      					console.log(data);
-			      				networks.push(data);
+			      				networks.push({'networkName':data.name,'azName':data.azName,'cloudPlatformName':data.cloudPlatformName,
+			      					'networkUuid':data.uuid,'azUuid':data.azUuid});
+			      				self.networks(networks);
 		   					});
-		      			} */
+		      			}
 		      		}
 	      		}
 	      	 })
@@ -658,7 +659,7 @@
 			/*****添加AZ下的网络*****/
 	        
 	        
-	        this.save = function(){
+	        this.save = function(obj,event,callback){
 	          	saveComment(args.taskId,function(){
 	          		var azs = [];
 					$("input[name='networkUuid']").each(function(){					
@@ -693,9 +694,29 @@
 					
 				    self.itemResults(itemResults);
 					csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,self.itemResults(),function(data){
+						if(typeof(callback) != 'undefined'){
+							callback();
+							return;
+						}
 		          		alert('保存成功！');
 	    		    });
 	          	});
+			}
+			
+			this.next = function(){
+				self.save("","",function(){
+					if(isLast){
+					  saveComment(args.taskId,function(){
+						var databody = {"userId":"","action":"designated"};
+						csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+						  alert("审核成功！");
+						  location.href = "#pages/workflows/tasks?type=work";
+						},function(){alert("操作失败！")});
+					  });
+				  	}else{		  
+					  showModal("pages/workflows/next.html");
+				  	}
+				})
 			}
 		}
 		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 

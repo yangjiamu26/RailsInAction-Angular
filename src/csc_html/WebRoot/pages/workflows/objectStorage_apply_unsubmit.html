@@ -220,7 +220,7 @@
         			    });	
                     }
 	    								
-    	           this.save = function(){
+    	           this.save = function(obj,event,callback){
     	        	   if(self.model_ObjSto.isValid()){
     	        		       nameCheck(self.model_ObjSto().instanceName(),"OBJECT_STORAGE",function(pass){
     	        		    	   if(pass){
@@ -244,15 +244,29 @@
     	        	        				   "desc":self.model_ObjSto().desc()
     	        	        				   };
     		       						csc.rest.put('api/v5.0.0/orders/'+orderData.uuid+'/modifyItem/'+orderItem.uuid,itemResults,function(data){
-    		    			          		alert('保存成功！');
+    		       							if(typeof(callback) != 'undefined'){
+    		       								callback();
+    		       								return;
+    		       							}
+    		       							alert('保存成功！');
     		    		  		    	});
     	        		    	   }
     	        		       })
     	        	   }
      	      		}
-    	      	  }
-    	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
-    	      	 });
+    	           
+    	           this.next = function(){
+    	   			self.save("","",function(){
+    	   				var databody = {"action":"reSubmit"};
+    	   				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+    	   				  alert("提交成功！");
+    	   				  location.href = "#pages/workflows/tasks?type=work";
+    	   				},function(){alert("操作失败！")});
+    	   			})
+    	   		  }
+   	      	  }
+   	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+   	      	 });
     	  });
   	  
     });//

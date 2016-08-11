@@ -15,14 +15,14 @@
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane active" role="tabpanel">
-				<div class="wrapper"><a class="btn btn-sm btn-default" href="#pages/vdcs/vpcs/index?type=0"><i class="fa fa-arrow-left"></i> 返回</a></div>
+				<div class="wrapper"><a class="btn btn-sm btn-default" href="#pages/vdcs/vpcs/index?type=4"><i class="fa fa-arrow-left"></i> 返回</a></div>
 				<div class="wrapper">
 		            <div class="bg-light b-t b-b wrapper-sm">
 		              <div class="row m-b">
 		                <div class="col-xs-2 font-bold text-nowrap">VPN名称：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().name"></div>
 		                <div class="col-xs-2 font-bold text-nowrap">描述：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().desc"></div>
 		              </div>
 		             </div>
 				</div> 			
@@ -31,15 +31,15 @@
 		            <div class="bg-light b-t b-b wrapper-sm">
 		              <div class="row m-b">
 		                <div class="col-xs-2 font-bold text-nowrap">所属VDC：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().vdcName"></div>
 		                <div class="col-xs-2 font-bold text-nowrap">所属VPC：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().vpcName"></div>
 		              </div>
 		              <div class="row m-b">
 		                <div class="col-xs-2 font-bold text-nowrap">路由器：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().vpcRouterName"></div>
 		                <div class="col-xs-2 font-bold text-nowrap">网络名称：</div>
-		                <div class="col-xs-4">xxxxx</div>
+		                <div class="col-xs-4" data-bind="text: vpnVO().vpcNetworkName"></div>
 		              </div>
 		             </div>					
 				</div>
@@ -47,7 +47,7 @@
 				<div class="wrapper">
 					<h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>远程网络</h5>
 					<div class="m-t-md m-b-sm"><a class="btn btn-info btn-sm" data-bind="click: addNet">添加</a></div>
-					<table class="table table-striped">
+					<table class="table table-striped" data-bind="with: ipsecSiteTable">
 						<thead>
 							<tr>
 								<th>名称</th>
@@ -55,30 +55,26 @@
 								<th>远程对等子网</th>
 								<th>远程路由器身份</th>
 								<th>IKE预共享密码</th>
-								<th>安全隧道</th>
+								<th>VPN策略</th>
+								<th>操作</th>
 							</tr>
 						</thead>
 						<tbody>
+						 <!-- ko foreach: {data: pagedRows, as: '$row'} -->
 							<tr>
-								<td>xxx</td>
-								<td>0.0.0.0</td>
-								<td>0.0.0.1</td>
-								<td>guest</td>
-								<td>232545621</td>
+								<td data-bind="text: name"></td>
+								<td data-bind="text: peerGateWay"></td>
+								<td data-bind="text: peerSubnet"></td>
+								<td data-bind="text: peerRouterIdentity"></td>
+								<td data-bind="text: psk"></td>
 								<td>
-									<a data-bind="click: showTunnel">查看</a> <a data-bind="click: showTunnel">修改</a>
+									<a data-bind="click: $root.showTunnel">查看</a> <a data-bind="click: $root.editTunnel">修改</a>
+								</td>
+								<td>
+									<a data-bind="click: $root.deleteTunnel">删除</a>
 								</td>
 							</tr>
-							<tr>
-								<td>xxx</td>
-								<td>0.0.0.0</td>
-								<td>0.0.0.1</td>
-								<td>guest</td>
-								<td>232545621</td>
-								<td>
-									<a data-bind="click: showTunnel">查看</a> <a data-bind="click: showTunnel">修改</a>
-								</td>
-							</tr>
+						<!-- /ko -->
 						</tbody>
 					</table>
 				</div>
@@ -87,21 +83,51 @@
 	</div>
 </div>
 <script type="text/javascript">
-	var scripts = [null,null]
+	var scripts = ["api/vpc/vpn.js",null]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		var vpnUuid = args.vpnUuid;
 		function ViewModel(){
 			var self = this;
 			this.isShowTunnel = ko.observable(false);
-			this.showTunnel = function(){
-				this.isShowTunnel(true);
+			this.isEditTunnel = ko.observable(false);
+			//查看
+			this.showTunnel = function(data,event){
+				self.isShowTunnel(true);
 			}
-
+			//修改
+			this.editTunnel = function(data,event){
+				self.isEditTunnel(true);
+			}
+			//删除
+			this.deleteTunnel = function(data,event){
+				$.VPN.delVpnNet(vpnUuid,data.uuid,function(data){
+					self.ipsecSiteTable.refreshData();
+					alert("删除成功！");
+				})
+			}
+			
+			//添加网络
 			this.isAddNet = ko.observable(false);
+			this.ipNetVo = ko.observable();
 			this.addNet = function(){
+				var vo = new ipsecSiteVO();
+				self.ipNetVo = new ko.validatedObservable(vo);
+				
 				this.isAddNet(true);
 			}
-
+			//保存网络
+			this.addIpNetAndSave = function(){
+				ko.validation.group(this.ipNetVo).showAllMessages();
+		  		if(this.ipNetVo.isValid()){
+		  			$.VPN.createVpnNetwork(vpnUuid,this.ipNetVo.toJSON(),function(data){
+		  				self.isAddNet(false);
+		  			})
+		  		}
+			}
+			
+			//显示IKE
 			this.isShowIKE = ko.observable(true);
+			//显示IPSec
 			this.isShowIPSec = ko.observable(false);
 			this.showIKE = function(){
 				this.isShowIKE(true);
@@ -111,6 +137,55 @@
 				this.isShowIKE(false);
 				this.isShowIPSec(true);
 			}
+			
+			this.vpnVO = ko.validatedObservable({
+		  		name : ko.observable(""),
+		  		vdcUuid : ko.observable(""),
+		  		vdcName : ko.observable(""),
+		  		vpcUuid : ko.observable(""),
+		  		vpcName : ko.observable(""),
+		  		vpcRouterUuid : ko.observable(""),
+		  		vpcRouterName : ko.observable(""),
+		  		vpcNetworkUuid : ko.observable(""),
+		  		vpcNetworkName : ko.observable(""),
+		  		desc : ko.observable(""),
+		  	})
+		  	
+		  	
+			
+			function ipsecSiteVO(){
+	  			this.name = ko.observable("").extend({required:true,cscNameRule:true});
+	  			this.originalId = ko.observable("");
+	  			this.originalName = ko.observable("");
+	  			this.vdcUuid = ko.observable("");
+	  			this.vpcUuid = ko.observable("");
+	  			this.azUuid = ko.observable("");
+	  			this.vpnUuid = ko.observable("");
+	  			this.vpnServiceId = ko.observable("");
+	  			this.peerGateWay = ko.observable("").extend({required: true, ip: true});
+	  			this.peerSubnet = ko.observable("").extend({required: true, ip: true});
+	  			this.peerRouterIdentity = ko.observable("").extend({required:true});
+	  			this.psk = ko.observable("").extend({required:true});
+	  		}
+			//获取详情信息
+			$.VPN.getVpnByUuid(vpnUuid,function(data){
+				self.vpnVO.fromJSON({
+					name : data.name,
+					vdcUuid : data.vdcUuid,
+					vdcName : data.vdcName,
+					vpcUuid : data.vpcUuid,
+					vpcName : data.vpcName,
+					vpcRouterUuid : data.vpcRouterUuid,
+					vpcRouterName : data.vpcRouterName,
+					vpcNetworkUuid : data.vpcNetworkUuid,
+					vpcNetworkName : data.vpcNetworkName,
+					desc : data.desc
+				})
+				//self.ipsecSiteList(data.ipsecSiteList);
+			})
+			
+			//获取VPN下的远程网络列表
+			this.ipsecSiteTable = new DataTable([],{path: 'api/v5.0.0/vpns/'+vpnUuid+'/ipsecSite'});
 		}
 		var viewModel = new ViewModel();
 		ko.applyBindings(viewModel, $("#page-content")[0]);
@@ -129,7 +204,7 @@
 			<div class="form-group">
 	          <label class="col-xs-4 control-label">名称：</label>
 	          <div class="col-xs-5">
-	            <input class="form-control" type="text" />
+	            <input class="form-control" type="text" data-bind="value: ipNetVo().name"/>
 	          </div>
 	          <div class="col-xs-3">
 	            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -138,7 +213,7 @@
 	        <div class="form-group">
 	          <label class="col-xs-4 control-label">远程网关地址：</label>
 	          <div class="col-xs-5">
-	            <input class="form-control" type="text" />
+	            <input class="form-control" type="text"  data-bind="value: ipNetVo().peerGateWay"/>
 	          </div>
 	          <div class="col-xs-3">
 	            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -147,7 +222,7 @@
 	        <div class="form-group">
 	          <label class="col-xs-4 control-label">远程对等子网：</label>
 	          <div class="col-xs-5">
-	            <input class="form-control" type="text" />
+	            <input class="form-control" type="text"  data-bind="value: ipNetVo().peerSubnet"/>
 	          </div>
 	          <div class="col-xs-3">
 	            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -156,7 +231,7 @@
 	        <div class="form-group">
 	          <label class="col-xs-4 control-label">远程路由器身份</label>
 	          <div class="col-xs-5">
-	            <input class="form-control" type="text" />
+	            <input class="form-control" type="text"  data-bind="value: ipNetVo().peerRouterIdentity"/>
 	          </div>
 	          <div class="col-xs-3">
 	            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -165,7 +240,7 @@
 	        <div class="form-group">
 	          <label class="col-xs-4 control-label">IKE预共享密码：</label>
 	          <div class="col-xs-5">
-	            <input class="form-control" type="text" />
+	            <input class="form-control" type="text"  data-bind="value: ipNetVo().psk"/>
 	          </div>
 	          <div class="col-xs-3">
 	            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -175,7 +250,7 @@
       </div>
 
       <div class='modal-footer'>
-        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" />
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: addIpNetAndSave"/>
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
       </div>
     </div>
@@ -183,13 +258,13 @@
 </div>
 <!-- 添加远程网络 -->
 
-<!-- 安全隧道 -->
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowTunnel }">
+<!-- 安全隧道修改 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEditTunnel }">
   <div class='modal-dialog' role='document'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title'>安全隧道</h3>
+        <h3 class='modal-title'>VPN策略</h3>
       </div>
       <div class='modal-body form-horizontal'>
       	<div class="nav-tabs-alt bg-white-only">
@@ -336,6 +411,187 @@
 			          <label class="col-xs-4 control-label">封装模式</label>
 			          <div class="col-xs-5">
 			            <select class="form-control">
+			            	<option value="">tunel</option>
+			            	<option value="">transport</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+				</div>
+			</div>
+		</div>
+      </div>
+
+      <div class='modal-footer'>
+        <input type="button" name="commit" value="保存" class="btn btn-default btn-info" />
+        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 安全隧道 -->
+
+<!-- 安全隧道 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowTunnel }">
+  <div class='modal-dialog' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title'>VPN策略</h3>
+      </div>
+      <div class='modal-body form-horizontal'>
+      	<div class="nav-tabs-alt bg-white-only">
+			<ul class="nav nav-tabs" role="tablist">
+				<li data-bind="css:{'active':isShowIKE}">
+					<a data-bind="click: showIKE">IKE策略</a>
+				</li>
+				<li data-bind="css:{'active':isShowIPSec}">
+					<a data-bind="click: showIPSec">IPSec策略</a>
+				</li>
+			</ul>
+			<div class="tab-content wrapper-md">
+				<div class="tab-pane" data-bind="css:{'active':isShowIKE}">
+					<div class="form-group">
+			          <label class="col-xs-4 control-label">授权算法</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="">sha1</option>
+			            	<option value="">sha2</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">加密算法</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="aes-128">aes-128</option>
+			            	<option value="aes-192">aes-192</option>
+			            	<option value="aes-256">aes-256</option>
+			            	<option value="3des">3des</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">IKE版本</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="">v1</option>
+			            	<option value="">v2</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">IKE密钥生存时间(秒)</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" disabled="disabled"/>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">完美前传保密</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="group5">group5</option>
+			            	<option value="group2">group2</option>
+			            	<option value="group14">group14</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">IKE Phasel协商模式</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="">main</option>
+			            	<option value="">2</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+				</div>
+				<div class="tab-pane active" data-bind="css:{'active':isShowIPSec}">
+					<div class="form-group">
+			          <label class="col-xs-4 control-label">授权算法</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="">sha1</option>
+			            	<option value="">sha2</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">加密算法</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="aes-128">aes-128</option>
+			            	<option value="aes-192">aes-192</option>
+			            	<option value="aes-256">aes-256</option>
+			            	<option value="3des">3des</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">IKE密钥生存时间(秒)</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" disabled="disabled"/>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">完美前传保密</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="group5">group5</option>
+			            	<option value="group2">group2</option>
+			            	<option value="group14">group14</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">转换协议</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
+			            	<option value="">esp</option>
+			            	<option value="">ah</option>
+			            	<option value="">ah-esp</option>
+			            </select>
+			          </div>
+			          <div class="col-xs-3">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-4 control-label">封装模式</label>
+			          <div class="col-xs-5">
+			            <select class="form-control" disabled="disabled">
 			            	<option value="">tunel</option>
 			            	<option value="">transport</option>
 			            </select>

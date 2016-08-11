@@ -160,33 +160,14 @@
 				                                <th>静默安装属性</th>
 				                              </tr>
 				                            </thead>
-				                            <tbody>
+				                            <tbody data-bind="foreach:softwareList">
 				                              <tr>
-				                                <td>oracle</td>
-				                                <td>数据库</td>
-				                                <td>oracle</td>
-				                                <td>10g企业版</td>
-				                                <td>
-				                                  <a class="expand-btn-detail">查看 <i class="fa fa-angle-double-right"></i></a>
-				                                </td>
+				                                  <td data-bind="text:name"></td>
+							                      <td data-bind="text:softType"></td>
+							                      <td data-bind="text:softTypeName"></td>
+							                      <td data-bind="text:version"></td>
+							                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a></td>
 				                              </tr>
-				                              <tr style="display: none">
-				                                  <td colspan="7" class="no-padder">
-				                                    <div class="wrapper-sm sub-detail" style="display: none">
-				                                      <h5 class="text-info">静默安装属性</h5>
-				                                      <div class="bg-light b-t b-b wrapper-sm">
-				                                        <div class="row m-b">
-				                                          <div class="col-xs-1">参数名称：</div>
-				                                          <div class="col-xs-3">15137</div>
-				                                          <div class="col-xs-1">参数代码：</div>
-				                                          <div class="col-xs-3">abc</div>
-				                                          <div class="col-xs-1">默认值：</div>
-				                                          <div class="col-xs-3">000</div>
-				                                        </div>
-				                                      </div>                                      
-				                                    </div>                    
-				                                  </td>
-				                              </tr>                
 				                            </tbody>
 				                          </table>            
 				                        </div>          
@@ -224,6 +205,43 @@
       </div>
     </div>
 </div>
+
+
+ <!-- 查看/修改软件参数 --> 
+   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: showSoftwareAttr , backdrop: 'static'}"> 
+     <div class='modal-dialog modal-lg' role='document'> 
+       <div class='modal-content'> 
+         <div class='modal-header'> 
+           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>静默安装属性</h3> 
+         </div> 
+         <div class='modal-body form-horizontal'> 
+           <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px"> 
+            <table class="table table-striped"> 
+              <thead> 
+                <th>参数名称<i style="color:red">*</i></th> 
+                <th>参数代码<i style="color:red">*</i></th> 
+                <th>默认值<i style="color:red">*</i></th> 
+				<th>修改值</th> 
+              </thead> 
+              <tbody  data-bind="foreach: $root.attrList_VM"> 
+                <tr>
+                <td data-bind="text:name"></td>
+                <td data-bind="text:code"></td>
+                <td data-bind="text:defaultValue"></td>
+                <td data-bind="text:value"></td>
+                </tr> 
+              </tbody> 
+            </table> 
+          </div> 
+        </div> 
+        <div class='modal-footer' style="text-align:center;"> 
+           <a class="btn btn-default btn btn-default" data-dismiss="modal">关闭</a> 
+         </div> 
+       </div> 
+     </div> 
+   </div> 
+   <!-- 查看/修改软件参数 -->
+
 <script type="text/javascript">
 	var scripts = ["api/resourceInstance/sshkey/sshkey.js", null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
@@ -231,6 +249,9 @@
 	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
 	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){   //获取订单数据
 	      	  
+	      	 console.log("orderData------------------",orderData);
+	      	 
+	      		 
 	      	  function ViewModel(){
 	      	      var self = this;
 	      	      this.currentVO = ko.validatedObservable({
@@ -246,6 +267,9 @@
 	                     },function(){},callbackCustParam);
 	                   },function(){},callbackCustParam);
 	      	      }
+	      	      
+	      	      
+	      	      
 	      	      
 	      	      orderData.orderItems.sort(function(a,b){return a.instanceName > b.instanceName});//排序
 	      		  var vmOrderItems = [];
@@ -314,6 +338,53 @@
 	      				vmInfo.expireText(expireText);
 	      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 	      				vmInfo.relateUuid(orderItem.relateUuid);
+	      				var softwareList = vmInParamData.softwareList;
+	      				if(softwareList){
+	      				  vmInfo.softwareTempList = softwareList;
+	      				  csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,vmInfo) {
+	      					    var softwareTempList = vmInfo.softwareTempList;
+		      					for(var i=0;i<softwareTempList.length;i++){
+		      						var tempSoft = softwareTempList[i];
+		      						var software = new Software();
+		      						software.uuid(tempSoft.softwareUuid);
+		      						software.scriptUuid(tempSoft.scriptUuid);
+		      						for(var j=0;j<softList.results.length;j++){
+		      							var querySoftVO = softList.results[j];
+		      							if(software.uuid() == querySoftVO.uuid){
+		      								software.name(querySoftVO.name);
+		      								software.softType(querySoftVO.softType);
+		      								software.softTypeName(querySoftVO.softTypeName);
+		      								software.version(querySoftVO.version);
+		      							}
+		      						}
+		      						software.softwareParamsTemp = tempSoft.softwareParamsList;
+		      		                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
+		      		                	var attrArray = attrList.results;
+		      		                	var softwareParamsTemp = software.softwareParamsTemp;
+		      		                    for(var i=0;i<attrArray.length;i++){
+		      		                    	var attrVO = attrArray[i];
+			      		                  	var param = new SoftwareParam();
+			      		                    param.softwareUuid(software.softwareUuid);
+						      		        param.scriptUuid(software.scriptUuid);
+						      		        param.uuid(attrVO.uuid);
+						      		        param.code(attrVO.code);
+						      		        param.defaultValue(attrVO.value);
+						      		        param.name(attrVO.name);
+		      		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
+		      		                    		 var softwareParamsVO = softwareParamsTemp[j];
+		      		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
+		      		                    			param.value(softwareParamsVO.paramsValue);
+		      		                    			break;
+		      		                    		 }
+		      		                    	 }
+		      		               		    software.softwareParams.push(param);
+		      		                    } 
+		      		                	
+		      		                },function(){},software);
+		      		               vmInfo.softwareList.push(software);  
+		      					}
+	      				  },function(){},vmInfo);
+	      				}
 	      				self.currentVO().vmApplyList.push(vmInfo);
 	      			  }else if(orderItem.resourceType == "DISK"){
 	      				  diskOrderItems.push(orderItem);
@@ -345,8 +416,8 @@
 	      				  self.currentVO().diskApplyList.push(diskInfo);
 	      			  }
 	      		  }
-	      		  
 	      		   
+	      		  /**********关联磁盘和云主机****************/
 	      		  var vmList = self.currentVO().vmApplyList();
 	      		  var diskList = self.currentVO().diskApplyList();
 	      		  for(var j=0;j<vmList.length;j++){
@@ -360,7 +431,37 @@
 	          			  }
 	          		  }
 	      		  }
+	      		  /**********关联磁盘和云主机****************/
 	      		  
+	      	    self.showSoftwareAttr = ko.observable(false);
+	      	    self.disableAttr_VM = ko.observable();
+	      	    self.attrList_VM = ko.observableArray([]);
+	          	self.showAttr_VM = function(viewOrEdit,data,event){
+		        	self.attrList_VM(data.softwareParams());
+		        	self.disableAttr_VM(viewOrEdit);
+		        	self.showSoftwareAttr(true);
+		        }  
+	      		  
+	      		/******************实体对象定义**********************/  
+	      		function Software(){
+	      		    this.uuid = ko.observable();
+			    	this.scriptUuid = ko.observable();
+			    	this.name = ko.observable();
+			    	this.softType = ko.observable();
+			    	this.softTypeName = ko.observable();
+			    	this.version = ko.observable();
+			    	this.softwareParams=ko.observableArray([]);
+	      		}
+	      		
+	      		function SoftwareParam(){
+	      			this.softwareUuid = ko.observable();
+			    	this.scriptUuid = ko.observable();
+			    	this.uuid = ko.observable();
+			    	this.code = ko.observable();
+			    	this.value = ko.observable();
+			    	this.name = ko.observable();
+			    	this.defaultValue = ko.observable();
+	      		}
 	      		  
 	      		function DiskInfo(){
 	      			this.serviceUuid= ko.observable(""),
@@ -387,7 +488,7 @@
 	      		
 	      		
 	      		  
-	      		  function VmInfo(){
+	      	   function VmInfo(){
 	      			this.serviceUuid= ko.observable("");
  	      	        this.instanceName= ko.observable("");
  	      	        this.vdcUuid= ko.observable("");
@@ -467,6 +568,7 @@
 	 	            	}
 	 	            }, this);
  	      	        this.relateUuid=ko.observable("");
+ 	      	        this.softwareList = ko.observableArray([]);
  	      	        this.mountDiskList =  ko.observableArray([]);
  	      	        this.vdcList = ko.observableArray([]);
 	 	      	    this.vpcList = ko.observableArray([]);
@@ -479,6 +581,28 @@
 	 	      	    this.sshList = ko.observableArray([]);
 	      			this.bussyList = ko.observableArray([])
 	      		  }
+	      	      /******************实体对象定义**********************/    
+	      	   
+	      	   
+	      		  this.save = function(){
+	           		saveComment(args.taskId,function(){
+	           			alert("保存成功！");
+	           		});
+	    		  }
+	    		  
+	    		  this.next = function(){
+	    			if(isLast){
+	    			  saveComment(args.taskId,function(){
+	    				var databody = {"userId":"","action":"designated"};
+	    				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+	    				  alert("审核成功！");
+	    				  location.href = "#pages/workflows/tasks?type=work";
+	    				},function(){alert("操作失败！")});
+	    			  });
+	    		  	}else{		  
+	    			  showModal("pages/workflows/next.html");
+	    		  	}
+	    		  }
 	      		  
 	      	   }
 	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);

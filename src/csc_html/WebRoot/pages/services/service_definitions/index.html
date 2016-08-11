@@ -294,30 +294,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       }
     };
 
-    var zNodes =[
-      { name:"全选", open:true,
-        children: [
-          {
-            name:"Openstack",
-            open:true,
-            children: [
-              { name:"分区1"},
-              { name:"分区2"},
-              { name:"分区3"}
-            ]
-          },
-          {
-            name:"CNware",
-            open:true,
-            children: [
-              { name:"分区4"},
-              { name:"分区5"},
-              { name:"分区6"}
-            ]
-          }
-        ]
-      }
-    ];
     var setting1 = {
     		view:{
     	        showIcon:false,
@@ -609,7 +585,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
  		 name : ko.observable("").extend({required : true,cscNameRule:true}),
  		 dirName : ko.observable("服务目录"),
  		 dirUUID : ko.observable("0"),
- 		 productId : this.selected_product,
+ 		 productId : ko.observable(),
  		 imageUrl : ko.observable(),
  		 desc : ko.observable(),
  		 validTimeType : ko.observable("1").extend({required : true}),
@@ -728,6 +704,23 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		 			 maxLoadBalanceNum : ko.observable()
   	  		    }
    	     	  });
+    		  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
+			        format:'YYYY-MM-DD',
+			        startDate: moment().subtract( 29, 'days'),
+			        endDate: Date.today().addDays(1),
+			        minDate: Date.today(),
+			        separator:'至',
+			        showDropdowns:true
+			  });
+    		  
+    		  if(data.validTimeType == 2){
+    			  self.serviceVO().validTimeNum(data.validTimeNum);
+    		  }else if(data.validTimeType == 3){
+
+    		  }
+    		  
+    		  
+    		  
     		  //不同产品初始化不同的数据
     		  if(data.productId == "VDC"){//VDC 产品
     			  loadVdcOsType(false);
@@ -1181,8 +1174,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	      this.buttonEnable(false);
   	      this.serviceVO().charge(this.isFee());//是否计费
   		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
-  		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
-
+  		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则
+  		  this.serviceVO().productId(this.selected_product());
+  		  
   		  if(this.selected_product()=='VDC'){//VDC保存时的数据
   			  this.serviceVO().serviceVm = null;
   			  this.serviceVO().serviceDisk = null;
@@ -1618,7 +1612,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务名称：</label>
                 <div class="col-xs-7">
-                  <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name">
+                  <input type="text" class="form-control" placeholder="请输入名称" data-bind="value: serviceVO().name" maxlength="32">
                 </div>
                 <div class="col-xs-1">
 					<span class="text-danger inline m-l-n m-t-sm">*</span>

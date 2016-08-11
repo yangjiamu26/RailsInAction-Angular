@@ -578,19 +578,6 @@
 						                  <th>可用分区</th>
 						                </thead>
 						                <tbody  id="availableAzListTableId">
-						                  <tr>
-						                    <td>
-						                      <div class="checkbox">
-						                        <label class="i-checks">
-						                          <input type="checkbox"  value="">
-						                          <i></i>
-						                        </label>
-						                      </div> 
-						                    </td>
-						                    <td>wincenter</td>
-						                    <td>WinServer</td>
-						                    <td>zone1</td>
-						                  </tr>
 						                </tbody>
 						              </table>
 						             </div>
@@ -751,9 +738,9 @@
 						        </tr>
 						        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
-	                                <td data-bind="text: $row.netWorkName">网络名称1</td>
-	                                <td data-bind="text: $row.cloudPlatform">wincenter</td>
-	                                <td data-bind="text: $row.virtualHypervisor">wincenter</td>
+	                                <td data-bind="text: $row.netWorkName"></td>
+	                                <td data-bind="text: $row.cloudPlatform"></td>
+	                                <td data-bind="text: $row.virtualHypervisor"></td>
 	                                <td><a data-bind="click:$root.removeAzNetworkRul">移除</a></td>
 								</tr>	
 							    <!-- /ko -->
@@ -809,18 +796,6 @@
 														<th>外部网络/IP池</th>
 													</thead>
 													<tbody id="availableAzNetworkListTableId">
-														<tr>
-															<td>
-											                    <div class="checkbox">
-											                      <label class="i-checks">
-											                        <input type="checkbox" value="">
-											                        <i></i>
-											                      </label>
-											                    </div> 
-										                    </td>
-															<td>分区1</td>
-															<td>网络名称1</td>
-														</tr>
 													</tbody>
 												</table>
 											</div>
@@ -1324,12 +1299,22 @@
 	        	    })
 	        	self.addVdcNetworkAzList([]);
 				
+				self.removeAzNetworkRul = function(rowObj){
+					console.log(rowObj)
+					var name = rowObj.netWorkName;
+	    			confirm("确定移除网络["+name+"]？",function(arg){
+	    				$.VDC.removeVdcNetwork(self.selectVdcVO().uuid,rowObj.netWorkUuid,function(data){
+	    					self.networkRelAzListTable.refreshData()
+							alert("移除网络["+name+"]成功！")
+						});
+	    			 });
+				}
+				
 			    self.addVdcNetworkSearch = function(){
 						var azUuid = self.addVdcNetworkAzVO().uuid ;
 						var name = self.addVdcNetworkSearchParam().name;
 						$("#availableAzNetworkListTableId").html("");
 						$.NETWORK.getNetworks({"azUuid":azUuid,"name":name},function(data){
-							   console.log(data)
 							   var tableBody = "";
 							   if(data && data.results){
 								   for(var i=0;i<data.results.length;i++){
@@ -1712,6 +1697,9 @@
 	    	    	});
 	    	    	csc.rest.get('api/v5.0.0/serviceInstances?realResId='+uuid,function(data){
 	    	    		var serviceInstance = data.results[0];
+	    	    		if(typeof(serviceInstance) == 'undefined'){
+	    	    			return;
+	    	    		}
 	    	    		self.applyChangeVdc_input().serviceInstanceUuid(serviceInstance.uuid);
 	    	    	});
 	    	    	self.isApplyChange(true);

@@ -384,7 +384,7 @@
                         	})
                       }
     	      	  	  
-    	           this.save = function(){
+    	           this.save = function(obj,event,callback){
     	        	   for(var i=0; i<self.orderList().length; i++){
     	        		   if(!self.orderList()[i].isValid()){
     	        			   return false;
@@ -421,10 +421,24 @@
    	        		   })
    	        		   orderData.orderItems=orderItemsModify;
                           csc.rest.put("api/v5.0.0/orders/"+orderData.uuid,orderData, function(data){ 
-                             alert("保存成功！"); 
+                        	  if(typeof(callback) != 'undefined'){
+     								callback();
+     								return;
+     							}
+                        	  alert("保存成功！"); 
                           }); 
-    	        	     
      	      		}
+    	           
+    	           this.next = function(){
+       	   			self.save("","",function(){
+       	   				var databody = {"action":"reSubmit"};
+       	   				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+       	   				  alert("提交成功！");
+       	   				  location.href = "#pages/workflows/tasks?type=work";
+       	   				},function(){alert("操作失败！")});
+       	   			})
+       	   		  }
+    	           
     	      	  }
     	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
     	      	 });

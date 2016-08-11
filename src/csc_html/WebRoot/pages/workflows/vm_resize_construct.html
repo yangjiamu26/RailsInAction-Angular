@@ -112,7 +112,7 @@
   	      	 });
   		});
   		
-  		this.save = function(){
+  		this.save = function(obj,event,callback){
         	if(args.state=='UNSUBMIT'){
         		var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.currentVO().targetVcpu()+"\",\"memory\": \""+self.currentVO().targetMemory()+"\",\"storage\": \""+self.currentVO().targetStorage()
 		      		  +"\",\"metaVcpu\": \""+self.currentVO().vcpu()+"\",\"metaMemory\": \""+self.currentVO().memory()+"\",\"metaStorage\": \""+self.currentVO().storage()
@@ -122,7 +122,11 @@
 		      	orderItem.metaData = metaData;
 		      	  
 				csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderId()+'/modifyItem/'+self.currentVO().itemId(),orderItem,function(data){
-	          		alert('保存成功！');
+					if(typeof(callback) != 'undefined'){
+						callback();
+						return;
+					}
+					alert('保存成功！');
   		    	});
         	}else{
         		saveComment(args.taskId,function(){
@@ -130,6 +134,28 @@
         		});
         	}
         }
+  		
+  		this.next = function(){
+  		  if(state == 'UNSUBMIT'){
+  			  self.save("","",function(){
+  				var databody = {"action":"reSubmit"};
+  				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+  				  alert("提交成功！");
+  				  location.href = "#pages/workflows/tasks?type=work";
+  				},function(){alert("操作失败！")});
+  		  	  })
+  		  }else if(isLast){
+  			  saveComment(taskId,function(){
+  				var databody = {"userId":"","action":"designated"};
+  				csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+  				  alert("审核成功！");
+  				  location.href = "#pages/workflows/tasks?type=work";
+  				},function(){alert("操作失败！")});
+  			  });
+  		  }else{		  
+  			  showModal("pages/workflows/next.html");
+  		  }
+  	  }
   	  }
   	 ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
     });

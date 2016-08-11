@@ -172,12 +172,24 @@
 	};
 	
 	$.INSTALL = {
+			/**
+			 * 安装软件
+			 */
 			installSoft: function (params, callback, errorCallback) {
-				var param = csc.util.httpQueryParamConvert(params);
-				
 				csc.rest.post('api/v5.0.0/install', params, function(data) {
 				     callback(data);
 			    }); 
+			},
+			
+			/**
+			 * 查看日志详细信息
+			 */
+			getLogDetail: function(uuid, params, callback, errorCallback) {
+				var param = csc.util.httpQueryParamConvert(params);
+				
+				csc.rest.get('api/v5.0.0/install/log/' + uuid + '?' + param, function(data) {
+				     callback(data);
+			    });
 			}
 	};
 }(window.jQuery);

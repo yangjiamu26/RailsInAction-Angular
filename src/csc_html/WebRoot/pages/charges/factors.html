@@ -120,7 +120,7 @@
               <span data-bind="visible:$row.cycle=='YEAR'">年</span>
             </td>
            <!--  <td><a data-bind="click: $root.edit">修改</a> | <a href="#">启用</a> | <a href="#">停用</a></td> -->
-           <td><a data-bind="click: $root.edit">修改</a> </td>
+           <td><a data-bind="click: $root.edit,visible: $row.state!='enable'" >修改</a> </td>
           </tr>
           <!-- /ko -->
         </tbody>
@@ -401,14 +401,23 @@
          	alert('请选择计费规则!');
          	return;
          }
-        console.log(uuids)
+        
+        var ruleState = _.pluck(this.table.chosenItems(), "state");
+        for (var i = 0; i < ruleState.length; i++) {
+        	if (ruleState[i]==='enable') {
+        		alert('启用状态的计费规则不允许删除!');
+             	return;
+            }
+        }
+        
+        var ruleName = _.pluck(this.table.chosenItems(), "name");
+        confirm("确定删除计费规则["+ruleName+"]？",function(){
           csc.rest.post('api/v5.0.0/billing/rules/batch', {uuids: uuids,"action":"delete"}, function(){
             self.isAdd(false);
             self.table.refreshData();
             alert('删除规则成功！');
           })
-
-        //this.table.refreshData();
+        });
       };
 
       this.start = function(){

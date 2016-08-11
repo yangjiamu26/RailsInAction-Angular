@@ -186,7 +186,7 @@
 	      	});
 		});
 		  
- 		this.save = function(){
+ 		this.save = function(obj,event,callback){
  			var expireValue;
  			if(self.currentVO().expireType()=="1"){
  				expireValue = "";
@@ -200,9 +200,23 @@
  		    var itemResults = {"instanceName":self.currentVO().instanceName(),"vdcUuid":self.currentVO().vdcUuid(),"azUuid":self.currentVO().azUuid(),"billCycle":self.currentVO().billCycle()
  		    		,"fee":self.currentVO().fee(),"expireType":self.currentVO().expireType(),"expireValue":expireValue,"metaData":meta,"desc":self.currentVO().desc()};
  		    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.itemUuid(),itemResults,function(data){
-           		alert('保存成功！');
+ 		    	if(typeof(callback) != 'undefined'){
+   					callback();
+   					return;
+   				}
+ 		    	alert('保存成功！');
   		    });
  		}
+ 		
+ 		this.next = function(){
+			self.save("","",function(){
+				var databody = {"action":"reSubmit"};
+				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+				  alert("提交成功！");
+				  location.href = "#pages/workflows/tasks?type=work";
+				},function(){alert("操作失败！")});
+			})
+		  }
 	  	
 	  	$('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker({
 	        format:'YYYY/MM/DD',

@@ -43,6 +43,10 @@
 	  	  this.busSysName = ko.observable("");
 	  	  this.resourceType = ko.observable("");
 	  	  this.metaExpireTime = ko.observable("");
+	  	  
+	  	  if(args.state!='UNSUBMIT'){
+	  		  $(".daterange").attr("disabled", true);
+	  	  }
 	  	
 		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
 	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
@@ -71,18 +75,44 @@
 	      	 })
 		  });
 		  
-		  this.save = function(){
+		  this.save = function(obj,event,callback){
 			  if(args.state=='UNSUBMIT'){
 				  var expireTime = self.expireTime() + " 23:59:59";
 				  var itemResults = {"expireTime":expireTime};
 				  csc.rest.put('api/v5.0.0/orders/'+self.orderUuid()+'/modifyItem/'+self.itemUuid(),itemResults,function(data){
-		          	alert('保存成功！');
+					  if(typeof(callback) != 'undefined'){
+							callback();
+							return;
+						}
+					  alert('保存成功！');
 	  		      });
 			  }else{
         		  saveComment(args.taskId,function(){
         			alert("保存成功！");
         		  });
 	          }
+		  }
+		  
+		  this.next = function(){
+			  if(state == 'UNSUBMIT'){
+				  self.save("","",function(){
+					var databody = {"action":"reSubmit"};
+					csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+					  alert("提交成功！");
+					  location.href = "#pages/workflows/tasks?type=work";
+					},function(){alert("操作失败！")});
+			  	  })
+			  }else if(isLast){
+				  saveComment(taskId,function(){
+					var databody = {"userId":"","action":"designated"};
+					csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+					  alert("审核成功！");
+					  location.href = "#pages/workflows/tasks?type=work";
+					},function(){alert("操作失败！")});
+				  });
+			  }else{		  
+				  showModal("pages/workflows/next.html");
+			  }
 		  }
 	  
 	    $('.daterange').val(moment().format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(

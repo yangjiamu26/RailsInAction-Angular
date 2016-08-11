@@ -316,7 +316,7 @@
   		return a;
   	  }
 	  
-	  this.save = function(){
+	  this.save = function(obj,event,callback){
         	if(args.state=='UNSUBMIT'){
         		var value = {};
 				value.name=self.vdc().instanceName;
@@ -373,8 +373,11 @@
 								"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList}};
 						meta = JSON.stringify(meta);
 					    var itemResults = {"instanceName":self.vdc().instanceName,"expireType":expireType,"expireValue":expireValue,"metaData":meta,"desc":desc};
-						console.log(itemResults);return;
 					    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,itemResults,function(data){
+					    	if(typeof(callback) != 'undefined'){
+								callback();
+								return;
+							}
 			          		alert('保存成功！');
 		  		    	});
 					}
@@ -386,15 +389,35 @@
         	}
 		}
 	  
-    	$('.applyDateFormat').val(moment().format('YYYY/MM/DD')).daterangepicker(
-	   	      {
-	   	        format:'YYYY/MM/DD',
-	   	        startDate: moment(),
-	   	        singleDatePicker:true,
-	   	        endDate: moment(),
-	   	        separator:'至'
-	   	      }
-	   	    );		  
+	  this.next = function(){
+		  if(state == 'UNSUBMIT'){
+			  self.save("","",function(){
+				var databody = {"action":"reSubmit"};
+				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+				  alert("提交成功！");
+				  location.href = "#pages/workflows/tasks?type=work";
+				},function(){alert("操作失败！")});
+		  	  })
+		  }else if(isLast){
+			  saveComment(taskId,function(){
+				var databody = {"userId":"","action":"designated"};
+				csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+				  alert("审核成功！");
+				  location.href = "#pages/workflows/tasks?type=work";
+				},function(){alert("操作失败！")});
+			  });
+		  }else{		  
+			  showModal("pages/workflows/next.html");
+		  }
+	  }
+	  
+   	  $('.applyDateFormat').val(moment().format('YYYY/MM/DD')).daterangepicker({
+  	        format:'YYYY/MM/DD',
+  	        startDate: moment(),
+  	        singleDatePicker:true,
+  	        endDate: moment(),
+  	        separator:'至'
+  	  });		  
 	}
 	ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
 	  

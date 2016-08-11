@@ -30,7 +30,7 @@
                             <a class="expand-btn-detail">查看<i class="fa fa-angle-double-right"></i></a>
                             <span data-bind="visible: itemState() == 'CONSTRUCTION_FAILED'">
 	                             |
-	                            <a  >重施工</a> | 
+	                            <a  data-bind="click:$root.reConstruct">重施工</a> | 
 	                            <a data-bind="click:$root.vmErrorMsg">失败原因</a>
                             </span>
                         </td>
@@ -226,7 +226,7 @@
                         <td>
                             <span data-bind="visible: itemState() == 'CONSTRUCTION_FAILED'">
 	                             |
-	                            <a  >重施工</a> | 
+	                            <a data-bind="click:$root.reConstruct" >重施工</a> | 
 	                            <a data-bind="click:$root.vmErrorMsg">失败原因</a>
                             </span>
                         </td>
@@ -308,6 +308,7 @@
                              },function(){},vmInfo); 
 		 	                
 		 	                vmInfo.uuid(orderItem.uuid);
+		 	                vmInfo.orderUuid(orderItem.orderUuid);
 		      				vmInfo.serviceUuid(orderItem.serviceUuid);
 		      				vmInfo.instanceName(orderItem.instanceName);
 		      				vmInfo.vdcUuid(vmInParamData.vdcUuid);
@@ -325,9 +326,10 @@
 		      				vmInfo.repeatPassword(vmInParamData.repeatPassword);
 		      				vmInfo.sshKeyUuid(vmInParamData.sshUuid);
 		      				if(vmInfo.sshKeyUuid()){
-		      					$.SSH_KEY.getSshKeyByUuid(vmInfo.sshKeyUuid(),function(data,textStatus,vmInfo){
+		      					 csc.rest.get('api/v5.0.0/sshKeys/'+vmInfo.sshKeyUuid(),function(data,textStatus,vmInfo){
 		      						vmInfo.sshKeyName(data.name);
-		      	        		},function(){},vmInfo);
+		    	    		    },function(){},vmInfo); 
+		      					
 		      				}
 		      				vmInfo.billCycle(orderItem.billCycle);
 		      				vmInfo.fee(orderItem.fee);
@@ -346,6 +348,7 @@
 		 	      		      var metaData = JSON.parse(orderItem.metaData);
 		 	      		      var diskInParamData = JSON.parse(metaData.resBaseInfo);
 		      				  var diskInfo = new DiskInfo();
+		      				  diskInfo.orderUuid(orderItem.orderUuid);
 		      				  diskInfo.serviceUuid(orderItem.serviceUuid);
 		      				  diskInfo.instanceName(orderItem.instanceName);
 		      				  diskInfo.vdcUuid(orderItem.vdcUuid);
@@ -371,6 +374,15 @@
 		      				 // diskInfo.expireText(expireText);
 		      				  self.currentVO().diskApplyList.push(diskInfo);
 		      			  }
+		      		  }
+		      		  
+		      		  
+		      		  self.reConstruct = function(data){
+		      			  var orderUuid = data.orderUuid();
+		      			  var uuid = data.uuid();
+		      			  csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction",function(data){
+		      				console.log(data)  
+		      			  });
 		      		  }
 		      		  
 		      		  console.log("self.currentVO().diskApplyLis()-----------",self.currentVO().diskApplyList())
@@ -400,6 +412,8 @@
 		      		  
 		      		  
 		      		function DiskInfo(){
+		      			this.uuid= ko.observable(""),
+		      			this.orderUuid= ko.observable(""),
 		      			this.serviceUuid= ko.observable(""),
 		      			this.serviceName = ko.observable(""),
 		      	        this.instanceName= ko.observable(""),
@@ -443,6 +457,7 @@
 		      		  
 		      		  function VmInfo(){
 		      			this.uuid= ko.observable(""),
+		      			this.orderUuid= ko.observable(""),
 		      			this.serviceUuid= ko.observable(""),
 		      	        this.instanceName= ko.observable(""),
 		      	        this.vdcUuid= ko.observable(""),
@@ -549,6 +564,26 @@
 	                	    	 systemMsg.alert("未知异常！");
 	                	    }
 	                  }
+	                  
+	                  this.save = function(){
+	  	           		saveComment(args.taskId,function(){
+	  	           			alert("保存成功！");
+	  	           		});
+	  	    		  }
+	  	    		  
+	  	    		  this.next = function(){
+	  	    			if(isLast){
+	  	    			  saveComment(args.taskId,function(){
+	  	    				var databody = {"userId":"","action":"designated"};
+	  	    				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+	  	    				  alert("审核成功！");
+	  	    				  location.href = "#pages/workflows/tasks?type=work";
+	  	    				},function(){alert("操作失败！")});
+	  	    			  });
+	  	    		  	}else{		  
+	  	    			  showModal("pages/workflows/next.html");
+	  	    		  	}
+	  	    		  }
 	                  
 	        	   }
 	      	 	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);

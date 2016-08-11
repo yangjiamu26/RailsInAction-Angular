@@ -595,7 +595,7 @@
 			<div class="panel panel-default">
 				<div class="row wrapper">
 					<div class="col-xs-8">
-						<a class="btn btn-sm btn-info" data-bind="click:addVPN">创建VPN</a>
+						<a class="btn btn-sm btn-info" data-bind="click: addVPN">创建VPN</a>
 					</div>
 					<div class="col-xs-3">          
             <div class="input-group">
@@ -607,7 +607,7 @@
             <button class="btn btn-sm btn-default" type="button" >搜索</button>
           </div>
 				</div>	
-				<table class="table table-striped">
+				<table class="table table-striped" data-bind="with: VPNList">
 					<thead>
 						<tr>
 							<th>VPN名称</th>
@@ -619,22 +619,19 @@
 						</tr>
 					</thead>
 					<tbody>
+					  <tr data-bind="visible: showNoData">
+						<td colspan="6" class="aligncenter">This table has no data.</td>
+					  </tr>
+					<!-- ko foreach: {data: pagedRows, as: '$row'} -->
 					  <tr>
-				      <td><a href="#pages/vdcs/vpns/index">VPN01</a></td>
-				      <td>研发部</td>
-				      <td>1</td>
-				      <td>1</td>
-				      <td>1</td>
-				      <td><a>删除</a></td>
-				    </tr>
-				    <tr>
-				      <td><a href="#pages/vdcs/vpns/index">VPN01</a></td>
-				      <td>研发部</td>
-				      <td>1</td>
-				      <td>1</td>
-				      <td>1</td>
-				      <td><a>删除</a></td>
-				    </tr>
+					      <td><a data-bind="text: name,click: $root.showVPNDetail"></a></td>
+					      <td data-bind="text: vdcName"></td>
+					      <td data-bind="text: vpcName"></td>
+					      <td data-bind="text: vpcRouterName"></td>
+					      <td data-bind="text: vpcNetworkName"></td>
+					      <td><a data-bind="click: $root.deleteVPN">删除</a></td>
+				      </tr>
+				      <!-- /ko -->
 					</tbody>
 				</table>
 			</div>
@@ -651,7 +648,7 @@
 			            VPN名称
 			          </label>
 			          <div class="col-xs-8">
-			            <input class="form-control" type="text" />
+			            <input class="form-control" type="text" data-bind="value: VPNVO().name"/>
 			          </div>
 			          <div class="col-xs-1">
 			            <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -659,11 +656,10 @@
 			        </div>
 			        <div class="form-group">
 			          <label class="col-xs-3 control-label">
-			            所属VDC
+			           	 所属VDC
 			          </label>
 			          <div class="col-xs-8">
-			            <select class="form-control">
-			            	<option>研发部</option>
+			            <select class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: VPNVO().vdcUuid">
 			            </select>
 			          </div>
 			          <div class="col-xs-1">
@@ -672,11 +668,10 @@
 			        </div>
 			        <div class="form-group">
 			          <label class="col-xs-3 control-label">
-			            所属VPC
+			                                      所属VPC
 			          </label>
 			          <div class="col-xs-8">
-			            <select class="form-control">
-			            	<option>VPC01</option>
+			            <select class="form-control" data-bind="options:vpcList,optionsText:'name',optionsValue:'uuid',value: VPNVO().vpcUuid">
 			            </select>
 			          </div>
 			          <div class="col-xs-1">
@@ -685,11 +680,10 @@
 			        </div>
 			        <div class="form-group">
 			          <label class="col-xs-3 control-label">
-			            路由器
+			           	 路由器
 			          </label>
 			          <div class="col-xs-8">
-			            <select class="form-control">
-			            	<option>路由器01</option>
+			            <select class="form-control" data-bind="options:routerList,optionsText:'name',optionsValue:'uuid',value: VPNVO().vpcRouterUuid">
 			            </select>
 			          </div>
 			          <div class="col-xs-1">
@@ -698,11 +692,10 @@
 			        </div>
 			        <div class="form-group">
 			          <label class="col-xs-3 control-label">
-			            网络名称
+			           	 网络名称
 			          </label>
 			          <div class="col-xs-8">
-			            <select class="form-control">
-			            	<option>net1</option>
+			            <select class="form-control" data-bind="options: extNetList,optionsText:'name',optionsValue:'uuid',value: VPNVO().vpcNetworkUuid">
 			            </select>
 			          </div>
 			          <div class="col-xs-1">
@@ -711,15 +704,15 @@
 			        </div>
 			        <div class="form-group">
 			          <label class="col-xs-3 control-label">
-			            描述
+			           	 描述
 			          </label>
 			          <div class="col-xs-8">
-			            <textarea class="form-control"></textarea>
+			            <textarea class="form-control" data-bind="value: VPNVO().desc"></textarea>
 			          </div>
 			        </div>
 			      </div>
 			      <div class='modal-footer'>
-			        <input type="button" name="commit" value="确定"  class="btn btn-default btn-info" />
+			        <input type="button" name="commit" value="确定"  class="btn btn-default btn-info" data-bind="click: vpnAddAndSave"/>
 			        <button name="button" type="submit" class="btn btn-default" data-dismiss="modal">取消</button>
 			      </div>
 			    </div>
@@ -732,7 +725,7 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = ["api/vpc/vpc.js","api/vpc/router.js","api/vpc/firewall.js",
-	               "api/vpc/secretGroup.js","api/vdc/vdc.js"]
+	               "api/vpc/secretGroup.js","api/vdc/vdc.js","api/vpc/vpn.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 		var pageType = args.type;
@@ -1185,11 +1178,97 @@
 	    /******************************secretGroup*************************************/
 
 	  var VPNViewModel = function(){
+		var self = this;
 	  	this.isAddVPN = ko.observable(false);
-	  	var self = this;
+	  	this.vdcList = ko.observableArray();
+		this.vpcList = ko.observableArray();
+		this.routerList = ko.observableArray();
+		this.extNetList = ko.observableArray();
+		this.VPNVO = ko.observable();
+	  	
+	  	var subscriptionVdc;
+		var subscriptionVpc;
+		//添加vpn弹窗初始化
 	  	this.addVPN = function(){
+	  		var vo = new vpnVO();
+	  		this.VPNVO = new ko.validatedObservable(vo);
+	  		this.vdcList.removeAll();
+	  		loadVdcs();
+	  		//VDC下拉事件
+	  		subscriptionVdc = vo.vdcUuid.subscribe(function(val){
+			    self.vpcList([]);
+    	    	$.VPC.getVpcs({vdcUuid:val},function(data){
+	   				 if(data && data.results){
+	   					 self.vpcList(data.results);
+	   				 }
+	   			});
+    	    })
+    	    //VPC下拉事件
+    		subscriptionVpc =  vo.vpcUuid.subscribe(function(val){
+    		    self.routerList([]);
+    	    	$.ROUTER.getRouters({vpcUuid:val},function(data){
+	   				 if(data && data.results){
+	   					 self.routerList(data.results);
+	   				 }
+	   			});
+    	    	self.extNetList([]);
+    	    	$.VPC.getVpcNet({vpcUuid:val,type:"INNER"},function(data){
+	    			  if(data && data.results){
+	    				  var extNet = [{"name":"请选择","originalId":""}];
+	    				  extNet =  extNet.concat(data.results);
+	    				  self.extNetList(extNet);
+	    			  }
+	    		});
+    	    })
+	  		
 	  		self.isAddVPN(true);
 	  	};
+	  	
+	  	function vpnVO(){
+	  		this.name = ko.observable("").extend({required:true,cscNameRule:true});
+	  		this.vdcUuid = ko.observable("").extend({required:true});
+	  		this.vdcName = ko.observable("");
+	  		this.vpcUuid = ko.observable("").extend({required:true});
+	  		this.vpcName = ko.observable("");
+	  		this.vpcRouterUuid = ko.observable("").extend({required:true});
+	  		this.vpcRouterName = ko.observable("");
+	  		this.vpcNetworkUuid = ko.observable("").extend({required:true});
+	  		this.vpcNetworkName = ko.observable("");
+	  		this.desc = ko.observable("");
+	  	}
+	  	//获取VDC列表
+	  	function loadVdcs(){
+	  		$.VDC.getVDCs({},function(data){
+				 if(data && data.results){
+					 self.vdcList(data.results);
+				 }
+			});
+	  	}	  	
+	  	
+	  	this.VPNList = new DataTable([], {path: 'api/v5.0.0/vpns'});
+	  	//删除vpn
+	  	this.deleteVPN = function(data,event){
+	  		$.VPN.delVpn(data.uuid,function(data){
+  				self.VPNList.refreshData();
+  				alert("删除成功！");
+  			})
+	  	}
+	  	//查看详情
+	  	this.showVPNDetail = function(data,event){
+	  		var url = "#pages/vdcs/vpns/index?vpnUuid="+data.uuid;
+	  		location.href = url;
+	  	}
+	  	//添加vpn并保存
+	  	this.vpnAddAndSave = function(){
+	  		ko.validation.group(this.VPNVO).showAllMessages();
+	  		if(this.VPNVO.isValid()){
+	  			$.VPN.createVpn(this.VPNVO.toJSON(),function(data){
+	  				self.isAddVPN(false);
+	  				self.VPNList.refreshData();
+	  				alert("创建成功！");
+	  			})
+	  		}
+	  	}
 	  };
 
 	  ko.applyBindings(new VPNViewModel(), $("#page-content .tab-pane")[4]);

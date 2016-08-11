@@ -58,28 +58,32 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     var usersArr = new Array();
     //给候选人赋值
     console.log(allUsers)
-    for(var i = 0;i < allUsers.length;i++){
-    	for(var j = 0;j < assignUser.length;j++){
-    		if(assignUser[j].value == allUsers[i].id){
-    			var user ={};
-    			user.id = allUsers[i].id ;
-    			user.userName = allUsers[i].name;
-    			usersArr.push(user);
-    			selectMember.push(allUsers[i].name);
-    			selectMemberId.push(allUsers[i].id);
+    if(allUsers !== undefined){    	
+    	for(var i = 0;i < allUsers.length;i++){
+    		for(var j = 0;j < assignUser.length;j++){
+    			if(assignUser[j].value == allUsers[i].id){
+    				var user ={};
+    				user.id = allUsers[i].id ;
+    				user.userName = allUsers[i].name;
+    				usersArr.push(user);
+    				selectMember.push(allUsers[i].name);
+    				selectMemberId.push(allUsers[i].id);
+    			}
     		}
     	}
     }
     //默认办理人赋值    
     var selectuser = $scope.assignment.assignee;
     var selectUserArr = new Array();
-    for(var i = 0;i < allUsers.length;i++){    	
-		if(selectuser == allUsers[i].id){
-			var user ={};
-			user.id = allUsers[i].id ;
-			user.userName = allUsers[i].name;
-			selectUserArr.push(user);
-		}
+    if(allUsers !== undefined){
+	    for(var i = 0;i < allUsers.length;i++){    	
+			if(selectuser == allUsers[i].id){
+				var user ={};
+				user.id = allUsers[i].id ;
+				user.userName = allUsers[i].name;
+				selectUserArr.push(user);
+			}
+	    }
     }
     $scope.assignment.candidateUsers1.value = selectMemberId.join(",");
 	$scope.assignment.candidateUsers1.name = selectMember.join(",");
