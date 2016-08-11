@@ -737,6 +737,16 @@
 	        csc.rest.get("api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource", function(data){
 	        	self.AllMemoryList(data);
 	        });
+	        
+	        this.AllSoftTypeList = ko.observableArray();
+	        csc.rest.get("api/v5.0.0/soft/list/softTypes?type=true", function(data){
+	        	self.AllSoftTypeList(data);
+	        });
+	        
+	        this.AllSoftTypeNameList = ko.observableArray();
+	        csc.rest.get("api/v5.0.0/soft/list/softTypes", function(data){
+	        	self.AllSoftTypeNameList(data);
+	        });
 	        /************************************ 云主机列表查询  ************************************/
 		    
 		    
@@ -1238,6 +1248,10 @@
 		 	    				price +=e.unitPrice;
 		 	    			}else if(e.attrType=='SECRET_KEY'){
 		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='PUBLICIP'){
+		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
 		 	    		if(type=="DAY"){
@@ -1425,6 +1439,10 @@
 		 	    				price +=e.unitPrice;
 		 	    			}else if(e.attrType=='SECRET_KEY'){
 		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='PUBLICIP'){
+		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
 		 	    		if(type=="DAY"){
@@ -1587,6 +1605,10 @@
 		 	    			}else if(e.attrType=='LOAD_BALANCING'){
 		 	    				price +=e.unitPrice;
 		 	    			}else if(e.attrType=='SECRET_KEY'){
+		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='PUBLICIP'){
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
@@ -1841,6 +1863,8 @@
 			 	    				price +=e.unitPrice;
 			 	    			}else if(e.attrType=='OBJECT_STORAGE'){
 			 	    				price += size * e.unitPrice;
+			 	    			}else if(e.attrType=='PUBLICIP'){
+			 	    				price +=e.unitPrice;
 			 	    			}
 			 	    		});
 			 	    		if(type=="DAY"){
@@ -2088,6 +2112,10 @@
 			 	    			}else if(e.attrType=='LOAD_BALANCING'){
 			 	    				price +=e.unitPrice;
 			 	    			}else if(e.attrType=='SECRET_KEY'){
+			 	    				price +=e.unitPrice;
+			 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+			 	    				price += size * e.unitPrice;
+			 	    			}else if(e.attrType=='PUBLICIP'){
 			 	    				price +=e.unitPrice;
 			 	    			}
 			 	    		});
@@ -2347,24 +2375,6 @@
 		        });	    	
 		    }
 		    
-		    this.sizeChange = function(data,event){
-		    	var type = data.billRuleUuid();
-		    	if(typeof(type)=="undefined"){
-		    		return;
-		    	}
-		    	var price = "费用:"+data.unitPrice()*data.size();
-	    		if(type=="DAY"){
-	    			price+="元/天";
-	    		}else if(type=="MONTH"){
-	    			price+="元/月";
-	    		}else if(type=="QUARTER"){
-	    			price+="元/季度";
-	    		}else{
-	    			price+="元/年";
-	    		}
-	    		data.price(price);
-		    }
-		    
 		    this.chargeTypeChange= function(arg,data,event){//vdc使用
 		    	var serviceType = self.model_VDC();
 		    	var type = serviceType.billRuleUuid();
@@ -2387,36 +2397,6 @@
 		    		}
 		    		serviceType.price(price);
 		    	});
-		    }
-		    
-		    this.chargeChange = function(arg,data,event){//除了VDC其他申请用这个方法
-		    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+data.serviceUuid()+"&cycle="+data.billRuleUuid(), function(result){
-		    		var type = data.billRuleUuid();
-		    		var price;
-		    		if(typeof(type)=="undefined"){
-		    			data.price("");
-		    			return;
-		    		}
-		    		if(arg=="size"){
-		    			var num = data.size();
-		    			data.unitPrice(result.ruleList[0].unitPrice);
-		    			price = num*(result.ruleList[0].unitPrice);
-		    			price = "费用:"+price;
-		    		}else{
-		    			price= "费用:"+result.ruleList[0].unitPrice;
-		    		}
-		    		 
-		    		if(type=="DAY"){
-		    			price+="元/天";
-		    		}else if(type=="MONTH"){
-		    			price+="元/月";
-		    		}else if(type=="QUARTER"){
-		    			price+="元/季度";
-		    		}else{
-		    			price+="元/年";
-		    		}
-		    		data.price(price);
-		    	});	    	
 		    }
 		  	
 		  	function getArrayByString(type){
@@ -2768,6 +2748,10 @@
 		 	    				price +=e.unitPrice;
 		 	    			}else if(e.attrType=='SECRET_KEY'){
 		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='PUBLICIP'){
+		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
 		 	    		if(cycle=="DAY"){
@@ -2865,7 +2849,7 @@
 		    	memoryList_more = self.model_VM().vmCartInfo()[0].memoryList();
 		    	serviceUuid_more = self.model_VM().vmCartInfo()[0].serviceUuid();
 		    	charge_more = self.model_VM().vmCartInfo()[0].charge();
-		    	
+		    	self.num_VM("");
 		    	self.model_VM().vmCartInfo([]);
 		    	self.isAdd_VMSingle(false);
 		    	self.isAdd_VMMore(true);
@@ -2995,7 +2979,7 @@
 	    	  	memory:""
 	      	})
 	      	this.search = function(){
-	        	self.table_VM.params(this.searchParam());
+	        	self.table_VM.params(self.searchParam());
 	      	}
 	      	/************************************ 云主机 查询  ************************************/
 	      	
@@ -3021,7 +3005,7 @@
 	        this.selectSoftware = ko.observable(false);
 		    this.table_Software_VM = null;
 		    this.selectSoftware_VM = function(object){
-		    	self.table_Software_VM = new DataTable([], {path: 'api/v5.0.0/soft/softwares?status=1',perPage:6});
+		    	self.table_Software_VM = new DataTable([], {path: 'api/v5.0.0/soft/softwares?status=1&osType='+object.osType(),perPage:10});
 		    	self.selectSoftware(true);
 		    	editObject = object;
 		    }
@@ -3065,6 +3049,17 @@
 		    }
 	        /************************************ 云主机 软件添加  ************************************/
 	        
+		    /************************************ 云主机软件查询  ************************************/
+	      	this.searchSoftwareParam = ko.observable({
+	      		softwareName : "",
+	      		softType:"",
+	      		softTypeName:""
+	      	})
+	      	this.searchSoftware = function(){
+	        	self.table_Software_VM.params(self.searchSoftwareParam());
+	      	}
+	      	/************************************ 云主机 软件查询  ************************************/
+	      	
 	        /************************************ 云主机 软件静默安装属性  ************************************/
 	        this.showSoftwareAttr = ko.observable(false);
 	        this.disableAttr_VM = ko.observable();
@@ -3105,7 +3100,7 @@
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                     <h3 class='modal-title'>负载均衡器服务</h3>
                 </div>
-                <div class='modal-body form-horizontal row' data-bind="foreach: model_LB().loadbalancerCartInfo">
+                <div class='modal-body form-horizontal row' style="max-width: 910px;" data-bind="foreach: model_LB().loadbalancerCartInfo">
                     <div class="form-inline clearfix" style="padding:0 15px 15px 0">
 			          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_LB">批量申请</a>
 			        </div>
@@ -3912,7 +3907,7 @@
             <div class="row">
               <label class="col-sm-4 control-label" >套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
-				<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('single',data,event) }},optionsCaption:'请选择'"></select>
+				<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
               </div>
               <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:price"></span>
             </div>
@@ -3988,7 +3983,7 @@
 						</div>
 					</td>
 					<td data-bind="visible:charge()=='true'">
-					   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('single',data,event) }},optionsCaption:'请选择'"></select>
+					   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
 					</td>
 					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>               
@@ -4198,11 +4193,11 @@
 <!-- 云主机 单个 -->
 <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VMSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
-    <div class='modal-content' style="overflow-y:auto;overflow-x:hidden;height:600px">
+    <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机服务</h3>
       </div>
-      <div class='modal-body form-horizontal row' data-bind="foreach:model_VM().vmCartInfo">
+      <div class='modal-body form-horizontal row' style="max-width: 910px;" data-bind="foreach:model_VM().vmCartInfo">
           <div class="form-inline clearfix" style="padding:0 15px 15px 0">
 	          <a class="btn btn-default pull-right" data-bind="click:$root.changeList_VM">批量申请</a>
 	        </div>
@@ -4696,29 +4691,29 @@
 			          <div  data-bind="visible: myStep()==6">
 			              <div data-bind="foreach: model_VM().vmCartInfo">
 			              <div style="margin:0;margin-top:10px">
-				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right">添加软件</a>
+				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click: $root.selectSoftware_VM">添加软件</a>
 				              <div class="clearfix" style="height:10px;clear:both;"></div>
 				              <div class="panel panel-default table-responsive no-height">
-				                  <table class="table table-striped">
-				                      <thead>
-				                          <th>软件名称</th>
-				                          <th>软件分类</th>
-				                          <th>软件类型</th>
-				                          <th>软件版本</th>
-				                          <th>静默安装属性</th>
-				                          <th>操作</th>
-				                      </thead>
-				                      <tbody data-bind="foreach: softwares">
-				                          <tr>
-					                          <td>oracle 10g</td>
-					                          <td>数据库</td>
-					                          <td>oracle</td>
-					                          <td>10g企业版</td>
-					                          <td><a class="btn btn-xs btn-info">查看</a> <a class="btn btn-xs btn-default">修改</a></td>
-					                          <td><a class="btn btn-xs btn-danger" onclick="confirm(\'确定删除吗？\')">删除</a></td>
-				                          </tr>
-				                      </tbody>
-				                  </table>
+					                <table class="table table-striped">
+					                  <thead>
+					                    <th>软件名称</th>
+					                    <th>软件分类</th>
+					                    <th>软件类型</th>
+					                    <th>软件版本</th>
+					                    <th>静默安装属性</th>
+					                    <th>操作</th>
+					                  </thead>
+					                  <tbody data-bind="foreach: softwares">
+					                    <tr>
+					                      <td data-bind="text:softwareName"></td>
+					                      <td data-bind="text:softwareSorts"></td>
+					                      <td data-bind="text:softwareType"></td>
+					                      <td data-bind="text:softwareVersion"></td>
+					                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a> <a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(false,data,event)}">修改</a></td>
+					                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delSoftwart_VM($parent,data,event) }}">删除</a></td>
+					                    </tr>
+					                  </tbody>
+					                </table>
 				              </div>
 				          </div> 
 				          </div>   
@@ -4836,6 +4831,22 @@
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>选择软件</h3>
           </div>
           <div class='modal-body form-horizontal'>
+            <div class="form-inline" style="margin-bottom: 10px;">
+			<div class="input-group">
+				<span class="input-group-addon">软件名称</span> <input class="form-control input-sm" data-bind="value:searchSoftwareParam().softwareName"/>
+			</div>
+			<div class="input-group">
+				<span class="input-group-addon">软件分类</span> <select name=""
+					id="" class="form-control input-sm" data-bind="options:$root.AllSoftTypeList,optionsText:'name',optionsValue:'name',value:searchSoftwareParam().softType ,optionsCaption:'请选择'" ></select>
+			</div>
+			<div class="input-group">
+				<span class="input-group-addon">软件类型</span> <select name=""
+					id="" class="form-control input-sm" data-bind="options:$root.AllSoftTypeNameList,optionsText:'name',optionsValue:'name',value:searchSoftwareParam().softTypeName ,optionsCaption:'请选择'"></select>
+			</div>
+			<a class="btn btn-default btn-sm" data-bind="click: searchSoftware">搜索</a>
+		</div>
+          
+          
             <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px" data-bind="with: $root.table_Software_VM">
              <table class="table table-striped">
                <thead>
@@ -4908,7 +4919,7 @@
           </div> 
         </div> 
         <div class='modal-footer' style="text-align:center;"> 
-           <a class="btn btn-default btn-info" data-bind="click:saveSoftwareAttr">保存</a> 
+           <a class="btn btn-default btn-info" data-bind="click:saveSoftwareAttr ,visible:!$root.disableAttr_VM()">保存</a> 
            <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> 
          </div> 
        </div> 

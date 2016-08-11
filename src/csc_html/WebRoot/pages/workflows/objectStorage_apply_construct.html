@@ -68,7 +68,7 @@
 		    	      		})
   	      		  	}
     	      		  
-    	           this.save = function(){
+    	           this.save = function(obj,event,callback){
     	        	   saveComment(args.taskId,function(){
     	        		   self.orderList().forEach(function (e){
     	        			   orderData.orderItems.forEach(function (f){
@@ -78,10 +78,31 @@
     	        			   })
     	        		   })
                            csc.rest.put("api/v5.0.0/orders/"+orderData.uuid,orderData, function(data){ 
-                              alert("保存成功！"); 
+                        	   if(typeof(callback) != 'undefined'){
+	       							callback();
+	       							return;
+	       						}
+                        	   alert("保存成功！"); 
                            }); 
                         });
      	      		}
+    	           
+    	           this.next = function(){
+    					self.save("","",function(){
+    						if(isLast){
+    						  saveComment(args.taskId,function(){
+    							var databody = {"userId":"","action":"designated"};
+    							csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+    							  alert("审核成功！");
+    							  location.href = "#pages/workflows/tasks?type=work";
+    							},function(){alert("操作失败！")});
+    						  });
+    					  	}else{		  
+    						  showModal("pages/workflows/next.html");
+    					  	}
+    					})
+    				}
+    	           
     	      	  }
     	      	  ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
     	      	 });

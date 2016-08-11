@@ -215,7 +215,7 @@
 	      	 })
 		  })
 		  
-		  this.save = function(){
+		  this.save = function(obj,event,callback){
 			 var orderItems = [];
 			 var metaData={};
 			 var resBaseInfo = {};
@@ -255,8 +255,22 @@
 			 var itemResults = {"metaData":JSON.stringify(metaData)};
 			 
 			 csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,itemResults,function(data){
-	          	alert('保存成功！');
+				if(typeof(callback) != 'undefined'){
+					callback();
+					return;
+				}
+				alert('保存成功！');
  		     },function(){alert('操作失败！')});
+		  }
+		  
+		  this.next = function(){
+			self.save("","",function(){
+				var databody = {"action":"reSubmit"};
+				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+				  alert("提交成功！");
+				  location.href = "#pages/workflows/tasks?type=work";
+				},function(){alert("操作失败！")});
+			})
 		  }
 		}
 		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 

@@ -31,12 +31,12 @@
 					</div>
 				<div class="wrapper">
 					<a class="btn btn-sm btn-default" href="#pages/vdcs/businesses/index"><i class="fa fa-arrow-left"></i> 返回</a>
-					<button class="btn btn-info btn-sm" data-bind="click: powerOnVm">开机</button>
-					<button class="btn btn-info btn-sm" data-bind="click: powerOffVm">关机</button>
-					<button class="btn btn-info btn-sm" data-bind="click: powerRestartVm">重启</button>
+					<button class="btn btn-info btn-sm" data-bind="click: powerOnVm" id="button_onvm_" disabled>开机</button>
+					<button class="btn btn-info btn-sm" data-bind="click: powerOffVm" id="button_offvm_" disabled>关机</button>
+					<button class="btn btn-info btn-sm" data-bind="click: powerRestartVm" id="button_restartvm_" disabled>重启</button>
 					|
 				  	<button class="btn btn-info btn-sm " data-bind="visible: !editMode(), click: editVMOrder">设置启动顺序</button>
-				  	<button class="btn btn-info btn-sm " data-bind="visible: editMode, click: confirmVMOrder">保存</button>
+				  	<button class="btn btn-info btn-sm " data-bind="visible: editMode, click: confirmVMOrder" id="button_save_set_" disabled>保存</button>
 				  	<button class="btn btn-info btn-sm " data-bind="visible: editMode, click: cancelVMOrder">取消</button>
 				</div>
 
@@ -49,6 +49,11 @@
 				  				<th>延迟间隔</th>
 				  			</tr>
 				  		</thead>
+			  			<tr data-bind="visible: vmList().length==0">
+							<td colspan="12" class="aligncenter">
+                       			 This table has no data.
+                    		</td>
+                 		</tr>
 				  		<tbody data-bind="foreach: vmList"	>
 				  			<tr>
 				  				<td data-bind="text:uuid" hidden></td>
@@ -87,18 +92,18 @@
 				  	</table>
 				</div>
 			</div>
-			                <!-- 操作云主机  输入用户信息modal -->
+                <!-- 操作云主机  输入用户密码modal -->
                 <div role="dialog" aria-hidden="true" class="modal fade " data-bind="modal: { show: verifyToPass }">
                     <div class='modal-dialog modal-md' role='document'>
                       <div class='modal-content'>
                         <div class='modal-header'>
                           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>用户验证</h3>
                         </div>
-                        <div class='modal-body'>
+                        <div class='modal-body  form-horizontal'>
                           <div class="form-group">
                             <label class="col-xs-3 control-label">请输入密码：</label>
                             <div class="col-xs-9">
-                              <input type="text" class="form-control" id="operation_state_">
+                              <input type="hidden" class="form-control" id="operation_state_">
                               <input type="password" class="form-control"  placeholder="" id="password_">
                               <div>您需要输入当前登录用户的密码才能执行操作</div>
                             </div>
@@ -106,12 +111,12 @@
                           
                         </div>
                         <div class='modal-footer' style="text-align: center">
-                          <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click:operate"/>
+                          <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click:operate" id="check_submit"/>
                           <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
                         </div>
                      </div>
                     </div>
-                <!-- 操作云主机  输入用户信息modal -->
+                <!-- 操作云主机  输入用户密码modal -->
 			
 		</div>
 		
@@ -149,6 +154,11 @@
 								</tr>
 							</thead>
 							<tbody>
+								<tr data-bind="visible: showNoData">
+									<td colspan="12" class="aligncenter">
+	                       				 This table has no data.
+	                    			</td>
+	                 			</tr>
 							 <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 								<tr>
 									<td data-bind="text:name"></td>
@@ -225,6 +235,11 @@
 				              </tr>
 				            </thead>
 				            <tbody>
+				           		 <tr data-bind="visible: showNoData">
+									<td colspan="12" class="aligncenter">
+	                       				 This table has no data.
+	                    			</td>
+	                 			</tr>
 				             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 				             <tr>
 				                <td>
@@ -334,16 +349,16 @@
     	      		    	vdcName: data.vdcName,
     	      		    	desc: data.desc
     	      		    });
-    	        		if(data.vmList==null&&data.vmList.length==0)return;
     	        		var showVmList = [];
-    	        		for (var i=0;i<data.vmList.length;i++){
-    	        		    var sOrder = data.vmList[i].startOrder;
-    	        		    if (sOrder!='0'){
-    	        		        showVmList.push(data.vmList[i]);
-    	        		    }
+    	        		if(data.vmList!=null&&data.vmList.length>0){
+	    	        		for (var i=0;i<data.vmList.length;i++){
+	    	        		    var sOrder = data.vmList[i].startOrder;
+	    	        		    if (sOrder!='0'){
+	    	        		        showVmList.push(data.vmList[i]);
+	    	        		    }
+	    	        		}
     	        		}
     	            	
-    	        		if (showVmList.length==0) return;
     	        		//转为对象
     	        		var list = ko.utils.arrayMap(showVmList, function(result, index){
     	        			console.log(result)
@@ -351,6 +366,18 @@
     	        		});
     	        		//云主机列表刷新
     	        		self.vmList(list);
+    	        		//将云主机电源操作按钮功能恢复
+    	        		if(list.length>0){
+    	        		    $("#button_onvm_").removeAttr("disabled");
+    	        		    $("#button_offvm_").removeAttr("disabled");
+    	        		    $("#button_restartvm_").removeAttr("disabled");
+    	        		    $("#button_save_set_").removeAttr("disabled");
+    	        		}else{
+    	        		    $("#button_onvm_").attr("disabled","true");
+    	        		    $("#button_offvm_").attr("disabled","true");
+    	        		    $("#button_restartvm_").attr("disabled","true");
+    	        		    $("#button_save_set_").attr("disabled","true");
+    	        		}
     	        	});
     	        }
     	        if(args.subSysUuid!=null&&typeof(args.subSysUuid)!="undefined"){
@@ -368,12 +395,15 @@
     	        	    });
     	        	    //云主机列表刷新
     	        	    self.vmList(list);
+    	        	    if(list!=null&&list.length>0){
+    	        	        $("#button_save_set_").removeAttr("disabled");
+    	        	    }
     	        	});
     	        }
     	        this.cancelVMOrder = function(){
     	        	this.editMode(false);
     	        	csc.rest.get("api/v5.0.0/bussys/"+args.subSysUuid, function(data){
-    	        	    if(data.vmList.length==0)return;
+    	        	    if(data.vmList==null||data.vmList.length==0)return;
     	        		var showVmList = [];
     	        		for (var i=0;i<data.vmList.length;i++){
     	        		    var sOrder = data.vmList[i].startOrder;
@@ -405,7 +435,7 @@
     	        	csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmOrders",self.editVmList.toJSON(),function(data){
                           systemMsg.alert('修改成功!');
                           csc.rest.get("api/v5.0.0/bussys/"+args.subSysUuid, function(data){
-        	        	      if(data.vmList.length==0)return;
+        	        	      if(data.vmList==null||data.vmList.length==0)return;
         	        		  var showVmList = [];
         	        		  for (var i=0;i<data.vmList.length;i++){
         	        		      var sOrder = data.vmList[i].startOrder;
@@ -420,6 +450,16 @@
         	        	    
         	        	      //云主机列表刷新
         	        	      self.vmList(list);
+        	        	      //设置云主机电源按钮
+        	        	      if(list.length!=0){
+          	        		      $("#button_onvm_").removeAttr("disabled");
+          	        		      $("#button_offvm_").removeAttr("disabled");
+          	        		      $("#button_restartvm_").removeAttr("disabled");
+          	        		  }else{
+          	        		      $("#button_onvm_").attr("disabled","true");
+          	        		      $("#button_offvm_").attr("disabled","true");
+          	        		      $("#button_restartvm_").attr("disabled","true");
+          	        		  }
         	        	  });
                           self.editMode(false);
                       },function(data,textStatus) {
@@ -453,42 +493,55 @@
                  
                  //对业务系统中云主机电源操作
                  this.operate  = function(){
-                     debugger;
+                     //提交按钮置灰
+                     $("#check_submit").attr("disabled","true");
                      var password_ = $("#password_").val().trim();
                      if(password_==""){
                          systemMsg.alert('密码不能为空!');
+                         //提交按钮置恢复
+                         $("#check_submit").removeAttr("disabled");
                          return;
                      }
-                     
                      self.operationParam().password=password_;
                      csc.rest.put("api/v5.0.0/uap/checkUserPassWord",self.operationParam.toJSON(),function(data){
-                     debugger;
-                         systemMsg.alert('密码成功');
+                         var result = data.result;
+                         if(result){
+                             //提交按钮置恢复
+                             $("#check_submit").removeAttr("disabled");
+                             //获取操作值
+                             var operation_state_ = $("#operation_state_").val();
+                             self.operationParam().operate=operation_state_;
+                             //置空密码
+                             self.operationParam().password="";
+                             //隐藏验证框，注意：如果先隐藏，操作值operation_state_就获取不了
+                             self.verifyToPass(false);
+                             if(operation_state_=="START"){
+                                 csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                                     systemMsg.alert('开机中!任务 id:'+data.taskId);
+                                 },function(data,textStatus) {
+                                     systemMsg.alert('开机失败!');
+                                 }); 
+                             }else if(operation_state_=="STOP"){
+                                 csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                                     systemMsg.alert('关机中!任务 id:'+data.taskId);
+                                  },function(data,textStatus) {
+                                      systemMsg.alert('关机失败!');
+                                 });
+                             }else if (operation_state_=="RESTART"){
+                                 csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                                     systemMsg.alert('重启中!任务 id:'+data.taskId);
+                                 },function(data,textStatus) {
+                                      systemMsg.alert('重启失败!');
+                                 });
+                             }
+                         }else{
+                             systemMsg.alert('验证不正确!');
+                             $("#check_submit").removeAttr("disabled");
+                         }
                      },function(data,textStatus) {
-                         systemMsg.alert('密码不正确!');
+                         systemMsg.alert('验证不正确!');
+                         $("#check_submit").removeAttr("disabled");
                      });
-                     return;
-                     var operation_state_ = $("#operation_state_").val();
-                     self.operationParam().operate=operation_state_;
-                     if(operation_state_=="START"){
-                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                             systemMsg.alert('开机中!任务 id:'+data.taskId);
-                         },function(data,textStatus) {
-                             systemMsg.alert('开机失败!');
-                         }); 
-                     }else if(operation_state_=="STOP"){
-                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                             systemMsg.alert('关机中!任务 id:'+data.taskId);
-                          },function(data,textStatus) {
-                              systemMsg.alert('关机失败!');
-                         });
-                     }else if (operation_state_=="RESTART"){
-                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                             systemMsg.alert('重启中!任务 id:'+data.taskId);
-                         },function(data,textStatus) {
-                              systemMsg.alert('重启失败!');
-                         });
-                     }
                  }
                  /******************开机操作*****************************/
                  this.powerOnVm = function(){
@@ -497,7 +550,7 @@
                      $("#password_").val("");
                   }
                 /******************开机操作*****************************/
-                
+
                 /******************关机操作*****************************/
                  this.powerOffVm = function(){
                      self.verifyToPass(true);
@@ -505,7 +558,7 @@
                      $("#password_").val("");
                  }
                 /******************关机操作*****************************/
-                
+
                 /******************重启操作*****************************/
                  this.powerRestartVm = function(){
                      self.verifyToPass(true);
@@ -514,9 +567,9 @@
                   }
                 /******************重启操作*****************************/
         }
+        var v1 = new ViewModel();
+        ko.applyBindings(v1, $('#VM_OPERATION')[0]); 
 
-        ko.applyBindings(new ViewModel(), $('#VM_OPERATION')[0]); 
-        
         function ViewVmModel(){
             //定义云主机实例
 	        this.vmVo = ko.validatedObservable({
@@ -538,7 +591,7 @@
                 //清空搜索框
                 self.searchAddVmParam().name="";
                 self.vmAddtable.refreshData();//刷新数据
-                
+
                 self.isAddHost(true)
                 //查询已经关联的云主机
                 csc.rest.get(busSysVmUrl, function(data){
@@ -549,7 +602,7 @@
             this.searchParam = ko.observable({
                  name: ""
             })
-         
+
             this.searchVm = function(){
                  this.vmtable.params(this.searchParam());
             }
@@ -561,7 +614,7 @@
             	var result = _.findWhere(this.modalVmList(), {uuid: uuid});
             	return !result;
             }
-            
+
             /********************业务系统删除-start**************/
             this.remove = function(object,event){
                 confirm("确定移除云主机【"+object.name+"】?",function(arg){
@@ -569,11 +622,16 @@
                    var listJson = [];
                    listJson.push(new VM(args.subSysUuid,args.vdcUuid,object.vmName,object.uuid,'0','0'));
                    delVmList["delVms"] = listJson;
-                   
+
                    csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vms",delVmList,function(data){
                         systemMsg.alert('移除成功!');
                         self.vmtable.refreshData();//刷新数据
                         self.isAddHost(false);
+                        
+                        //刷新详情页信息
+                        v1.loadSubSysInfo("api/v5.0.0/bussys/"+args.subSysUuid);
+                        //重置设置按钮
+                        v1.cancelVMOrder();
                     },function(data,textStatus) {
                         systemMsg.alert('移除失败!');
                     });
@@ -590,45 +648,40 @@
                 this.delay = delay;
            }
             this.addVmVo = ko.validatedObservable({
-	             uuid:ko.observable(""),
-	             name:ko.observable(""),
-	             vcpu:ko.observable(""),
-	             memory:ko.observable(""),
-	             storage:ko.observable(""),
-	             ip:ko.observable(""),
-	             state:ko.observable(""),
-	             expiryTime:ko.observable(""),
-	             isValidate:ko.observable("")
-		    });
-       	
-       	     this.searchAddVmParam = ko.observable({
+                 uuid:ko.observable(""),
+                 name:ko.observable(""),
+                 vcpu:ko.observable(""),
+                 memory:ko.observable(""),
+                 storage:ko.observable(""),
+                 ip:ko.observable(""),
+                 state:ko.observable(""),
+                 expiryTime:ko.observable(""),
+                 isValidate:ko.observable("")
+            });
+
+             this.searchAddVmParam = ko.observable({
                  name: "",
                  vdcUuid: args.vdcUuid
              })
-        
+
              this.searchAddVm = function(){
                   this.vmAddtable.params(this.searchAddVmParam());
              }
-       	    
+
              /************云主机tab页面，通过业务系统vdcUuid查询出关联的云主机-start***********/
-             //获取已经关联的云主机信息
-            
-             
              var vmUrl = "api/v5.0.0/vms?vdcUuid="+args.vdcUuid;
              this.vmAddtable = new DataTable([], {path: vmUrl,perPage:8});
-             
-             
-             /************云主机tab页面，通过业务系统uuid查询出关联的云主机-end**************/
-           
+            /************云主机tab页面，通过业务系统uuid查询出关联的云主机-end**************/
+
             /******************提交保存业务系统和云主机关系*****************************/
              var newVmList = {};
              this.addVm = function(){
-            	 //去重如果已经关联的业务系统，就不需要添加进来
-            	 var chosenItems = _.reject(this.vmAddtable.chosenItems(), function(item){
-            		 return !self.isExistVM(item.uuid)
-            	 });
-            	 console.log(chosenItems)
-            	 
+                 //去重如果已经关联的业务系统，就不需要添加进来
+                var chosenItems = _.reject(this.vmAddtable.chosenItems(), function(item){
+                    return !self.isExistVM(item.uuid)
+                });
+                console.log(chosenItems)
+
                  var vmUuids = _.pluck(chosenItems, "uuid")
                  var vmNames = _.pluck(chosenItems, "name")
                  //组装数据
@@ -638,26 +691,27 @@
                          listJson.push(new VM(args.subSysUuid,args.vdcUuid,vmNames[i],vmUuids[i],'0','0'));
                      }
                  }else {
- 			 		systemMsg.alert('没有选择数据,请检查!');
- 			 		return;
+                     systemMsg.alert('没有选择数据,请检查!');
+                     return;
                  }
                  newVmList["addVms"] = listJson;
                  console.log(newVmList)
                  csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vms",newVmList,function(data){
- 			 		systemMsg.alert('新增成功!');
- 			 		self.isAddHost(false);
- 			 		self.vmtable.refreshData();//刷新数据
- 			    },function(data,textStatus) {
- 			    	//$("#add_submit").removeAttr("disabled");
- 			 		systemMsg.alert('新增失败!');
- 				}); 
+                     systemMsg.alert('新增成功!');
+                     self.isAddHost(false);
+                     self.vmtable.refreshData();//刷新数据
+                     
+                     //重置设置按钮
+                     v1.cancelVMOrder();
+                 },function(data,textStatus) {
+                    //$("#add_submit").removeAttr("disabled");
+                    systemMsg.alert('新增失败!');
+                 }); 
              }
             /******************提交保存业务系统和云主机关系*****************************/
-            
-             
-             
         }
-        ko.applyBindings(new ViewVmModel(), $('#router')[0]);
+        var v2 = new ViewVmModel();
+        ko.applyBindings(v2, $('#router')[0]);
 
     });
     

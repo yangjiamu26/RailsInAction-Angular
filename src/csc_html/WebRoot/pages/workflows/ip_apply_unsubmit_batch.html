@@ -335,7 +335,7 @@
 	      			  }
 	      		  }
 			    
-			    this.save = function(){
+			    this.save = function(obj,event,callback){
         		   var orderItemsModify = [];
         		   var count = 0;
         		   self.contentList().forEach(function (e){
@@ -366,10 +366,24 @@
         		   })
         		   result1.orderItems=orderItemsModify;
                    csc.rest.put("api/v5.0.0/orders/"+result1.uuid,result1, function(data){ 
+                	   if(typeof(callback) != 'undefined'){
+	       					callback();
+	       					return;
+	       				}
                       alert("保存成功！"); 
                    }); 
  	        	     
   	      		}
+			    
+			    this.next = function(){
+					self.save("","",function(){
+						var databody = {"action":"reSubmit"};
+						csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+						  alert("提交成功！");
+						  location.href = "#pages/workflows/tasks?type=work";
+						},function(){alert("操作失败！")});
+					})
+				  }
 			    
 			    this.applyChange = function(){
       			   var item = this;
