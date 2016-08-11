@@ -43,17 +43,18 @@
         <thead>
           <tr>
             <th>云主机名称</th>
+            <th>IP地址</th>  
             <th>状态</th>
-            <th>所属可用分区</th>
             <th>所属VDC</th>
+            <th>所属可用分区</th>
             <th>所属VPC</th>
-            <th>有效期</th>
-            <th>VCPU</th>
+            <th>服务状态</th>
+            <th>公网IP</th>
+            <th>CPU（个）</th>
             <th>内存（MB）</th>
             <th>存储（GB）</th>                                  
-            <th>IP地址</th>                                  
-            <th>服务状态</th>
             <th>创建人</th>
+            <th>创建时间</th>
             <th>操作</th>
           </thead>
           <tbody>
@@ -67,6 +68,7 @@
                 <td>
                	 	<a data-url="" data-bind="text: $row.name,attr:{href:'#pages/resources/instances/vms/show?vmUuid='+$row.uuid}"></a>
                	</td>
+               	<td data-bind="text: ip"></td>
                 <td>
 	                <span class="label label-success" data-bind="if: state == 'ACTIVE' && taskState == null">运行中</span>
 	                <span class="label label-danger" data-bind="if: state == 'SHUTOFF' && taskState == null">已关机</span>
@@ -80,26 +82,26 @@
 	                <span class="label label-warning" data-bind="if: taskState == 'DELETING'">正在删除</span>
 	                <span class="label label-warning" data-bind="if: taskState == 'RESIZING'">正在调整</span>
                 </td>
-                <td data-bind="text: azName"></td>
                 <td data-bind="text: vdcName"></td>
+                <td data-bind="text: azName"></td>
                 <td data-bind="text: vpcName"></td>
-                <td data-bind="text: expiryTime"></td>
-                <td data-bind="text: vcpu"></td>
-                <td data-bind="text: memory"></td>
-                <td data-bind="text: storage"></td>
-                <td data-bind="text: ip"></td>
                 <td>
                 	<span class="label label-success" data-bind="if: isValidate == true">正常</span>
 	                <span class="label label-danger" data-bind="if: isValidate == false">已过期</span>
                 </td>
+                <td></td>
+                <td data-bind="text: vcpu"></td>
+                <td data-bind="text: memory"></td>
+                <td data-bind="text: storage"></td>
                 <td data-bind="text: userName"></td>
+                <td data-bind="text: createTime"></td>
                 <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |
                   <div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                       更多<span class="fa fa-caret-down"></span>
                     </a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                         <li data-bind="if: isValidate == true"><a data-bind="click: $root.vmAdjustment">调整资源</a></li>
+                         <li data-bind="if: isValidate == true && state != 'SUSPENDED'"><a data-bind="click: $root.vmAdjustment">调整资源</a></li>
                         <li data-bind="if: state == 'SHUTOFF' && isValidate == true"><a data-bind="click: $root.startOne">开机</a></li>
                         <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.shutoffOne">关机</a></li>
                         <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.restartOne">重启</a></li>
@@ -114,7 +116,7 @@
                         <a data-bind="click: $root.suspend">挂起</a>
                         <a data-bind="click: $root.resume">恢复</a> -->
                         <li data-bind="if: isValidate == true"><a data-bind="click: $root.validate">终止</a></li>
-                        <li data-bind="if: (state == 'SHUTOFF' || state == 'ACTIVE') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
+                        <li data-bind="if: (state == 'SHUTOFF' || state == 'ACTIVE' || state == 'SUSPENDED') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
                         <!--  <li><a data-bind="click: $root.removeOne">删除</a></li> -->
                       
                     </ul>

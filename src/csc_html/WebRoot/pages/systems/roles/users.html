@@ -119,27 +119,33 @@
 					onClick: search
 				}
 			};
+			var searchParamLeft
 			var searchParamRight;
-			
+			var orgId = '';
 			function search(event, treeId, treeNode) {
 				if(treeNode.code == '0'){
-				    var searchParamLeft = {
+				    searchParamLeft = {
 				    		orgId : "",
 				    		userType : treeNode.userType
 				    		};
+				    searchParamRight = {
+							orgId : "",
+							roleId : roleId,
+							userType : treeNode.userType
+						};
 				}else{
 				    searchParamLeft = {
 							orgId : treeNode.code,
 							userType : treeNode.userType
 							};
+				    searchParamRight = {
+							orgId : treeNode.code,
+							roleId : roleId,
+							userType : treeNode.userType
+						};
 				}
 					
-			    searchParamRight = {
-						orgId : treeNode.code,
-						roleId : roleId,
-						userType : treeNode.userType
-					};
-
+			    orgId = treeNode.code;
 	            self.tableLeft.params(searchParamLeft);
 	            self.tableRight.params(searchParamRight);
 	            
@@ -159,45 +165,70 @@
 				$.each(self.tableLeft.chosenItems(), function(i,val){
 					temps += (val.id + ',');
 			  	});   
-				param.name = temps;
-				csc.rest.put('api/v5.0.0/uap/'+roleId , param,
-						function() {
-					      self.tableLeft.refreshData();
-					      self.tableRight.refreshData();
-						});
-				
-			};
-			this.removeRoleUsers = function() {
-				var params = '';
-				$.each(self.tableRight.chosenItems(), function(i,val){
-					params += (val.id + ',') ;
-			  	}); 
-				
-				csc.rest.get('api/v5.0.0/uap/users',
+				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,
 					    function(data) {
 						  for(var i=0;i<data.results.length;i++){
-						  params.push({roleId:roleId,id:data.results[i].id});
+							  temps += (data.results[i].id + ',');
 						}
+						    param.name = temps;
+						    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
+									function() {
+								      self.tableLeft.refreshData();
+								      self.tableRight.refreshData();
+									});
+					});  
+			};
+			this.removeRoleUsers = function() {
+				var param = {};
+				var check = '';
+				
+				$.each(self.tableRight.chosenItems(), function(i,val){
+					check += (val.id + ',');
+			  	}); 
+		
+				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,
+					    function(data) {
+					      param.name = getCharge(check,data);
+						  csc.rest.put('api/v5.0.0/uap/'+roleId, param,
+									function() {
+								      self.tableLeft.refreshData();
+								      self.tableRight.refreshData();
+									});
 					}); 
 				
-				csc.rest.put('api/v5.0.0/uap?roleId='+roleId  , params,
-						function() {
-					      self.tableLeft.refreshData();
-					      self.tableRight.refreshData();
-						});
+				
 			};
-			/* api/v5.0.0/uap/users/12121212
-			api/v5.0.0/uap?users=12121212
-					api/v5.0.0/uap/users12121212
-            
- */
+			
+			function getCharge(check,data) {
+			  var userId = [];
+			  var temps = '';
+		      userId = check.split(',');
+		      
+			  for(var i=0;i<data.results.length;i++){
+				  if(determine(userId,data.results[i].id)){
+					  temps += (data.results[i].id + ',');
+				  }
+			  }
+			  return temps;
+			}
+			
+			function determine(userId,data){
+				for(var j=0;j<userId.length-1;j++){
+					if(data == userId[j]){
+						return false;
+					}
+				}
+				return true;
+			}
+
             //初始化预分配表格
 			this.tableLeft = new DataTable([], {
+				perPage : 15,
 				path : '/csc/api/v5.0.0/uap/users'
 			});
 			//初始化已分配表格
 			this.tableRight = new DataTable([], {
-				path : '/csc/api/v5.0.0/uap/users'
+				path : '/csc/api/v5.0.0/uap/users?roleId='+ roleId
 			});
             self.tableRight.params(searchParamRight);
 

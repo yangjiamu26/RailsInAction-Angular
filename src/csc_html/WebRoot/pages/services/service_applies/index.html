@@ -102,6 +102,9 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_VDC">申请服务</a>
 												</div>
 											</div>
@@ -197,6 +200,9 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_VMSingle">申请服务</a>
 												</div>
 											</div>
@@ -268,6 +274,9 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>													
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_Vdisk">申请服务</a>
 												</div>
 											</div>
@@ -333,6 +342,9 @@
 													</tbody>
 												</table>
 												<div class="panel-footer text-center">
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_ObjectStorage">申请服务</a>
@@ -401,6 +413,9 @@
 												<div class="panel-footer text-center">
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_PublicNetwork">申请服务</a>
 												</div>
 											</div>
@@ -465,6 +480,9 @@
 													</tbody>
 												</table>
 												<div class="panel-footer text-center">
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_LBSingle">申请服务</a>
@@ -533,6 +551,9 @@
 													</tbody>
 												</table>
 												<div class="panel-footer text-center">
+													<a href="javascript:void(0)"
+														class="btn btn-success font-bold m-sm"
+														data-bind="click:$root.showDetail">查看服务详情</a>
 													<a href="javascript:void(0)"
 														class="btn btn-success font-bold m-sm"
 														data-bind="click: $root.add_SSHSingle">申请服务</a>
@@ -645,6 +666,11 @@
 	        csc.rest.get("api/v5.0.0/cart/getselect", function(data){
 	        	self.vdcList(data);
 	        });
+	        //展示服务详情
+	        this.showDetail = function(object,event){
+	        	  showModal("pages/services/service_definitions/showDetail.html?serviceUuid="+object.serviceUuid);
+	          }
+	        
 		   //可用分区下拉列表
 		    this.azList = ko.observableArray();
 		   
@@ -1061,6 +1087,8 @@
 			   this.lbMethod = ko.observable(e.loadBalanceWay);
 			   this.protocol = ko.observable(e.agreement);
 			   
+			   this.softwareList = ko.observableArray();
+			   
 			   this.volumeSize = ko.observable(e.size);//云硬盘大小
 			   this.vmUuid = ko.observable(e.mountVmUuid);//云主机uuid
 			   
@@ -1070,6 +1098,18 @@
 			   this.networkId = ko.observable(e.vpcNetworkUuid);
 			   this.ip = ko.observable(e.ip);
 		   }
+		   
+		   function softwareVo(e){
+			   this.softwareUuid = ko.observable(e.softwareUuid);
+			   this.scriptUuid = ko.observable(e.scriptUuid);
+			   this.softwareParamsList = ko.observableArray();
+		   }
+		   
+		   function softwareParamsVO(e){
+			    this.paramsUuid = ko.observable(e.paramsUuid);
+		    	this.paramsValue = ko.observable(e.paramsValue!=null?e.paramsValue:"");
+		   }
+		   
 			 this.formatOrders = function(productKey,productJsonArray){
 		    	self.ordersVO().orderItems([]);
 		    	self.ordersVO().resourceType(productKey);
@@ -1090,6 +1130,14 @@
 		    	   if("VM" == productKey){
 		    		   relateUuid=csc.util.getUuid();
 		    		   baseInfo.networkList.push(new networkVO(e));
+		    		   e.softwares.forEach(function (soft){
+		    			   var software = new softwareVo(soft);
+		    		   	   soft.softwareParams.forEach(function (params){
+			    			   var softwareParam = new softwareParamsVO(params);
+			    			   software.softwareParamsList.push(softwareParam);
+			    		   })
+			    		   baseInfo.softwareList.push(software);
+		    		   });
 		    	   }
 		    	   if(e.mountDisks!=null && e.mountDisks.length>0){
 		    		   item.relateUuid(relateUuid);
@@ -1099,6 +1147,9 @@
 				    	   i.relateUuid(relateUuid);
 				    	   var md=new metaDataVO();
 				    	   var bi =new baseInfoVO(m);
+				    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
+				    		   delete baseInfo.softwareList;
+				    	   }
 				    	   if(bi.partitionList && bi.partitionList().length==0){
 				    		   delete bi.partitionList;
 				    	   }
@@ -1110,7 +1161,9 @@
 				    	   self.ordersVO().orderItems.push(i);
 			    	   });
 		    	   }
-		    	   
+		    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
+		    		   delete baseInfo.softwareList;
+		    	   }
 		    	   if(baseInfo.partitionList && baseInfo.partitionList().length==0){
 		    		   delete baseInfo.partitionList;
 		    	   }
@@ -1786,6 +1839,8 @@
 			 	    				price +=e.unitPrice;
 			 	    			}else if(e.attrType=='SECRET_KEY'){
 			 	    				price +=e.unitPrice;
+			 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+			 	    				price += size * e.unitPrice;
 			 	    			}
 			 	    		});
 			 	    		if(type=="DAY"){
@@ -2594,7 +2649,7 @@
 	            this.projectUuid = ko.observable("");
 	            this.vdcUuid = ko.observable("").extend({required:true});
 	            this.vdcText = ko.pureComputed(function(){
-	            	var item = _.findWhere(self.vdcList(), {uuid: this.vdcUuid()});
+	            	var item = _.findWhere(this.vdcList(), {uuid: this.vdcUuid()});
 	            	if(item!=null){
 	            		return item.name;
 	            	}else{
@@ -2747,7 +2802,7 @@
 		    }
 		    
 		    function SoftwareVO(){
-		    	this.softwareUuid = ko.observable();
+                this.softwareUuid = ko.observable();
 		    	this.scriptUuid = ko.observable();
 		    	this.softwareName = ko.observable();
 		    	this.softwareType = ko.observable();
@@ -3453,7 +3508,7 @@
             <div class="row">
               <label class="col-sm-4 control-label">存储大小(GB)<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control" data-bind="value: size,event:{change:$root.sizeChange}">
+                <input type="text" class="form-control" data-bind="value: size">
               </div>
             </div>
           </div>
@@ -3503,7 +3558,7 @@
             <div class="row">
               <label class="col-sm-4 control-label">套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
-				   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
+				   <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
               </div>
               <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:price"></span>
             </div>
@@ -3553,7 +3608,7 @@
 					<td><input type="text" class="form-control input-sm"
 						data-bind="value: name"></td>
 					<td><input type="text" class="form-control input-sm"
-						data-bind="value: size,event:{change:$root.sizeChange}">
+						data-bind="value: size">
 					</td>
 					<td>
 					    <select class="form-control input-sm" id="vdiskVdc" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,optionsCaption:'请选择',event:{change:$root.vdcChange}"></select>
@@ -3568,7 +3623,7 @@
 						<input type="text" style="width:126px" class="form-control" data-bind="value: applyTime,attr:{disabled:true}">
 					</td>
 					<td data-bind="visible:charge()=='true'">
-					    <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
+					    <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
 					</td>
 					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>
@@ -3611,7 +3666,7 @@
             <div class="row">
               <label class="col-sm-4 control-label">存储大小(GB)<i style="color:red">*</i></label>
               <div class="col-sm-8">
-                <input type="text" class="form-control" data-bind="value: size,event:{change:$root.sizeChange}" >
+                <input type="text" class="form-control" data-bind="value: size" >
               </div>
             </div>
           </div>
@@ -3671,7 +3726,7 @@
             <div class="row">
               <label class="col-sm-4 control-label">套餐<i style="color:red">*</i></label>
               <div class="col-sm-3">
-				 <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
+				 <select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
               </div>
               <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:price"></span>
             </div>
@@ -3720,7 +3775,7 @@
                 <tr>
                     <td><span data-bind="text: ($index()+1)"></span></td>
 					<td><input type="text" class="form-control input-sm" data-bind="value: name"></td>
-					<td><input type="text" class="form-control input-sm" data-bind="value: size,event:{change:$root.sizeChange}"></td>
+					<td><input type="text" class="form-control input-sm" data-bind="value: size"></td>
 					<td><select class="form-control input-sm" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:vdcUuid,event:{change:$root.vdcChange},optionsCaption:'请选择'"></select></td>
 					<td><select class="form-control input-sm" data-bind="options:azList,optionsText:'name',optionsValue:'uuid',value:azUuid,optionsCaption:'请选择'"></select></td>
 					<td>
@@ -3746,7 +3801,7 @@
 						</div>
 					</td>
 					<td data-bind="visible:charge()=='true'">
-					<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,event:{change:function(data, event){ $root.chargeChange('size',data,event) }},optionsCaption:'请选择'"></select>
+					<select class="form-control w-xs" data-bind="options:billRuleArray,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
 					</td>
 					<td data-bind="visible:charge()=='true',text:price"></td>
 				</tr>            
@@ -4143,7 +4198,7 @@
 <!-- 云主机 单个 -->
 <div role="dialog" aria-hidden="true" class="modal fade applyModeShow" data-bind="modal: { show: isAdd_VMSingle , backdrop: 'static'}">
   <div class='modal-dialog modal-lg'>
-    <div class='modal-content'>
+    <div class='modal-content' style="overflow-y:auto;overflow-x:hidden;height:600px">
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机服务</h3>
       </div>
@@ -4696,7 +4751,7 @@
 			                      <td data-bind="text: mountDisks().length"></td>
 			                      <td data-bind="text: vdcText"></td>
 			                      <td data-bind="text: applyTimeText"></td>
-			                      <td data-bind="text: vmName"></td>
+			                      <td data-bind="text: price"></td>
 			                    </tr>
 			                  </tbody>
 			                </table>

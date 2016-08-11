@@ -27,10 +27,10 @@
               <a data-bind="click: $root.console"><button class="btn btn-sm btn-info" >控制台</button></a>
               <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >挂起</button></a>
               <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >恢复</button></a>
-              <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true"><button class="btn btn-sm btn-info" >调整资源</button></a>
+              <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true && vmVO().state != 'SUSPENDED'"><button class="btn btn-sm btn-info" >调整资源</button></a>
               <a data-bind="click: $root.editValidateTime"><button class="btn btn-sm btn-info">有效时间变更</button></a>
               <a data-bind="click: $root.validate,if: vmVO().isValidate == true"><button class="btn btn-sm btn-info">终止</button></a>
-              <a data-bind="click: $root.removeOne,if: (vmVO().state == 'SHUTOFF' || vmVO().state == 'ACTIVE') && vmVO().isValidate == false"><button class="btn btn-sm btn-info" >删除</button></a>
+              <a data-bind="click: $root.removeOne,if: (vmVO().state == 'SHUTOFF' || vmVO().state == 'ACTIVE' || vmVO().state == 'SUSPENDED') && vmVO().isValidate == false"><button class="btn btn-sm btn-info" >删除</button></a>
           </div>
           
           <div class="wrapper">
@@ -210,7 +210,7 @@
                 <div class="input-group">
                   <input type="text" class="input-sm form-control" placeholder="请输入软件名称" data-bind="value: softwareSearchParam().softwareName">
                   <span class="input-group-btn">
-                    <button class="btn btn-sm btn-default" type="button" >搜索</button>
+                    <button class="btn btn-sm btn-default" type="button" data-bind="click: $root.reloadSoftware">搜索</button>
                   </span>
                 </div>
               </div>
@@ -327,7 +327,7 @@
       </div>
       <div class='modal-body form-horizontal wrapper'>
 
-        <p class="text-muted">在这里，您可以启用虚拟机的资源使用率监控项，包括对CPU、磁盘、网络的监控</p>
+        <p class="text-muted">在这里，您可以启用云主机的资源使用率监控项，包括对CPU和内存的监控</p>
         <h4>监控选择</h4>
         <div class="text-dark">
             <div class="checkbox inline">
@@ -362,7 +362,7 @@
                 <i></i>
               </label>
             </div>
-            启用内存使用速告警       
+            启用内存使用率告警       
         </div>
         <div class="m-t m-l-lg text-primary">
            当内存使用率超过
@@ -411,7 +411,10 @@
       <div class='modal-body form-horizontal'>
         <div>
           <button class="btn btn-default btn-sm pull-right" data-bind="click: installVM">选择软件</button>
-          虚拟机名称：<span data-bind="text:vmVO().name"></span>
+          虚拟机名称：<span data-bind="text:vmVO().name"></span>&nbsp;
+     IP：<input />&nbsp;
+     用户名：<input />&nbsp;
+     密码：<input />&nbsp;
         </div>
         <hr />
         <p class="text-muted">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
@@ -433,7 +436,7 @@
               <td data-bind="text: version"></td>
               <td data-bind="text: softTypeName"></td>
               <td data-bind="text: softType"></td>
-              <td>查看</td>
+              <td><a data-bind="click: $root.showScriptConfig">查看</a></td>
               <td data-bind="text: reInstall"></td>
               <td>
                 <a data-bind="click:$root.deleteSoftware">移除</a>
@@ -443,7 +446,7 @@
         </table>
       </div>
       <div class='modal-footer' style="text-align: center">
-        <input type="button" name="commit" value="确定安装" class="btn btn-default btn-info" />
+        <input type="button" name="commit" value="确定安装" class="btn btn-default btn-info" data-bind="click: $root.submitInstallSoftwares"/>
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
       </div>
     </div>
@@ -605,7 +608,7 @@
     <div class='modal-dialog modal-lg' style="width:600px;">
       <div class='modal-content'>
         <div class='modal-header'>
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>拓展云硬盘</h3>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>扩展云硬盘</h3>
         </div>
         <div class='modal-body form-horizontal row'>
           <div class="form-group">
@@ -621,7 +624,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-3 control-label">拓展后大小(GB)：</label>
+            <label class="col-sm-3 control-label">扩展后大小(GB)：</label>
             <div class="col-sm-8">
               <input type="email" class="form-control" data-bind="value: volumeVO().targetSize">
             </div>
@@ -912,7 +915,7 @@
    </div> 
    <!-- 安装日志弹窗   end -->
 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isStorageExpand }">
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isReInstall }">
     <div class='modal-dialog modal-lg' style="width:600px;">
       <div class='modal-content'>
         <div class='modal-header'>
@@ -942,6 +945,48 @@
         <div class='modal-footer' style="text-align:center;">
           <a class="btn btn-default btn-info" data-bind="click: $root.submitReInstall">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+</div>   
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isScriptConfig }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>静默安装属性</h3>
+        </div>
+        <div class='modal-body form-horizontal row'>
+          <div class="form-group">
+        	<div data-bind="with: software_script_table">
+		        <table class="table">
+		          <thead>
+		            <tr>
+		              <th>参数名称</th>
+		              <th>参数代码</th>
+		              <th>默认值</th>
+		            </tr>
+		          </thead>
+		          <tbody>
+		          	<tr data-bind="visible: showNoData">
+		              <td colspan=14 class="aligncenter">
+		                This table has no data.
+		              </td>
+		            </tr>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+		            <tr>
+		              <td data-bind="text: name"></td>
+		              <td data-bind="text: code"></td>
+		              <td data-bind="text: value"></td>
+		            </tr>
+		            <!-- /ko -->
+		          </tbody>
+		        </table>
+      		</div>
+          </div>
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">确定</a>
         </div>
       </div>
     </div>
@@ -1098,8 +1143,6 @@
     	});
     }
     
-    
-    
     //------------------------------------------软件重安装结束------------------------
   
     //------------------------------------------软件安装日志开始------------------------
@@ -1167,7 +1210,57 @@
     }
     self.software_check_search();
     
+    //软件提交
+    this.submitInstallSoftwares = function(){
+    	//获取待安装软件的uuids
+    	var softwareUuids = "";
+    	for(var ia=0;ia<self.softwareItems().length;ia++){
+    		if(ia == self.softwareItems().length-1){
+    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid;
+    		}else{
+    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid + ",";
+    		}
+    	}
+    	var vm = {};
+    	vm.id = self.vmVO().id;
+    	vm.uuid = self.vmVO().uuid;
+    	/* vm.ip = self.reInstallVO().ip();
+    	vm.userName = self.reInstallVO().userName();
+    	vm.userPwd = self.reInstallVO().password(); */
+    		
+    	var vms = [];
+    	vms.push(vm);
+    	
+    	var postBody = {};
+    	postBody.softwareUuids = softwareUuids;
+    	postBody.vms = vms;
+    	return;
+    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    		//self.isReInstall(false);
+    	}); 
+    }
+    
     //------------------------------------------安装软件结束----------------------------
+    
+    //------------------------------------------静默安装属性列表开始----------------------------
+/*      
+    静默安装属性
+    参数名称	参数代码		默认值 */
+    this.isScriptConfig = ko.observable(false);
+    
+    this.software_script_param = ko.observable({
+	  	  firstResult: -1,
+		  maxResult: -1
+	})
+	 
+    this.showScriptConfig = function(object,event){
+    	self.software_script_table.params(self.software_script_param());
+    	self.software_script_table.path('api/v5.0.0/script/defaultAttrs?status=1&scriptUuid'+object.scriptUuid);
+    	self.isScriptConfig(true);
+    }
+    
+    this.software_script_table = new DataTable([]);
+    //------------------------------------------静默安装属性列表结束----------------------------
     
       //------------------------------------------云硬盘列表开始----------------------------
       this.vm_volume_table = new DataTable([]);

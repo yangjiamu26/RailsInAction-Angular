@@ -98,14 +98,15 @@
                           <div class="form-group">
                             <label class="col-xs-3 control-label">请输入密码：</label>
                             <div class="col-xs-9">
-                              <input type="password" class="form-control"  placeholder="">
+                              <input type="text" class="form-control" id="operation_state_">
+                              <input type="password" class="form-control"  placeholder="" id="password_">
                               <div>您需要输入当前登录用户的密码才能执行操作</div>
                             </div>
                           </div>
                           
                         </div>
                         <div class='modal-footer' style="text-align: center">
-                          <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" />
+                          <input type="submit" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click:operate"/>
                           <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
                         </div>
                      </div>
@@ -447,46 +448,69 @@
                  this.verifyToPass = ko.observable(false);
                  this.operationParam = ko.validatedObservable({
                      operate: "",
+                     password: ""
                  })
+                 
+                 //对业务系统中云主机电源操作
+                 this.operate  = function(){
+                     debugger;
+                     var password_ = $("#password_").val().trim();
+                     if(password_==""){
+                         systemMsg.alert('密码不能为空!');
+                         return;
+                     }
+                     
+                     self.operationParam().password=password_;
+                     csc.rest.put("api/v5.0.0/uap/checkUserPassWord",self.operationParam.toJSON(),function(data){
+                     debugger;
+                         systemMsg.alert('密码成功');
+                     },function(data,textStatus) {
+                         systemMsg.alert('密码不正确!');
+                     });
+                     return;
+                     var operation_state_ = $("#operation_state_").val();
+                     self.operationParam().operate=operation_state_;
+                     if(operation_state_=="START"){
+                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                             systemMsg.alert('开机中!任务 id:'+data.taskId);
+                         },function(data,textStatus) {
+                             systemMsg.alert('开机失败!');
+                         }); 
+                     }else if(operation_state_=="STOP"){
+                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                             systemMsg.alert('关机中!任务 id:'+data.taskId);
+                          },function(data,textStatus) {
+                              systemMsg.alert('关机失败!');
+                         });
+                     }else if (operation_state_=="RESTART"){
+                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
+                             systemMsg.alert('重启中!任务 id:'+data.taskId);
+                         },function(data,textStatus) {
+                              systemMsg.alert('重启失败!');
+                         });
+                     }
+                 }
                  /******************开机操作*****************************/
                  this.powerOnVm = function(){
-                     //self.verifyToPass(true)
-                      confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机开机操作?",function(arg){
-                          self.operationParam().operate="START";
-                          csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                              systemMsg.alert('开机中!任务 id:'+data.taskId);
-                           },function(data,textStatus) {
-                               systemMsg.alert('开机失败!');
-                           });
-                      });
+                     self.verifyToPass(true)
+                     $("#operation_state_").val("START");
+                     $("#password_").val("");
                   }
                 /******************开机操作*****************************/
                 
                 /******************关机操作*****************************/
                  this.powerOffVm = function(){
-                     //self.verifyToPass(true)
-                     confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机关机操作?",function(arg){
-                         self.operationParam().operate="STOP";
-                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                             systemMsg.alert('关机中!任务 id:'+data.taskId);
-                          },function(data,textStatus) {
-                              systemMsg.alert('关机失败!');
-                          });
-                     });
-                  }
+                     self.verifyToPass(true);
+                     $("#operation_state_").val("STOP");
+                     $("#password_").val("");
+                 }
                 /******************关机操作*****************************/
                 
                 /******************重启操作*****************************/
                  this.powerRestartVm = function(){
-                     //self.verifyToPass(true)
-                     confirm("确定对业务【"+self.busSysInfoVo().name()+"】所有云主机重启操作?",function(arg){
-                         self.operationParam().operate="RESTART";
-                         csc.rest.put("api/v5.0.0/bussys/"+args.subSysUuid+"/vmPowers",self.operationParam.toJSON(),function(data){
-                             systemMsg.alert('重启中!任务 id:'+data.taskId);
-                          },function(data,textStatus) {
-                              systemMsg.alert('重启失败!');
-                          });
-                     });
+                     self.verifyToPass(true);
+                     $("#operation_state_").val("RESTART");
+                     $("#password_").val("");
                   }
                 /******************重启操作*****************************/
         }

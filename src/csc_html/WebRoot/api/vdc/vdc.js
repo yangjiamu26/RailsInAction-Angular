@@ -116,7 +116,14 @@
 					 callback(data)
     		    }); 
 			},
-			
+			/**
+			 * 删除vdc下网络
+			 */
+			removeVdcNetwork:function(vdcUuid,networkUuid,callback){
+				 csc.rest.del('api/v5.0.0/vdcs/'+vdcUuid+"/networks/"+networkUuid,function(data){
+					 callback(data)
+    		    }); 
+			},
 			/**
 			 * 获取vdc下的用户
 			 */
@@ -165,8 +172,7 @@
 			 * 修改VDC总配额
 			 */
 			modifyVdcGlobalQuota:function(param, callback, errorCallback){
-				console.log(param);
-				 csc.rest.put('api/v5.0.0/vdcs/global/quota', param, function(data){
+				 csc.rest.put('api/v5.0.0/vdcs/system/global/quota', param, function(data){
 					     callback(data);
 	    		    }); 
 			}
