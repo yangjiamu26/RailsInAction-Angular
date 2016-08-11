@@ -60,7 +60,7 @@
           <tbody>
             <tr data-bind="visible: showNoData">
               <td colspan=14 class="aligncenter">
-                This table has no data.
+                	暂无数据
               </td>
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -89,7 +89,7 @@
                 	<span class="label label-success" data-bind="if: isValidate == true">正常</span>
 	                <span class="label label-danger" data-bind="if: isValidate == false">已过期</span>
                 </td>
-                <td></td>
+                <td data-bind="text: publicIp"></td>
                 <td data-bind="text: vcpu"></td>
                 <td data-bind="text: memory"></td>
                 <td data-bind="text: storage"></td>
@@ -266,30 +266,30 @@
 	                      </div>
                       </div>
                     </div>
-                    <!-- <div class="form-group">
+                    <div class="form-group">
                     <label class="col-xs-1 control-label no-padder-h">主机账号</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" value="admin" disabled="disabled">
                       </div>
                       <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                        <span class="text-danger inline m-l-n m-t-sm"></span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">密码</label>
                       <div class="col-xs-2">
-                        <input type="password" class="form-control">
+                        <input type="password" class="form-control" data-bind="value: currentVO().adminPass" placeholder="请输入密码">
                       </div>
                       <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                        <span class="text-danger inline m-l-n m-t-sm"></span>
                       </div> 
                       <label class="col-xs-1 control-label no-padder-h">重复密码</label>
                       <div class="col-xs-2">
-                        <input type="password" class="form-control">
+                        <input type="password" class="form-control" data-bind="value: currentVO().adminPassReinput" placeholder="请输入密码">
                       </div>
                       <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                        <span class="text-danger inline m-l-n m-t-sm"></span>
                       </div>
                      
-                    </div> -->
+                    </div>
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                       <div class="col-xs-10">
@@ -718,7 +718,9 @@
   			network: ko.observable().extend({required: true}),
   			ip: ko.observable(),
   			isBind: ko.observable(),
-  			sshKey: ko.observable()
+  			sshKey: ko.observable(),
+  			adminPass: ko.observable(),
+  			adminPassReinput: ko.observable()
   	  	});
         self.isAddvm(true);
         $("#inlineRadio1").prop("checked",true);
@@ -981,7 +983,9 @@
 			network: ko.observable().extend({required: true}),
 			ip: ko.observable(),
 			isBind: ko.observable(),
-			sshKey: ko.observable()
+			sshKey: ko.observable(),
+			adminPass: ko.observable(),
+  			adminPassReinput: ko.observable()
 	  });
       
       //是否绑定
@@ -1158,10 +1162,24 @@
 	    			  break;
 	    		  }
 	    	  }
+	    	  
+	    	  //设置admin用户的密码
+	    	  if(csc.util.isNotNull(self.currentVO().adminPass()) || csc.util.isNotNull(self.currentVO().adminPassReinput())){
+	    		  if(csc.util.isNull(self.currentVO().adminPass()) 
+	    				  || csc.util.isNull(self.currentVO().adminPassReinput()) 
+	    				  || (self.currentVO().adminPass().trim() != self.currentVO().adminPassReinput().trim())){
+	    			  systemMsg.alert('admin用户密码不正确，请检查！');
+		    		  return;
+	    		  }else{
+			    	  postBody.adminPass = self.currentVO().adminPass().trim();
+	    		  }
+	    	  }
+	    	  
 	    	  if(!isDiskPass){
 	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
 	    		  return;
 	    	  }
+	    	  
 	    	  csc.rest.post('api/v5.0.0/vms',postBody,function(data){
 			 		systemMsg.alert('创建云主机请求成功，任务ID：'+data.taskId+'！');
 			 		self.isAddvm(false);

@@ -491,6 +491,7 @@
 			   this.vpcUuid = ko.observable();
 			   this.partitionList = ko.observableArray([]);
 			   this.networkList = ko.observableArray([]);
+			   this.softwareList = ko.observableArray([]);
 			   
 			   this.ip = ko.observable();
 			   this.account = ko.observable();
@@ -507,6 +508,17 @@
 		   function VM_partition (){
 			   this.name = ko.observable();
 			   this.size = ko.observable();
+		   }
+		   
+		   function VM_softwareVo(e){
+			   this.softwareUuid = ko.observable(e.softwareUuid);
+			   this.scriptUuid = ko.observable(e.scriptUuid);
+			   this.softwareParamsList = ko.observableArray();
+		   }
+		   
+		   function VM_softwareParamsVO(e){
+			    this.paramsUuid = ko.observable(e.paramsUuid);
+		    	this.paramsValue = ko.observable(e.paramsValue!=null?e.paramsValue:"");
 		   }
 		   
             this.generateOrder = function() {       
@@ -663,79 +675,104 @@
                     if(self.vmList_chosens().length > 0){
                     	self.orders_vm().orderItems([]);
                     	self.orders_vm().resourceType("VM");
-                    	self.vmList_chosens().forEach(function (e){
-                            data['vmCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var relateUuid=csc.util.getUuid();
-                            	   var item =new items(f);
-                            	   item.resourceType("VM");
-                    	    	   item.relateUuid(relateUuid);
-                    	    	   
-                    	    	   var meta=new metaData();
-                    	    	   var baseInfo =new VM_baseInfo();
-                    	    	   
-                    	    	   baseInfo.azUuid(f.azUuid);
-                    	    	   baseInfo.osType(f.osType);
-                    	    	   baseInfo.osVersion(f.osVersion);
-                    	    	   baseInfo.memory(f.memory);
-                    	    	   baseInfo.name(f.vmName);
-                    	    	   baseInfo.storage(f.storage);
-                    	    	   baseInfo.vcpu(f.cpu);
-                    	    	   baseInfo.vdcUuid(f.vdcUuid);
-                    	    	   baseInfo.vpcUuid(f.vpcUuid);
-                    	    	   baseInfo.ip(f.ip);
-                    	    	   baseInfo.account(f.account);
-                    	    	   baseInfo.password(f.password);
-                    	    	   baseInfo.repeatPassword(f.repeatPassword);
-                    	    	   baseInfo.sshIsMount(f.sshIsMount);
-                    	    	   baseInfo.sshUuid(f.sshUuid);
-                    	    	   baseInfo.busSysUuid(f.projectUuid);
-                    	    	   if(f.partitions!=null){
-                    	    		   f.partitions.forEach(function(p){
-	                    	    		   var p=new VM_partition()
-	                    	    		   p.name(p.name());
-	                    	    		   p.size(p.size());
-	                    	    		   baseInfo.partitionList.push(p)
-	                    	    	   });
-                    	    	   }
-                    	    	   
-                    	    	   var n = new VM_network
-                    	    	   n.networkId(f.vpcNetworkUuid);
-                    	    	   baseInfo.networkList.push(n);
-                    	    	   meta.resBaseInfo(baseInfo);
-                    	    	   //云硬盘服务
-                    	    	   if(f.mountDisks!=null){
-                    	    		   f.mountDisks.forEach(function(m){
-	                    	    		   var i =new itmes(m);
-	                    		    	   i.resourceType("DISK");
-	                    		    	   i.relateUuid(relateUuid);
-	                    		    	   var md=new metaData();
-	                    		    	   var bi =new DISK_baseInfo();
-	                    		    	   
-	                    		    	   bi.volumeSize(m.size);
-	                    		    	   md.resBaseInfo(bi);
-	                    		    	   i.metaData(ko.toJSON(md));
-	                    		    	   self.orders_vm().orderItems.push(i);
-	                    	    	   }); 
-                    	    	   }
-                    	    	   
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_vm().orderItems.push(item);
-                            	}
-                            });
+                    	
+                    	getOrderVm(function(isOk){
+                    		if(isOk){
+	       					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vm.toJSON(),function(result1){
+	 						 		self.vmList_chosens().forEach(function (e){
+	 						 			csc.rest.del('api/v5.0.0/cart/delete/vmCartInfo/'+e.uuid(),function(result2){
+	 						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
+	 						 				self.vmNum(self.vmNum()-1);
+	 						 			});
+	 						 		});
+	 						 		self.vmList_chosens.removeAll();
+	 						    }); 
+                    		}
                     	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vm.toJSON(),function(result1){
-						 		self.vmList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/vmCartInfo/'+e.uuid(),function(result2){
-						 				self.vmList.remove(function (item) { return item.uuid() == result2.uuid; });
-						 				self.vmNum(self.vmNum()-1);
-						 			});
-						 		});
-						 		self.vmList_chosens.removeAll();
-						    }); 
+
                      }
                 });
             };
+            
+            function getOrderVm(callback){
+            	var count = 0;
+            	self.vmList_chosens().forEach(function (e){
+            		csc.rest.get('api/v5.0.0/cart/query/vmCartInfo/'+e.uuid(),function(f){
+            			//云主机需要获取到挂载的云硬盘及软件的信息，所以需要调查询单个云主机的接口再去查询下该云主机的详细信息
+                 	   var relateUuid=csc.util.getUuid();
+                 	   var item =new items(f);
+                 	   item.resourceType("VM");
+         	    	   item.relateUuid(relateUuid);
+         	    	   
+         	    	   var meta=new metaData();
+         	    	   var baseInfo =new VM_baseInfo();
+         	    	   
+         	    	   baseInfo.azUuid(f.azUuid);
+         	    	   baseInfo.osType(f.osType);
+         	    	   baseInfo.osVersion(f.osVersion);
+         	    	   baseInfo.memory(f.memory);
+         	    	   baseInfo.name(f.vmName);
+         	    	   baseInfo.storage(f.storage);
+         	    	   baseInfo.vcpu(f.cpu);
+         	    	   baseInfo.vdcUuid(f.vdcUuid);
+         	    	   baseInfo.vpcUuid(f.vpcUuid);
+         	    	   baseInfo.ip(f.ip);
+         	    	   baseInfo.account(f.account);
+         	    	   baseInfo.password(f.password);
+         	    	   baseInfo.repeatPassword(f.repeatPassword);
+         	    	   baseInfo.sshIsMount(f.sshIsMount);
+         	    	   baseInfo.sshUuid(f.sshUuid);
+         	    	   baseInfo.busSysUuid(f.projectUuid);
+         	    	   if(f.partitions!=null){
+         	    		   f.partitions.forEach(function(p){
+                	    		   var p=new VM_partition()
+                	    		   p.name(p.name());
+                	    		   p.size(p.size());
+                	    		   baseInfo.partitionList.push(p)
+                	    	   });
+         	    	   }
+         	    	   
+         	    	   var n = new VM_network;
+         	    	   n.networkId(f.vpcNetworkUuid);
+         	    	   baseInfo.networkList.push(n);
+         	    	   //安装软件
+         	    	   if(f.softwares!=null){
+         	    		   f.softwares.forEach(function(soft){
+                	    		   var software = new VM_softwareVo(soft);
+                	    		   soft.softwareParams.forEach(function (params){
+        			    			   var softwareParam = new VM_softwareParamsVO(params);
+        			    			   software.softwareParamsList.push(softwareParam);
+                	    		   })
+                	    		   baseInfo.softwareList.push(software);
+                	    	   });
+         	    	   }         	    	   
+         	    	   
+         	    	   meta.resBaseInfo(baseInfo);
+         	    	   //云硬盘服务
+         	    	   if(f.mountDisks!=null){
+         	    		   f.mountDisks.forEach(function(m){
+                	    		   var i =new items(m);
+                		    	   i.resourceType("DISK");
+                		    	   i.relateUuid(relateUuid);
+                		    	   var md=new metaData();
+                		    	   var bi =new DISK_baseInfo();
+                		    	   
+                		    	   bi.volumeSize(m.size);
+                		    	   md.resBaseInfo(bi);
+                		    	   i.metaData(ko.toJSON(md));
+                		    	   self.orders_vm().orderItems.push(i);
+                	    	   }); 
+         	    	   }
+         	    	   
+         	    	   item.metaData(ko.toJSON(meta));
+         	    	   self.orders_vm().orderItems.push(item);
+         	    	   count = count+1;
+         	    	   if(count == self.vmList_chosens().length){
+         	    		   callback(true);
+         	    	   }
+            		})
+            	})
+            }
             /************************************ 购物车提交订单数据格式转换  ************************************/
             
             /************************************ 购物车列表全选  ************************************/
@@ -1990,7 +2027,7 @@
             var objectSoft;
 	        this.selectSoftware = ko.observable(false);
 		    this.table_Software_VM = null;
-		    this.selectSoftware_VM = function(object){debugger;
+		    this.selectSoftware_VM = function(object){
 		    	self.table_Software_VM = new DataTable([], {path: 'api/v5.0.0/soft/softwares?status=1&osType='+object.vmCartInfo().osType(),perPage:10});
 		    	self.selectSoftware(true);
 		    	objectSoft = object;

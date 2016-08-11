@@ -756,11 +756,36 @@
 		    	var productData;
 		    	var productJsonArray;
 				if(self.productType()==1){
-					if(self.model_VM.isValid()){
-						productJsonArray = self.model_VM.toJSON().vmCartInfo;
-						productData = self.model_VM.toJSON();
-						productKey = 'VM';
-					}
+					var bool=false;
+					 self.model_VM().vmCartInfo().forEach(function(e){
+						
+					    if(e().mountDisks != null){
+					    	e().mountDisks().forEach(function(d){
+		                		if(!d.isValid()){
+		                			bool=true;
+		                			ko.validation.group(d).showAllMessages();
+		                		}
+		                	});
+					    }
+						if(e().partitions !=null){
+							e().partitions().forEach(function(p){
+		                		if(!p.isValid()){
+		                			bool=true;
+		                			ko.validation.group(p).showAllMessages();
+		                		}
+		                	});
+						}
+						if(!e.isValid() || bool){
+							ko.validation.group(e).showAllMessages();
+							bool=true;
+	                	}
+					});  
+					if(bool){
+						return;
+					} 
+					productJsonArray = self.model_VM.toJSON().vmCartInfo;
+					productData = self.model_VM.toJSON();
+					productKey = 'VM';
 				}else if(self.productType()==2){
  	        	    for(var i=0; i<self.model_Vdisk().vdiskCartInfo().length; i++){
 	 	        		 ko.validation.group(self.model_Vdisk().vdiskCartInfo()[i]).showAllMessages();  
@@ -962,11 +987,35 @@
 						    });
 					}
 				}else if(self.productType()==1){
-					if(this.model_VM.isValid()){
-						productKey = 'VM';
-				    	productJsonArray = self.model_VM.toJSON().vmCartInfo;
-				    	
+					 var bool=false;
+					 self.model_VM().vmCartInfo().forEach(function(e){
+						
+					    if(e().mountDisks != null){
+					    	e().mountDisks().forEach(function(d){
+		                		if(!d.isValid()){
+		                			bool=true;
+		                			ko.validation.group(d).showAllMessages();
+		                		}
+		                	});
+					    }
+						if(e().partitions !=null){
+							e().partitions().forEach(function(p){
+		                		if(!p.isValid()){
+		                			bool=true;
+		                			ko.validation.group(p).showAllMessages();
+		                		}
+		                	});
+						}
+						if(!e.isValid() || bool){
+							ko.validation.group(e).showAllMessages();
+							bool=true;
+	                	}
+					});  
+					if(bool){
+						return;
 					}
+					productKey = 'VM';
+			    	productJsonArray = self.model_VM.toJSON().vmCartInfo;
 				}else if(self.productType()==2){
  	        	    for(var i=0; i<self.model_Vdisk().vdiskCartInfo().length; i++){
 	 	        		 ko.validation.group(self.model_Vdisk().vdiskCartInfo()[i]).showAllMessages();  
@@ -1203,7 +1252,6 @@
 				this.applyType = ko.observable("1");
 				this.applyNum = ko.observable();
 				this.applyTime = ko.observable();
-				this.billRuleUuid = ko.observable();
 				this.remark = ko.observable();
 				this.price = ko.observable();
 				this.azUuid = ko.observable().extend({required:true});
@@ -1219,6 +1267,13 @@
 				this.vdcList = ko.observableArray([]);
 				this.networkList = ko.observableArray([]);
 				this.vpcList = ko.observableArray([]); 
+				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return _this.charge()=="true";
+	    				} 
+    				})(this)
+    			}});
 				
 				ko.computed(function(){
 		            var serviceUuid=this.serviceUuid();
@@ -1266,15 +1321,6 @@
 		 	    		_self.price(price);
 		 	    	});	
 				}, this).extend({ deferred: true });
-				
-				var item = this;
-	            this.charge.subscribe(function(value){
-	            	if(value=='true'){
-	            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
-	            	}else{
-	            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
-	            	}
-	            });
 		    }
 		    
 		    function LB_baseInfo(){
@@ -1401,7 +1447,6 @@
 				this.applyType = ko.observable("1");
 				this.applyNum = ko.observable();
 				this.applyTime = ko.observable();
-				this.billRuleUuid = ko.observable();
 				this.remark = ko.observable();
 				this.price = ko.observable();
 				this.azUuid = ko.observable().extend({required:true});
@@ -1410,7 +1455,13 @@
 				this.azList = ko.observableArray([]);
 				this.billRuleList = ko.observableArray([]);
 				this.vdcList = ko.observableArray([]);
-				
+				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return _this.charge()=="true";
+	    				} 
+    				})(this)
+    			}});
 				ko.computed(function(){
 		            var serviceUuid=this.serviceUuid();
 		            var cycle=this.billRuleUuid();
@@ -1458,14 +1509,6 @@
 		 	    	});	
 				}, this).extend({ deferred: true });
 				var item = this;
-				
-	            this.charge.subscribe(function(value){
-	            	if(value=='true'){
-	            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
-	            	}else{
-	            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
-	            	}
-	            });
 		    }
 		    /************************************ SSH密钥  vo定义  ************************************/
 		    
@@ -1574,9 +1617,15 @@
 				this.vmList = ko.observableArray([]);
 				this.vdcList = ko.observableArray([]);
 				this.charge = ko.observable();
-				this.billRuleArray = ko.observableArray();
 				this.price = ko.observable("");
 				this.unitPrice = ko.observable("");
+				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return _this.charge()=="true";
+	    				} 
+    				})(this)
+    			}});
 				
 				ko.computed(function(){
 		            var serviceUuid=this.serviceUuid();
@@ -1625,14 +1674,6 @@
 		 	    	});	
 				}, this).extend({ deferred: true });
 				
-				var item = this;
-	            this.charge.subscribe(function(value){
-	            	if(value=='true'){
-	            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
-	            	}else{
-	            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
-	            	}
-	            });
 			}
 		    /************************************ 云硬盘  vo定义  ************************************/
 		    
@@ -1821,7 +1862,8 @@
 	    			this.vdcUuid = ko.observable().extend({required:true});
 	    			this.azUuid = ko.observable().extend({required:true});
 	    			this.size = ko.observable("").extend({required:true,number:true});
-	    			this.billRuleUuid = ko.observable();
+	    			
+	    			
 	    			this.applyType = ko.observable("1");
 	    			this.applyNum = ko.observable("");
 	    			this.applyTime = ko.observable("");
@@ -1832,7 +1874,13 @@
 	    			this.billRuleArray = ko.observableArray([]);
 	    			this.price = ko.observable("");
 	    			this.unitPrice = ko.observable("");
-	    			
+	    			this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+	    				(function(_this){  
+		    				return function(){
+		    					return _this.charge()=="true";
+		    				} 
+	    				})(this)
+	    			}});
 	    			ko.computed(function(){
 			            var serviceUuid=this.serviceUuid();
 			            var cycle=this.billRuleUuid();
@@ -1879,15 +1927,7 @@
 			 	    		_self.price(price);
 			 	    	});	
 					}, this).extend({ deferred: true });
-	    			
-					var item = this;
-		            this.charge.subscribe(function(value){
-		            	if(value=='true'){
-		            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
-		            	}else{
-		            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
-		            	}
-		            });
+	    		
 		    }
 		    /************************************ 对象存储  vo定义 ************************************/
 		    
@@ -2072,7 +2112,6 @@
 	    			this.vpcUuid= ko.observable().extend({required:true});
 	    			this.netWorkId = ko.observable().extend({required:true});
 	    			this.remark = ko.observable("");
-	    			this.billRuleUuid = ko.observable();
 	    			this.applyType = ko.observable("1");
 	    			this.applyNum = ko.observable("");
 	    			this.applyTime = ko.observable("");
@@ -2084,6 +2123,14 @@
 	    			this.billRuleArray = ko.observableArray([]);
 	    			this.price = ko.observable("");
 	    			this.unitPrice = ko.observable("");
+	    			
+	    			this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+	    				(function(_this){  
+		    				return function(){
+		    					return _this.charge()=="true";
+		    				} 
+	    				})(this)
+	    			}});
 	    			
 	    			ko.computed(function(){
 			            var serviceUuid=this.serviceUuid();
@@ -2131,15 +2178,6 @@
 			 	    		_self.price(price);
 			 	    	});	
 					}, this).extend({ deferred: true });
-	    			
-					var item = this;
-		            this.charge.subscribe(function(value){
-		            	if(value=='true'){
-		            		item.billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
-		            	}else{
-		            		item.billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
-		            	}
-		            });
 		    }
 		    /************************************ 公网IP  vo定义 ************************************/
 		    
@@ -2426,7 +2464,7 @@
 						loadBalancer: ko.observable(""),
 						secretKey: ko.observable(""),
 						remark:ko.observable(""),
-						billRuleUuid: ko.observable(),
+						billRuleUuid: ko.observable().extend({required: {onlyIf: function(){return self.model_VDC.charge=="true";} } } ),
 						applyType: ko.observable("1"),
 						applyNum: ko.observable(""),
 						applyTime: ko.observable(""),
@@ -2434,13 +2472,13 @@
 						billRuleArray:ko.observableArray([])
 			    });
 		  		
-	            self.model_VDC().charge.subscribe(function(value){
+	            /* self.model_VDC().charge.subscribe(function(value){
 	            	if(value=='true'){
 	            		self.model_VDC().billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
 	            	}else{
 	            		self.model_VDC().billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
 	            	}
-	            });
+	            }); */
 		  	}
 		  	
 
@@ -2624,10 +2662,44 @@
 		    	vmCartInfo: ko.observableArray([])
 		    });
 		    function Info(){
-	            this.vmName =  ko.observable("").extend({required:true,cscNameRule:true});
-	            this.computerName = ko.observable("");
-	            this.projectUuid = ko.observable("");
-	            this.vdcUuid = ko.observable("").extend({required:true});
+	            this.vmName =  ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==1:true
+	      		}},cscNameRule:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==1:true
+	      		}} });
+	            this.azUuid = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==1:true
+	      		}} });
+	            this.vdcUuid =ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==1:true
+	      		}} });
+	            this.osType = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}}});
+	            this.osVersion = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}}});
+	            this.cpu = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}}});
+	            this.memory = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}}});
+	            this.storage = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}}});
+	            
+	            this.vpcOrIpPoolList = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==3:true
+	      		}}});
+	            this.vpcNetworkUuid = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==3:true
+	      		}}});
+	            
+	            this.applyType = ko.observable("1");
+	            this.computerName = ko.observable();
+	            this.projectUuid = ko.observable();
+	            
 	            this.vdcText = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.vdcList(), {uuid: this.vdcUuid()});
 	            	if(item!=null){
@@ -2646,9 +2718,9 @@
 	            		return this.applyTime();
 	            	}
 	            }, this);
-	            this.billRuleUuid = ko.observable();
-	            this.applyTime = ko.observable("");
-	            this.networkType = ko.observable("");
+	            
+	            this.applyTime = ko.observable();
+	            this.networkType = ko.observable();
 	            
 	            this.ipPoolUuid = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
@@ -2668,30 +2740,29 @@
 	            	}
 	            }, this);
 				
-	            this.vpcOrIpPoolList = ko.observable("");
 	            
-	            this.vpcNetworkUuid = ko.observable("");
-	            this.ip = ko.observable("");
-	            this.account = ko.observable("");
-	            this.password = ko.observable("");
-	            this.osType = ko.observable("");
-	            this.osVersion = ko.observable();
-	            this.cpu = ko.observable();
-	            this.memory = ko.observable();
-	            this.storage = ko.observable();
-	            this.applyType = ko.observable("");
-	            this.applyNum = ko.observable("");
-	            this.azUuid = ko.observable("");
-	            this.userName = ko.observable("");
-	            this.password = ko.observable("");
-	            this.repeatPassword = ko.observable("");
-	            this.sshIsMount = ko.observable("NO");
-	            this.sshUuid = ko.observable("");
-	            this.serviceUuid = ko.observable("");
+	            this.ip = ko.observable();
+	            this.account = ko.observable();
+	            this.password = ko.observable();
+	      		
+	            
+	            this.applyNum = ko.observable();
+	            
+	            
+	            this.sshUuid = ko.observable();
+	            this.serviceUuid = ko.observable();
 	            this.remark =ko.observable();
 	            this.price =ko.observable();
 	            this.charge =ko.observable();
-	                            
+	            
+	            this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return self.isAdd_VMMore()?(self.myStep()==1 && _this.charge()=="true"):(_this.charge()=="true")
+	    				} 
+    				})(this)
+    			}});
+	            
 	            //分区
 	            this.partitions = ko.observableArray([]);
 	            //硬盘
@@ -2700,13 +2771,10 @@
 	            this.softwares = ko.observableArray([]);
 	            
 	            this.id = ko.observable();
-	            this.vdcUuid =ko.observable("");
-	            this.azUuid=ko.observable(""),
-	            this.remark=ko.observable(""),
-	            this.account=ko.observable("");
-	            this.password=ko.observable("");
-	            this.repeatPassword=ko.observable("");
-	            this.sshIsMount=ko.observable("");
+	            
+	            this.account=ko.observable();
+	            this.password=ko.observable();
+	            this.repeatPassword=ko.observable();
 				
 	            this.vdcList=ko.observableArray([]);
 	            this.azList=ko.observableArray([]);
@@ -2766,23 +2834,84 @@
 		 	    		_self.price(price);
 		 	    	});	
 				}, this).extend({ deferred: true });
-	            
 	   		}
-		   
+	       
+	            
 		    function MountDiskVO(){
-		    	this.name = ko.observable();
-			  	this.size = ko.observable();
+		    	this.name = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==5:true
+	      		}}});
+			  	this.size = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==5:true
+	      		}},number:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==5:true
+	      		}} });
+			  	
 			  	this.type = ko.observable();
 			  	this.serviceUuid = ko.observable();
-			  	this.serviceName = ko.observable();
-			  	this.billRuleUuid = ko.observable();
-			  	this.applyType = ko.observable();
+			  	this.serviceName = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==5:true
+	      		}}});
+			  	this.applyType = ko.observable("1")
 			  	this.applyNum = ko.observable();
 			  	this.applyTime = ko.observable();
 			  	this.applyText = ko.observable();
 	            this.billRuleList=ko.observableArray([]);
 	            this.price = ko.observable();
 	            this.charge = ko.observable();
+	            this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return _this.charge()=="true";
+	    				} 
+    				})(this)
+    			}});
+	            
+	            ko.computed(function(){
+		            var serviceUuid=this.serviceUuid();
+		            var cycle=this.billRuleUuid();
+	 	    		var cpu=this.cpu!=null?parseInt(this.cpu()||0):0;
+	 	    		var memory=this.memory!=null?parseInt(this.memory()||0):0;
+	 	    		var storage=this.storage!=null?parseInt(this.storage()||0):0;
+	 	    		var size=this.size!=null?parseInt(this.size()||0):0;
+	 	    		if(typeof(cycle)=="undefined" ){
+	 	    			this.price("");
+		   	    			return;
+		            }
+		            var _self = this;
+		 	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+		 	    		var price = 0;
+		 	    		result.ruleList.forEach(function(e){
+		 	    			if(e.attrType=='CPU'){
+		 	    				price += cpu * e.unitPrice;
+		 	    			}else if(e.attrType=='MEMORY'){
+		 	    				price += memory * e.unitPrice;
+		 	    			}else if(e.attrType=='STORAGE'){
+		 	    				price += storage * e.unitPrice;
+		 	    			}else if(e.attrType=='DISK'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='LOAD_BALANCING'){
+		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='SECRET_KEY'){
+		 	    				price +=e.unitPrice;
+		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+		 	    				price += size * e.unitPrice;
+		 	    			}else if(e.attrType=='PUBLICIP'){
+		 	    				price +=e.unitPrice;
+		 	    			}
+		 	    		});
+		 	    		if(cycle=="DAY"){
+		 	    			price+="元/天";
+		 	    		}else if(cycle=="MONTH"){
+		 	    			price+="元/月";
+		 	    		}else if(cycle=="QUARTER"){
+		 	    			price+="元/季度";
+		 	    		}else{
+		 	    			price+="元/年";
+		 	    		}
+		 	    		_self.price(price);
+		 	    	});	
+				}, this).extend({ deferred: true });
 		    }
 		    
 		    function SoftwareVO(){
@@ -2797,8 +2926,14 @@
 		    }
 		    
 		    function partitionVO(){
-		    	this.name = ko.observable();
-			  	this.size = ko.observable();
+		    	this.name = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==4:true
+	      		}}});
+			  	this.size = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==4:true
+	      		}},number:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==4:true
+	      		}} });
 		    }
 		    
 		    function SoftwareAttrVO(){
@@ -2833,7 +2968,7 @@
 		                      info.billRuleList(formatCharge(result.chargeList));
 		                      info.serviceUuid(serviceUuid);
 		                      info.charge(obj.isFee=="否"?"false":"true");
-		                      self.model_VM().vmCartInfo.push(info);
+		                      self.model_VM().vmCartInfo.push(new ko.validatedObservable(info));
 		  		 		      self.isAdd_VMSingle(true);
 		            });
 		        }
@@ -2842,13 +2977,13 @@
 		    /************************************ 云主机 批量申请  ************************************/
 		    this.isAdd_VMMore = ko.observable(false);
 		    this.changeList_VM = function(){
-		    	vdcList_more = self.model_VM().vmCartInfo()[0].vdcList();
-		    	billRuleList_more = self.model_VM().vmCartInfo()[0].billRuleList();
-		    	osTypeList_more = self.model_VM().vmCartInfo()[0].osTypeList();
-		    	cpuList_more = self.model_VM().vmCartInfo()[0].cpuList();
-		    	memoryList_more = self.model_VM().vmCartInfo()[0].memoryList();
-		    	serviceUuid_more = self.model_VM().vmCartInfo()[0].serviceUuid();
-		    	charge_more = self.model_VM().vmCartInfo()[0].charge();
+		    	vdcList_more = self.model_VM().vmCartInfo()[0]().vdcList();
+		    	billRuleList_more = self.model_VM().vmCartInfo()[0]().billRuleList();
+		    	osTypeList_more = self.model_VM().vmCartInfo()[0]().osTypeList();
+		    	cpuList_more = self.model_VM().vmCartInfo()[0]().cpuList();
+		    	memoryList_more = self.model_VM().vmCartInfo()[0]().memoryList();
+		    	serviceUuid_more = self.model_VM().vmCartInfo()[0]().serviceUuid();
+		    	charge_more = self.model_VM().vmCartInfo()[0]().charge();
 		    	self.num_VM("");
 		    	self.model_VM().vmCartInfo([]);
 		    	self.isAdd_VMSingle(false);
@@ -2869,7 +3004,7 @@
 		    		vo.memoryList(memoryList_more);
 		    		vo.serviceUuid(serviceUuid_more);
 		    		vo.charge(charge_more);
-		    		self.model_VM().vmCartInfo.push(vo);
+		    		self.model_VM().vmCartInfo.push(new ko.validatedObservable(vo));
 		    	}
 		    	changeDateFormat();
 		    }); 
@@ -2878,10 +3013,10 @@
 		    /************************************ 云主机 挂载云硬盘  ************************************/ 
 		    this.addVdisk_VM = function(data){
 		    	var vo=new MountDiskVO();
-		    	data.mountDisks.push(vo);
+		    	data.mountDisks.push(new ko.validatedObservable(vo));
 		    }
-		    this.delVdisk_VM = function(obj,data,event){
-		    	obj.mountDisks.remove(data);
+		    this.delVdisk_VM = function(obj,index,data,event){
+		    	obj.mountDisks.splice(index,1);
 		    }
 		    //选择云硬盘服务
 		    this.selectVdiskService = ko.observable(false);
@@ -2908,10 +3043,10 @@
 		    /************************************ 云主机 分区  ************************************/
 		    this.addPartition_VM = function(data){
 		    	var vo=new partitionVO();
-		    	data.partitions.push(vo);
+		    	data.partitions.push(new ko.validatedObservable(vo));
 		    }
-		    this.delPartition_VM = function(obj,data,event){
-		        obj.partitions.remove(data);
+		    this.delPartition_VM = function(obj,index,data,event){
+		        obj.partitions.splice(index,1);
 			}
 		    /************************************ 云主机 分区  ************************************/
 		    
@@ -2986,6 +3121,32 @@
 	      	/************************************ 云主机 批量 上一下一步  ************************************/
 	        this.myStep = ko.observable(1);         
 	      	this.next = function(){
+	      		var bool=false;
+				 self.model_VM().vmCartInfo().forEach(function(e){
+					 if(e().mountDisks != null){
+				    	e().mountDisks().forEach(function(d){
+	                		if(!d.isValid()){
+	                			bool=true;
+	                			ko.validation.group(d).showAllMessages();
+	                		}
+	                	});
+				    }
+					if(e().partitions !=null){
+						e().partitions().forEach(function(p){
+	                		if(!p.isValid()){
+	                			bool=true;
+	                			ko.validation.group(p).showAllMessages();
+	                		}
+	                	});
+					} 
+					if(!e.isValid() || bool){
+						ko.validation.group(e).showAllMessages();
+						bool=true;
+               	}
+				});  
+				if(bool){
+					return;
+				} 
 	        	this.myStep(this.myStep()+1)
 	        }
 	      	this.pre = function(){
@@ -4207,7 +4368,7 @@
           <div class="panel-body" data-bind="visible: $root.step1">
             <div class="form-group col-md-6">
               <div class="row">
-                <label class="col-sm-4 control-label">云主机名称：</label>
+                <label class="col-sm-4 control-label">云主机名称<i style="color:red">*</i></label>
                 <div class="col-sm-8">
                   <input type="text" class="form-control w" data-bind="value:  vmName">
                 </div>
@@ -4216,7 +4377,7 @@
             <div class="clearfix"></div>
             <div class="form-group col-md-6">
               <div class="row">
-                <label class="col-sm-4 control-label">所属VDC：</label>
+                <label class="col-sm-4 control-label">所属VDC<i style="color:red">*</i></label>
                 <div class="col-sm-8">
                   <select class="form-control w-xs" data-bind="options:  vdcList,optionsText:'name',optionsValue:'uuid',value:  vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select>
                 </div>
@@ -4224,7 +4385,7 @@
             </div>
             <div class="form-group col-md-6">
               <div class="row">
-                <label class="col-sm-4 control-label">可用分区：</label>
+                <label class="col-sm-4 control-label">可用分区<i style="color:red">*</i></label>
                 <div class="col-sm-8">
                   <select class="form-control w-xs" data-bind="options:  azList,optionsText:'name',optionsValue:'uuid',value:  azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select>
                 </div>
@@ -4232,7 +4393,7 @@
             </div>
             <div class="form-group col-md-6">
               <div class="row">
-                <label class="col-sm-4 control-label">操作系统类型：</label>
+                <label class="col-sm-4 control-label">操作系统类型<i style="color:red">*</i></label>
                 <div class="col-sm-8">
                   <select class="form-control w-xs" data-bind="options:  osTypeList,optionsText:$data,optionsValue:$data,value:  osType,event:{change:$root.getOsVersionForOsTypeChange},optionsCaption:'请选择'"></select>
                 </div>
@@ -4240,7 +4401,7 @@
             </div>
             <div class="form-group col-md-6">
               <div class="row">
-                <label class="col-sm-4 control-label">操作系统版本：</label>
+                <label class="col-sm-4 control-label">操作系统版本<i style="color:red">*</i></label>
                 <div class="col-sm-8">
                   <select class="form-control w-xs" data-bind="options:  osVersionList,optionsText:'opSysVersion',optionsValue:'uuid',value: osVersion,optionsCaption:'请选择'"></select>
                 </div>
@@ -4248,7 +4409,7 @@
             </div>
             <div class="form-group col-md-3">
               <div class="row">
-                <label class="col-xs-5 control-label">CPU(个)：</label>
+                <label class="col-xs-5 control-label">CPU(个)<i style="color:red">*</i></label>
                 <div class="col-xs-7">
                   <select class="form-control w-xs" data-bind="options:  cpuList,optionsText:$data,optionsValue:$data,value:  cpu,optionsCaption:'请选择'"></select>
                 </div>
@@ -4256,7 +4417,7 @@
             </div>
             <div class="form-group col-md-4">
               <div class="row">
-                <label class="col-xs-5 control-label">内存(GB)：</label>
+                <label class="col-xs-5 control-label">内存(GB)<i style="color:red">*</i></label>
                 <div class="col-xs-7">
                   <select class="form-control w-xs" data-bind="options:  memoryList,optionsText:$data,optionsValue:$data,value:  memory,optionsCaption:'请选择'"></select>
                 </div>
@@ -4264,7 +4425,7 @@
             </div>
             <div class="form-group col-md-4">
               <div class="row">
-                <label class="col-xs-5 control-label">存储(GB)：</label>
+                <label class="col-xs-5 control-label">存储(GB)<i style="color:red">*</i></label>
                 <div class="col-xs-7">
                   <input type="text" class="form-control" data-bind="value:  storage">
                 </div>
@@ -4272,7 +4433,7 @@
             </div>
             <div class="form-group col-md-3">
               <div class="row">
-                <label class="col-xs-5 control-label">VPC/IP池：</label>
+                <label class="col-xs-5 control-label">VPC/IP池<i style="color:red">*</i></label>
                 <div class="col-xs-7">
                   <select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcOrIpPoolList,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
                 </div>
@@ -4280,7 +4441,7 @@
             </div>
             <div class="form-group col-md-4">
               <div class="row">
-                <label class="col-xs-5 control-label">网络名称：</label>
+                <label class="col-xs-5 control-label">网络名称<i style="color:red">*</i></label>
                 <div class="col-xs-7">
                   <select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,event:{change:$root.getIpForNetWorkChange},optionsCaption:'请选择'"></select>
                 </div>
@@ -4329,7 +4490,7 @@
             <div class="clearfix"></div>
             <div class="form-group col-md-5">
                <div class="row">
-	              <label class="col-xs-5 control-label">申请时长：</label>
+	              <label class="col-xs-5 control-label">申请时长<i style="color:red">*</i></label>
 	              <div class="col-sm-7">
 	                <div class="radio">
 	                  <label class="form-inline">
@@ -4355,7 +4516,7 @@
             <div class="clearfix"></div>
              <div class="form-group col-md-3" data-bind="visible:charge()=='true'">
                  <div class="row">
-                     <label class="col-xs-5 control-label">套餐：</label>
+                     <label class="col-xs-5 control-label">套餐<i style="color:red">*</i></label>
                      <div class="col-xs-7">
                          <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select>
                      </div>
@@ -4376,9 +4537,9 @@
                   <thead>
                     <th>序号</th>
                     <th>云硬盘名称<i style="color:red">*</i></th>
-                    <th>存储大小</th>
-                    <th>所属服务</th>
-                    <th>申请时长</th>
+                    <th>存储大小<i style="color:red">*</i></th>
+                    <th>所属服务<i style="color:red">*</i></th>
+                    <th>申请时长<i style="color:red">*</i></th>
                     <th>套餐</th>
                     <th>收费标准</th>
                     <th>操作</th>
@@ -4392,7 +4553,7 @@
                         <td><span data-bind="text: $parent.applyTimeText"></span></td>
                         <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select></td>
                         <td><span data-bind="text: price"></span></td>
-                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,data,event) }}">删除</a></td>
+                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,$index(),data,event) }}">删除</a></td>
                     </tr>
                     
                    
@@ -4446,15 +4607,15 @@
               <div class="panel panel-default table-responsive no-height">
                 <table class="table table-striped">
                   <thead>
-                    <th>分区名称</th>
-                    <th>分区大小</th>
+                    <th>分区名称<i style="color:red">*</i></th>
+                    <th>分区大小<i style="color:red">*</i></th>
                     <th>操作</th>
                   </thead>
                   <tbody data-bind="foreach: partitions">
                     <tr>
                       <td><input type="text" class="form-control" data-bind="value:name"/></td>
                       <td><input type="text" class="form-control" data-bind="value:size"/></td>
-                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,data,event) }}">删除</a></td>
+                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,$index(),data,event) }}">删除</a></td>
                     </tr>
                   </tbody>
                 </table>
@@ -4528,10 +4689,10 @@
 				                  <th>序号</th>
 				                  <th>云主机名称<i style="color:red">*</i></th>
 				                  <th>所属VDC<i style="color:red">*</i></th>
-				                  <th>可用分区</th>
+				                  <th>可用分区<i style="color:red">*</i></th>
 				                  <th>业务系统</th>
 				                  <th>申请时长<i style="color:red">*</i></th>
-				                  <th>套餐</th>
+				                  <th>套餐<i style="color:red">*</i></th>
 				                </thead>
 				                <tbody data-bind="foreach: model_VM().vmCartInfo">
 				                     <tr>
@@ -4560,7 +4721,7 @@
 											</div>
 										</td>
 										<td  >
-										    <select class="form-control" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,optionsCaption:'请选择'"></select>
+										    <select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value: billRuleUuid,optionsCaption:'请选择'"></select>
 										</td>
 					                 </tr>  
 				                </tbody>
@@ -4578,10 +4739,10 @@
 			                  <th>操作系统版本<i style="color:red">*</i></th>
 			                  <th>CPU(核)<i style="color:red">*</i></th>
 			                  <th>内存(G)<i style="color:red">*</i></th>
-			                  <th>存储(G)</th>
-			                  <th>主机账号<i style="color:red">*</i></th>
-			                  <th>密码<i style="color:red">*</i></th>
-			                  <th>重复密码<i style="color:red">*</i></th>
+			                  <th>存储(G)<i style="color:red">*</i></th>
+			                  <th>主机账号</th>
+			                  <th>密码</th>
+			                  <th>重复密码</th>
 			                </thead>
 			                <tbody data-bind="foreach: model_VM().vmCartInfo">
 			                  <tr>
@@ -4644,7 +4805,7 @@
 				                          <tr >
 						                      <td><input type="text" class="form-control" data-bind="value:name"/></td>
 						                      <td><input type="text" class="form-control" data-bind="value:size"/></td>
-						                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,data,event) }}">删除</a></td>
+						                      <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delPartition_VM($parent,$index(),data,event) }}">删除</a></td>
 						                    </tr>
 				                      </tbody>
 				                  </table>
@@ -4679,7 +4840,7 @@
 						                        <td><span data-bind="text: $parent.applyTimeText"></span></td>
 						                        <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select></td>
 						                        <td><span data-bind="text: price"></span></td>
-						                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,data,event) }}">删除</a></td>
+						                        <td><a class="btn btn-xs btn-danger" data-bind="event:{click:function(data, event){ $root.delVdisk_VM($parent,$index(),data,event) }}">删除</a></td>
 						                    </tr>
 						                  </tbody>
 						                </table>
@@ -4902,9 +5063,9 @@
            <div class="panel panel-default table-responsive no-height" style="margin:0;margin-top:10px"> 
             <table class="table table-striped"> 
               <thead> 
-                <th>参数名称<i style="color:red">*</i></th> 
-                <th>参数代码<i style="color:red">*</i></th> 
-                <th>默认值<i style="color:red">*</i></th> 
+                <th>参数名称</th> 
+                <th>参数代码</th> 
+                <th>默认值</th> 
 				<th>修改值</th> 
               </thead> 
               <tbody  data-bind="foreach: $root.attrList_VM"> 

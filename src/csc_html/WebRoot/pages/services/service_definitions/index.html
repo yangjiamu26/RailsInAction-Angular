@@ -633,9 +633,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       <!-- 修改服务弹窗-->
       this.editService = function(object, event){
     	  self.step(1);
+    	  self.isCreateService(true);
+    	  
     	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+object.uuid, function(data){
     		  loadServiceTree();//加载服务目录树
-    		  
+    		  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
+		        format:'YYYY-MM-DD',
+//		        startDate: moment().subtract( 29, 'days'),
+//		        endDate: Date.today().addDays(1),
+		        minDate: Date.today(),
+		        separator:'至'
+		      }); 
+    		 
     		  /**初始化费用数据**/
     		  var isfee = data.charge;    		  
     		  self.isFee(isfee+"");
@@ -676,6 +685,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     				  }
     			  }
     		  }
+    		  self.selected_product(data.productId);
     		  //初始化服务基本信息
     		  self.serviceVO.fromJSON({
      			 uuid : data.uuid,
@@ -704,19 +714,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		 			 maxLoadBalanceNum : ko.observable()
   	  		    }
    	     	  });
-    		  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
-			        format:'YYYY-MM-DD',
-			        startDate: moment().subtract( 29, 'days'),
-			        endDate: Date.today().addDays(1),
-			        minDate: Date.today(),
-			        separator:'至',
-			        showDropdowns:true
-			  });
+    		  
     		  
     		  if(data.validTimeType == 2){
     			  self.serviceVO().validTimeNum(data.validTimeNum);
     		  }else if(data.validTimeType == 3){
-
+    			  $('#addServer_daterange').data('daterangepicker').setStartDate(data.effectTime);
+    			  $('#addServer_daterange').data('daterangepicker').setEndDate(data.expireTime);
     		  }
     		  
     		  
@@ -827,7 +831,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   	  if(self.osVersionList.pagedRows().length > 0 && vmOsVersionList.length > 0){
                   		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
                   			  for(var n = 0; n < vmOsVersionList.length; n++){
-                  				  if(self.osVersionList.pagedRows()[m].imageUuid = vmOsVersionList[n]){
+                  				  if(self.osVersionList.pagedRows()[m].imageUuid == vmOsVersionList[n]){
                   					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
                   				  }
                   			  }
@@ -838,8 +842,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         			  self.ip_chosen(data.serviceIpRef);
         		  }
     		  }    		  
-    		  
-        	  self.isCreateService(true);
+    		          	  
           });
       }
       

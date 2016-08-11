@@ -1061,11 +1061,25 @@
     	    	
     	    });
           
-			//AZ获取VPC
+			//vdc和AZ获取VPC
 			subscriptionAz = self.createBlVo().azUuid.subscribe(function(val){
 			    self.vpcList([]);
 			    if(csc.util.isNotNull(val)){
-			    	$.VPC.getVpcs({azUuid:val},function(data){
+			    	var vpcParams = {
+			    		vdcUuid: self.createBlVo().vdcUuid(),
+			    		azUuid:val
+			    	};
+			    	$.VPC.getVpcs(vpcParams, function(data){
+		   				 if(data && data.results){
+		   					 self.vpcList(data.results);
+		   					 self.vpcList.unshift({"name": "", "uuid": ""});
+		   				 }
+		   			});
+			    }else{
+			    	var vpcParams = {
+			    		vdcUuid: self.createBlVo().vdcUuid()
+			    	};
+			    	$.VPC.getVpcs(vpcParams, function(data){
 		   				 if(data && data.results){
 		   					 self.vpcList(data.results);
 		   					 self.vpcList.unshift({"name": "", "uuid": ""});
