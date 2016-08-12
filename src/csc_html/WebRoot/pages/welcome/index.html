@@ -230,6 +230,21 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                   <h5 class="text-black font-bold"><span data-bind="text: vdcQuotaVO().obj()"></span></h5>
                   <div id="total_objectStorage_chart" style="height: 150px"></div>
                 </div>
+                <div class="col-lg-4 col-xs-4 text-center">
+                  <h4>路由器</h4>
+                  <h5 class="text-black font-bold"><span data-bind="text: vdcQuotaVO().router()"></span></h5>
+                  <div id="total_router_chart" style="height: 150px"></div>
+                </div>
+                <div class="col-lg-4 col-xs-4 text-center">
+                  <h4>防火墙</h4>
+                  <h5 class="text-black font-bold"><span data-bind="text: vdcQuotaVO().firewall()"></span></h5>
+                  <div id="total_firewall_chart" style="height: 150px"></div>
+                </div>
+                <div class="col-lg-4 col-xs-4 text-center">
+                  <h4>安全组</h4>
+                  <h5 class="text-black font-bold"><span data-bind="text: vdcQuotaVO().secgroup()"></span></h5>
+                  <div id="total_secgroup_chart" style="height: 150px"></div>
+                </div>
                 <div class="clear wrapper m m-b-none">
                   <div>
                     <h4>
@@ -279,16 +294,30 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                       </div>
                     </div>
                   </div>
+                  <div>
+                    <h4>
+                      VPN
+                      <span class="text-black text-base font-bold m-l" data-bind="text: vdcQuotaVO().vpnA()"></span>
+                      <span class="text-black text-xs m-l">已用/未用：<b data-bind="text: vdcQuotaVO().vpnB()"></b></span>
+                    </h4>       
+                    <div class="progress progress-sm m-t-sm">
+                      <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="78.6" aria-valuemin="0" aria-valuemax="100" data-bind="style: {width: vdcQuotaVO().vpnRate()}">
+                          <span data-bind="text: vdcQuotaVO().vpnRate()"></span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <div class='panel panel-default dragDiv' id="dragDiv3">
+          <div class='panel panel-default dragDiv' id="dragDiv3" >
             <!-- 最近订单 -->
+            <div class="panel-right-link">
+            	<a data-bind="attr:{href:$root.orderUri}" class="pull-right">更多</a>      
+            </div>
             <div id="titleBar3" class='panel-heading'>
               <span class="text-base">最近订单</span>
-              <a data-bind="attr:{href:$root.orderUri}" class="pull-right">更多</a>
             </div>
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'250px'}">
                   <table class="table table-properties" data-bind="visible:orderList().length >0">
@@ -307,9 +336,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
           
           <div class='panel panel-default dragDiv' id="dragDiv4">
             <!-- 最新通知 -->
+            <div class="panel-right-link">
+            	<a href="#pages/systems/notices/index" class="pull-right" >更多</a>
+            </div>
             <div id="titleBar4" class='panel-heading'>
               <span class="text-base">最新通知</span>
-              <a href="#pages/systems/notices/index" class="pull-right" >更多</a>
             </div>
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'310px'}">
                <!-- <div class='media'>
@@ -416,6 +447,10 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 <select class="pull-right" style="max-width:300px;" data-bind="options: dcList,optionsText:'name',value:selectedDc, optionsCaption:'数据中心总览',event:{change:$root.loadDCStatistics}">
               	</select>
               </div>
+              <div id="dcMessage" class="alert alert-warning alert-dismissible" role="alert" data-bind="visible:dcStatResult">
+				  <button type="button" class="close" aria-label="Close" data-bind="click:function(){$('#dcMessage').hide()}"><span aria-hidden="true">&times;</span></button>
+				  <strong data-bind="text:dcStatResult"></strong>
+				</div>
               <div class="welcome-dataCenter" >
                   <div class="resource-vm">
                     <div>虚拟机</div>
@@ -486,11 +521,12 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
           
           <div class='panel panel-default dragDiv' id="dragDiv9">
             <!-- 最近告警 -->
+            <div class="panel-right-link">
+            	<a href="#pages/systems/warnings/index" class="pull-right">更多</a>       
+            </div>
             <div id="titleBar9" class='panel-heading'>
               <span class="text-base">最近告警</span>
-              <a href="#pages/systems/warnings/index" class="pull-right">更多</a>          
             </div>	
-            
             <div class='panel-body' ui-jq='slimScroll' ui-options="{height:'250px'}">
               <div class='streamline b-l m-b b-warning'>
                 <div data-bind="visible: alarmInfoVO().length>0 ,foreach: alarmInfoVO">
@@ -965,6 +1001,222 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             ]
         }]
       });
+      
+   	  //路由器占比图
+      $('#total_router_chart').highcharts({
+        chart: {
+            marginTop: 0,
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        exporting:{
+            enabled: false
+        },
+        credits:{
+            enabled: false,
+            text : ""
+        },
+
+        title: {
+            floating:true,
+            text: ''
+        },
+        legend:{
+          enabled:true,
+          margin: 0,
+          layout: 'vertical',
+          backgroundColor:"none",
+          borderColor:"none",
+          itemStyle: {
+            
+            fontWeight: 'normal'
+          },
+          labelFormat: '{name} <b>{y}</b>{unit}',
+        },
+        plotOptions: {
+            pie: {
+                innerSize: '70%',
+                borderWidth:1,
+                allowPointSelect: false,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    distance: -10,
+                    color: '#6d6d72',
+                    style:{
+                      fontSize:'11px',
+                      fontWeight: 'normal'
+                    },
+                    connectorColor: '#000000',
+                    format: '{point.percentage:.1f} %'
+                },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: 'VPC',
+            data: [{
+                    name: '已用',
+                    y: parseFloat(data.routerUsed),
+                    unit: data.routerUnit,
+                    color:"#23b7e5"
+                },
+                {
+                    name: '未用',
+                    y: parseFloat(data.routerTotal)-parseFloat(data.routerUsed),
+                    unit: data.routerUnit,
+                    color:"#fad733"
+                }
+            ]
+        }]
+      });
+   	  
+      //防火墙占比图
+      $('#total_firewall_chart').highcharts({
+        chart: {
+            marginTop: 0,
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        exporting:{
+            enabled: false
+        },
+        credits:{
+            enabled: false,
+            text : ""
+        },
+
+        title: {
+            floating:true,
+            text: ''
+        },
+        legend:{
+          enabled:true,
+          margin: 0,
+          layout: 'vertical',
+          backgroundColor:"none",
+          borderColor:"none",
+          itemStyle: {
+            
+            fontWeight: 'normal'
+          },
+          labelFormat: '{name} <b>{y}</b>{unit}',
+        },
+        plotOptions: {
+            pie: {
+                innerSize: '70%',
+                borderWidth:1,
+                allowPointSelect: false,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    distance: -10,
+                    color: '#6d6d72',
+                    style:{
+                      fontSize:'11px',
+                      fontWeight: 'normal'
+                    },
+                    connectorColor: '#000000',
+                    format: '{point.percentage:.1f} %'
+                },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: 'VPC',
+            data: [{
+                    name: '已用',
+                    y: parseFloat(data.firewallUsed),
+                    unit: data.firewallUnit,
+                    color:"#23b7e5"
+                },
+                {
+                    name: '未用',
+                    y: parseFloat(data.firewallTotal)-parseFloat(data.firewallUsed),
+                    unit: data.firewallUnit,
+                    color:"#fad733"
+                }
+            ]
+        }]
+      });
+      
+      //安全组占比图
+      $('#total_secgroup_chart').highcharts({
+        chart: {
+            marginTop: 0,
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            backgroundColor: "none"
+        },
+        exporting:{
+            enabled: false
+        },
+        credits:{
+            enabled: false,
+            text : ""
+        },
+
+        title: {
+            floating:true,
+            text: ''
+        },
+        legend:{
+          enabled:true,
+          margin: 0,
+          layout: 'vertical',
+          backgroundColor:"none",
+          borderColor:"none",
+          itemStyle: {
+            
+            fontWeight: 'normal'
+          },
+          labelFormat: '{name} <b>{y}</b>{unit}',
+        },
+        plotOptions: {
+            pie: {
+                innerSize: '70%',
+                borderWidth:1,
+                allowPointSelect: false,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    distance: -10,
+                    color: '#6d6d72',
+                    style:{
+                      fontSize:'11px',
+                      fontWeight: 'normal'
+                    },
+                    connectorColor: '#000000',
+                    format: '{point.percentage:.1f} %'
+                },
+                showInLegend: true
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: 'VPC',
+            data: [{
+                    name: '已用',
+                    y: parseFloat(data.securityGroupUsed),
+                    unit: data.securityGroupUnit,
+                    color:"#23b7e5"
+                },
+                {
+                    name: '未用',
+                    y: parseFloat(data.securityGroupTotal)-parseFloat(data.securityGroupUsed),
+                    unit: data.securityGroupUnit,
+                    color:"#fad733"
+                }
+            ]
+        }]
+      }); 
     }
 
     function doHighchartsWarning(data){
@@ -1040,7 +1292,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         colors:['#f9d21a'],
         xAxis: {
             categories: [
-                'CPU','内存','存储','VPC','云主机','云硬盘','对象存储','负载均衡器','公网IP','SSH密钥'
+                'CPU','内存','存储','VPC','云主机','云硬盘','对象存储','负载均衡器',
+                '公网IP','SSH密钥','路由器','防火墙','安全组','VPN'
             ]
         },
         yAxis: {
@@ -1060,7 +1313,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
           {
               name: '告警数量',
               data: [data.cpuAlarmNum, data.memAlarmNum, data.stoAlarmNum, data.vpcAlarmNum, data.vmAlarmNum, 
-                     data.volAlarmNum, data.objAlarmNum, data.blaAlarmNum, data.ipAlarmNum, data.sshAlarmNum]
+                     data.volAlarmNum, data.objAlarmNum, data.blaAlarmNum, data.ipAlarmNum, data.sshAlarmNum,
+                     data.routerAlarmNum, data.firewallAlarmNum, data.sgAlarmNum, data.vpnAlarmNum]
           }
         ]
       });
@@ -1294,6 +1548,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   new Drag("titleBar8", "dragDiv8");
   new Drag("titleBar9", "dragDiv9");
 
+  $("#dragDiv3").click(function(event){
+	  event.stopPropagation();
+  });
 
   function ViewModel(){
 	  var self = this;
@@ -1442,8 +1699,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       this.storageSize = ko.observable("");
       this.memorySize = ko.observable("");
       
+      this.dcStatResult = ko.observable("");
+      
       //加载数据中心统计信息
       this.loadDCStatistics = function(obj){
+    	  self.dcStatResult("");
     	  if(self.selectedDc() && self.selectedDc().cloudPlatform == "OpenStack"){
     		  self.netWorkTextName("网络");
     		  self.isShowResourcePool(false);
@@ -1465,6 +1725,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  self.dcStatistics(data);
     		  self.storageSize(data.storageSize?data.storageSize:0+"GB");
     		  self.memorySize(data.memorySize?data.memorySize:0+"TB");
+    		  if(data){
+    			  self.dcStatResult("");
+    		  }else{
+    			  self.dcStatResult("统计错误！");
+    		  }
     	  });
       }
       this.loadDCStatistics();
@@ -1473,7 +1738,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       //--------------------最新订单模块start--------------//
       this.orderList = ko.observableArray([]);
       //加载订单列表
-      csc.rest.get("api/v5.0.0/homepage/order?firstResult=0&maxResult=5", function(data){
+      csc.rest.get("api/v5.0.0/homepage/order?orderBy=createTime:desc&firstResult=0&maxResult=5", function(data){
      	 self.orderList(data);
       });
       
@@ -1562,6 +1827,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  vm: ko.observable(),
     	  disk: ko.observable(),
     	  obj: ko.observable(),
+    	  router: ko.observable(),
+    	  firewall: ko.observable(),
+    	  secgroup: ko.observable(),
     	  vpcA: ko.observable(),
     	  vpcB: ko.observable(),
     	  vpcRate: ko.observable(),
@@ -1573,7 +1841,10 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  ipRate: ko.observable(),
     	  sshA: ko.observable(),
     	  sshB: ko.observable(),
-    	  sshRate: ko.observable()
+    	  sshRate: ko.observable(),
+    	  vpnA: ko.observable(),
+    	  vpnB: ko.observable(),
+    	  vpnRate: ko.observable()
       });
       this.doHighchartsVDC = doHighchartsVDC;
       this.loadVdcStat = function(){
@@ -1586,6 +1857,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
     		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
     		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
+    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
+    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
+    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
     		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
     		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
     		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
@@ -1598,6 +1872,9 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
     		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
     		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
+    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
+    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
     	  });
       }
    	  //--------------------VDC配额模块end--------------//

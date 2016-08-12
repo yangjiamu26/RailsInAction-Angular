@@ -30,7 +30,7 @@ function showModal(url,callBack){
 	updateHashWhenModal(url);
 	
 	modal.html("").load(url,function(data){
-		modal.modal({'show':true, backdrop:'static'});
+		modal.modal({'show':true, backdrop:'static',keyboard:false});
 		if(callBack) callBack();
 	});
 };
@@ -43,7 +43,7 @@ function showModalSec(url,callBack){
 	updateHashWhenModal(url);
 
 	modal.html("").load(url,function(data){
-		modal.modal({'show':true, backdrop:'static'});
+		modal.modal({'show':true, backdrop:'static',keyboard:false});
 		if(callBack) callBack();
 	});
 };
@@ -56,7 +56,7 @@ function showModalThir(url,callBack){
 	updateHashWhenModal(url);
 	
 	modal.html("").load(url,function(data){
-		modal.modal({'show':true, backdrop:'static'});
+		modal.modal({'show':true, backdrop:'static',keyboard:false});
 		if(callBack) callBack();
 	});
 };

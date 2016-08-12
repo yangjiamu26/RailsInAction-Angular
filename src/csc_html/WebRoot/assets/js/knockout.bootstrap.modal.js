@@ -17,6 +17,7 @@
 			}
 			var modalOptions = ko.toJS(optionsAccessor());
 			modalOptions["backdrop"] = "static";
+			modalOptions["keyboard"] = false;
 			$element.modal(modalOptions);
 
 			$element.on("hidden.bs.modal", function() {
@@ -28,11 +29,11 @@
 				$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
 			});
 
-			$(document).on("keyup", function(e) {
-				if (e.which === 27) {
-					$element.modal("hide");
-				}
-			});
+//			$(document).on("keyup", function(e) {
+//				if (e.which === 27) {
+//					$element.modal("hide");
+//				}
+//			});
 
 			//hide elements inside modal unless we are showing it
 			var _showAccessor = showAccessor.bind(optionsAccessor, optionsAccessor);

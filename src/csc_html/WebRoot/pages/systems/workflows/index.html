@@ -64,7 +64,7 @@
 									<tr>
 										<td data-bind="text: $row.name"><input type="hidden" data-bind="text: $row.id"></td>
 										<td data-bind="text: $row.processTypeName"></td>
-										<td data-bind="text: $row.productTypes"></td>
+										<td data-bind="text: $row.productTypesName"></td>
 										<td data-bind="text: $row.vdcName"></td>
 										<td data-bind="text: $row.createUser"></td>
 										<td data-bind="text: $row.createTime"></td>
@@ -85,7 +85,7 @@
 								</tbody>
 							</table>
 						</div>
-						<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+						<footer class="panel-footer" data-bind="with: table">
 					     <ul class="pagination">
 					       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
 					         <a href="#">首页</a>
@@ -118,8 +118,7 @@
         <div class='modal-dialog modal-md' role='document'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 id="modelTitle" class='modal-title'>创建</h3></div>
-              <input type="hidden" id="modelFlag">
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title' data-bind="text: modalTitle"></h3></div>
             <div class='modal-body form-horizontal'>
               <div class="form-group">
                 <label for="inputEmail3" class="col-xs-3 control-label">模型名称</label>
@@ -207,8 +206,7 @@
               <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
           </div>
         </div>
-      </div>     
-
+      </div> 
 
 		<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isImport }">
 		  <div class='modal-dialog' role='document'>
@@ -293,7 +291,7 @@
 						</tbody>
 					</table>
 				</div>
-				<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+				<footer class="panel-footer" data-bind="with: table">
 			     <ul class="pagination">
 			       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
 			         <a href="#">首页</a>
@@ -342,111 +340,100 @@
 
 	    function ViewModel(){
 	      var self = this;
-	      /* ko.validation.rules['modelNameUsed'] = {
-   		  	validator: function (val, otherVal) {       
-   		    	var isUnique = true;
-   		     	csc.rest.get('api/v5.0.0/workflows/models?name='+val,
-   		     		function(data){
-		        		if(data.total>0){
-		        			isUnique = false;
-		        		}
- 		    	},function(data){systemMsg.alert('校验模型名称失败！')});
-   		     	console.log(isUnique);
-   		        return isUnique;
-   		    },
-   		    message: '模型名称重复！'
-   		  };
-   		  ko.validation.registerExtenders(); */
 	
 	      this.modelVO = ko.validatedObservable({
-	        //name: ko.observable("fdsafdas").extend({required: true,modelNameUsed: true})
-	        id: ko.observable(""),
-	        name: ko.observable("").extend({required: true}),
-	        processType: ko.observable("").extend({required: true}),
-	        vdcId: ko.observable("").extend({required: true}),
-	        description: ko.observable(""),
-	        productTypes: ko.observable("")
+	    	  id: ko.observable(""),
+	    	  name: ko.observable("").extend({required: true, cscNameRule: true}),
+	          processType: ko.observable("").extend({required: true}),
+	          vdcId: ko.observable("").extend({required: true}),
+	          description: ko.observable(""),
+	          productTypes: ko.observable("")
 	      });
+	      this.modalTitle = ko.observable("");
 	      
 	      this.isAdd = ko.observable(false);
 	      this.add = function(){
-	        this.modelVO({
-	        	id:"",
-	          name: "",
-	          processType:"",
-	          vdcId:"",
-	          productTypes:"",
-	          description:""
-	        });
+	    	self.modelVO.fromJSON({
+	    		"id":"",
+	    		"name":"",
+			 	"processType":"",
+			 	"vdcId":"",
+			 	"description":"",
+			 	"productTypes":""
+			});
+	    	self.modalTitle("创建");
 	        self.isAdd(true);
-	        $("#modelTitle").text("创建");
-	        $("#modelFlag").val('add');
 	      }
 	      
+	      var metaModelName = '';
 	      this.edit = function(object, event){
-	        console.log(object);
-	        self.modelVO(object);
-	        self.isAdd(true);
-	        $("#modelTitle").text("修改");
-	        $("#modelFlag").val('edit');
-	        loadProducts(object.processType);
-	        var productTypes=object.productTypes;
-	        if(productTypes!=null){
-	        	var p = productTypes.split(",");
-	        	console.log(p.length);
-	        	for(var i=0;i<p.length;i++){
-	        		$("input[name='productTypes'][value="+p[i]+"]").prop('checked', true);
-	        	}
-	        }
+	    	  console.log(object)
+	          self.modelVO(object);
+	          self.isAdd(true);
+	          self.modalTitle("修改");
+	          metaModelName = object.name;
+	          loadProducts(object.processType);
+	          var productTypes=object.productTypes;
+	          if(productTypes!=null){
+	        	  productTypes.forEach(function(e){	        		
+		        	 $("input[name='productTypes'][value="+e+"]").prop('checked', true);
+	        	  });
+	          }
 	      }
+	      
 	      //保存模型
 	      this.save = function(){
-	    	//this.modelVO.errors.showAllMessages();
-	        if(this.modelVO.isValid()){
-	        	/* csc.rest.get('api/v5.0.0/workflows/models?name='+this.modelVO().name(),
-   		     		function(data){
-		        		if(data.total>0){
+	    	ko.validation.group(this.modelVO).showAllMessages();
+	        if(self.modelVO.isValid()){
+       			var types = [];
+	        	$("input[name='productTypes']:checked").each(function(){
+	        		types.push($(this).val());
+	        	});
+	        	if(types == ""){
+	        		alert("请选择产品类型！");
+	        		return;
+	        	}
+	        	self.modelVO.fromJSON({
+	        		productTypes: types
+	  	        });
+	        	
+	        	var modelId = self.modelVO.toJSON().id;
+	        	if(!modelId){
+	        		csc.rest.get('api/v5.0.0/workflows/model_name?name='+self.modelVO.toJSON().name,function(data){
+		        		if(data){
 		        			systemMsg.alert('模型名称重复！');
 		        			return;
 		        		}else{
-		        			
-		        		}
- 		    	},function(data){systemMsg.alert('校验模型名称失败！')});
-	        	console.log("swwww"); */
-	        	var isUnique = true;
-	        	var flag = $("#modelFlag").val();
-	        	/* $("input[name='productTypes']").each(function(){
-		        	csc.rest.get('api/v5.0.0/workflows/models/unique?name='+this.modelVO.name()+'&vdcId='+this.modelVO.vdcId+'&productId='+$(this).val(),
-	   		     		function(data){
-			        		isUnique = data;
-	 		    	},function(data){systemMsg.alert('操作失败！')});
-	        	}); */
-	        	if(isUnique){
-		        	var types = "";
-		        	$("input[name='productTypes']:checked").each(function(){
-		        		types += $(this).val() + ",";
-		        	});
-		        	types=types.substring(0,types.length-1);
-		        	this.modelVO.fromJSON({
-		        		productTypes: types
-		  	        });
-		        	console.log(this.modelVO.toJSON());
-		        	this.modelVO = ko.observable(this.modelVO.toJSON());
-		        	if(flag=='add'){
-			        	csc.rest.post('api/v5.0.0/workflows/models',this.modelVO(),function(data){
-			        		alert('创建成功！');
-				          	self.isAdd(false);
-				          	self.table.refreshData();
-		    		    });
-		        	}else{
-		        		csc.rest.put('api/v5.0.0/workflows/models',this.modelVO(),function(data){
+				        	csc.rest.post('api/v5.0.0/workflows/models',self.modelVO.toJSON(),function(data){
+				        		alert('创建成功！');
+					          	self.isAdd(false);
+					          	self.table.refreshData();
+			    		    },function(){alert('创建失败！')});
+	        			}
+	        		},function(data){systemMsg.alert('校验模型名称失败！')})
+	        	}else{			        		
+	        		if(metaModelName != self.modelVO.toJSON().name){
+	        			csc.rest.get('api/v5.0.0/workflows/model_name?name='+self.modelVO.toJSON().name,function(data){
+			        		if(data){
+			        			systemMsg.alert('模型名称重复！');
+			        			return;
+			        		}else{
+					        	csc.rest.put('api/v5.0.0/workflows/models',self.modelVO.toJSON(),function(data){
+					        		alert('修改成功！');
+						          	self.isAdd(false);
+						          	self.table.refreshData();
+				    		    },function(){alert('修改失败！')});
+		        			}
+		        		},function(data){systemMsg.alert('校验模型名称失败！')})
+	        		}else{
+		        		csc.rest.put('api/v5.0.0/workflows/models',self.modelVO.toJSON(),function(data){
 			        		alert('修改成功！');
 				          	self.isAdd(false);
 				          	self.table.refreshData();
 		    		    });
-		        	}
+	        		}
 	        	}
-	        }
+ 		    }
 	      }
 	
 	      this.design = function(object, event){
@@ -491,14 +478,15 @@
 	
 	      this.table = new DataTable([], {path: 'api/v5.0.0/workflows/models'});
 	      
-	      this.products = ko.observableArray();
+	      /* this.products = ko.observableArray();
 	      this.loadProducts = function(){
 	        $.ajax("api/v5.0.0/workflows/models").done(function(data){
 	          self.products(data.results);
 	        });
 	      };
-	      this.loadProducts();
+	      this.loadProducts(); */
 	
+	      //流程类型下拉列表
 	      this.processTypes = ko.observableArray();
 	      this.loadProcessTypes = function(){
 	        $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
@@ -507,6 +495,7 @@
 	      }
 	      this.loadProcessTypes();
 	      
+	      //vdc下拉列表
 	      this.vdcs = ko.observableArray();
 	      this.loadVdcs = function(){
 	        $.ajax("api/v5.0.0/vdcs").done(function(data){

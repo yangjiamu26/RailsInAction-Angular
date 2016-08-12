@@ -48,6 +48,23 @@
 				csc.rest.del('api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name,function(data){
 					 callback(data)
    		        })
+			},
+			
+			stopUpload:function(url,data,successFun,errorFun){
+				$.ajax({					
+					url : url,
+					type : 'POST',
+					dataType : "json",
+					data : data,
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						if (errorFun) {
+							errorFun(XMLHttpRequest, textStatus, errorThrown);
+						}
+					},
+					success : function(data, textStatus) {
+						successFun(data, textStatus);
+					}
+				});
 			}
 			
 	};

@@ -4,7 +4,7 @@ $.ajaxSetup({
 var csc = {};
 
 csc.rest = {
-	post : function(url, content, successFun, errorFun) {
+	post : function(url, content, successFun, errorFun,notShowError,callbackCustParam) {
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -13,17 +13,25 @@ csc.rest = {
 			data : JSON.stringify(content),
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				if(!notShowError){//默认错误时显示错误提示框
+					try {
+						var resText = XMLHttpRequest.responseText
+						res = JSON.parse(resText);
+						alert("["+res.exceptionCode+"]"+res.exceptionMessage);
+					} catch (e) {
+					}
+				}
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
-				successFun(data, textStatus);
+				successFun(data, textStatus,callbackCustParam);
 			}
 		});
 
 	},
-	put : function(url, content, successFun, errorFun) {
+	put : function(url, content, successFun, errorFun,notShowError,callbackCustParam) {
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -32,17 +40,25 @@ csc.rest = {
 			dataType : "json",
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				if(!notShowError){//默认错误时显示错误提示框
+					try {
+						var resText = XMLHttpRequest.responseText
+						res = JSON.parse(resText);
+						alert("["+res.exceptionCode+"]"+res.exceptionMessage);
+					} catch (e) {
+					}
+				}
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
-				successFun(data, textStatus);
+				successFun(data, textStatus,callbackCustParam);
 			}
 		});
 
 	},
-	del : function(url, successFun, errorFun) {
+	del : function(url, successFun, errorFun,notShowError) {
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -50,6 +66,14 @@ csc.rest = {
 			dataType : "json",
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				if(!notShowError){//默认错误时显示错误提示框
+					try {
+						var resText = XMLHttpRequest.responseText
+						res = JSON.parse(resText);
+						alert("["+res.exceptionCode+"]"+res.exceptionMessage);
+					} catch (e) {
+					}
+				}
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
@@ -242,7 +266,16 @@ csc.util = {
 			billTxt = "按年"
 		}
         return billTxt;
-	}
+	},
+	
+    invalidValueParam : function(val){
+    	var telReg = /[。~!@#$%\^\+\*&\\\/\?\|:\.<>{}【】';="]+/;
+        if(telReg.test(val)){
+        	return false;
+        }else{
+        	return true;
+        }
+    }
 	  
 }
 

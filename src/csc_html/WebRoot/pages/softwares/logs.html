@@ -68,13 +68,13 @@
 					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 					<tr>
 						<td data-bind="text: $row.softwareName"></td>
-						<td data-bind="text: $row.vmUuid"></td>
+						<td data-bind="text: $row.vmName"></td>
 						<td data-bind="text: $row.billingUuid"></td>
 						<td data-bind="text: $row.installTime"></td>
-						<td data-bind="attr: {id: $row.uuid}"></td>
+						<td data-bind="text: $row.progress"></td>
 						<td data-bind="text: $row.statusName"></td>
-						<td><a data-bind="click:$root.showLogText">查看</a> | <a href="#">修改</a></td>
-						<td><a href="#">重安装</a> | <a data-bind="click: $root.showLogText">查看日志</a></td>
+						<td><a data-bind="click:$root.openAttr, visible: ($row.attrCnt > 0)">查看</a></td>
+						<td><a data-bind="click:$root.openInstall, visible: ($row.status == 2)">重安装 | </a><a data-bind="click: $root.showLogText">查看日志</a></td>
 					</tr>
 					<!-- /ko -->
 				</tbody>
@@ -173,7 +173,7 @@
 				<button type="button" class="close" data-dismiss="modal">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h3 class='modal-title'>修改默认安装属性</h3>
+				<h3 class='modal-title'>修改安装属性</h3>
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-group">
@@ -218,6 +218,48 @@
 </div>
 <!-- 静默安装属性增改维护弹窗   end -->
 
+<!-- 重安装弹窗   start -->
+<div role="dialog" aria-hidden="true" class="modal fade"
+	data-bind="modal: { show: isReInstall }">
+
+	<div class='modal-dialog' role='document'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h3 class='modal-title'>云主机连接信息</h3>
+			</div>
+			<div class='modal-body form-horizontal'>
+				<div class="form-group">
+					<label class="col-xs-3 control-label"> 登录帐号 </label>
+					<div class="col-xs-8">
+						<input class="string required form-control" type="text"
+							data-bind="value: reInstallVO().userName" />
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
+					</div>
+				</div>
+				<div class="form-group" data-bind="visible: (reInstallVO().hasSSHKey != 0)">
+					<label class="col-xs-3 control-label"> 登录密码</label>
+					<div class="col-xs-8">
+						<input class="string required form-control" type="text"
+							data-bind="value: reInstallVO().userPwd" />
+					</div>
+				</div>
+				<div class='modal-footer' style="text-align: center">
+					<input type="button" name="commit" value="确定"
+						class="btn btn-default btn-info" data-bind="click: $root.reInstall"/>
+					<button name="button" type="submit"
+						class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 重安装弹窗   end -->
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [ null, 'api/software/software.js', null ]
@@ -225,7 +267,11 @@
 		function ViewModel() {
 			var self = this;
 			
+			// 是否显示日志详细弹窗
 			this.isLogText = ko.observable(false);
+			
+			// 是否显示安装属性弹窗
+			this.isAttr = ko.observable(false);
 			
 			this.progressVO = ko.observable({});
 			
@@ -234,6 +280,34 @@
 			
 			// 获取日志详情调度器
 			this.getLogTextInterval;
+			
+			// 是否显示安装属性编辑弹窗
+			this.isEditAttr = ko.observable(false);
+			
+			// 是否显示重安装弹窗
+			this.isReInstall = ko.observable(false);
+			
+			// 重安装数据对象			
+			this.reInstallVO = ko.validatedObservable({
+				Id: null,
+				uuid: null,
+				vmUuid: null,
+				softwareUuid: null,
+				userName: ko.observable().extend({required : true}),
+				userPwd: ko.observable(''),
+				hasSSHKey: 0
+			});
+			
+			// 安装属性数据对象
+			this.attrVO = ko.validatedObservable({
+				Id: null,
+				uuid: null,
+				name: ko.observable().extend({required : true}),
+				code: ko.observable().extend({required : true}),
+				value: ko.observable().extend({required : true}),
+				installLogUuid: null,
+				attrTableRow: null
+			});
 			
 			this.searchParam = ko.observable({
 				status : "",
@@ -246,34 +320,13 @@
 				this.table.params(this.searchParam());
 			};
 
+			// 日志列表数据
 			this.table = new DataTable([], {
 				path : 'api/v5.0.0/install/logs'
 			});
-				
-			//获取进度数据
-			this.getProgress = function(object) {
-				var val = '0%';
-				
-				if (object.status == 0) {
-					var intervalId = setInterval(function() {
-						
-						$('#'+object.uuid).html(val);
-						
-						$.SOFTWARE.getProgress(object.uuid, function(data) {
-							
-							$('#'+object.uuid).html(data.progress);
-							
-							//clearInterval(intervalId);
-							if (data.progress == 'success' || data.progress == 'N/A') {
-								clearInterval(intervalId);	
-								self.table.refreshData();
-							}
-						});
-					},3500);
-				}
-				
-				return val;
-			};
+			
+			// 安装属性列表
+			this.attrTable = ko.observableArray([]);
 			
 			// 获取安装日志信息
 			this.getLogText = function(uuid) {
@@ -283,7 +336,7 @@
 					if (!self.getLogTextInterval && data.status == '0') {
 						self.getLogTextInterval = setInterval(function(){
 							self.getLogText(uuid);
-						}, 3500);
+						}, 5000);
 					} else {
 						if (data.status != '0') {
 							clearInterval(self.getLogTextInterval);
@@ -298,11 +351,107 @@
 				self.getLogText(object.uuid);
 				self.isLogText(true);
 			};
+			
+			/** 安装属性弹窗 **/
+			this.openAttr = function(object, event) {
+				self.loadInstallAttr(object.uuid);
+				self.isAttr(true);
+			};
+			
+			//显示修改安装属性弹窗
+			this.openUpdateAttr = function(object, event) {
+				self.attrVO.fromJSON({
+					Id: object.Id,
+					uuid: object.uuid,
+					name: object.name(),	
+					code: object.code(),	
+					value: object.value(),
+					installLogUuid: object.installLogUuid
+				});
+				
+				self.attrVO().attrTableRow = object;
+				self.isEditAttr(true);
+			};
+			
+			//加载安装属性数据
+			this.loadInstallAttr = function(uuid) {
+				self.attrTable().splice(0, self.attrTable().length);
+				
+				$.INSTALL.loadInstallAttr({installLogUuid: uuid}, function(data) {
+					$.each(data, function(i, val) {
+						self.attrTable.push({
+							Id: val.Id,
+							uuid: val.uuid,
+							name: ko.observable(val.name),
+							code: ko.observable(val.code),
+							value: ko.observable(val.value),
+							installLogUuid: val.installLogUuid
+						});
+					});
+				});
+			};
+			
+			// 提交修改属性 
+			this.submitAttr = function() {
+				
+				if (self.attrVO.isValid()) {
+					self.attrVO().attrTableRow.name(self.attrVO().name());
+					self.attrVO().attrTableRow.code(self.attrVO().code());
+					self.attrVO().attrTableRow.value(self.attrVO().value());
+					
+					$.INSTALL.updateInstallAttr(self.attrVO().uuid, self.attrVO.toJSON(), function (data) {
+						self.isEditAttr(false);
+					});
+					
+				} else {
+					ko.validation.group(self.attrVO).showAllMessages();	
+				}
+				
+			};
+
+			//重安装弹窗
+			this.openInstall = function(object, event) {
+				
+				self.reInstallVO().userName('');
+				
+				self.reInstallVO().userPwd('');
+				
+				self.reInstallVO.fromJSON(object);
+				
+				self.isReInstall(true);
+			};
+			
+			// 重安装
+			this.reInstall = function() {
+				self.reInstallVO.toJSON();
+				
+				if (self.reInstallVO.isValid()) {
+					
+					var arr = [];
+					arr.push(self.reInstallVO.toJSON());
+					
+					console.log(arr);
+					$.INSTALL.retryInstall(arr, function (data) {
+						this.table.refreshData();
+					});
+					self.isReInstall(false);
+				} else {
+					ko.validation.group(self.reInstallVO).showAllMessages();	
+				}
+			};
 		}
 		$(document).ready(function() {
 			var viewModel = new ViewModel();
 			
 			ko.applyBindings(viewModel, $('#page-content')[0]);
+			
+			window.timers = window.timers || [];
+			if(window.timers["timer_for_install_progress"]){
+				clearInterval(window.timers["timer_for_install_progress"])
+			}
+			window.timers["timer_for_install_progress"] = setInterval(function(){
+				viewModel.table.refreshData();
+			}, 15000);
 			
 			$("#logTextModal").on("shown.bs.modal", function() {
 				

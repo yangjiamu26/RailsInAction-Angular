@@ -182,6 +182,15 @@
 			},
 			
 			/**
+			 * 重新安装
+			 */
+			retryInstall: function (params, callback, errorCallback) {
+				csc.rest.post('api/v5.0.0/install/retry', params, function(data) {
+					callback(data);
+				});
+			},
+			
+			/**
 			 * 查看日志详细信息
 			 */
 			getLogDetail: function(uuid, params, callback, errorCallback) {
@@ -190,6 +199,26 @@
 				csc.rest.get('api/v5.0.0/install/log/' + uuid + '?' + param, function(data) {
 				     callback(data);
 			    });
+			}, 
+			
+			/**
+			 * 加载安装属性信息
+			 */
+			loadInstallAttr: function(params, callback, errorCallback) {
+				var param = csc.util.httpQueryParamConvert(params);
+				
+				csc.rest.get('api/v5.0.0/install/installAttrs?' + param, function(data) {
+				     callback(data);
+			    });
+			},
+			
+			/**
+			 * 更新安装属性信息
+			 */
+			updateInstallAttr: function(uuid, params, callback, errorCallback) {
+				csc.rest.put('api/v5.0.0/install/installAttr/' + uuid, params, function(data) {
+					 callback(data);
+				}); 
 			}
 	};
 }(window.jQuery);

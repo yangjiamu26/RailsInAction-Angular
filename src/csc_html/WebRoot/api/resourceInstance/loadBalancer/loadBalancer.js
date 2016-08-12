@@ -1,11 +1,15 @@
 !function ($) {
 	$.LOAD_BALANCER = {
 			lbMethods:[
-			           "",
-			           "LEAST_CONNECTIONS",
-			           "ROUND_ROBIN ",
-			           "SOURCE_IP"
+			          {"key": "ROUND_ROBIN", "value": "轮询"}, 
+                      {"key": "LEAST_CONNECTIONS", "value": "最少连接"}, 
+                      {"key": "SOURCE_IP", "value": "源IP"} 
 			           ],
+			lbMethodView: {
+				"ROUND_ROBIN": "轮询",
+				"LEAST_CONNECTIONS": "最少连接",
+				"SOURCE_IP": "源IP"
+			},
 			lbProtocols:[
 			             "TCP",
 			             "HTTP",
@@ -18,8 +22,7 @@
 			              "HTTPS"
 			              ], 
           sessionPersistenceType: [
-                      "",
-		              "SOURCE_IP", 
+                      "SOURCE_IP", 
 		              "HTTP_COOKIE", 
 		              "APP_COOKIE"
 		              ],

@@ -979,6 +979,16 @@ kv.rules['cscNameRule'] = {
 		  message: '不能包含特殊字符'
 		};
 
+kv.rules['positiveIntegerRule'] = {//正整数校验
+		  validator: function (val, params) {
+	  	        if(/^[1-9]\d*$/.test(val)){
+	  	        	return true;
+	  	        }	
+	  	        return false;
+		  },
+		  message: '请输入正整数'
+		};
+
 kv.rules['ip'] = {
 		  validator: function (val, params) {//params为true时支持cidr校验
 			    this.message = 'IP格式不正确，正确格式如：192.168.1.1'
@@ -1066,7 +1076,16 @@ kv.rules['unique'] = {
   },
   message: 'Please make sure the value is unique.'
 };
-
+kv.rules['userNameSpecial'] = {
+	validator: function (val, params) {
+		var portReg = /^[\u4e00-\u9fa5a-zA-Z0-9\@\(\)\-\_\.^ ]+$/;
+	    if(portReg.test(val)){
+        	return true;
+        }	
+        return false;
+	},
+	message: '昵称不能包括特殊字符'	
+};
 
 //now register all of these!
 (function () {
