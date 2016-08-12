@@ -108,7 +108,9 @@ csc.rest = {
 		});
 	},
 	get : function(url, successFun, errorFun,callbackCustParam) {
-		showLoading();
+		if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+			showLoading();
+		}
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -117,13 +119,17 @@ csc.rest = {
 			dataType : 'json',
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
-				hideLoading();
+				if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+					hideLoading();
+				}
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
-				hideLoading();
+				if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+					hideLoading();
+				}
 				successFun(data, textStatus,callbackCustParam);
 			}
 		});

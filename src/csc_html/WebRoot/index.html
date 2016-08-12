@@ -81,7 +81,7 @@
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li >
               <a  data-bind="attr:{href: uapUrl}">
-                <i class='fa fa-bell'></i> 认证平台
+                <i class='fa fa-desktop'></i> 认证平台
                 <span class=' up bg-info'></span></a>
             </li>
             <li class='dropdown'>
@@ -142,7 +142,7 @@
       <!-- aside -->
       
       <aside class='app-aside hidden-xs bg-dark' id='aside'>
-        <!-- ko if: roleVO().roleFlag()=='ALL' ||  roleVO().roleFlag()=='VDC' || roleVO().roleFlag()=='AG' || roleVO().roleFlag()=='AS' -->
+        <!-- ko if: roleVO().platForm()=='operate' -->
         <div class='aside-wrap'>
           <div class='navi-wrap'>
             <nav class='navi clearfix' ui-nav=''>
@@ -412,7 +412,7 @@
         </div>
         <!-- /ko -->
         
-        <!-- ko if: roleVO().roleFlag() == 'COMMON' -->
+        <!-- ko if: roleVO().platForm()=='self' -->
         <div class='aside-wrap'>
           <div class='navi-wrap'>
             <nav class='navi clearfix' ui-nav=''>
@@ -740,12 +740,30 @@
 	    	this.roleVO = ko.observable({
 		    	roleName: ko.observableArray([]),
 		    	currentRole: ko.observable(),
-		    	roleFlag: ko.observable()
+		    	roleFlag: ko.observable(),
+		    	platForm: ko.observable()
 		    });
 		    this.loadRoles = function(){
 		    	csc.rest.get("api/v5.0.0/homepage/roles", function(data){
 		    		self.roleVO().roleName(data);
-		    		self.roleVO().currentRole(data[0].name);
+		    		var currentRole = data[0].name;
+		    		self.roleVO().currentRole(currentRole);
+		    		//查看当前角色是否具有自助门户权限
+		    		csc.rest.get("api/v5.0.0/homepage/gateway/"+currentRole, function(data){
+		    			self.roleVO().platForm(data);
+		    			var putBody = {
+		    				roleName: currentRole,
+		    				platform: self.roleVO().platForm()
+		          		}
+			    		csc.rest.post("api/v5.0.0/homepage/role", putBody,function(data){
+			    			self.loadAlarmStat();
+			    			self.loadNoticeStat();
+			    			self.loadUserInfo();
+			    			if(window.location.hash=="#pages/welcome/home"){
+			    				window.location.hash = '#pages/welcome/index';
+			    			}
+			    		});
+		    		});
 		    		if((data[0].name == "系统管理员") || (data[0].name == "运营管理员") || (data[0].name == "运维管理员")){
 		    			self.roleVO().roleFlag("ALL")
 		    		}else if(data[0].name == "VDC管理员"){
@@ -757,23 +775,24 @@
 		    		}else{
 		    			self.roleVO().roleFlag("COMMON");
 		    		}
-		    		csc.rest.post("api/v5.0.0/homepage/role",data[0].name,function(data){
-		    			self.loadAlarmStat();
-		    			self.loadNoticeStat();
-		    			self.loadUserInfo();
-		    			if(window.location.hash=="#pages/welcome/home"){
-		    				window.location.hash = '#pages/welcome/index';
-		    			}
-		    		});
 		   	    });
 		    }
 		    self.roleVO().roleFlag("ALL");
 		    this.loadRoles();
 		    this.selectRole = function(role){
-		    	csc.rest.post("api/v5.0.0/homepage/role",role,function(data){
-		    		self.loadAlarmStat();
-		    		self.loadNoticeStat();
-		    	}); 
+		    	//查看当前角色是否具有自助门户权限
+	    		csc.rest.get("api/v5.0.0/homepage/gateway/"+role, function(data){
+	    			self.roleVO().platForm(data);
+	    			var putBody = {
+	    				roleName: role,
+	    				platform: self.roleVO().platForm()
+	          		}
+	    			csc.rest.post("api/v5.0.0/homepage/role", putBody,function(data){
+			    		self.loadAlarmStat();
+			    		self.loadNoticeStat();
+			    	}); 
+	    		});
+		    	
 		    	self.roleVO().currentRole(role);
 		    	if(role == "系统管理员"){
 	    			self.roleVO().roleFlag("ALL")
@@ -825,7 +844,7 @@
 			var cscUser = function() {
 				this.account = ko.observable("");
 				this.name = ko.observable("").extend({required: true,userNameSpecial:true});
-				this.mobile = ko.observable("").extend({phoneUS:{params:true,message:"请输入11位数字或+86开头的13位数字。如13710510152或+8613710510152"}});
+				this.mobile = ko.observable("").extend({userPhone:true});
 				this.email = ko.observable("").extend({email:{params:true,message:"请填写正确格式的邮箱，格式如example@email.com"}});
 				this.status = ko.observable("");
 				this.roleName = ko.observable("");

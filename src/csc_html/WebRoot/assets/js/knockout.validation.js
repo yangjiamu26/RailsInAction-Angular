@@ -1087,6 +1087,17 @@ kv.rules['userNameSpecial'] = {
 	message: '昵称不能包括特殊字符'	
 };
 
+kv.rules['userPhone'] = {
+	validator: function (val, params) {
+		var portReg = /^((\+?86)|(\(\+86\)))?(13[0-9]|14[0-9]|15[0-9]|18[0-9])\d{8}$/;
+	    if(portReg.test(val)){
+        	return true;
+        }	
+        return false;
+	},
+	message: '请输入11位数字或+86开头的13位数字。如13710510152或+8613710510152'	
+};
+
 //now register all of these!
 (function () {
   kv.registerExtenders();

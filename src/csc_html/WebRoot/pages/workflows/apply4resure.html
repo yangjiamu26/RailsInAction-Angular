@@ -34,7 +34,7 @@
 		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED'">重施工|</a>  
+                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click:$root.reConstruct">重施工|</a>  
                             <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
                         </td>
                     </tr>
@@ -68,7 +68,7 @@
 		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED'">重施工|</a>  
+                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click:$root.reConstruct">重施工|</a>  
                             <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
                         </td>					
 					</tr>
@@ -88,17 +88,17 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach:sshList">
-						<tr>
-							<td data-bind="text:instanceName"></td>
-							<td data-bind="text:vdcName"></td>
+                    <tr>
+                        <td data-bind="text:instanceName"></td>
+                        <td data-bind="text:vdcName"></td>
                         <td>
                           <span class="label label-success" data-bind="if: itemState == 'CONSTRUCTION_SUCCESS'">施工成功</span>
-		                  <span class="label label-danger" data-bind="if: itemState == 'CONSTRUCTION_FAILED'">施工失败</span>
-		                  <span class="label label-info" data-bind="if: itemState == 'CONSTRUCTION_READY'">待施工</span>
-		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
+                          <span class="label label-danger" data-bind="if: itemState == 'CONSTRUCTION_FAILED'">施工失败</span>
+                          <span class="label label-info" data-bind="if: itemState == 'CONSTRUCTION_READY'">待施工</span>
+                          <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState != 'CONSTRUCTION_SUCCESS'">重施工|</a>  
+                            <a data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct">重施工|</a>  
                             <a data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
                         </td>
                     </tr>
@@ -195,6 +195,17 @@
 			  	}
 			  }
 			  
+			  //重施工
+			  self.reConstruct = function(orderItem){
+			      confirm("确定["+orderItem.instanceName+"]进入重施工?",function(arg){
+	      			  var orderUuid = orderItem.orderUuid;
+	      			  var uuid = orderItem.uuid;
+	      			  csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,orderItem){
+	      				 orderItem.itemState("CONSTRUCTION_DOING"); //更新订单状态
+	      				 alert("提交重施工成功！")
+	      			  },function(){},false,orderItem);
+			      });
+      		  }
 		 }
 				
 		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 

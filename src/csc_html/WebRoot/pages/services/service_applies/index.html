@@ -1155,12 +1155,16 @@
 			   this.lbMethod = ko.observable(e.loadBalanceWay);
 			   this.protocol = ko.observable(e.agreement);
 			   
-			   this.softwareList = ko.observableArray();
-			   
 			   this.volumeSize = ko.observable(e.size);//云硬盘大小
 			   this.vmUuid = ko.observable(e.mountVmUuid);//云主机uuid
 			   
 			   this.applySize = ko.observable(e.size);//存储大小
+			   
+			   //软件
+			   this.softwareParamsList = ko.observableArray();
+			   this.softwareUuid = ko.observable(e.softwareUuid);
+			   this.scriptUuid = ko.observable(e.scriptUuid);
+			   
 		   }
 		   function networkVO (e){
 			   this.networkId = ko.observable(e.vpcNetworkUuid);
@@ -1198,14 +1202,14 @@
 		    	   if("VM" == productKey){
 		    		   relateUuid=csc.util.getUuid();
 		    		   baseInfo.networkList.push(new networkVO(e));
-		    		   e.softwares.forEach(function (soft){
+		    		   /* e.softwares.forEach(function (soft){
 		    			   var software = new softwareVo(soft);
 		    		   	   soft.softwareParams.forEach(function (params){
 			    			   var softwareParam = new softwareParamsVO(params);
 			    			   software.softwareParamsList.push(softwareParam);
 			    		   })
 			    		   baseInfo.softwareList.push(software);
-		    		   });
+		    		   }); */
 		    	   }
 		    	   if(e.mountDisks!=null && e.mountDisks.length>0){
 		    		   item.relateUuid(relateUuid);
@@ -1213,6 +1217,8 @@
 			    		   var i =new itmesVO(m);
 				    	   i.resourceType("DISK");
 				    	   i.relateUuid(relateUuid);
+				    	   i.azUuid = ko.observable(e.azUuid);
+				    	   i.vdcUuid = ko.observable(e.vdcUuid);
 				    	   var md=new metaDataVO();
 				    	   var bi =new baseInfoVO(m);
 				    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
@@ -1229,6 +1235,34 @@
 				    	   self.ordersVO().orderItems.push(i);
 			    	   });
 		    	   }
+		    	   //软件
+		    	   if(e.softwares!=null && e.softwares.length>0){
+		    		   item.relateUuid(relateUuid);
+		    		   e.softwares.forEach(function(m){
+			    		   var i =new itmesVO(m);
+				    	   i.resourceType("SOFTWARE");
+				    	   i.relateUuid(relateUuid);
+				    	   var md=new metaDataVO();
+				    	   var bi =new baseInfoVO(m);
+				    	   m.softwareParams.forEach(function(p){
+				    		   var softwareParam = new softwareParamsVO(p);
+			    			   bi.softwareParamsList.push(softwareParam);
+				    	   });
+				    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
+				    		   delete baseInfo.softwareList;
+				    	   }
+				    	   if(bi.partitionList && bi.partitionList().length==0){
+				    		   delete bi.partitionList;
+				    	   }
+				    	   if(bi.networkList && bi.networkList().length==0){
+				    		   delete bi.networkList;
+				    	   }
+				    	   md.resBaseInfo(bi);
+				    	   i.metaData(ko.toJSON(md));
+				    	   self.ordersVO().orderItems.push(i);
+			    	   });
+		    	   }
+		    	   
 		    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
 		    		   delete baseInfo.softwareList;
 		    	   }
@@ -2194,7 +2228,7 @@
 	            this.password=ko.observable();
 	            this.repeatPassword=ko.observable().extend({equal: { params:this.password ,onlyIf : this.password, message :
 	            	(function(_this){  
-	    				return function(){debugger;
+	    				return function(){
 	    					if(_this.repeatPassword()!=null && _this.repeatPassword()!=""){
 	    						 return "密码不一致";
 	    					}else if(_this.password() !=null && _this.password() !=""){
@@ -2450,8 +2484,8 @@
 		    //选择云硬盘服务
 		    this.selectVdiskService = ko.observable(false);
 		    this.table_Vdisk_VM = null;
-		    this.selectVdiskService_VM = function(object){
-		    	self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK',perPage:6});
+		    this.selectVdiskService_VM = function(parent,object,event){
+		    	self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK?vdcUuid='+parent.vdcUuid()+"&azUuid="+parent.azUuid(),perPage:6});
 		    	self.selectVdiskService(true);
 		    	editObject = object;
 		    }
@@ -2501,7 +2535,7 @@
 		        }
 		    }
 		    this.getOsVersionForOsTypeChange = function(data){
-		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.azUuid()+"/"+data.osType(), function(result){
+		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.serviceUuid()+"/"+data.azUuid()+"/"+data.osType(), function(result){
 		        	data.osVersionList(result);
 		        });
 		    }
@@ -3986,7 +4020,7 @@
                         <td><span data-bind="text: ($index()+1)"></span></td>
                         <td><input type="text" class="form-control" data-bind="value:name"/></td>
                         <td><input type="text" class="form-control" data-bind="value:size"/></td>
-                        <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
+                        <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:function(data,event){ $root.selectVdiskService_VM($parent,data,event)}">选择</a></td>
                         <td><span data-bind="text: $parent.applyTimeText"></span></td>
                         <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select></td>
                         <td><span data-bind="text: price"></span></td>
@@ -4271,7 +4305,7 @@
 						                        <td><span data-bind="text: ($index()+1)"></span></td>
 						                        <td><input type="text" class="form-control" data-bind="value:name"/></td>
 						                        <td><input type="text" class="form-control" data-bind="value:size"/></td>
-						                        <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
+						                        <td><input type="text" data-bind="value:serviceName" disabled/> <a class="btn btn-xs btn-default" data-bind="click:function(data,event){ $root.selectVdiskService_VM($parent,data,event)}">选择</a></td>
 						                        <td><span data-bind="text: $parent.applyTimeText"></span></td>
 						                        <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billRuleUuid,optionsCaption:'请选择'"></select></td>
 						                        <td><span data-bind="text: price"></span></td>

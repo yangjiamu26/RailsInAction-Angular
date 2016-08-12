@@ -256,7 +256,8 @@
 	      	      var self = this;
 	      	      this.currentVO = ko.validatedObservable({
 	      	    	     vmApplyList : ko.observableArray([]),
-	      	             diskApplyList : ko.observableArray([])
+	      	             diskApplyList : ko.observableArray([]),
+	      	             softApplyList : ko.observableArray([])
 	      	      });
 	      	    
 	      	      function getServiceRelationInfo(callback,serviceUuid,vmInParamData,callbackCustParam){//获取服务关联的信息
@@ -338,55 +339,7 @@
 	      				vmInfo.expireText(expireText);
 	      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 	      				vmInfo.relateUuid(orderItem.relateUuid);
-	      				/**************加载云软件数据**************************/
-	      				var softwareList = vmInParamData.softwareList;
-	      				if(softwareList){
-	      				  vmInfo.softwareTempList = softwareList;
-	      				  csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,vmInfo) {
-	      					    var softwareTempList = vmInfo.softwareTempList;
-		      					for(var i=0;i<softwareTempList.length;i++){
-		      						var tempSoft = softwareTempList[i];
-		      						var software = new Software();
-		      						software.uuid(tempSoft.softwareUuid);
-		      						software.scriptUuid(tempSoft.scriptUuid);
-		      						for(var j=0;j<softList.results.length;j++){
-		      							var querySoftVO = softList.results[j];
-		      							if(software.uuid() == querySoftVO.uuid){
-		      								software.name(querySoftVO.name);
-		      								software.softType(querySoftVO.softType);
-		      								software.softTypeName(querySoftVO.softTypeName);
-		      								software.version(querySoftVO.version);
-		      							}
-		      						}
-		      						software.softwareParamsTemp = tempSoft.softwareParamsList;
-		      		                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
-		      		                	var attrArray = attrList.results;
-		      		                	var softwareParamsTemp = software.softwareParamsTemp;
-		      		                    for(var i=0;i<attrArray.length;i++){
-		      		                    	var attrVO = attrArray[i];
-			      		                  	var param = new SoftwareParam();
-			      		                    param.softwareUuid(software.softwareUuid);
-						      		        param.scriptUuid(software.scriptUuid);
-						      		        param.uuid(attrVO.uuid);
-						      		        param.code(attrVO.code);
-						      		        param.defaultValue(attrVO.value);
-						      		        param.name(attrVO.name);
-		      		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
-		      		                    		 var softwareParamsVO = softwareParamsTemp[j];
-		      		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
-		      		                    			param.value(softwareParamsVO.paramsValue);
-		      		                    			break;
-		      		                    		 }
-		      		                    	 }
-		      		               		    software.softwareParams.push(param);
-		      		                    } 
-		      		                	
-		      		                },function(){},software);
-		      		               vmInfo.softwareList.push(software);  
-		      					}
-	      				  },function(){},vmInfo);
-	      				}
-	      				/**************加载云软件数据**************************/
+	      				
 	      				self.currentVO().vmApplyList.push(vmInfo);
 	      			  }else if(orderItem.resourceType == "DISK"){
 	      				  diskOrderItems.push(orderItem);
@@ -416,12 +369,59 @@
 	      				  //var expireText = csc.util.getExpireText(diskInParamData.expireType,diskInParamData.expireValue);
 	      				 // diskInfo.expireText(expireText);
 	      				  self.currentVO().diskApplyList.push(diskInfo);
+	      			  }else if(orderItem.resourceType == "SOFTWARE"){
+		      			/**************加载云软件数据**************************/
+	      				var relateUuid=orderItem.relateUuid;
+	 	      		    var metaData = JSON.parse(orderItem.metaData);
+	 	      		    var softInParamData = JSON.parse(metaData.resBaseInfo);
+	 	      		    var software = new Software();
+	 	      		    software.relateUuid(relateUuid);
+	 	      		    software.uuid(softInParamData.softwareUuid);
+					    software.scriptUuid(softInParamData.scriptUuid);
+					    csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,software) {
+					    	for(var j=0;j<softList.results.length;j++){
+      							var querySoftVO = softList.results[j];
+      							if(software.uuid() == querySoftVO.uuid){
+      								software.name(querySoftVO.name);
+      								software.softType(querySoftVO.softType);
+      								software.softTypeName(querySoftVO.softTypeName);
+      								software.version(querySoftVO.version);
+      							}
+      						}
+					    },function(){},software);
+						software.softwareParamsTemp = softInParamData.softwareParamsList;
+					    csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
+  		                	var attrArray = attrList.results;
+  		                	var softwareParamsTemp = software.softwareParamsTemp;
+  		                    for(var i=0;i<attrArray.length;i++){
+  		                    	var attrVO = attrArray[i];
+      		                  	var param = new SoftwareParam();
+      		                    param.softwareUuid(software.softwareUuid);
+			      		        param.scriptUuid(software.scriptUuid);
+			      		        param.uuid(attrVO.uuid);
+			      		        param.code(attrVO.code);
+			      		        param.defaultValue(attrVO.value);
+			      		        param.name(attrVO.name);
+  		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
+  		                    		 var softwareParamsVO = softwareParamsTemp[j];
+  		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
+  		                    			param.value(softwareParamsVO.paramsValue);
+  		                    			break;
+  		                    		 }
+  		                    	 }
+  		               		    software.softwareParams.push(param);
+  		                    } 
+  		                	
+  		                },function(){},software);
+	 	      		    self.currentVO().softApplyList.push(software);
+	      				/*****************加载云软件数据**************************/
 	      			  }
 	      		  }
 	      		   
-	      		  /**********关联磁盘和云主机****************/
+	      		  /**********关联磁盘/soft和云主机****************/
 	      		  var vmList = self.currentVO().vmApplyList();
 	      		  var diskList = self.currentVO().diskApplyList();
+	      		  var softList = self.currentVO().softApplyList();
 	      		  for(var j=0;j<vmList.length;j++){
 	      			  var vmVO = vmList[j];
 	          		  for(var i=0;i<diskList.length;i++){
@@ -432,8 +432,17 @@
 	          				  break;
 	          			  }
 	          		  }
+	          		  
+	          		 for(var i=0;i<softList.length;i++){
+	          			  var softVo = softList[i];
+	          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == softVo.relateUuid()){
+	          				  vmVO.softwareList.push(softVo);
+	          				  break;
+	          			  }
+	          		  }
+	          		  
 	      		  }
-	      		  /**********关联磁盘和云主机****************/
+	      		  /**********关联磁盘/soft和云主机****************/
 	      		  
 	      		/***************云软件详情页面***********************/  
 	      	    self.showSoftwareAttr = ko.observable(false);
@@ -449,6 +458,7 @@
 	      		  
 	      		/******************实体对象定义**********************/  
 	      		function Software(){
+	          		this.relateUuid =ko.observable();
 	      		    this.uuid = ko.observable();
 			    	this.scriptUuid = ko.observable();
 			    	this.name = ko.observable();
