@@ -997,7 +997,11 @@
        			  getAzsByUser(serviceViewModel,false);
            		  var vdcUuid = data.servicePartition[0].vdcUuid;//初始化已选择的范围
            		  var azUuid = data.servicePartition[0].azUuid;//初始化可用分区
-           		  loadReleaseVdc(azUuid,false);//加载发布范围列表
+           		  //公网IP的另外方式获取
+           		  if(data.productId != "PUBLICIP"){
+           			loadReleaseVdc(azUuid,false);//加载发布范围列表
+           		  }
+           		  
            		  //发布范围赋值
            		  if(vdcUuid.indexOf(",") != -1){
            			  self.releaseRange(vdcUuid.split(","));
@@ -1082,10 +1086,30 @@
            		  }else if(data.productId == "PUBLICIP"){//公网IP
            			  //公网IP列表赋值
            			  self.ip_chosen(data.serviceIpRef);
+           			//公网IP的发布范围根据所选择的IP列表获取
+           			  var azStrs = getIpAzUuids(data.serviceIpRef);
+        	  		  if(azStrs == ""){
+        	  			  alert("请选择可用分区！");
+        	  			  return;
+        	  		  }
+        	  		  loadReleaseVdc(azStrs,false);
            		  }
        		  }
          });
 
+       	//获取公网IP列表的azuuid
+        function getIpAzUuids(obj){
+        	var azs = "";    	  
+        	if(obj.length > 0){
+     			for(var i = 0; i < obj.length; i++){
+     				azs += obj[i].azUuid + ","; 
+     			}
+     		}
+        	if(azs != ""){
+        		azs = azs.substring(0, azs.length - 1);
+        	}    	  
+        	return azs;
+        }
 	        
        	  
        	//###########    列表、全选     ###############

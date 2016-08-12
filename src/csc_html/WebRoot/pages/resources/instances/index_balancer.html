@@ -69,7 +69,7 @@
             <td data-bind="text: $row.vpcName">VPC1</td><!-- 所属VPC -->
             <td data-bind="text: $row.cidr">192.168.208.0/24</td><!-- 网络 -->
             <td data-bind="text: $row.protocol">TCP</td><!-- 协议 -->
-            <td data-bind="text: $row.lbMethod">ROUNB_ROBIN</td><!-- 负载方式 -->
+            <td data-bind="text: $row.lbMethod_">ROUNB_ROBIN</td><!-- 负载方式 -->
             <td>
             	<span class="label label-success" data-bind="if: $row.state == 'ACTIVE'">运行中</span>
 	            <span class="label label-danger" data-bind="if: $row.state == 'ERROR'">异常</span>
@@ -228,7 +228,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">负载均衡方式</label>
                 <div class="col-sm-8">
-                  <select class="form-control" data-bind="options:$root.lbMethodList, value: lbMethod">
+                  <select class="form-control" data-bind="options:$root.lbMethodList, optionsText: 'value', optionsValue: 'key', value: lbMethod">
                     <option>RoUND_ROBIN</option>
                   </select>
                 </div>
@@ -242,9 +242,6 @@
                 <label class="col-sm-3 control-label">备注</label>
                 <div class="col-sm-8">
                   <textarea class="form-control" data-bind="text: desc"></textarea>
-                </div>
-                <div class="col-sm-1">
-                  <span class="text-danger inline m-l-n m-t-sm">*</span>
                 </div>
               </div>
             </div>
@@ -301,7 +298,7 @@
           </div>
         </div>
         <div class='modal-footer'>
-          <button name="button" class="btn btn-primary " data-bind="click: createLoadBalancer">确定</button>
+          <button name="button" class="btn btn-primary " data-bind="attr: {disabled: $root.disableCreateLbBtn()}, click: createLoadBalancer">确定</button>
           <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
         </div>
       </div>
@@ -309,7 +306,7 @@
   </div>
 <!-- 创建负载均衡器页面 END -->
 
-<!-- 添加VIP页面 -->
+<!-- 添加和修改VIP页面 -->
   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal:{show:isShowAddVip}">
     <div class='modal-dialog' role='document'>
       <div class='modal-content'>
@@ -403,7 +400,7 @@
           </div>
         </div>
         <div class='modal-footer'>
-          <button name="button" class="btn btn-primary " data-bind="click: $root.updateVip">确定</button>
+          <button name="button" class="btn btn-primary " data-bind="attr: {disabled: $root.disableUpdateVipBtn()},click: $root.updateVip">确定</button>
           <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
         </div>
       </div>
@@ -439,7 +436,7 @@
 		<!-- 负载均衡器基本信息 -->
         <div class="wrapper" data-bind="with: $root.currentLbVo">
           <a class="btn btn-sm btn-default" data-bind="click: $root.showDetailFun"><i class="fa fa-arrow-left"></i> 返回</a>
-          <a class="btn btn-sm btn-info" data-bind="visible: csc.util.isNotNull(vipUuid), click:$root.showEditVip">编辑VIP</a>
+          <a class="btn btn-sm btn-info" data-bind="visible: csc.util.isNotNull(vipUuid)&&isValidate==true, click:$root.showEditVip">编辑VIP</a>
           <a class="btn btn-sm btn-info" data-bind="click: $root.showChangeValiTimeInDetail">有效时间变更</a>
           <span data-bind="if: isValidate == true">
           	<a class="btn btn-sm btn-info" data-bind="click: $root.terminateService">终止</a>
@@ -470,7 +467,7 @@
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">负载方式：</div>
-              <div class="col-xs-3" data-bind="text: lbMethod">SOURCE_IP</div>
+              <div class="col-xs-3" data-bind="text: lbMethod_">SOURCE_IP</div>
               <div class="col-xs-1 font-bold">状态：</div>
               <div class="col-xs-3"><span class="label label-success" data-bind="text: state">运行中</span></div>
               <div class="col-xs-1 font-bold">创建人：</div>
@@ -538,9 +535,13 @@
         <!-- 负载均衡器成员列表 -->  
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>成员列表</h5>
-          <p class="form-inline">
-            <a class="btn btn-sm btn-info" data-bind="click: showAddMember">添加成员</a>
-            <a class="text-info pull-right m-t-sm" data-bind="click: refreshMemberList">刷新</a>
+          <p class="clearfix">
+          	<span data-bind="if: $root.isLbValidate()">
+          		<a class="btn btn-sm btn-info" data-bind="click: showAddMember">添加成员</a>
+          	</span>
+          	<span>
+          		<a class="text-info pull-right m-t-sm" data-bind="click: refreshMemberList">刷新</a>
+          	</span>
           </p>
           <div class='table-responsive no-height'>
             <table class="table table-striped" data-bind="with: lbMemberTable">
@@ -569,7 +570,11 @@
                   <td data-bind="text: $row.protocolPort">8080</td>
                   <td data-bind="text: $row.weight">20</td>
                   <td data-bind="text: $row.lbName">负载均衡器1</td>
-                  <td><a data-bind="click: $root.showEditMember">修改</a> | <a data-bind="click: $root.deleteLbMember">删除</a></td>
+                  <td>
+	                  <span data-bind="if: $root.isLbValidate()">
+	                  	  <a data-bind="click: $root.showEditMember">修改</a> |
+	                  </span>
+                  	 <a data-bind="click: $root.deleteLbMember">删除</a></td>
                 </tr>
                 <!-- /ko -->
               </tbody>
@@ -581,9 +586,13 @@
 		<!-- 负载均衡器监控列表 -->  
         <div class="wrapper">
           <h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>监控列表</h5>
-          <p class="form-inline">
-            <a class="btn btn-sm btn-info" data-bind="click: showAddMonitor">添加监控</a>
-            <a class="text-info pull-right m-t-sm" data-bind="click: refreshMonitorList">刷新</a>
+          <p class="clearfix">
+          	<span data-bind="if: $root.isLbValidate()">
+          		<a class="btn btn-sm btn-info" data-bind="click: showAddMonitor">添加监控</a>
+          	</span>
+          	<span>
+          		<a class="text-info pull-right m-t-sm" data-bind="click: refreshMonitorList">刷新</a>
+          	</span>
           </p>
           <div class='table-responsive no-height'>
             <table class="table table-striped" data-bind="with: lbMonitorTable">
@@ -610,7 +619,12 @@
                   <td data-bind="text: $row.timeout">10</td><!-- 超时 -->
                   <td data-bind="text: $row.maxRetries">5</td><!-- 最大重试次数 -->
                   <td data-bind="text: $row.detail">GET/192.168.1.1:8090=>200</td><!-- 详情 -->
-                  <td><a data-bind="click: $root.showEditMonitor">修改</a> | <a data-bind="click: $root.delMonitor">删除</a></td>
+                  <td>
+                  		<span data-bind="if: $root.isLbValidate()">
+                  			<a data-bind="click: $root.showEditMonitor">修改</a> | 
+                  		</span>
+                  		<a data-bind="click: $root.delMonitor">删除</a>
+                  </td>
                 </tr>
                  <!-- /ko -->
               </tbody>
@@ -621,7 +635,7 @@
   </div> 
   <!-- 负载均衡器详情 END -->
 
-    <!-- 添加成员页面 -->
+    <!-- 添加和修改成员页面 -->
     <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowAddMember }">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
@@ -674,7 +688,7 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.updateMember"/>
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="attr: {disabled: $root.disableUpdateMemberBtn()}, click: $root.updateMember"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
@@ -682,7 +696,7 @@
     </div>
     <!-- 添加成员 END -->
 
-    <!-- 添加监控页面 -->
+    <!-- 添加和修改监控页面 -->
     <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowAddMonitor}">
       <div class='modal-dialog' role='document'>
         <div class='modal-content'>
@@ -761,13 +775,13 @@
           </div>
 
           <div class='modal-footer'>
-            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: $root.updateMonitor"/>
+            <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="attr: {disabled: $root.disableUpdateMonitorBtn()}, click: $root.updateMonitor"/>
             <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
           </div>
         </div>
       </div>
     </div>
-    <!-- 添加监控END -->
+    <!-- 添加或修改监听器END -->
 
   </div>
   <!-- 负载均衡器详情 end -->
@@ -968,6 +982,8 @@
                 path: 'api/v5.0.0/loadBalancers',
                 loader: function(result){
                     //result.account_ = "超级管理员"; 
+                    result.lbMethod_ = $.LOAD_BALANCER.lbMethodView[result.lbMethod];
+                    result.expiredDate = result.expiredDate && result.expiredDate.length >10?result.expiredDate.substring(0, 10):result.expiredDate;
                     return result;
                 }
         });
@@ -1017,8 +1033,11 @@
         this.protocolList = ko.observableArray();
         this.lbMethodList = ko.observableArray();
       	
+        this.disableCreateLbBtn = ko.observable(false);
+        
       	this.showCreatePageFun = function(){
-        	this.showCreatePage(true);
+        	self.showCreatePage(true);
+        	self.disableCreateLbBtn(false);
         	//置空所有选项
         	self.createBlVo.fromJSON({
         		name: 		"",
@@ -1106,7 +1125,10 @@
       	};
       	
       	this.createLoadBalancer = function(){
-      		//console.log(self.createBlVo.toJSON());
+      		if(self.disableCreateLbBtn()){
+      			return;
+      		}
+      		self.disableCreateLbBtn(true);
       		var p = self.createBlVo.toJSON();
       		
       		var expiryTime = "";
@@ -1175,11 +1197,13 @@
     		isValidate: ""
     	} */
       	this.isShowDetail = ko.observable(false);
+    	this.isLbValidate = ko.observable(true);//当前负载均衡器是否在有效期内
       	
       	this.showDetailFun = function(row,event){
     		self.isShowDetail(!self.isShowDetail());
     		if(self.isShowDetail()){
     			self.currentLbVo(row);
+    			self.isLbValidate(row.isValidate);
     			var p = {
     				"lbUuid": 	row.uuid
     			};
@@ -1262,9 +1286,12 @@
       	this.isVipEditFlag = ko.observable(false);
       	this.currentVipVo = ko.validatedObservable();
       	this.spTypeList = ko.observableArray();
+      	
+      	this.disableUpdateVipBtn = ko.observable(false);
       	this.showAddVip = function(row, event){
         	self.isShowAddVip(true);
 			self.isVipEditFlag(false);//添加页面
+			self.disableUpdateVipBtn(false);
 			//
 			self.spTypeList([]);
         	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
@@ -1304,6 +1331,7 @@
       	this.showEditVip = function(row, event){
         	self.isShowAddVip(true);
         	self.isVipEditFlag(true);//编辑页面
+        	self.disableUpdateVipBtn(false);
         	//
         	self.spTypeList([]);
         	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
@@ -1367,6 +1395,10 @@
       	}
       	
       	this.updateVip = function(){
+      		if(self.disableUpdateVipBtn()){
+      			return;
+      		}
+      		self.disableUpdateVipBtn(true);
       		if(self.isVipEditFlag()){
       			self.editVip();
       		}else{
@@ -1406,9 +1438,11 @@
       	this.currentMemberVo = ko.observable();
       	this.memberVmList = ko.observableArray();
       	
+      	this.disableUpdateMemberBtn = ko.observable(false);
         this.showAddMember = function(){
           	self.isShowAddMember(true);
           	self.isEditMemberFlag(false);
+          	self.disableUpdateMemberBtn(false);
           	
           	self.memberVmList([]);
           	var p = {
@@ -1442,6 +1476,10 @@
         }
         
         this.addMember = function(){
+        	if(self.disableUpdateMemberBtn()){
+      			return;
+      		}
+      		self.disableUpdateMemberBtn(true);
         	var p = {
         		"vpcUuid": self.currentMemberVo().vpcUuid,
         		"lbId": 	self.currentMemberVo().lbId,
@@ -1461,9 +1499,11 @@
         
         /********************  修改成员  ************************/
         var oldEditMember = {};
+        
         this.showEditMember = function(row, event){
         	self.isShowAddMember(true);
         	self.isEditMemberFlag(true);
+        	self.disableUpdateMemberBtn(false);
         	
         	self.memberVmList([]);
           	var vmList = $.LOAD_BALANCER.getMemberVms;
@@ -1500,6 +1540,10 @@
         		//没有修改，则只是隐藏页面
         		self.isShowAddMember(false);
         	}else{
+        		if(self.disableUpdateMemberBtn()){
+          			return;
+          		}
+          		self.disableUpdateMemberBtn(true);
         		$.LOAD_BALANCER.editLoadBalancerMember(uuid, p, function(data){
                		self.isShowAddMember(false);
                		self.lbMemberTable.refreshData();
@@ -1553,9 +1597,11 @@
         
         this.isTcpHide = ko.observable();//当协议类型为TCP时，需要隐藏的字段
         
+        this.disableUpdateMonitorBtn = ko.observable(false);
         this.showAddMonitor = function(){
         	self.isShowAddMonitor(true);
         	self.isEditMonitorFlag(false);
+        	self.disableUpdateMonitorBtn(false);
         	//初始化currentMonitorVo数据
         	var protocolType = self.currentLbVo().protocol;
         	if("TCP" == protocolType){
@@ -1578,6 +1624,10 @@
         }
         
         this.addMonitor = function(){
+        	if(self.disableUpdateMonitorBtn()){
+      			return;
+      		}
+      		self.disableUpdateMonitorBtn(true);
         	var p = self.currentMonitorVo();
         	$.LOAD_BALANCER.createLoadBalancerMonitor(p, function(data){
         		self.isShowAddMonitor(false);
@@ -1590,6 +1640,7 @@
         this.showEditMonitor = function(row){
         	self.isShowAddMonitor(true);
         	self.isEditMonitorFlag(true);
+        	self.disableUpdateMonitorBtn(false);
         	
         	oldMonitorVo.delay = row.delay;
         	oldMonitorVo.timeout = row.timeout;
@@ -1620,6 +1671,10 @@
         this.editMonitor = function(){
         	var p = self.currentMonitorVo();
         	if(isMonitorChange(oldMonitorVo, p)){
+        		if(self.disableUpdateMonitorBtn()){
+          			return;
+          		}
+          		self.disableUpdateMonitorBtn(true);
         		$.LOAD_BALANCER.editLoadBalancerMonitor(p.uuid, p, function(data){
             		self.isShowAddMonitor(false);
             		self.lbMonitorTable.refreshData();

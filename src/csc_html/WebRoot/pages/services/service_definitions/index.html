@@ -326,7 +326,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       		if(bool){
       			if(data.length > 0){   	      			
        	      		for(var i = 0;i < data.length;i++){
-              			viewModel.serviceVO().serviceVDC.osTypeList.push(data[i].value);
+              			viewModel.osTypeList.push(data[i].value);
                 	}
     	      	}
       		}      		
@@ -579,71 +579,178 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       this.productList = ko.observableArray();            
       <!--服务信息列表end-->
       
-       //服务信息
- 	   this.serviceVO = ko.validatedObservable({
- 		 uuid: ko.observable(),
- 		 name : ko.observable("").extend({required : true,cscNameRule:true}),
- 		 dirName : ko.observable("服务目录"),
- 		 dirUUID : ko.observable("0"),
- 		 productId : ko.observable(),
- 		 imageUrl : ko.observable(),
- 		 desc : ko.observable(),
- 		 validTimeType : ko.observable("1").extend({required : true}),
- 		 validTimeNum : ko.observable(),
- 		 rangeTime : ko.observable(),
- 		 charge : ko.observable(),
- 		 serviceVDC : {
- 			 isLimit : this.showItems,
- 			 osTypeList : ko.observableArray(),
- 			 maxCpu : ko.observable().extend({number : true}),
- 			 maxVmNum : ko.observable().extend({number : true}),
- 			 maxMemory : ko.observable().extend({number : true}),
- 			 maxDiskNum : ko.observable().extend({number : true}),
- 			 maxStorager : ko.observable().extend({number : true}),
- 			 maxIpNum : ko.observable().extend({number : true}),
- 			 maxVPC : ko.observable().extend({number : true}),
- 			 maxRouterNum : ko.observable().extend({number : true}),
- 			 maxObjStorageNum : ko.observable().extend({number : true}),
- 			 maxFireWallNum : ko.observable().extend({number : true}),
- 			 maxSSHNum : ko.observable().extend({number : true}),
- 			 maxLoadBalanceNum : ko.observable().extend({number : true})
- 		 },
- 		 chargeType : ko.observable(),
- 		 rules : ko.observable(),
- 		 serviceVm : {
- 			 virtualName: ko.observable("").extend({required : true}),
- 			 azUuid: ko.observable(),
- 			 osType: ko.observable(),
- 			 osVersion: ko.observable(),
- 			 cpu: ko.observable(),
- 			 memory: ko.observable()
- 		 },
- 		 servicePartitions : ko.observable(),
- 		 azUuids : ko.observable(),
- 		 serviceDisk : {
- 			diskType: ko.observable(),
- 			azUuid: ko.observable()
- 		 },
- 		serviceIp : {
- 			ipUuid: ko.observable()
- 		}
- 	   })
+//############################################################### 弹窗     ################################################
+     //服务信息
+	  this.serviceVO = ko.observable();
+      //服务信息主实体VO
+      function entityVO(){
+    	  this.uuid = ko.observable();
+    	  this.name = ko.observable("").extend({required : true,cscNameRule:true});
+    	  this.dirName = ko.observable("服务目录");
+    	  this.dirUUID = ko.observable("0");
+    	  this.productId = ko.observable();
+    	  this.imageUrl = ko.observable();
+    	  this.desc = ko.observable();
+    	  this.validTimeType = ko.observable("1").extend({required : true});
+    	  this.validTimeNum = ko.observable();
+    	  this.rangeTime = ko.observable();
+    	  this.charge = ko.observable();
+    	  this.serviceVDC = new vdcVO();
+    	  this.chargeType = ko.observable();
+  		  this.rules = ko.observable();
+  		  this.servicePartitions = ko.observable();
+		  this.azUuids = ko.observable();
+		  this.serviceVm = new vmVO();
+		  this.serviceDisk = new diskVO();
+		  this.serviceIp = new ipVO();
+      }
+      //VDC的VO
+      this.osTypeList = ko.observableArray();//vdc操作系统列表
+      function vdcVO(){
+    	  this.isLimit = ko.observable();
+    	  this.osType = ko.observable();
+    	  this.maxCpu = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxVmNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxMemory = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxDiskNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxStorager = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxIpNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxVPC = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxRouterNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxObjStorageNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxFireWallNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxSSHNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxLoadBalanceNum = ko.observable().extend({positiveIntegerRule : true});
+      }
+      //云主机VO
+      function vmVO(){
+    	  this.virtualName = ko.observable();
+		  this.azUuid = ko.observable();
+		  this.osType = ko.observable();
+		  this.osVersion = ko.observable();
+		  this.cpu = ko.observable();
+		  this.memory = ko.observable();
+      }
+      //云盘VO
+      function diskVO(){
+    	  this.diskType = ko.observable();
+		  this.azUuid = ko.observable();
+      }
+      //公网IPVO
+      function ipVO(){
+    	  this.ipUuid = ko.observable();
+      }
+
       
+      <!-- 云主机start -->
+      //虚拟化类型选择事件
+      this.changeVirtualValue = function(viewModel, event){      	  
+         if(viewModel.selected_product()=='VM'){
+			 if(event.bubbles){
+				  //当选择不同的虚拟化时得清空初始化数据，重新加载
+				  if(viewModel.azUuidList().length > 0){
+				  	viewModel.azUuidList.removeAll();
+			  	  }
+			  	  if(viewModel.osTypeCheckList().length > 0){
+					  viewModel.osTypeCheckList.removeAll();
+				  }
+			 	  if(viewModel.osType_chosen().length > 0){
+						  viewModel.osType_chosen.removeAll();
+				  }
+			 	 
+			 }
+			//初始化虚拟机操作系统类型数据        	 
+		 	 loadVmOsType(true);
+		 	 //初始化可用分区数据
+		 	 loadVmAzs(true);
+         }else if(viewModel.selected_product()=='VDC'){
+            
+         }else{
+      	   
+         }
+      } 
+      
+    //云主机可用分区和操作系统类型change事件
+      this.changeCheckBoxValue = function(data, event){
+         if(viewModel.selected_product()=='VM'){
+			 if(event.bubbles){
+			 	  if(viewModel.osType_chosen().length > 0){
+					  viewModel.osType_chosen.removeAll();
+				  }
+			 }
+         }
+      }
+      
+      //添加操作系统版本start
+     // this.packages = ko.observableArray();
+      this.osType_chosen = ko.observableArray();
+      this.osType_current = null;
+      
+      this.isAdd_osType = ko.observable(false);
+
+	  this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
+      //添加操作系统版本按钮
+      this.addOsType = function(package,event){
+        if(self.azUuidList().length <= 0){
+      	  alert("请选择可用分区！");
+      	  return;
+        }
+        if(self.osTypeCheckList().length <= 0){
+      	  alert("请选择操作系统类型！");
+      	  return;
+        }
+    	  self.osType_current = package;
+    	  self.osVersionList.params({
+    		  azUuid: getAzUuids(self.azUuidList()),
+    		  osTypes: getAzUuids(self.osTypeCheckList())
+    	  })
+   	  self.isAdd_osType(true);              
+      }
+      this.addOsVersionToList = function(){
+    	  this.osType_chosen(this.osVersionList.chosenItems());
+    	  self.isAdd_osType(false);
+      }
+      //获取操作系统版本
+      function getOsVersion(obj){
+      	var osVersion = "";
+      	for(var i = 0;i < obj.length;i++){
+      		osVersion += obj[i].imageUuid + ",";
+      	}
+      	if(osVersion != ""){
+      		osVersion = osVersion.substring(0,osVersion.length-1);
+      	}
+      	return osVersion;
+      }
+      //删除操作系统版本
+      this.deleteOsType = function(obj){
+      	self.osType_chosen.remove(obj);
+      }
+      //添加操作系统版本end
+      
+	  //虚拟化平台数据
+	  this.virtualPlatformList = ko.observableArray();
+      //云主机操作系统类型
+      this.vmOsTypeList = ko.observableArray();
+      //可用分区数据
+      this.azList = ko.observableArray();
+      //云主机CPU
+      this.cpuList = ko.observableArray();
+      //云主机内存
+      this.memoryList = ko.observableArray();
+      <!-- 云主机 end  -->
       
       <!-- 修改服务弹窗-->
       this.editService = function(object, event){
+    	  var vo = new entityVO();
+	  	  self.serviceVO = new ko.validatedObservable(vo);
+	  	  
+	  	  var startDate = "";
+	  	  var endDate = "";
+	  	  
     	  self.step(1);
-    	  self.isCreateService(true);
     	  
     	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+object.uuid, function(data){
     		  loadServiceTree();//加载服务目录树
-    		  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
-		        format:'YYYY-MM-DD',
-//		        startDate: moment().subtract( 29, 'days'),
-//		        endDate: Date.today().addDays(1),
-		        minDate: Date.today(),
-		        separator:'至'
-		      }); 
     		 
     		  /**初始化费用数据**/
     		  var isfee = data.charge;    		  
@@ -696,45 +803,27 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
    	   	  		 imageUrl : data.imageUrl,
    	   	  		 desc : data.desc,
    	   	  		 validTimeType : data.validTimeType+"",
-   	   	  		 charge : data.charge+"",
-   	   	  		 serviceVDC : {
-	  	  			 isLimit : ko.observable(),
-	  	  			 osTypeList : ko.observableArray(),
-		   	  		 maxCpu : ko.observable(),
-		 			 maxVmNum : ko.observable(),
-		 			 maxMemory : ko.observable(),
-		 			 maxDiskNum : ko.observable(),
-		 			 maxStorager : ko.observable(),
-		 			 maxIpNum : ko.observable(),
-		 			 maxVPC : ko.observable(),
-		 			 maxRouterNum : ko.observable(),
-		 			 maxObjStorageNum : ko.observable(),
-		 			 maxFireWallNum : ko.observable(),
-		 			 maxSSHNum : ko.observable(),
-		 			 maxLoadBalanceNum : ko.observable()
-  	  		    }
+   	   	  		 charge : data.charge+""
    	     	  });
-    		  
     		  
     		  if(data.validTimeType == 2){
     			  self.serviceVO().validTimeNum(data.validTimeNum);
     		  }else if(data.validTimeType == 3){
-    			  $('#addServer_daterange').data('daterangepicker').setStartDate(data.effectTime);
-    			  $('#addServer_daterange').data('daterangepicker').setEndDate(data.expireTime);
+    			  startDate = data.effectTime;
+    			  endDate = data.expireTime;
     		  }
-    		  
-    		  
     		  
     		  //不同产品初始化不同的数据
     		  if(data.productId == "VDC"){//VDC 产品
     			  loadVdcOsType(false);
     			  var limit = data.serviceVDC.isLimit;
     			  self.showItems(limit);
+    			  self.serviceVO().serviceVDC.isLimit(limit);
     			  var vdcOsType = data.serviceVDC.osType;
     			  if(vdcOsType.indexOf(",") != -1){
-    				  self.serviceVO().serviceVDC.osTypeList(vdcOsType.split(","));
+    				  self.osTypeList(vdcOsType.split(","));
         		  }else{
-        			  self.serviceVO().serviceVDC.osTypeList.push(vdcOsType);
+        			  self.osTypeList.push(vdcOsType);
         		  }
     			  if(limit == "yes"){
     				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
@@ -777,6 +866,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 	  loadVmMemory(false);//获取虚拟机内存
                 	  
                 	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
+                	  
+                	  //初始化虚拟机操作系统类型数据        	 
+         		 	  loadVmOsType(false);
+         		 	  //初始化可用分区数据
+         		 	  loadVmAzs(false);
+                	  
                 	  //CPU赋值
                 	  var vmCpu = data.serviceVm.cpu;
                 	  if(vmCpu.indexOf(",") != -1){
@@ -800,18 +895,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                		  }*/
                 	  //操作系统类型赋值
                 	  var vmOsType = data.serviceVm.osType;
-                	  /* if(vmOsType.indexOf(",") != -1){
+                	  if(vmOsType.indexOf(",") != -1){
             			  self.osTypeCheckList(vmOsType.split(","));
             		  }else{
             			  self.osTypeCheckList.push(vmOsType);
-            		  } */
+            		  }
                 	  //可用分区赋值
                 	  var vmAz = data.serviceVm.azUuid;
-                	  /*if(vmAz.indexOf(",") != -1){
+                	  if(vmAz.indexOf(",") != -1){
             			  self.azUuidList(vmAz.split(","));
             		  }else{
             			  self.azUuidList.push(vmAz);
-            		  } */
+            		  }
             		  //操作系统版本列表赋值
             		  self.osVersionList.params({
                   		  azUuid: vmAz,
@@ -841,53 +936,69 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         			  //公网IP列表赋值
         			  self.ip_chosen(data.serviceIpRef);
         		  }
-    		  }    		  
-    		          	  
+    		  }
+    		  
+    		  self.isCreateService(true);
+    		  $('#addServer_daterange').val(moment().subtract( 29, 'days').format('YYYY-MM-DD') + ' 至 ' + moment().format('YYYY-MM-DD')).daterangepicker({
+    		        format:'YYYY-MM-DD',
+//    		        startDate: moment().subtract( 29, 'days'),
+//    		        endDate: Date.today().addDays(1),
+    		        minDate: Date.today(),
+    		        separator:'至'
+    		  });
+    		  $("#selectServiceName").attr("disabled",true);//修改时产品不让修改
+    		  if(startDate != "" && endDate != ""){
+    			  $('#addServer_daterange').data('daterangepicker').setStartDate(startDate);
+    			  $('#addServer_daterange').data('daterangepicker').setEndDate(endDate);
+    		  }        	  
           });
       }
       
       <!-- 创建服务弹窗 -->
       //创建服务弹窗
       this.isCreateService = ko.observable(false);
-      this.createService = function(){    	      	   
-    	  this.isCreateService(true);
+      this.createService = function(){ 	  
+    	  var vo = new entityVO();
+	  	  this.serviceVO = new ko.validatedObservable(vo);
+	  	  this.isCreateService(true);
     	  //初始化数据start
           this.step(1);
-    	  this.serviceVO.fromJSON({
-    		 uuid : null,
-     		 name : "",
-   	  		 dirName : "服务目录",
-   	  		 dirUUID : "0",
-   	  		 productId : "VDC",
-   	  		 imageUrl : "",
-   	  		 desc : "",
-   	  		 validTimeType : "1",
-   	  		 charge : "1",
-   	  		 serviceVDC : {
-   	  			 isLimit : ko.observable(),
-   	  			 osTypeList : ko.observableArray(),
-	   	  		 maxCpu : ko.observable().extend({number : true}),
-	 			 maxVmNum : ko.observable().extend({digit : true}),
-	 			 maxMemory : ko.observable().extend({digit : true}),
-	 			 maxDiskNum : ko.observable().extend({digit : true}),
-	 			 maxStorager : ko.observable().extend({digit : true}),
-	 			 maxIpNum : ko.observable().extend({digit : true}),
-	 			 maxVPC : ko.observable().extend({digit : true}),
-	 			 maxRouterNum : ko.observable().extend({digit : true}),
-	 			 maxObjStorageNum : ko.observable().extend({digit : true}),
-	 			 maxFireWallNum : ko.observable().extend({digit : true}),
-	 			 maxSSHNum : ko.observable().extend({digit : true}),
-	 			 maxLoadBalanceNum : ko.observable().extend({digit : true})
-   	  		 }   	  		 
-     	  });
+    	  this.selected_product("VDC");
+
+    	  if(self.releaseRange().length > 0){
+			  self.releaseRange.removeAll();
+		  }
+    	  
     	  this.showItems("no");
-    	  /* this.showItems.subscribe(function(value){
-          	if(value=='yes'){
-        		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: true, onlyIf:function(){return true}},number : true})
-        	}else{
-        		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: false, onlyIf:function(){return true}}})
-        	}
-          }) */
+    	  this.showItems.subscribe(function(value){
+    	         if(value=='yes'){
+    	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxVmNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxMemory.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxDiskNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxStorager.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxIpNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxVPC.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxRouterNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxObjStorageNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       	  }else{
+    	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: false, onlyIf:function(){return true}}})
+    	       		self.serviceVO().serviceVDC.maxVmNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxMemory.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxDiskNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxStorager.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxIpNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxVPC.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxRouterNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxObjStorageNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       	  }
+    	  })
     	  this.isFee("1");
     	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
@@ -900,7 +1011,21 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        separator:'至'
 	      });
     	  
-      }  
+      }      
+      //获取公网IP列表的azuuid
+      function getIpAzUuids(obj){
+    	  var azs = "";    	  
+    	  if(obj.length > 0){
+ 			  for(var i = 0; i < obj.length; i++){
+ 				 azs += obj[i].azUuid + ","; 
+ 			  }
+ 		  }
+    	  if(azs != ""){
+    		  azs = azs.substring(0, azs.length - 1);
+    	  }    	  
+    	  return azs;
+      }
+      
       //上一步  下一步 start
       this.step = ko.observable(1);
          
@@ -911,104 +1036,128 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     			  //alert("服务名称是必填项！")
     			  return;
     		  }
-    		  var nameExp =new RegExp("[\\^`~!@#\\$%&\\*=\\+\\[\\]\\{\\}\\|;:\\', <>\\\\\\/?\"！￥【】：；“’？》《 ]+");
-	  	      if(nameExp.test(this.serviceVO().name())){
-	  	          return;
-	  	      }
     	  }
     	  //debugger
     	  if(this.step() == 2 && this.selected_product()!='VDC'){
-    		  //根据azUuid获取发布范围接口数据调用
-    		  var azStrs = getAzUuids(this.azUuidList());
-    		  if(azStrs == ""){
-    			  alert("请选择可用分区！");
-    			  return;
+    		  if(this.selected_product()=='PUBLICIP'){
+    			  if(this.ip_chosen().length <= 0){
+                   	  alert("请至少选择一个公网IP！");
+                   	  return;
+                  }
+       			  //公网IP的发布范围根据所选择的IP列表获取
+       			  var azStrs = getIpAzUuids(this.ip_chosen());
+    	  		  if(azStrs == ""){
+    	  			  alert("请选择可用分区！");
+    	  			  return;
+    	  		  }
+    	  		  loadReleaseVdc(azStrs,true);
+    		  }else{
+    			  //根据azUuid获取发布范围接口数据调用
+        		  var azStrs = getAzUuids(this.azUuidList());
+        		  if(azStrs == ""){
+        			  alert("请选择可用分区！");
+        			  return;
+        		  }
+        		  loadReleaseVdc(azStrs,true);
+        		  
+        		  if(this.selected_product() == 'VM'){
+        			  if(this.osType_chosen().length <= 0){
+                    	  alert("请至少选择一个操作系统版本！");
+                    	  return;
+                      }
+        			  if(this.cpuCheckList().length <= 0){
+                    	  alert("请至少勾选一个CPU(核)！");
+                    	  return;
+                      }
+        			  if(this.memoryCheckList().length <= 0){
+                    	  alert("请至少勾选一个内存！");
+                    	  return;
+                      }
+        		  }
     		  }
-    		  loadReleaseVdc(azStrs,true);
-    		  
-    		  if(this.selected_product() == 'VM'){
-    			  if(this.osType_chosen().length <= 0){
-                	  alert("请至少选择一个操作系统版本！");
-                	  return;
-                  }
-    			  if(this.cpuCheckList().length <= 0){
-                	  alert("请至少勾选一个CPU(核)！");
-                	  return;
-                  }
-    			  if(this.memoryCheckList().length <= 0){
-                	  alert("请至少勾选一个内存！");
-                	  return;
-                  }
-    		  }
+   			  
     	  }else if(this.step() == 2 && this.selected_product()=='VDC'){
     		  var isLimit = this.showItems();
     		  if(isLimit == "yes"){
     			  ko.validation.group(this.serviceVO).showAllMessages();
-          		  if(this.serviceVO.isValid()){
-          			  
-          		  }
+    			  var isMandatory = true;
     			  var obj = this.serviceVO().serviceVDC;
-    			  var reg = /^[1-9]\d*$/;//正整数校验
-    	    	  var maxCpu = obj.maxCpu(); 
-    	    	  if(typeof(maxCpu) == "undefined" || maxCpu == "" || !reg.test(maxCpu)){
-    	    		  alert("【最大CPU(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  var maxCpu = obj.maxCpu();
+    	    	  if(typeof(maxCpu) == "undefined" || maxCpu == ""){
+//    	    		  alert("【最大CPU(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxVmNum = obj.maxVmNum(); 
-    	    	  if(typeof(maxVmNum) == "undefined" || maxVmNum == "" || !reg.test(maxVmNum)){
-    	    		  alert("【最大云主机数(台)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxVmNum) == "undefined" || maxVmNum == ""){
+//    	    		  alert("【最大云主机数(台)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxMemory = obj.maxMemory(); 
-    	    	  if(typeof(maxMemory) == "undefined" || maxMemory == "" || !reg.test(maxMemory)){
-    	    		  alert("【最大内存(GB)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxMemory) == "undefined" || maxMemory == ""){
+//    	    		  alert("【最大内存(GB)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxDiskNum = obj.maxDiskNum(); 
-    	    	  if(typeof(maxDiskNum) == "undefined" || maxDiskNum == "" || !reg.test(maxDiskNum)){
-    	    		  alert("【最大云硬盘数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxDiskNum) == "undefined" || maxDiskNum == ""){
+//    	    		  alert("【最大云硬盘数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxStorager = obj.maxStorager(); 
-    	    	  if(typeof(maxStorager) == "undefined" || maxStorager == "" || !reg.test(maxStorager)){
-    	    		  alert("【最大存储(GB)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxStorager) == "undefined" || maxStorager == ""){
+//    	    		  alert("【最大存储(GB)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxIpNum = obj.maxIpNum(); 
-    	    	  if(typeof(maxIpNum) == "undefined" || maxIpNum == "" || !reg.test(maxIpNum)){
-    	    		  alert("【最大公网IP数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxIpNum) == "undefined" || maxIpNum == ""){
+//    	    		  alert("【最大公网IP数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxVPC = obj.maxVPC(); 
-    	    	  if(typeof(maxVPC) == "undefined" || maxVPC == "" || !reg.test(maxVPC)){
-    	    		  alert("【最大VPC(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxVPC) == "undefined" || maxVPC == ""){
+//    	    		  alert("【最大VPC(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxRouterNum = obj.maxRouterNum(); 
-    	    	  if(typeof(maxRouterNum) == "undefined" || maxRouterNum == "" || !reg.test(maxRouterNum)){
-    	    		  alert("【最大路由器数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxRouterNum) == "undefined" || maxRouterNum == ""){
+//    	    		  alert("【最大路由器数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxObjStorageNum = obj.maxObjStorageNum(); 
-    	    	  if(typeof(maxObjStorageNum) == "undefined" || maxObjStorageNum == "" || !reg.test(maxObjStorageNum)){
-    	    		  alert("【最大对象存储(GB)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxObjStorageNum) == "undefined" || maxObjStorageNum == ""){
+//    	    		  alert("【最大对象存储(GB)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxFireWallNum = obj.maxFireWallNum(); 
-    	    	  if(typeof(maxFireWallNum) == "undefined" || maxFireWallNum == "" || !reg.test(maxFireWallNum)){
-    	    		  alert("【最大防火墙数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxFireWallNum) == "undefined" || maxFireWallNum == ""){
+//    	    		  alert("【最大防火墙数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxSSHNum = obj.maxSSHNum(); 
-    	    	  if(typeof(maxSSHNum) == "undefined" || maxSSHNum == "" || !reg.test(maxSSHNum)){
-    	    		  alert("【最大SSH密钥数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxSSHNum) == "undefined" || maxSSHNum == ""){
+//    	    		  alert("【最大SSH密钥数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
     	    	  var maxLoadBalanceNum = obj.maxLoadBalanceNum(); 
-    	    	  if(typeof(maxLoadBalanceNum) == "undefined" || maxLoadBalanceNum == "" || !reg.test(maxLoadBalanceNum)){
-    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
-    	    		  return;
+    	    	  if(typeof(maxLoadBalanceNum) == "undefined" || maxLoadBalanceNum == ""){
+//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
     	    	  }
+    	    	  if(!isMandatory){
+          			  alert("请输入限制的配额的值！");
+          			  return;
+          		  }
     		  }
     	  }
     	  this.step(this.step()+1);
@@ -1032,6 +1181,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.selected_product = ko.observable();
         this.selected_product(product);
         this.showItems = ko.observable('no');
+        
+        
      	//选择产品时的change事件
         this.changeValue = function(viewModel, event){
         	//选择VDC
@@ -1172,6 +1323,19 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	   	
   	   	this.buttonEnable = ko.observable(true);
   	   	
+  	   	//根据vdc操作系统列表转成对应的String，以","分隔
+  	   	function getVdcOsType(obj){
+  	   		var vdcOsTypes = "";
+  	   		for(var i = 0;i < obj.length; i++){
+	  	   		if (vdcOsTypes == "") {
+	  	   			vdcOsTypes = obj[i];
+	            }else {
+	            	vdcOsTypes = vdcOsTypes + "," + obj[i];
+	            }
+  	   		}
+  	   		return vdcOsTypes;
+  	   	}
+  	   	
         //保存方法
   	    this.saveService = function(){
   	      this.buttonEnable(false);
@@ -1185,6 +1349,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   			  this.serviceVO().serviceDisk = null;
   			  this.serviceVO().serviceIP = null;
   			  this.serviceVO().serviceVDC.isLimit(this.showItems());
+  			  this.serviceVO().serviceVDC.osType(getVdcOsType(this.osTypeList()));
   			  var limit = this.showItems();
   			  if(limit == "yes"){
 				  self.serviceVO().serviceVDC.maxCpu.extend({required : true});
@@ -1277,12 +1442,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    	  this.serviceVO().charge(this.isFee());//是否计费
     		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
     		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
-
+    		  this.serviceVO().productId(this.selected_product());
+    		  
     		  if(this.selected_product()=='VDC'){//VDC保存时的数据
     			  this.serviceVO().serviceVm = null;
     			  this.serviceVO().serviceDisk = null;
     			  this.serviceVO().serviceIP = null;
-//    			  this.serviceVO().serviceVDC.isLimit(this.showItems());
+    			  this.serviceVO().serviceVDC.osType(getVdcOsType(this.osTypeList()));
+    			  this.serviceVO().serviceVDC.isLimit(this.showItems());
     	      }else {
     	    	  //当修改时根据选择的可用分区联动过滤已选择的发布范围
     	    	  var range = "";
@@ -1364,92 +1531,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.productList = ko.observableArray();
         //操作系统类型
         this.osList = ko.observableArray();
-        
-        <!-- 云主机start -->
-        //虚拟化类型选择事件
-        this.changeVirtualValue = function(viewModel, event){      	  
-           if(viewModel.selected_product()=='VM'){
-
-        	  //当选择不同的虚拟化时得清空初始化数据，重新加载
-   			  if(viewModel.azUuidList().length > 0){
-    			 viewModel.azUuidList.removeAll();
-    		  }
-       	   	  if(viewModel.osTypeCheckList().length > 0){
-      			  viewModel.osTypeCheckList.removeAll();
-      		  }
-       	   	  
-	       	  if(viewModel.osType_chosen().length > 0){
-	   			  viewModel.osType_chosen.removeAll();
-	   		  }
-       	   	 
-        	 //初始化虚拟机操作系统类型数据        	 
-   	      	 loadVmOsType(true);
-        	 //初始化可用分区数据
-   	      	 loadVmAzs(true);
-           }else if(viewModel.selected_product()=='VDC'){
-              
-           }else{
-        	   
-           }
-         }
-        
-        //添加操作系统版本start
-       // this.packages = ko.observableArray();
-        this.osType_chosen = ko.observableArray();
-        this.osType_current = null;
-        
-        this.isAdd_osType = ko.observable(false);
-
-		this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
-        //添加操作系统版本按钮
-        this.addOsType = function(package,event){
-          if(self.azUuidList().length <= 0){
-        	  alert("请选择可用分区！");
-        	  return;
-          }
-          if(self.osTypeCheckList().length <= 0){
-        	  alert("请选择操作系统类型！");
-        	  return;
-          }
-      	  self.osType_current = package;
-      	  self.osVersionList.params({
-      		  azUuid: getAzUuids(self.azUuidList()),
-      		  osTypes: getAzUuids(self.osTypeCheckList())
-      	  })
-     	  self.isAdd_osType(true);              
-        }
-        this.addOsVersionToList = function(){
-      	  this.osType_chosen(this.osVersionList.chosenItems());
-      	  self.isAdd_osType(false);
-        }
-        //获取操作系统版本
-        function getOsVersion(obj){
-        	var osVersion = "";
-        	for(var i = 0;i < obj.length;i++){
-        		osVersion += obj[i].imageUuid + ",";
-        	}
-        	if(osVersion != ""){
-        		osVersion = osVersion.substring(0,osVersion.length-1);
-        	}
-        	return osVersion;
-        }
-        //删除操作系统版本
-        this.deleteOsType = function(obj){
-        	self.osType_chosen.remove(obj);
-        }
-        //添加操作系统版本end
-        
-		//虚拟化平台数据
-		this.virtualPlatformList = ko.observableArray();
-        //云主机操作系统类型
-        this.vmOsTypeList = ko.observableArray();
-        //可用分区数据
-        this.azList = ko.observableArray();
-        //云主机CPU
-        this.cpuList = ko.observableArray();
-        //云主机内存
-        this.memoryList = ko.observableArray();
-        <!-- 云主机 end  -->
         
         <!-- 云盘start  -->
         this.diskTypeList = ko.observableArray();
@@ -1560,10 +1641,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	    /** VDC操作系统类型全选按钮 ***/
 	    this.isSelectedVdcOsAll = ko.pureComputed({
 	        read: function () {
-	            return this.osList().length >0 && this.osList().length === this.serviceVO().serviceVDC.osTypeList().length;
+	            return this.osList().length >0 && this.osList().length === this.osTypeList().length;
 	        },
 	        write: function (value) {
-	        	this.serviceVO().serviceVDC.osTypeList(value ? _.pluck(this.osList(), 'value') : []);
+	        	this.osTypeList(value ? _.pluck(this.osList(), 'value') : []);
 	        },
 	        owner: this
 	      });
@@ -1640,7 +1721,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-3 control-label">产品：</label>
                 <div class="col-xs-7">
-                  <select class="form-control" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
+                  <select class="form-control" id="selectServiceName" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
                   </select>
                 </div>
                 <div class="col-xs-1">
@@ -1717,7 +1798,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     <!-- ko foreach : azList -->
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList" checked="checked"><span data-bind="text:name"></span>
+                        <input type="checkbox" data-bind="value: uuid,checked: $root.azUuidList,event:{'change':$root.changeCheckBoxValue}" checked="checked"><span data-bind="text:name"></span>
                       </label>
                     </div>
                     <!-- /ko -->                    
@@ -1738,7 +1819,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <!-- ko foreach : vmOsTypeList -->
                   <div class="checkbox">
                     <label>
-                       <input type="checkbox" data-bind="value: value,checked: $root.osTypeCheckList"><span data-bind="text:value"></span>
+                       <input type="checkbox" data-bind="value: value,checked: $root.osTypeCheckList,event:{'change':$root.changeCheckBoxValue}"><span data-bind="text:value"></span>
                     </label>
                   </div>
                   <!-- /ko -->                 
@@ -1905,7 +1986,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <!-- ko foreach: osList -->
                   <div class="checkbox" data-bind="">
                     <label>
-                      <input type="checkbox" data-bind="value: value,checked: $root.serviceVO().serviceVDC.osTypeList"> <span data-bind="text:value"></span>
+                      <input type="checkbox" data-bind="value: value,checked: $root.osTypeList"> <span data-bind="text:value"></span>
                     </label>
                   </div>
                   <!-- /ko -->

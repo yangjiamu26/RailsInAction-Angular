@@ -96,7 +96,7 @@
 				<h3 class='modal-title' data-bind="ifnot: currentVO().id">创建资源属性</h3>
 				<h3 class='modal-title' data-bind="if: currentVO().id">修改资源属性</h3>
 			</div>
-			<div class='modal-body form-horizontal' data-bind="with:currentVO">
+			<div class='modal-body form-horizontal' data-bind="with: currentVO">
 				<div class="form-group">
 					<label class="col-xs-3 control-label" for="">资源属性名称</label>
 					<div class="col-xs-8">
@@ -128,7 +128,7 @@
 					<label class="col-xs-3 control-label" for="">字段长度</label>
 					<div class="col-xs-8">
 						<input type="text" class="form-control" placeholder=""
-							data-bind="value:length">
+							data-bind="value: length">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -153,34 +153,48 @@
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		function ViewModel(){
 			this.isEdit = ko.observable(false);
-			this.currentVO = ko.observable({});
 			var self = this;
-			self.oldVO = ko.observable({});
+			this.oldVO = ko.observable({});
+		    this.currentVO = ko.observable({});
 			
 			this.add = function(){
-				this.currentVO({
-					id: null,
-					devName:'',
-					type:'',
-					length:''
-				});
+				 self.currentVO = ko.validatedObservable({
+					   devName: ko.observable().extend({required: true,
+							 validation: {
+					                validator: function (val, someOtherVal) {
+					                	return csc.util.invalidValueParam(val);
+					                },
+					                message: '名称不能包含特殊字符！'
+					            }
+						}),
+						type:'',
+						length: ko.observable().extend({required: true,
+							min: { params: 1, message: "请输入大于1的整数" }
+						})
+				  });
 				self.isEdit(true);
-
 			};
 
 			//创建资源属性
-			self.createDev = function(currentVO) {
-				params = {
-					devName : currentVO.devName,
-					type : currentVO.type,
-					length:currentVO.length,
-					disPlay: true
-				};
+			self.createDev = function() {
+				var params = {};
+				params.devName = self.currentVO().devName(),
+				params.type = self.currentVO().type,
+				params.length = self.currentVO().length(),
+				params.disPlay = true
+				if(params.devName==null&&params.length==null){
+					alert("资源属性名称和资源属性长度不能为空！");
+				}else if(params.devName==null){
+					alert("资源属性名称不能为空！");
+				}else if(params.length==null){
+					alert("资源属性长度不能为空！");
+				}else{
 				$.DEV.createDev(params, function(data) {
 					self.isEdit(false);
 					alert("创建资源属性成功！");
 					self.table.refreshData();
 				});
+				}
 			}
 			
 			this.edit = function(object, event){
@@ -190,7 +204,7 @@
 
 			//判断资源是否已修改
 			self.isChanged = function(o1, o2){
-				if(o1.devName == o2.devName.trim() && o1.type == o2.type.trim()&&o1.type==o2.length){
+				if(o1.devName == o2.devName.trim() && o1.type == o2.type.trim()&&o1.length==o2.length){
 					return false;
 				}else{
 					return true;

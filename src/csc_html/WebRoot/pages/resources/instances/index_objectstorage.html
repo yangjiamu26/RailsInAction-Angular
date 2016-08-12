@@ -50,7 +50,7 @@
       <tbody>
         <tr data-bind="visible: showNoData">
           <td colspan=11 class="aligncenter">
-            This table has no data.
+            	暂无数据
           </td>
         </tr>
         <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -58,9 +58,9 @@
           <td><a  href="#" data-bind="text:name,click:$root.showFileTable">cdisk</a></td>
           <td data-bind="text:azName">AX1</td>
           <td data-bind="text:vdcName">VDC1</td>
-          <td data-bind="text:applySize">50</td>
-          <td data-bind="text:havedSize">25</td>
-          <td data-bind="text:availableSize">25</td>
+          <td data-bind="text:applySize2">50</td>
+          <td data-bind="text:havedSize2">25</td>
+          <td data-bind="text:availableSize2">25</td>
           <td>
           	<span class="label label-success" data-bind="if:isValidate">正常</span>
             	<span class="label label-danger" data-bind="ifnot:isValidate">已过期</span>
@@ -68,10 +68,22 @@
           <td data-bind="text:expiryDate">2016-06-29 11:55</td>
           <td data-bind="text:createTime">2016-06-29 13:56</td>
           <td data-bind="text:userName">admin</td>
-          <td><a data-bind="click: $root.upload">上传文件</a> 
+          <td><!-- <a data-bind="click: $root.upload">上传文件</a> 
           		| <a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a>  
            	| <a href="#" data-bind="click: $root.validate">终止</a>   
-           	| <a data-bind="click: $root.removeOne">删除</a></td>
+           	| <a data-bind="click: $root.removeOne">删除</a> -->
+           	
+           	<a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> | 
+            	<div class="btn-group">
+                    <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
+                    <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
+                        <li data-bind="if: $row.isValidate == true"><a data-bind="click: $root.upload">上传文件</a></li>
+                      	<li data-bind="if: $row.isValidate == true"><a href="#" data-bind="click: $root.validate">终止</a></li>
+                      	<li data-bind="if: $row.isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
+                    </ul>
+                </div> 
+           	
+          </td>
         </tr>
         <!-- /ko -->
       </tbody>
@@ -112,7 +124,7 @@
   <div class="row wrapper">
     <div class="col-xs-7 m-b-xs">
       <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-      <button class="btn btn-sm btn-info" data-bind="click: showUploadDialog">上传</button>
+      <button class="btn btn-sm btn-info" data-bind="click: uploadInFileView,visible:containerVO().containerIsValidate">上传</button>
     </div>
     <div class="col-xs-3">
       <div class="input-group">
@@ -140,7 +152,7 @@
           <tbody>
             <tr data-bind="visible: showNoData">
               <td colspan=4 class="aligncenter">
-                This table has no data.
+                	暂无数据
               </td>
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -296,7 +308,7 @@
       </div>
       
 <!-- 上传文件 -->
-<div role="dialog" aria-hidden="true" id="fileUploadDialog" class="modal fade" data-bind="modal: { show: isUpload }">
+<div role="dialog" aria-hidden="true" id="fileUploadDialog" class="modal fade" data-bind="modal: { show: showUploadDialog }">
         <div class='modal-dialog modal-md'>
           <div class='modal-content'>
             <div class='modal-header'>
@@ -307,7 +319,7 @@
                 <label class="col-sm-3 control-label">文件：</label>
                 <div class="col-sm-8">
                   <input type="hidden" data-bind="value:currentUploadContainerUuid">
-                  <input type="text" value="" name="file2" class="form-control inline w" data-bind="value: uploadFileName" ><div id="picker" class="btn"></div>
+                  <input type="text" value="" name="file2" class="form-control inline w" data-bind="value: uploadFileName,attr:{disabled:hideButton}" ><div id="picker" class="btn" data-bind="attr:{disabled:hideButton}"></div>
                 </div>
               </div>
               <div class="form-group" data-bind="visible:uploading()">
@@ -325,8 +337,9 @@
               </div>
             </div>
             <div class='modal-footer' style="text-align:center;">
-              <a class="btn btn-default btn-info" data-bind="click:uploadFile">确定</a>
-              <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+              <a class="btn btn-default btn-info" data-bind="click:uploadFile,attr:{disabled:hideButton}">确定</a>
+              <!-- <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a> -->
+              <a class="btn btn-default btn btn-default" data-bind="click:cancelUpload">取消</a>
             </div>
           </div>
         </div>
@@ -340,7 +353,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+		    <!-- <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -360,7 +373,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -390,7 +403,7 @@
               </div>
               <div class='modal-body form-horizontal row'>
 		<div class='wrapper-md'>
-		    <div class="panel panel-info">
+		    <!-- <div class="panel panel-info">
 		        <div class="panel-heading">基本信息</div>
 		        <div class="panel-body">
 		            <div class="row">
@@ -410,7 +423,7 @@
 		                </div>
 		            </div>
 		        </div>
-		    </div>
+		    </div> -->
 
 		    <div class="panel panel-info">
 		        <div class="panel-heading">申请信息</div>
@@ -453,7 +466,7 @@
       var self = this;
       this.isCreateDisk = ko.observable(false);
       //初始化vo
-      this.currentVO = ko.validatedObservable();
+      this.currentVO = ko.validatedObservable({});
       
       this.createDisk = function(){
     	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
@@ -617,31 +630,52 @@
       
       
       //上传文件
-      this.isUpload = ko.observable(false);
+      this.showUploadDialog = ko.observable(false);
       this.currentUploadContainerUuid = ko.observable("");
+      this.currentUploadContainer = ko.observable({});//记录当前要上传的容器对象，用于显示fileTable页的信息和检查上传空间是否足够
       this.uploadFileName =  ko.observable("");
       
+      //记录当前选中文件的信息，包括名称大小
+      this.currentFile = ko.observable({});
+      
       //进度
-      this.uploading = ko.observable(false);
-      this.progressText = ko.observable("");
-      //this.currentPercentage =  ko.observable("");
+      this.uploading = ko.observable(false);//是否显示进度条
+      this.progressText = ko.observable("");//进度值
+      
+      this.hideButton = ko.observable(false);//置灰浏览文件按钮和确定按钮
+      this.uploadParams = ko.observable({});//用于停止上传的时候传参到servlet
       
       this.isFileView = false;//是否是在文件页面点击上传，如果是上传成功要刷新，默认不是
+      //点击容器列表的上传按钮
       this.upload = function(object, event){
     	  //设置当前的容器uuid
     	  self.currentUploadContainerUuid(object.uuid);
-    	  self.isUpload(true);
+    	  //设置当前的容器
+    	  self.currentUploadContainer(object);
+    	  //清空文件框和进度条
+    	  self.clearProgressAndFileInput();
+    	  self.showUploadDialog(true);//显示上传dialog
     	  self.isFileView = false;//不是在file页面上传
       }
-      
-      this.showUploadDialog = function(){
+      //点击文件列表上方的上传按钮
+      this.uploadInFileView = function(){
     	  //设置当前的容器uuid
     	  self.currentUploadContainerUuid( self.containerVO().uuid);
-    	  self.isUpload(true);
+    	  //清空文件框和进度条
+    	  self.clearProgressAndFileInput();
+    	  self.showUploadDialog(true);//显示上传dialog
     	  self.isFileView = true;//在file页面上传，上传成功要刷新fileTable
+    	
+      }
+      this.clearProgressAndFileInput = function(){
+    	  self.uploadFileName('');
+    	  self.progressText("0%");
+    	  self.uploading(false);
+    	  self.hideButton(false);
+	      $('#picker label').show();
       }
       
-      this.uploader = null;
+      this.uploader = null;//上传控件WebUploader
       
       /** 构建文件上传器 **/
      this.initUploader = function () {
@@ -650,10 +684,12 @@
 				threads : 1,
 				fileNumLimit : 1,
 				chunked : true,
-				chunkSize : 1024*1024,
-				resize : false
+				chunkSize : 2*1024*1024,//每个分片2m
+				resize : false,
+				duplicate : null
 			});
     		self.uploader.on('beforeFileQueued', function(file) {
+    			//console.log('beforeFileQueued');
 				//重置上传队列
 				self.uploader.reset();
 			});
@@ -667,27 +703,45 @@
     			//console.log('fileQueued');
     			//console.log(file);
 				self.uploadFileName(file.name);
+				self.currentFile(file);
 			});
     	}
      
       //model显示的时候初始化webupload
       $("#fileUploadDialog").on("shown.bs.modal",function(){
     	  self.initUploader();
+    	  self.uploader.reset();//清空上次选中的文件
       });
-      var p;
-      this.run = function run(){
-			
-	   }
+      
       this.uploadFile = function() {
+    	  if(self.hideButton()) return ;//按钮置灰后不能做上传动作
+    	  //console.log(self.currentFile());
+
+    	  //return;
+    	  //暂时在页面检查上传空间是否足够，也可以在此处调用后台接口，获取最新的对象存储的可用大小
+    	  var availableSize = self.currentUploadContainer().availableSize;
+    	  //如果上传文件比可用空间大，空间不足
+    	  if(availableSize < self.currentFile().size){
+    		  alert('对象存储的空间不足');
+    		  return;
+    	  }
+    	  
     	  //显示进度条
     	  self.uploading(true);
  
-    	  
+    	  var intervalId = null;
     	  var myUuid = self.currentUploadContainerUuid();
-    		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + myUuid;
+    	  var actionKey = WebUploader.guid('csc_upload_');
+    	  self.uploadParams({actionKey:actionKey,dataKey:myUuid});
+    	  
+    		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + actionKey + '&dataKey=' + myUuid;
     		self.uploader.on('startUpload', function() {
     			//console.log('开始上传');
-    			 var intervalId = setInterval(function() {
+    			//以下两句置灰确定按钮和浏览按钮
+    			self.hideButton(true);
+    			$('#picker label').hide();
+    			
+    			var intervalId = setInterval(function() {
 					$.PROGRESS.getProgress(myUuid, function(data) {
 						//console.log(data);
 						if (data.progress.indexOf('%') != -1) {
@@ -697,27 +751,29 @@
 							clearInterval(intervalId);	
 							if(data.progress == 'success'){
 								self.progressText("100%");
+							}else{
+								self.progressText("0%");//出错了归零
 							}
 						}
 					});
-				}, 3500); 
+				}, 1500); 
     		});
     		
     		
     		self.uploader.on('uploadProgress', function(file, percentage) {
-    			console.log(percentage);
+    			//console.log(percentage);
     			var currentToCsc = percentage * 100;
     			currentToCsc = currentToCsc.toFixed(0);
-    			var show = currentToCsc;
-    			if(currentToCsc>90 && currentToCsc<100){
-    				show = 90;
-    			}else if(currentToCsc == 100){//上传到csc 100%
-    				show = 90;
+    			if(currentToCsc>99){
+    				self.progressText("99%");
+    			}else{
+    				self.progressText(currentToCsc+"%");
     			}
-    			self.progressText(show+"%");
+    			
     		}); 
     		
 			self.uploader.on('uploadFinished', function() {
+				//console.log('uploadFinished');
 				csc.uploader.unbind(myUuid);
 			});
     		
@@ -728,19 +784,63 @@
     			
     			if (response.message) {
     				systemMsg.alert(response.message);
-    				if(response.message=='上传成功'){   					
-    					self.progressText(100+"%");//100%
+    				clearInterval(intervalId);
+    				if(response.message=='上传成功'){ 
+    					 self.progressText("100%");
+    					 self.showUploadDialog(false);
     					if(self.isFileView){//在文件列表页面上传成功，刷新fileTable
         					self.fileTable.refreshData();
         				}
+    				}else{//失败了
+    					self.progressText("0%");
+    					self.hideButton(false);
+    	    			$('#picker label').show();
+    	    			//以下两句重置以下uploader的file，才能再次点击确定上传
+    	    			self.uploader.reset();
+    	    	    	self.uploader.addFiles( self.currentFile() );
     				}
 
     			}
 			});
+    		
+    		self.uploader.on('uploadComplete', function(file) {
+    			//console.log('uploadComplete');
+    		});
+    		
+			self.uploader.on('uploadError', function(file,reason) {
+				//console.log('uploadError');
+    		});
 
     		self.uploader.upload();
 			csc.uploader.bind(myUuid, self.uploader);
     	}
+      
+      this.cancelUpload = function(){
+    	  
+    	  if(self.uploader.isInProgress()){//正在上传中，也可以用(self.progressText()!='0%' &&self.progressText()!='100%')判断在上传中 
+    		  confirm("您确定要停止上传吗？",function(){  
+    			  self.uploader.stop(true);
+    			  //console.log(self.uploader.options.server);
+    			  var file = self.currentFile();
+    			  self.uploadParams({
+    				  actionKey:self.uploadParams().actionKey,
+    				  dataKey:self.uploadParams().dataKey,
+    				  fileId:file.id,
+    				  fileName:file.name,
+    				  action:'stopUpload'
+    			  });
+    			  $.OBJECT_STORAGE.stopUpload(self.uploader.options.server,self.uploadParams(),function(data){
+    				  //console.log(data);
+    				  if(data.message == '停止成功'){
+    					  self.showUploadDialog(false);
+    				  }
+    			  });
+    		  });
+    	  }else{
+    		  self.showUploadDialog(false);
+    	  }
+    	 
+      }
 
       
       //删除
@@ -796,6 +896,10 @@
     		  var expiryDate = result.expiryDate;    	  
         	  result.expiryDate = expiryDate.substring(0,10);
     	  }
+    	  //使用临时变量显示为GB，后台传过来的数据库的值，单位B
+    	  result.applySize2 = renderSizeToGB(result.applySize);
+    	  result.havedSize2 = renderSizeToGB(result.havedSize);
+    	  result.availableSize2 = renderSizeToGB(result.availableSize);
     	  return result;
       }});
 
@@ -878,7 +982,7 @@
      		  //不走流程
 	    	  self.isValidateTime(true);
 	    	  self.validateTimeVO().uuid(object.uuid);
-	    	  self.validateTimeVO().time(object.expiryDate);
+	    	  self.validateTimeVO().time(object.expiryTime);
      	  }
       }
       //修改有效期
@@ -909,14 +1013,19 @@
       //选择的容器名称
       this.containerVO = ko.observable({
     	  containerName:"",
-    	  uuid:""
+    	  uuid:"",
+    	  containerIsValidate:true  //默认是有效的对象存储，用于显示fileTable列表上方的按钮是否显示
       });  
       this.objectSearchParam = ko.observable({   	  
     	  name:""    	  
       }); 
       this.showFileTable = function(object,event){
     	  //显示当前的容器名称和uuid
-    	  self.containerVO({containerName:object.name,uuid:object.uuid});
+    	  self.containerVO({containerName:object.name,uuid:object.uuid,containerIsValidate:object.isValidate});
+  		
+    	  //设置当前的容器
+    	  self.currentUploadContainer(object);
+    	  
     	  $('#instance_object_storage_detail').show().siblings().hide();
     	  self.fileTable.path('api/v5.0.0/objectStorages/'+object.uuid+'/objects');
       }
@@ -1014,8 +1123,8 @@
 		  var myDate = new Date();
 		  self.validateProcessVO().time(myDate.toLocaleString());
 		  self.validateProcessVO().user("");
-		  
-		  self.validateProcessVO().validateTime(object.expiryTime);
+		  //console.log(object);
+		  self.validateProcessVO().validateTime(object.expiryDate);
 		  self.validateProcessVO().targetValidateTime("");
 		  
 		  $('#resource_instance_storage_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(
@@ -1097,8 +1206,8 @@ function  roundFun(numberRound,roundDigit)
      return   -tempNumber;   
     }   
 } 
-/*附件大小格式处理*/
-function renderSize(value, p, record){
+/*大小格式处理*/
+function renderSize(value){
   if(null==value||value==''){
     return "0 B";
   }
@@ -1107,5 +1216,13 @@ function renderSize(value, p, record){
   var srcsize = parseFloat(value); 
   var size =roundFun(srcsize/Math.pow(1024,(index=Math.floor(Math.log(srcsize)/Math.log(1024)))),2); 
   return size+unitArr[index];
+}
+/**B转为GB**/
+function renderSizeToGB(value){
+  if(null==value||value==''){
+    return "0";
+  }
+  var gb = roundFun((value/(1024*1024*1024)),2);
+  return gb;
 }
 </script>

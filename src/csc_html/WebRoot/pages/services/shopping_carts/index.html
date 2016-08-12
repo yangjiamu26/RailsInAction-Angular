@@ -554,6 +554,11 @@
 						 			csc.rest.del('api/v5.0.0/cart/delete/vdiskCartInfo/'+e.id(),function(result2){
 						 				self.vdiskList.remove(function (item) { return item.id() == result2.id; });
 						 				self.vdiskNum(self.vdiskNum()-1);
+				                         /* 
+				                          *   提交购物车时，重新加载顶部购物车统计； 
+				                          *   方法定义位置：WebRoot\index.html 
+				                          */ 
+				                         frameViewModel.loadCartNum();
 						 			});
 						 		});
 						 		self.vdiskList_chosens.removeAll();
@@ -581,6 +586,11 @@
 						 			csc.rest.del('api/v5.0.0/cart/delete/objectStorageCartInfo/'+e.id(),function(result2){
 						 				self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
 						 				self.objectStorageNum(self.objectStorageNum()-1);
+				                         /* 
+				                          *   提交购物车时，重新加载顶部购物车统计； 
+				                          *   方法定义位置：WebRoot\index.html 
+				                          */ 
+				                         frameViewModel.loadCartNum();
 						 			});
 						 		});
 						 		self.objectStorageList_chosens.removeAll();
@@ -610,6 +620,11 @@
 						 			csc.rest.del('api/v5.0.0/cart/delete/publicNetworkCartInfo/'+e.id(),function(result2){
 						 				self.publicNetworkList.remove(function (item) { return item.id() == result2.id; });
 						 				self.publicNetworkNum(self.publicNetworkNum()-1);
+				                         /* 
+				                          *   提交购物车时，重新加载顶部购物车统计； 
+				                          *   方法定义位置：WebRoot\index.html 
+				                          */ 
+				                         frameViewModel.loadCartNum();
 						 			});
 						 		});
 						 		self.publicNetworkList_chosens.removeAll();
@@ -642,6 +657,11 @@
 						 			csc.rest.del('api/v5.0.0/cart/delete/loadbalancerCartInfo/'+e.id(),function(result2){
 						 				self.loadbalancerList.remove(function (item) { return item.id() == result2.id; });
 						 				self.lbNum(self.lbNum()-1);
+				                         /* 
+				                          *   提交购物车时，重新加载顶部购物车统计； 
+				                          *   方法定义位置：WebRoot\index.html 
+				                          */ 
+				                         frameViewModel.loadCartNum();
 						 			});
 						 		});
 						 		self.loadbalancerList_chosens.removeAll();
@@ -667,6 +687,11 @@
 						 			csc.rest.del('api/v5.0.0/cart/delete/sshKeytCartInfo/'+e.id(),function(result2){
 						 				self.sshKeytList.remove(function (item) { return item.id() == result2.id; });
 						 				self.sshNum(self.sshNum()-1);
+				                         /* 
+				                          *   提交购物车时，重新加载顶部购物车统计； 
+				                          *   方法定义位置：WebRoot\index.html 
+				                          */ 
+				                         frameViewModel.loadCartNum();
 						 			});
 						 		});
 						 		self.sshKeytList_chosens.removeAll();
@@ -683,6 +708,11 @@
 	 						 			csc.rest.del('api/v5.0.0/cart/delete/vmCartInfo/'+e.uuid(),function(result2){
 	 						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
 	 						 				self.vmNum(self.vmNum()-1);
+	 				                         /* 
+	 				                          *   提交购物车时，重新加载顶部购物车统计； 
+	 				                          *   方法定义位置：WebRoot\index.html 
+	 				                          */ 
+	 				                         frameViewModel.loadCartNum();
 	 						 			});
 	 						 		});
 	 						 		self.vmList_chosens.removeAll();
@@ -1217,8 +1247,8 @@
                 vpcNetworkUuid: ko.observable("").extend({required:true}),
                 ip: ko.observable(""),
                 account: ko.observable(""),
-                password: ko.observable(""),
-                repeatPassword: ko.observable(""),
+                password: ko.observable(),
+                repeatPassword: ko.observable(),
                 sshIsMount: ko.observable(""),
                 remark: ko.observable(""),
                 serviceUuid: ko.observable(""),
@@ -1265,7 +1295,21 @@
                 billRuleList:ko.observableArray([]),
                 ipList:ko.observableArray([])
             });
+            this.vmCartInfo().charge.subscribe(function(value){
+            	if(value=='true'){
+            		self.vmCartInfo().billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
+            	}else{
+            		self.vmCartInfo().billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
+            	}
+            });
             
+            this.vmCartInfo().repeatPassword.subscribe(function(value){
+            	if(value!=null){
+            		self.vmCartInfo().repeatPassword.extend({equal: {params: self.vmCartInfo().password,onlyIf:function(){ return self.vmCartInfo().password}, message:"输入的密码不一致"}})
+            	}else if(self.vmCartInfo().password !=null){
+            		self.vmCartInfo().repeatPassword.extend({equal: {params: self.vmCartInfo().password,onlyIf:function(){ return self.vmCartInfo().password}, message:"请再次输入密码"}})
+            	}
+            });
             
             /************************************ 购物车VO定义  ************************************/
             
@@ -1480,7 +1524,7 @@
 	                                            vo.billRuleUuid(e.billRuleUuid);
 	                                            vo.billRuleList(setArrayCharge(res.chargeList));
 	                                            vo.price(e.price);
-	                                            self.vmCartInfo().mountDisks.push(new ko.validatedobservable(vo));
+	                                            self.vmCartInfo().mountDisks.push(new ko.validatedObservable(vo));
 	                                        });
 	                                    });
 	                                   self.vmCartInfo().partitions([]);
@@ -1488,7 +1532,7 @@
 	                                        var vo=new PartitionVO();
 	                                        vo.name(e.name);
 	                                        vo.size(e.size);
-	                                        self.vmCartInfo().partitions.push(new ko.validatedobservable(vo));
+	                                        self.vmCartInfo().partitions.push(new ko.validatedObservable(vo));
 	                                    });
 	                                   self.vmCartInfo().softwares([]);
 	                                    data.softwares.forEach(function(e){
@@ -2705,19 +2749,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group col-md-3">
-                                <div class="row">
-                                    <label class="col-xs-5 control-label">主机账号</label>
-                                    <div class="col-xs-7">
-                                        <input type="text" class="form-control" data-bind="value: vmCartInfo().account , disable:$root.viewOrEdit">
-                                    </div>
-                                </div>
-                            </div>
                             <div class="form-group col-md-4">
                                 <div class="row">
                                     <label class="col-xs-5 control-label">密码</label>
                                     <div class="col-xs-7">
-                                        <input type="text" class="form-control" data-bind="value: vmCartInfo().password , disable:$root.viewOrEdit">
+                                        <input type="password" class="form-control" data-bind="value: vmCartInfo().password , disable:$root.viewOrEdit">
                                     </div>
                                 </div>
                             </div>
@@ -2725,7 +2761,7 @@
                                 <div class="row">
                                     <label class="col-xs-5 control-label">重复密码</label>
                                     <div class="col-xs-7">
-                                        <input type="text" class="form-control" data-bind="value: vmCartInfo().repeatPassword , disable:$root.viewOrEdit">
+                                        <input type="password" class="form-control" data-bind="value: vmCartInfo().repeatPassword , disable:$root.viewOrEdit">
                                     </div>
                                 </div>
                             </div>

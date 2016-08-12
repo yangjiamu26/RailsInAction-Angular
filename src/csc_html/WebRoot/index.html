@@ -824,9 +824,9 @@
 		    /* ------------------ 用户信息模块  ---------------start */
 			var cscUser = function() {
 				this.account = ko.observable("");
-				this.name = ko.observable("").extend({required: true});
-				this.mobile = ko.observable("").extend({phoneUS:true});
-				this.email = ko.observable("").extend({email:true});;
+				this.name = ko.observable("").extend({required: true,userNameSpecial:true});
+				this.mobile = ko.observable("").extend({phoneUS:{params:true,message:"请输入11位数字或+86开头的13位数字。如13710510152或+8613710510152"}});
+				this.email = ko.observable("").extend({email:{params:true,message:"请填写正确格式的邮箱，格式如example@email.com"}});
 				this.status = ko.observable("");
 				this.roleName = ko.observable("");
 				this.organizationName = ko.observable("");
@@ -869,9 +869,11 @@
 							hideModal();
 							systemMsg.alert("修改用户信息成功！");
 							self.user.fromJSON(self.editUser.toJSON());
-						}else{
+						}else if("fail" == data.result){
 							systemMsg.alert("修改失败");
 							self.editUser.fromJSON(self.user.toJSON());
+						}else{
+							systemMsg.alert(data.result);
 						}
 					});
 	    	    }
@@ -909,9 +911,9 @@
 	        /* ------------------ 修改用户密码模块  ---------------start */
 			var userPassword = function() {
 		    	_upSelf = this;
-				this.oldPassword = ko.observable("").extend({required: true});
-				this.password = ko.observable("").extend({required: true,minLength:6});
-				this.passwordRepeat = ko.observable("").extend({required: true,equal:{params:_upSelf.password,message:"两次输入的密码不一样"}});
+				this.oldPassword = ko.observable("").extend({required: {params:true,message:"请输入旧密码"}});
+				this.password = ko.observable("").extend({required: {params:true,message:"请输入密码"},minLength:{params:6,message:"请至少输入6个字符"}});
+				this.passwordRepeat = ko.observable("").extend({required: true,equal:{params:_upSelf.password,message:"必须输入一致的密码！"}});
 			}
 			this.userPasswordObj = ko.validatedObservable(new userPassword());
 			
@@ -948,14 +950,17 @@
 		    
 		    /* ------------------ 购物车 -------------------------start */
 		    this.cartNum = ko.observable("");
-		    csc.rest.get("api/v5.0.0/homepage/cart",function(data){
-		    	self.cartNum(data);
-			});
+		    this.loadCartNum = function(){
+			    csc.rest.get("api/v5.0.0/homepage/cart",function(data){
+			    	self.cartNum(data);
+				});
+		    }
+		    this.loadCartNum();
 		    /* ------------------ 购物车 -------------------------end */
 	    }
-	    var viewModel = new ViewModel();
-	    ko.applyBindings(viewModel,$('.app-header')[0]);
-	    ko.applyBindings(viewModel,$('.app-aside')[0]);
+	    var frameViewModel = new ViewModel();
+	    ko.applyBindings(frameViewModel,$('.app-header')[0]);
+	    ko.applyBindings(frameViewModel,$('.app-aside')[0]);
     </script>
   </body>
 

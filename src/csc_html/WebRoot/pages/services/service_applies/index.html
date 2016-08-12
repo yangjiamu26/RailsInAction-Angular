@@ -146,15 +146,15 @@
 									<div class="form-inline" style="margin-bottom: 10px;">
 										<div class="input-group">
 											<span class="input-group-addon">操作系统类型</span> <select name=""
-												id="" class="form-control input-sm" data-bind="options:$root.AllOsTypeList,optionsText:'value',optionsValue:'value',value:searchParam().osType"></select>
+												id="" class="form-control input-sm" data-bind="options:$root.AllOsTypeList,optionsText:'value',optionsValue:'value',value:searchParam().osType,optionsCaption:'请选择'"></select>
 										</div>
 										<div class="input-group">
 											<span class="input-group-addon">CPU(个)</span> <select name=""
-												id="" class="form-control input-sm" data-bind="options:$root.AllCpuList,optionsText:'value',optionsValue:'value',value:searchParam().cpu"></select>
+												id="" class="form-control input-sm" data-bind="options:$root.AllCpuList,optionsText:'value',optionsValue:'value',value:searchParam().cpu,optionsCaption:'请选择'"></select>
 										</div>
 										<div class="input-group">
 											<span class="input-group-addon">内存(G)</span> <select name=""
-												id="" class="form-control input-sm" data-bind="options:$root.AllMemoryList,optionsText:'value',optionsValue:'value',value:searchParam().memory"></select>
+												id="" class="form-control input-sm" data-bind="options:$root.AllMemoryList,optionsText:'value',optionsValue:'value',value:searchParam().memory,optionsCaption:'请选择'"></select>
 										</div>
 										<a class="btn btn-default btn-sm" data-bind="click: search">搜索</a>
 									</div>
@@ -853,6 +853,12 @@
 					 		self.isAdd_LBMore(false);
 					 		self.isAdd_SSHSingle(false);
 					 		self.isAdd_SSHMore(false);
+					 		
+					 		/*
+					 		 *	提交购物车时，重新加载顶部购物车统计；
+					 		 *	方法定义位置：WebRoot\index.html
+					 		 */
+					 		frameViewModel.loadCartNum();
 						}); 
 					}
 				});
@@ -917,10 +923,11 @@
 				var productKey;
 		    	var productJsonArray;
 				if(self.productType()==0){
+					ko.validation.group(self.model_VDC).showAllMessages();
 					if(self.model_VDC.isValid()){
 						var value = {};
 						value.name=self.model_VDC().name();
-					 	csc.rest.put('api/v5.0.0/vdcs/verifyNameExist',value,function(result){	
+					 	csc.rest.post('api/v5.0.0/vdcs/verifyNameExist',value,function(result){	
 						 		 if(result.isExist==true){
 									  systemMsg.alert("VDC名称已存在");
 								  }else{
@@ -1135,7 +1142,7 @@
 			   
 			   this.vpcUuid = ko.observable(e.vpcUuid);
 			   this.ip = ko.observable(e.ip);
-			   this.account = ko.observable(e.account);
+			  
 			   this.password = ko.observable(e.password);
 			   this.repeatPassword = ko.observable(e.repeatPassword);
 			   this.sshUuid = ko.observable(e.sshUuid);
@@ -1267,7 +1274,7 @@
 				this.vdcList = ko.observableArray([]);
 				this.networkList = ko.observableArray([]);
 				this.vpcList = ko.observableArray([]); 
-				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+				this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
     				(function(_this){  
 	    				return function(){
 	    					return _this.charge()=="true";
@@ -1391,45 +1398,6 @@
 		    	changeDateFormat();
 		    }); 
 		    /************************************ 负载均衡  批量申请  ************************************/
-			
-			/************************************ 负载均衡  封装订单数据格式  ************************************/
-		    /* this.formatOrders_LB = function(){
-		    	self.orders().orderItems([]);
-		    	self.orders().resourceType("LOAD_BALANCING");
-		        self.model_LB().loadbalancerCartInfo().forEach(function (e){
-		    	   var item =new itmes();
-		    	   item.resourceType("LOAD_BALANCING");
-		    	   item.desc(e.remark());
-		    	   item.vdcUuid(e.vdcUuid);
-		    	   item.azUuid(e.azUuid());
-		    	   item.instanceName(e.name());
-		    	   item.serviceUuid(e.serviceUuid());
-		    	   item.isBill(e.charge());
-		    	   item.expireType(e.applyType());
-		    	   var expireValue="";
-		    	   if(e.applyType() == "2"){
-		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType() == "3"){
-		    		   expireValue = e.applyTime();
-		    	   }
-		    	   item.expireValue(expireValue);
-		    	   item.billCycle(e.billRuleUuid());
-		    	   item.fee(e.price());
-		    	   
-		    	   var meta=new metaData();
-		    	   var baseInfo=new LB_baseInfo();
-		    	   baseInfo.vpcUuid(e.vpcUuid());
-		    	   baseInfo.networkUuid(e.vpcNetworkUuid());
-		    	   baseInfo.lbMethod(e.loadBalanceWay());
-		    	   baseInfo.protocol(e.agreement());
-		    	   
-		    	   meta.resBaseInfo(baseInfo);
-		    	   item.metaData(ko.toJSON(meta));
-		    	   
-		    	   self.orders().orderItems.push(item);
-		       });
-		    } */
-		    /************************************ 负载均衡  封装订单数据格式  ************************************/
 		    
 //################################################# 负载均衡申请 end ##################################################
 			
@@ -1455,7 +1423,7 @@
 				this.azList = ko.observableArray([]);
 				this.billRuleList = ko.observableArray([]);
 				this.vdcList = ko.observableArray([]);
-				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+				this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
     				(function(_this){  
 	    				return function(){
 	    					return _this.charge()=="true";
@@ -1564,39 +1532,6 @@
 		    this.table_SSH = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/SSH',perPage:6});
 		    /************************************ SSH密钥  服务列表  ************************************/
 		    
-		    /************************************ SSH密钥  封装订单数据格式  ************************************/
-		   /*  this.formatOrders_SSH = function(){
-		    	self.orders().orderItems([]);
-		    	self.orders().resourceType("SECRET_KEY");
-		        self.model_SSH().sshKeytCartInfo().forEach(function (e){
-		    	   var item =new itmes();
-		    	   item.resourceType("SECRET_KEY");
-		    	   item.desc(e.remark());
-		    	   item.vdcUuid(e.vdcUuid);
-		    	   item.azUuid(e.azUuid());
-		    	   item.instanceName(e.name());
-		    	   item.serviceUuid(e.serviceUuid());
-		    	   item.isBill(e.charge());
-		    	   item.expireType(e.applyType());
-		    	   var expireValue="";
-		    	   if(e.applyType() == "2"){
-		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType() == "3"){
-		    		   expireValue = e.applyTime();
-		    	   }
-		    	   item.expireValue(expireValue);
-		    	   item.billCycle(e.billRuleUuid());
-		    	   item.fee(e.price());
-		    	   
-		    	   var meta=new metaData();
-		    	   meta.resBaseInfo("");
-		    	   item.metaData(ko.toJSON(meta));
-		    	   
-		    	   self.orders().orderItems.push(item);
-		       });
-		    } */
-		    /************************************ SSH密钥  封装订单数据格式  ************************************/
-		    
 //################################################# SSH密钥申请 end ##################################################
 		    
 //################################################# 云硬盘申请 start ##################################################
@@ -1619,7 +1554,8 @@
 				this.charge = ko.observable();
 				this.price = ko.observable("");
 				this.unitPrice = ko.observable("");
-				this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+				this.billRuleArray = ko.observableArray([]);
+				this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
     				(function(_this){  
 	    				return function(){
 	    					return _this.charge()=="true";
@@ -1735,123 +1671,6 @@
 			
 //################################################# 云硬盘申请 end ##################################################
 
-		    /* this.isAdd_VdiskSingle = ko.observable(false);
-		    this.isAdd_VdiskMore = ko.observable(false);
-		    
-		    var diskServiceUuid;
-		    var diskChargeType;
-		    this.diskCharge=ko.observable("");
-		    this.add_Vdisk = function(obj){
-		    	
-		    	diskServiceUuid=obj.serviceUuid;
-		    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
-		    		self.isAdd_VdiskSingle(true);
-		    		if(data.charge==1){
-		    			self.diskCharge("false");
-			    	}else{
-			    		self.diskCharge("true");
-			    		diskChargeType = setArrayCharge(data.chargeType);
-			    		console.log(diskChargeType);
-			    	}
-		    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){
-		    			self.vdcList(result);
-				        self.num_vdisk(0);
-				        self.num_vdisk(1);
-			        });
-	
-		    	});
-		    } */
-		    
-		   /* function DISK_baseInfo(){
-			   this.volumeSize = ko.observable();
-			   this.vmUuid = ko.observable();
-		   }
-		    
-		    this.formatOrders_DISK = function(){
-		    	self.orders().orderItems([]);
-		    	self.orders().resourceType("DISK");
-		        self.model_Vdisk().vdiskCartInfo().forEach(function (e){
-		    	   var item =new itmes();
-		    	   item.resourceType("DISK");
-		    	   item.desc(e.remark());
-		    	   item.azUuid(e.azUuid());
-		    	   item.vdcUuid(e.vdcUuid());
-		    	   item.instanceName(e.name());
-		    	   item.serviceUuid(e.serviceUuid());
-		    	   item.isBill(e.charge());
-		    	   item.expireType(e.applyType());
-		    	   var expireValue="";
-		    	   if(e.applyType() == "2"){
-		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType() == "3"){
-		    		   expireValue = e.applyTime();
-		    	   }
-		    	   item.expireValue(expireValue);
-		    	   item.billCycle(e.billRuleUuid());
-		    	   item.fee(e.price());
-		    	   
-		    	   var meta=new metaData();
-		    	   var baseInfo =new DISK_baseInfo();
-		    	   
-		    	   baseInfo.volumeSize(e.size());
-		    	   baseInfo.vmUuid(e.mountVmUuid());
-		    	   meta.resBaseInfo(baseInfo);
-		    	   item.metaData(ko.toJSON(meta));
-		    	   self.orders().orderItems.push(item);
-		       });
-		    } */
-		    
-		    /* this.changeList_Vdisk = function(){
-		    	self.isAdd_VdiskSingle(false);
-		    	self.isAdd_VdiskMore(true);
-		        self.num_vdisk(0);
-		        self.num_vdisk(1);	    	
-		    }
-		    
-		    this.changeSingle_Vdisk = function(){
-		    	self.isAdd_VdiskSingle(true);
-		    	self.isAdd_VdiskMore(false);
-		        self.num_vdisk(0);
-		        self.num_vdisk(1);	    	
-		    }
-		    
-		    this.num_vdisk = ko.observable().extend({max:20});
-		    
-		    this.model_Vdisk = ko.validatedObservable({
-		    	vdiskCartInfo: ko.observableArray([])
-		    });
-		    
-		    this.num_vdisk.subscribe(function(){
-		    	if(!self.num_vdisk.isValid()){
-		    		return;
-		    	}
-		    	self.model_Vdisk().vdiskCartInfo([]);
-		    	var num = self.num_vdisk();
-	        	for(var i=0; i<num; i++){
-		    		self.model_Vdisk().vdiskCartInfo.push({
-		    			name: ko.observable("").extend({required:true}),
-		    			serviceUuid:ko.observable(diskServiceUuid),
-						vdcUuid: ko.observable(""),
-						size: ko.observable(""),
-						azUuid:ko.observable(""),
-						mountVmUuid: ko.observable(""),
-						remark:ko.observable(""),
-						billRuleUuid: ko.observable(""),
-						applyTime:ko.observable(""),
-						applyType:ko.observable("3"),
-						azList:ko.observableArray([]),
-						vmList:ko.observableArray([]),
-						charge:ko.observable(self.diskCharge()),
-						billRuleArray:ko.observableArray(diskChargeType),
-						price:ko.observable(""),
-						unitPrice:ko.observable("")
-		    		})
-		    	}	
-		    }); */
-		    
-		    //################## 云硬盘 end ##################
-		    
-		  
 		   
 //################################################# 对象存储 start ##################################################
 
@@ -1988,119 +1807,6 @@
 			});
 			/************************************ 对象存储 批量申请  ************************************/
 		    
-		    /* this.isAdd_ObjectStorageMore = ko.observable(false);
-		    this.isAdd_ObjectStorageSingle = ko.observable(false);
-		    
-		    var objStorageServiceUuid;
-		    var objStorageChargeType;
-		    this.objStorageCharge=ko.observable("");
-		    
-		    this.add_ObjectStorage = function(obj){
-		    	self.isAdd_ObjectStorageSingle(true);
-		    	objStorageServiceUuid=obj.serviceUuid;
-		    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
-		    		console.log(data);
-		    		self.isAdd_ObjectStorageSingle(true);
-		    		if(data.charge==1){
-		    			self.objStorageCharge("false");
-			    	}else{
-			    		self.objStorageCharge("true");
-			    		objStorageChargeType = setArrayCharge(data.chargeType);
-			    		console.log(objStorageChargeType);
-			    	}
-		    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){
-		    			self.vdcList(result);
-				        self.num_ObjectStorage(0);
-				        self.num_ObjectStorage(1);
-			        });
-		    	});
-		    }
-		    
-			   function OBJECT_STORAGE_baseInfo(){
-				   this.applySize = ko.observable();
-			   }
-			    
-			    this.formatOrders_OBJECT_STORAGE = function(){
-			    	self.orders().orderItems([]);
-			    	self.orders().resourceType("OBJECT_STORAGE");
-			        self.model_ObjectStorage().objectStorageCartInfo().forEach(function (e){
-			    	   var item =new itmes();
-			           item.resourceType("OBJECT_STORAGE");
-			    	   item.desc(e.remark());
-			    	   item.vdcUuid(e.vdcUuid);
-			    	   item.azUuid(e.azUuid());
-			    	   item.instanceName(e.name());
-			    	   item.serviceUuid(e.serviceUuid());
-			    	   item.isBill(e.charge());
-			    	   item.expireType(e.applyType());
-			    	   var expireValue="";
-			    	   if(e.applyType() == "2"){
-			    		   expireValue = e.applyNum();
-			    	   }else if(e.applyType() == "3"){
-			    		   expireValue = e.applyTime();
-			    	   }
-			    	   item.expireValue(expireValue);
-			    	   item.billCycle(e.billRuleUuid());
-			    	   item.fee(e.price());
-			    	   var meta=new metaData();
-			    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
-			    	   baseInfo.applySize(e.size());
-			    	   meta.resBaseInfo(baseInfo);
-			    	   item.metaData(ko.toJSON(meta));
-			    	   self.orders().orderItems.push(item);
-			       });
-			    }
-		    
-		    this.num_ObjectStorage = ko.observable().extend({max:20});
-		    
-		    this.model_ObjectStorage = ko.validatedObservable({
-		    	objectStorageCartInfo: ko.observableArray([])
-		    });
-		    
-		    this.changeList_ObjectStorage = function(){
-		    	self.isAdd_ObjectStorageSingle(false);
-		    	self.isAdd_ObjectStorageMore(true);
-		    	self.num_ObjectStorage(0);
-		    	self.num_ObjectStorage(1);	    	
-		    }
-		    
-		    this.changeSingle_ObjectStorage = function(){
-		    	self.isAdd_ObjectStorageSingle(true);
-		    	self.isAdd_ObjectStorageMore(false);
-		    	self.num_ObjectStorage(0);
-		    	self.num_ObjectStorage(1);	    	
-		    }
-		    
-		    this.num_ObjectStorage.subscribe(function(){
-		    	if(!self.num_ObjectStorage.isValid()){
-		    		return;
-		    	}
-		    	self.model_ObjectStorage().objectStorageCartInfo([]);
-		    	var num = self.num_ObjectStorage();
-		    	for(var i=0; i<num; i++){
-		    		self.model_ObjectStorage().objectStorageCartInfo.push({
-		    			name: ko.observable("").extend({required:true}),
-		    			serviceUuid:ko.observable(objStorageServiceUuid),
-						vdcUuid: ko.observable(""),
-						azUuid: ko.observable(""),
-						size: ko.observable(""),
-						billRuleUuid: ko.observable(""),
-						applyType: ko.observable("1"),
-						applyNum: ko.observable(""),
-						applyTime: ko.observable(""),
-						remark:ko.observable(""),
-						azList:ko.observableArray([]),
-						charge:ko.observable(self.objStorageCharge()),
-						billRuleArray:ko.observableArray(objStorageChargeType),
-						price:ko.observable(""),
-						unitPrice:ko.observable("")
-		    		})
-		    	}	    
-		    	changeDateFormat();
-		    });
-		    this.table_ObjectStorage = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/OBJSTORAGE',perPage:6}); */
-		  //################## 对象存储 end ##################
-		  
 //################################################# 公网IP start ##################################################
 
             /************************************ 公网IP  vo定义 ************************************/
@@ -2238,121 +1944,7 @@
 			});
 			/************************************ 公网IP 批量申请  ************************************/
 			
-		   /* function PUBLICIP_baseInfo(){
-			   this.vpcUuid = ko.observable();
-			   this.networkUuid = ko.observable();
-		   }
-		    
-		    this.formatOrders_PUBLICIP = function(){
-		    	self.orders().orderItems([]);
-		    	self.orders().resourceType("PUBLICIP");
-		        self.model_PublicNetwork().publicNetworkCartInfo().forEach(function (e){
-		    	   var item =new itmes();
-		    	   item.resourceType("PUBLICIP");
-		    	   item.desc(e.remark());
-		    	   item.azUuid(e.azUuid());
-		    	   item.vdcUuid(e.vdcUuid());
-		    	   item.instanceName(e.name());
-		    	   item.serviceUuid(e.serviceUuid());
-		    	   item.isBill(e.charge());
-		    	   item.expireType(e.applyType());
-		    	   var expireValue="";
-		    	   if(e.applyType() == "2"){
-		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType() == "3"){
-		    		   expireValue = e.applyTime();
-		    	   }
-		    	   item.expireValue(expireValue);
-		    	   item.billCycle(e.billRuleUuid());
-		    	   item.fee(e.price());
-		    	   
-		    	   var meta=new metaData();
-		    	   var baseInfo =new PUBLICIP_baseInfo();
-		    	   
-		    	   baseInfo.vpcUuid(e.vpcUuid());
-		    	   baseInfo.networkUuid(e.netWorkId());
-		    	   meta.resBaseInfo(baseInfo);
-		    	   item.metaData(ko.toJSON(meta));
-		    	   self.orders().orderItems.push(item);
-		       });
-		    }	  
 		  
-		    this.isAdd_PublicNetworkSingle = ko.observable(false);
-		    this.isAdd_PublicNetworkMore = ko.observable(false);
-		    
-		    var pubNetworkServiceUuid;
-		    var pubNetworkChargeType;
-		    this.pubNetworkCharge=ko.observable("")
-		    this.add_PublicNetwork = function(obj){
-		    	pubNetworkServiceUuid=obj.serviceUuid;
-		    	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
-		    		console.log(data);
-		    		self.isAdd_PublicNetworkSingle(true);
-		    		if(data.charge==1){
-		    			self.pubNetworkCharge("false");
-			    	}else{
-			    		self.pubNetworkCharge("true");
-			    		pubNetworkChargeType = setArrayCharge(data.chargeType);
-			    		console.log(pubNetworkChargeType);
-			    	}
-		    		csc.rest.get("api/v5.0.0/cart/getVdcList/"+obj.serviceUuid, function(result){
-		    			self.vdcList(result);
-		    	    	self.num_PublicNetwork(0);
-		    	    	self.num_PublicNetwork(1);
-			        });
-		    	});
-		    }
-		    this.num_PublicNetwork = ko.observable().extend({max:20});
-		    
-		    this.model_PublicNetwork = ko.validatedObservable({
-		    	publicNetworkCartInfo: ko.observableArray([])
-		    });
-		    
-		    this.changeList_PublicNetwork = function(){
-		    	self.isAdd_PublicNetworkSingle(false);
-		    	self.isAdd_PublicNetworkMore(true);
-		    	self.num_PublicNetwork(0);
-		    	self.num_PublicNetwork(1);	    	
-		    }
-		    
-		    this.changeSingle_PublicNetwork = function(){
-		    	self.isAdd_PublicNetworkSingle(true);
-		    	self.isAdd_PublicNetworkMore(false);
-		    	self.num_PublicNetwork(0);
-		    	self.num_PublicNetwork(1);	    	
-		    }
-		    
-		    this.num_PublicNetwork.subscribe(function(){
-		    	if(!self.num_PublicNetwork.isValid()){
-		    		return;
-		    	}
-		    	self.model_PublicNetwork().publicNetworkCartInfo([]);
-		    	var num = self.num_PublicNetwork();
-		    	for(var i=0; i<num; i++){
-		    		self.model_PublicNetwork().publicNetworkCartInfo.push({
-		    			name: ko.observable("").extend({required:true}),
-		    			serviceUuid:ko.observable(pubNetworkServiceUuid),
-						vdcUuid: ko.observable(""),
-						azUuid:ko.observable(""),
-						vpcUuid: ko.observable(""),
-						netWorkId: ko.observable(""),
-						remark:ko.observable(""),
-						billRuleUuid: ko.observable(""),
-						applyType: ko.observable("1"),
-						applyNum: ko.observable(""),
-						applyTime: ko.observable(""),
-						azList:ko.observableArray([]),
-						vpcList:ko.observableArray([]),
-						networkList:ko.observableArray([]),
-						charge:ko.observable(self.pubNetworkCharge()),
-						billRuleArray:ko.observableArray(pubNetworkChargeType),
-						price:ko.observable(""),
-						unitPrice:ko.observable("")
-		    		})
-		    	}	    
-		    	changeDateFormat();	
-		    });
-		    this.table_PublicNetwork = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/IP',perPage:6}); */
 		  //################## 公网IP end ##################
 		  
 		    this.osTypeArray = ko.observableArray([]);
@@ -2464,196 +2056,24 @@
 						loadBalancer: ko.observable(""),
 						secretKey: ko.observable(""),
 						remark:ko.observable(""),
-						billRuleUuid: ko.observable().extend({required: {onlyIf: function(){return self.model_VDC.charge=="true";} } } ),
+						billRuleUuid: ko.observable(),
 						applyType: ko.observable("1"),
 						applyNum: ko.observable(""),
 						applyTime: ko.observable(""),
 						price:ko.observable(""),
 						billRuleArray:ko.observableArray([])
 			    });
-		  		
-	            /* self.model_VDC().charge.subscribe(function(value){
+	            self.model_VDC().charge.subscribe(function(value){
 	            	if(value=='true'){
 	            		self.model_VDC().billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}}})
 	            	}else{
 	            		self.model_VDC().billRuleUuid.extend({required: {params: false, onlyIf:function(){return true}}})
 	            	}
-	            }); */
+	            });
 		  	}
 		  	
-
-		    
 		    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
 		  //################## VDC end ##################
-		  
-		  
-		  
-		  
-		  //################## 云主机start ##################
-		  
-		  
-		  /* function getUuid() {
-			var s = [];
-			var hexDigits = "0123456789abcdef";
-			for (var i = 0; i < 36; i++) {
-			s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-			}
-			s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
-			s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
-			s[8] = s[13] = s[18] = s[23] = "-";
-			
-			var uuid = s.join("");
-			return uuid;
-		  }
-		  
-		   this.orders=ko.validatedObservable({
-			   resourceType : ko.observable(),
-			   orderItems : ko.observableArray([])
-		   })
-		  
-		   function itmes(){
-			   this.instanceName = ko.observable();
-			   this.serviceUuid = ko.observable();
-			   this.isBill = ko.observable();
-			   this.expireType =  ko.observable();
-			   this.expireValue = ko.observable();
-			   this.billCycle = ko.observable();
-			   this.fee = ko.observable();
-			   this.metaData = ko.observable();
-			   this.desc = ko.observable();
-			   this.azUuid = ko.observable();
-			   this.resourceType = ko.observable();
-			   this.relateUuid = ko.observable();
-			   this.vdcUuid = ko.observable();
-		   }
-		   
-		   function metaData(){
-			   this.resBaseInfo = ko.observable();
-		   }
-		   
-		   function VM_baseInfo (){
-			   this.azUuid = ko.observable();
-			   this.osType = ko.observable();
-			   this.osVersion = ko.observable();
-			   this.expiryTime = ko.observable();
-			   this.imageUuid = ko.observable();
-			   this.memory = ko.observable();
-			   this.name = ko.observable();
-			   this.storage = ko.observable();
-			   this.vcpu = ko.observable();
-			   this.vdcUuid = ko.observable();
-			   this.vpcUuid = ko.observable();
-			   this.partitionList = ko.observableArray([]);
-			   this.networkList = ko.observableArray([]);
-			   
-			   this.ip = ko.observable();
-			   this.account = ko.observable();
-			   this.password = ko.observable();
-			   this.repeatPassword = ko.observable();
-			   this.sshIsMount = ko.observable();
-			   this.sshUuid = ko.observable();
-			   this.busSysUuid = ko.observable();
-		   }
-		   	   
-		   function VM_network (){
-			   this.networkId = ko.observable();
-		   }
-		   function VM_partition (){
-			   this.name = ko.observable();
-			   this.size = ko.observable();
-		   }
-		   
-		  
-		   this.formatOrders_VM = function(){
-			   self.orders().orderItems([]);
-			   
-	           self.orders().resourceType("VM");
-		       self.model_VM().vmCartInfo().forEach(function (e){
-		    	   var relateUuid=getUuid();
-		    	   var item =new itmes();
-		    	   item.desc(e.remark());
-		    	   item.azUuid(e.azUuid());
-		    	   item.instanceName(e.vmName());
-		    	   item.serviceUuid(e.serviceUuid());
-		    	   item.resourceType("VM");
-		    	   item.relateUuid(relateUuid);
-		    	   item.isBill(e.charge());
-		    	   item.expireType(e.applyType());
-		    	   var expireValue="";
-		    	   if(e.applyType() == "2"){
-		    		   expireValue = e.applyNum();
-		    	   }else if(e.applyType() == "3"){
-		    		   expireValue = e.applyTime();
-		    	   }
-		    	   item.expireValue(expireValue);
-		    	   item.billCycle(e.billRuleUuid());
-		    	   item.fee(e.price());
-		    	   
-		    	   
-		    	   var meta=new metaData();
-		    	   var baseInfo =new VM_baseInfo();
-		    	   
-		    	   baseInfo.azUuid(e.azUuid());
-		    	   baseInfo.osType(e.osType());
-		    	   baseInfo.osVersion(e.osVersion());
-		    	   baseInfo.memory(e.memory);
-		    	   baseInfo.name(e.vmName);
-		    	   baseInfo.storage(e.storage);
-		    	   baseInfo.vcpu(e.cpu);
-		    	   baseInfo.vdcUuid(e.vdcUuid);
-		    	   baseInfo.vpcUuid(e.vpcUuid);
-		    	   
-		    	   baseInfo.ip(e.ip);
-		    	   baseInfo.account(e.account);
-		    	   baseInfo.password(e.password);
-		    	   baseInfo.repeatPassword(e.repeatPassword);
-		    	   baseInfo.sshIsMount(e.sshIsMount);
-		    	   baseInfo.sshUuid(e.sshUuid);
-		    	   baseInfo.busSysUuid(e.projectUuid);
-		    	   
-		    	   e.partitions().forEach(function(p){
-		    		   var p=new VM_partition()
-		    		   p.name(p.name());
-		    		   p.size(p.size());
-		    		   baseInfo.partitionList.push(p)
-		    	   });
-		    	   var n = new VM_network
-		    	   n.networkId(e.vpcNetworkUuid());
-		    	   baseInfo.networkList.push(n);
-		    	   
-		    	   meta.resBaseInfo(baseInfo);
-		    	   //云硬盘服务
-		    	   e.mountDisks().forEach(function(m){
-		    		   var i =new itmes();
-			    	   i.instanceName(m.name());
-			    	   i.serviceUuid(m.serviceUuid());
-			    	   i.resourceType("DISK");
-			    	   i.relateUuid(relateUuid);
-			    	   i.isBill(m.charge());
-			    	   i.expireType(e.applyType());
-			    	   var ev="";
-			    	   if(e.applyType() == "2"){
-			    		   ev = e.applyNum();
-			    	   }else if(e.applyType() == "3"){
-			    		   ev = e.applyTime();
-			    	   }
-			    	   i.expireValue(ev);
-			    	   i.billCycle(m.billRuleUuid());
-			    	   i.fee(m.price());
-			    	   
-			    	   var md=new metaData();
-			    	   var bi =new DISK_baseInfo();
-			    	   
-			    	   bi.volumeSize(m.size());
-			    	   md.resBaseInfo(bi);
-			    	   i.metaData(ko.toJSON(md));
-			    	   self.orders().orderItems.push(i);
-		    	   }); 
-		    	   item.metaData(ko.toJSON(meta));
-		    	   self.orders().orderItems.push(item);
-		       });
-		   } */
-		   
 		  
 //################################################# 云主机 start ################################################## 
             
@@ -2739,23 +2159,15 @@
 	            		return "";
 	            	}
 	            }, this);
-				
-	            
 	            this.ip = ko.observable();
-	            this.account = ko.observable();
-	            this.password = ko.observable();
-	      		
-	            
 	            this.applyNum = ko.observable();
-	            
-	            
 	            this.sshUuid = ko.observable();
 	            this.serviceUuid = ko.observable();
 	            this.remark =ko.observable();
 	            this.price =ko.observable();
 	            this.charge =ko.observable();
 	            
-	            this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+	            this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
     				(function(_this){  
 	    				return function(){
 	    					return self.isAdd_VMMore()?(self.myStep()==1 && _this.charge()=="true"):(_this.charge()=="true")
@@ -2772,9 +2184,20 @@
 	            
 	            this.id = ko.observable();
 	            
-	            this.account=ko.observable();
+	   
 	            this.password=ko.observable();
-	            this.repeatPassword=ko.observable();
+	            this.repeatPassword=ko.observable().extend({equal: { params:this.password ,onlyIf : this.password, message :
+	            	(function(_this){  
+	    				return function(){debugger;
+	    					if(_this.repeatPassword()!=null && _this.repeatPassword()!=""){
+	    						 return "密码不一致";
+	    					}else if(_this.password() !=null && _this.password() !=""){
+	    						return  "请再次输入密码";
+	    					}
+	    				} 
+				    })(this)
+				}});
+
 				
 	            this.vdcList=ko.observableArray([]);
 	            this.azList=ko.observableArray([]);
@@ -2859,7 +2282,7 @@
 	            this.billRuleList=ko.observableArray([]);
 	            this.price = ko.observable();
 	            this.charge = ko.observable();
-	            this.billRuleUuid = this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
+	            this.billRuleUuid = ko.observable().extend({required: {onlyIf: 
     				(function(_this){  
 	    				return function(){
 	    					return _this.charge()=="true";
@@ -4169,7 +3592,7 @@
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>申请VDC</h3>
       </div>
-      <div class='modal-body form-horizontal row'>
+      <div class='modal-body form-horizontal row' style="max-width:910px;">
         <div class="form-group">
           <label class="col-sm-3 control-label">VDC名称<i style="color:red">*</i></label>
           <div class="col-sm-8">
@@ -4457,17 +3880,9 @@
             </div>
             <div class="form-group col-md-3">
               <div class="row">
-                <label class="col-xs-5 control-label">主机账号：</label>
-                <div class="col-xs-7">
-                  <input type="text" class="form-control"  data-bind="value:  account">
-                </div>
-              </div>
-            </div>
-            <div class="form-group col-md-4">
-              <div class="row">
                 <label class="col-xs-5 control-label">密码：</label>
                 <div class="col-xs-7">
-                  <input type="text" class="form-control"  data-bind="value:  password">
+                  <input type="password" class="form-control"  data-bind="value:  password">
                 </div>
               </div>
             </div>
@@ -4475,11 +3890,11 @@
               <div class="row">
                 <label class="col-xs-5 control-label">重复密码：</label>
                 <div class="col-xs-7">
-                  <input type="text" class="form-control"  data-bind="value:  repeatPassword">
+                  <input type="password" class="form-control"  data-bind="value:  repeatPassword">
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-3">
+            <div class="form-group col-md-4">
               <div class="row">
                 <label class="col-xs-5 control-label">选择密钥：</label>
                 <div class="col-xs-7">
@@ -4740,7 +4155,6 @@
 			                  <th>CPU(核)<i style="color:red">*</i></th>
 			                  <th>内存(G)<i style="color:red">*</i></th>
 			                  <th>存储(G)<i style="color:red">*</i></th>
-			                  <th>主机账号</th>
 			                  <th>密码</th>
 			                  <th>重复密码</th>
 			                </thead>
@@ -4753,7 +4167,6 @@
 		                        <td><select class="form-control w-xs" data-bind="options:  cpuList,optionsText:$data,optionsValue:$data,value:  cpu,optionsCaption:'请选择'"></select></td>
 		                        <td><select class="form-control w-xs" data-bind="options:  memoryList,optionsText:$data,optionsValue:$data,value:  memory,optionsCaption:'请选择'"></select></td>
 		                        <td><input type="text" class="form-control" data-bind="value:storage"></td>
-		                        <td><input type="text" class="form-control" data-bind="value:account"></td>
 		                        <td><input type="text" class="form-control" data-bind="value:password"></td>
 		                        <td><input type="text" class="form-control" data-bind="value:repeatPassword"></td>
 		                      </tr>
