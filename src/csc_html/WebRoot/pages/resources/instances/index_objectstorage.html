@@ -312,7 +312,7 @@
         <div class='modal-dialog modal-md'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传文件</h3>
+              <button type="button" class="close" data-bind="click:cancelUpload"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传文件</h3>
             </div>
             <div class='modal-body form-horizontal row'>
               <div class="form-group">
@@ -704,7 +704,9 @@
     			//console.log(file);
 				self.uploadFileName(file.name);
 				self.currentFile(file);
+				
 			});
+    		
     	}
      
       //model显示的时候初始化webupload
@@ -713,115 +715,137 @@
     	  self.uploader.reset();//清空上次选中的文件
       });
       
+      var intervalId = null;
+      
+      //点击确定上传
       this.uploadFile = function() {
     	  if(self.hideButton()) return ;//按钮置灰后不能做上传动作
     	  //console.log(self.currentFile());
-
+    	  
     	  //return;
-    	  //暂时在页面检查上传空间是否足够，也可以在此处调用后台接口，获取最新的对象存储的可用大小
-    	  var availableSize = self.currentUploadContainer().availableSize;
-    	  //如果上传文件比可用空间大，空间不足
-    	  if(availableSize < self.currentFile().size){
-    		  alert('对象存储的空间不足');
-    		  return;
-    	  }
+    	  //可以在页面检查上传空间是否足够，也可以在此处调用后台接口，获取最新的对象存储的可用大小,页面上检查空间是否足够，不好的地方就是删除和上传成功都要更新self.currentUploadContainer()
+    	  $.OBJECT_STORAGE.getObjectStorage(self.currentUploadContainer().uuid,function(data){
+    		  	  self.currentUploadContainer(data);
     	  
-    	  //显示进度条
-    	  self.uploading(true);
- 
-    	  var intervalId = null;
-    	  var myUuid = self.currentUploadContainerUuid();
-    	  var actionKey = WebUploader.guid('csc_upload_');
-    	  self.uploadParams({actionKey:actionKey,dataKey:myUuid});
-    	  
-    		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + actionKey + '&dataKey=' + myUuid;
-    		self.uploader.on('startUpload', function() {
-    			//console.log('开始上传');
-    			//以下两句置灰确定按钮和浏览按钮
-    			self.hideButton(true);
-    			$('#picker label').hide();
-    			
-    			var intervalId = setInterval(function() {
-					$.PROGRESS.getProgress(myUuid, function(data) {
-						//console.log(data);
-						if (data.progress.indexOf('%') != -1) {
-							//self.currentPercentage(data.progress)
-						}
-						if (data.progress == 'success' || data.progress == 'N/A') {
-							clearInterval(intervalId);	
-							if(data.progress == 'success'){
-								self.progressText("100%");
-							}else{
-								self.progressText("0%");//出错了归零
-							}
-						}
+		    	  var availableSize = self.currentUploadContainer().availableSize;
+		    	  //如果上传文件比可用空间大，空间不足
+		    	  if(availableSize < self.currentFile().size){
+		    		  alert('对象存储的空间不足');
+		    		  return;
+		    	  }
+		    	  
+		    	  //显示进度条
+		    	  self.uploading(true);
+		 
+		    	  var myUuid = self.currentUploadContainerUuid();
+		    	  var actionKey = WebUploader.guid('csc_upload_');
+		    	  self.uploadParams({actionKey:actionKey,dataKey:myUuid});
+		    	  
+		    		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscObjectStorage&actionKey=' + actionKey + '&dataKey=' + myUuid;
+		    		self.uploader.on('startUpload', function() {
+		    			//console.log('开始上传');
+		    			//以下两句置灰确定按钮和浏览按钮
+		    			self.hideButton(true);
+		    			$('#picker label').hide();
+		    			
+		    			intervalId = setInterval(function() {
+							$.PROGRESS.getProgress(myUuid, function(data) {
+								//console.log(data);
+								if (data.progress.indexOf('%') != -1) {
+									//self.currentPercentage(data.progress)
+								}
+								if (data.progress == 'success' || data.progress == 'N/A') {
+									clearInterval(intervalId);	
+									if(data.progress == 'success'){
+										self.progressText("100%");
+									}else{
+										self.progressText("0%");//出错了归零
+									}
+								}
+							});
+						}, 1500); 
+		    		});
+		    		
+		    		
+		    		self.uploader.on('uploadProgress', function(file, percentage) {
+		    			//console.log(percentage);
+		    			var currentToCsc = percentage * 100;
+		    			currentToCsc = currentToCsc.toFixed(0);
+		    			if(currentToCsc>99){
+		    				self.progressText("99%");
+		    			}else{
+		    				self.progressText(currentToCsc+"%");
+		    			}
+		    			
+		    		}); 
+		    		
+					self.uploader.on('uploadFinished', function() {
+						//console.log('uploadFinished');
+						csc.uploader.unbind(myUuid);
 					});
-				}, 1500); 
-    		});
-    		
-    		
-    		self.uploader.on('uploadProgress', function(file, percentage) {
-    			//console.log(percentage);
-    			var currentToCsc = percentage * 100;
-    			currentToCsc = currentToCsc.toFixed(0);
-    			if(currentToCsc>99){
-    				self.progressText("99%");
-    			}else{
-    				self.progressText(currentToCsc+"%");
-    			}
-    			
-    		}); 
-    		
-			self.uploader.on('uploadFinished', function() {
-				//console.log('uploadFinished');
-				csc.uploader.unbind(myUuid);
-			});
-    		
-    		self.uploader.on('uploadSuccess', function(file, response) {
-    			//console.log('触发uploadSuccess');
-    			//console.log(file);
-    			//console.log(response);
-    			
-    			if (response.message) {
-    				systemMsg.alert(response.message);
-    				clearInterval(intervalId);
-    				if(response.message=='上传成功'){ 
-    					 self.progressText("100%");
-    					 self.showUploadDialog(false);
-    					if(self.isFileView){//在文件列表页面上传成功，刷新fileTable
-        					self.fileTable.refreshData();
-        				}
-    				}else{//失败了
-    					self.progressText("0%");
-    					self.hideButton(false);
-    	    			$('#picker label').show();
-    	    			//以下两句重置以下uploader的file，才能再次点击确定上传
-    	    			self.uploader.reset();
-    	    	    	self.uploader.addFiles( self.currentFile() );
-    				}
-
-    			}
-			});
-    		
-    		self.uploader.on('uploadComplete', function(file) {
-    			//console.log('uploadComplete');
-    		});
-    		
-			self.uploader.on('uploadError', function(file,reason) {
-				//console.log('uploadError');
-    		});
-
-    		self.uploader.upload();
-			csc.uploader.bind(myUuid, self.uploader);
+		    		
+		    		self.uploader.on('uploadSuccess', function(file, response) {
+		    			//console.log('触发uploadSuccess');
+		    			//console.log(file);
+		    			//console.log(response);
+		    			
+		    			if (response.message) {
+		    				systemMsg.alert(response.message);
+		    				clearInterval(intervalId);
+		    				if(response.message=='上传成功'){ 
+		    					 self.progressText("100%");
+		    					 self.showUploadDialog(false);
+		    					if(self.isFileView){//在文件列表页面上传成功，刷新fileTable
+		        					self.fileTable.refreshData();
+		        				}
+		    					//上传成功和删除成功，都要更新self.currentUploadContainer(),主要是更新可用空间，前端校验可用大小时才使用
+		    					 //$.OBJECT_STORAGE.getObjectStorage(self.currentUploadContainer().uuid,function(data){
+		    					//	 self.currentUploadContainer(data);
+		    					// })
+		    					
+		    				}else{//失败了
+		    					self.progressText("0%");
+		    					self.hideButton(false);
+		    	    			$('#picker label').show();
+		    	    			//以下四句新建一个uploader的并添加file，才能再次点击确定上传
+	
+		    	    	    	self.initUploader();
+		    	    	    	self.uploader.reset();
+		    	    	    	self.currentFile().setStatus('inited','初始化');
+		    	    	    	self.uploader.addFiles(self.currentFile()); 
+		    	    	    	
+		    	    	    	console.log('失败了,重新初始化');
+		    				}
+		
+		    			}
+					});
+		    		
+		    		self.uploader.on('uploadComplete', function(file) {
+		    			//console.log('uploadComplete');
+		    		});
+		    		
+					self.uploader.on('uploadError', function(file,reason) {
+						//console.log('uploadError');
+						//console.log(reason);
+		    		});
+		
+		    		self.uploader.upload();
+					csc.uploader.bind(myUuid, self.uploader);
+			
+    	  });//end  $.OBJECT_STORAGE.getObjectStorage
     	}
       
       this.cancelUpload = function(){
     	  
     	  if(self.uploader.isInProgress()){//正在上传中，也可以用(self.progressText()!='0%' &&self.progressText()!='100%')判断在上传中 
+    		  //先暂停
+    		  //self.uploader.stop(true);
     		  confirm("您确定要停止上传吗？",function(){  
-    			  self.uploader.stop(true);
+    			  //self.uploader.stop(true);//停止上传，可以用upload恢复
     			  //console.log(self.uploader.options.server);
     			  var file = self.currentFile();
+    			  self.uploader.cancelFile(file);//取消上传文件，并标记为已取消
+    			  
     			  self.uploadParams({
     				  actionKey:self.uploadParams().actionKey,
     				  dataKey:self.uploadParams().dataKey,
@@ -832,9 +856,13 @@
     			  $.OBJECT_STORAGE.stopUpload(self.uploader.options.server,self.uploadParams(),function(data){
     				  //console.log(data);
     				  if(data.message == '停止成功'){
+    					  clearInterval(intervalId);	
     					  self.showUploadDialog(false);
     				  }
     			  });
+    		  },function(){
+    			  //继续上传
+    			  //self.uploader.upload();
     		  });
     	  }else{
     		  self.showUploadDialog(false);

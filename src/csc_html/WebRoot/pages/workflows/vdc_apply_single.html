@@ -96,6 +96,16 @@
                   <input type="text" class="form-control" data-bind="value: secretKey" disabled>
                 </div>
             </div>
+            <div class="form-group">
+                <label class="col-xs-2 control-label">安全组最大申请数：</label>
+                <div class="col-xs-1">
+                  <input type="text" class="form-control" data-bind="value: securityGroup" disabled>
+                </div>
+                <label class="col-xs-2 control-label">VPN最大申请数：</label>
+                <div class="col-xs-1">
+                  <input type="text" class="form-control" data-bind="value: vpn" disabled>
+                </div>
+            </div>
           </div>
           <div class="form-group">
             <label class="col-xs-2 control-label">备注：</label>
@@ -185,6 +195,9 @@
   	  this.fee = ko.observable("");
   	  this.desc = ko.observable("");
   	  
+  	  this.securityGroup = ko.observable("");
+  	  this.vpn = ko.observable("");
+  	  
   	  this.applyList = ko.observableArray(csc.util.getMonthsList());;
   	  
   	  if(args.state=='UNSUBMIT'){
@@ -198,6 +211,7 @@
    	     var processInstanceId = data.taskInfo[0].processInstanceId;
 		 //获取订单数据
       	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+      		 console.log(data)
       		var orderData = data;
       		var itemListData = data.orderItems;
       		var metaData = JSON.parse(itemListData[0].metaData);
@@ -238,6 +252,10 @@
       				self.objectStorage(vdcQuotaList[i].value);
       			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
       				self.loadBalance(vdcQuotaList[i].value);
+      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+      				self.securityGroup(vdcQuotaList[i].value);
+      			}else if(vdcQuotaList[i].type=='VPN'){
+      				self.vpn(vdcQuotaList[i].value);
       			}
       		}
       		for(var i=0;i<osType.length;i++){
@@ -320,7 +338,7 @@
         	if(args.state=='UNSUBMIT'){
         		var value = {};
 				value.name=self.vdc().instanceName;
-			    csc.rest.put('api/v5.0.0/vdcs/verifyNameExist',value,function(result){
+			    csc.rest.post('api/v5.0.0/vdcs/verifyNameExist',value,function(result){
 			 		if(result.isExist==true){
 						alert("VDC名称已存在！");
 					}else{
@@ -355,6 +373,8 @@
 							 vdcQuotaList.push({type:"SECRET_KEY",value:self.secretKey()});
 							 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.objectStorage()});
 							 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.loadBalance()});
+							 vdcQuotaList.push({type:"SECURITY_GROUP",value:self.securityGroup()});
+							 vdcQuotaList.push({type:"VPN",value:self.vpn()});
 						}else{
 							limitQuota = 'false';
 						}

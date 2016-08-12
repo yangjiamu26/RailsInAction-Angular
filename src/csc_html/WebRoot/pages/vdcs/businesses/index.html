@@ -104,7 +104,7 @@
       <div class='modal-body form-horizontal'>
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">业务系统名称</label>
-          <div class="col-xs-8">
+          <div class="col-xs-7">
             <input type="text" class="form-control" placeholder="业务系统名称" data-bind="value:subsysVo().name">
           </div>
           <div class="col-xs-1">
@@ -113,7 +113,7 @@
         </div>
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label" >所属VDC</label>
-          <div class="col-xs-8">
+          <div class="col-xs-7">
             <select id="vdc_id_"  class="form-control" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value:subsysVo().vdcUuid, enable: !subsysVo().uuid()">              
             </select>
           </div>
@@ -123,18 +123,23 @@
         </div>
         <div class="form-group" >
           <label for="inputEmail3" class="col-xs-3 control-label">系统负责人</label>
-          <div class="col-xs-8">
-            <select multiple="true" max-size="5"  data-bind="options:managerUserList,optionsText:'account',optionsValue:'value',selectedOptions:subsysVo().accounts_string" class="form-control">
-
-            </select>
+          <div class="col-xs-7">
+            <textarea  data-bind="value:subsysVo().userNames" rows="3" readonly="readonly" disabled="disabled" style="margin: 0px; width: 300px; height: 80px;">
+            </textarea>
+            <input type="hidden" data-bind="value:subsysVo().userValues"/>
+           
           </div>
-          <div class="col-xs-1">
+           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
-          </div>           
+          </div> 
+          <div class="col-xs-2" style="text-align:left; padding-left:0">
+             <button data-bind="click:addManagerUser">选择</button>
+          </div>      
+                   
         </div>
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">备注</label>
-          <div class="col-xs-8">
+          <div class="col-xs-7">
             <textarea class="form-control" data-bind="value:subsysVo().desc"></textarea>
           </div>
         </div>
@@ -144,8 +149,78 @@
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
       </div>
     </div>
-  </div>
 </div>
+
+<!-- 选择系统管理人 -->
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addUserModel }" >  
+    <div class='modal-dialog modal-lg' role='document'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+               <button type="button" class="close" data-dismiss="modal">
+                   <span aria-hidden="true">&times;</span>
+               </button>
+               <h3 class='modal-title'>添加系统负责人</h3>
+            </div>
+            <div class='modal-body'>
+                <div class="row" id="net_0">
+                    <div class="col-xs-5">
+                        <p>待选择：</p>
+                        <div class="table-responsive">
+                            <div style="height:400px; overflow:scroll;">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <th>
+                                            <div class="checkbox">
+                                                <label class="i-checks">
+                                                    <input type="checkbox" id="availableUserId_isSelectedAll" >
+                                                    <i></i>
+                                                </label>
+                                            </div> 
+                                        </th>
+                                        <th>账号</th>
+                                        <th>用户类型</th>
+                                    </thead>
+                                    <tbody  id="availableUserId">
+                                    </tbody>
+                               </table>
+                          </div>
+                     </div>
+                   </div>
+                   <div class="col-xs-2">
+                     <button class="btn btn-block btn-default" id="addUser2PreAddList" style="margin-top:150px">&gt;&gt;</button>
+                     <button class="btn btn-block btn-default" id="removeUser2PreAddList" >&lt;&lt;</button>
+                   </div>
+                   <div class="col-xs-5">
+                     <p>已选择：</p>
+                     <div class="table-responsive">
+                     <table class="table table-striped">
+                       <thead>
+                         <th>
+                           <div class="checkbox">
+                             <label class="i-checks">
+                               <input type="checkbox" id="preAddUserTableId_isSelectedAll" >
+                               <i></i>
+                             </label>
+                           </div> 
+                         </th>
+                         <th>账号</th>
+                         <th>用户类型</th>
+                       </thead>
+                       <tbody id="preAddUserTableId">
+                       </tbody>
+                     </table>
+                     </div>
+                   </div>
+               </div>
+            </div>
+            <div class='modal-footer'>
+                 <input type="button" name="commit" value="确定" data-bind="click:confirmAddUser" class="btn btn-default btn-info" />
+                 <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+   </div>
+</div>
+<!-- 选择系统管理人 -->
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
@@ -159,50 +234,14 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
              uuid:ko.observable(""),
              name:ko.observable().extend({required:true}),
              vdcUuid:ko.observable("").extend({required:true}),
-             accounts_string:ko.observableArray([]).extend({required:true}),
-             accounts:[],//不是表单数据，用数组接收，传到后台
+             userNames:ko.observableArray([]).extend({required:true}),
+             userValues:ko.observable(""),
+             accounts:ko.observableArray([]),//不是表单数据，用数组接收，传到后台
              desc:ko.observable("")
         
         });
         this.isAdd = ko.observable(false);
         
-        /*********************显示下拉列表*************************/
-        this.managerUserList = ko.observableArray([]);
-        self.subsysVo().accounts_string.subscribe(function(value){
-        	self.subsysVo().accounts = _.map(value, function(item){
-        		return JSON.parse(item);
-        	});
-        })
-        self.subsysVo().vdcUuid.subscribe(function(vdcUuid){//选vdc传uuid作为参数传递
-            if(!vdcUuid||typeof(vdcUuid) == undefined||vdcUuid.length==0) return;
-        
-
-            csc.rest.get("api/v5.0.0/vdcs/"+vdcUuid+"/users", function(data){
-                if(data.results.length < 1) {
-                    self.managerUserList([]);
-                    return;
-                }
-                var results = [];
-                for(var i = 0; i < data.results.length; i++){
-                     var authType = data.results[i].authType;
-                     if (authType=="1"){
-                        authType = "AD域用户";
-                     }else{
-                         authType = "本地用户";
-                     }
-                     results.push({
-                         value:JSON.stringify({
-                             account: data.results[i].account,
-                             authType: data.results[i].authType,
-                             type: 'MANGER'
-                          }),
-                         account:authType + " : "+data.results[i].account
-                     });
-                }
-                self.managerUserList(results);
-             });	        
-        });
-        /*********************显示下拉列表*************************/
         //显示在列表的值，查找属性type为MANGER出属性为account的值通过‘，’去拼接
         this.userListName = function(userList){
             return _.chain(userList).where({type:'MANGER'}).pluck('account').join(",");
@@ -226,11 +265,247 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 uuid:null,
                 name:"",
                 vdcUuid: [],
-                accounts_string: [],
+                userNames:"",
+                userValues:"",
+                userList:[],
                 desc: ''
             });
         }
-
+        /************选择用户**********/
+        this.addUserModel = ko.observable(false);
+        this.addManagerUser  = function(){
+            self.addUserModel(true);
+            $("#availableUserId").html("");
+            $("#preAddUserTableId").html("");
+            //转换用户类型
+            this.changeType = function(authType){
+                var authType_ = "";
+                if (authType=="1"){
+                    authType_ = "AD域用户";
+                }else{
+                    authType_ = "本地用户";
+                }
+                return authType_;
+            }
+            //获取系统管理人
+             csc.rest.get("api/v5.0.0/vdcs/"+self.subsysVo().vdcUuid()+"/users", function(data){
+                    //获取当前用户信息
+                    csc.rest.get("api/v5.0.0/uap/currentUser", function(userData){
+                        
+                        /*******左边数据加载**********/
+                        if(data.results.length < 1) { //无数据
+                            return;
+                        }
+                        
+                        var acc_ = userData.id;        //当前登陆用户
+                        var utype_ = userData.userType;//当前登陆用户类型
+                        
+                        var userList = self.subsysVo().userList;
+                        
+                        var leftTableBody = "";
+                        var rightTableBody = "";
+                        
+                        var disList;
+                        for(var i = 0; i < data.results.length; i++){
+                            var authType = data.results[i].authType;
+                            var authType_=self.changeType(authType);
+                            var value_ = data.results[i].account+','+data.results[i].authType
+                            var name_ = data.results[i].account;
+                            if(userList!=null&&userList.length>0){//显示待选数据
+                               var flag = false;
+                               for(var j=0;j<userList.length;j++){
+                                   var authType = data.results[i].authType;
+                                   var authType_=self.changeType(authType);
+                                   if(userList[j].authType==authType&&userList[j].account==data.results[i].account){//butong
+                                       flag = true;
+                                       break;
+                                   }
+                               }
+                               
+                               //如果vdc用户里包含有登陆用户的情况
+                               if(utype_==authType&&acc_==data.results[i].account){
+                                   flag = true;
+                               }
+                               
+                               if(!flag){//说明数据没有使用
+                                   leftTableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ value_ +"\" /><i></i></label></div></td>";
+                                   leftTableBody +="<td>"+name_+"</td><td>"+authType_+"</td></tr>";
+                               }
+                            }else{
+                                //vdc用户列表中不加载登陆用户数据
+                                if(!(utype_==authType&&acc_==data.results[i].account)){
+                                   leftTableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ value_ +"\" /><i></i></label></div></td>";
+                                   leftTableBody +="<td>"+name_+"</td><td>"+authType_+"</td></tr>";
+                                }
+                            }
+                        }
+                        /*******左边数据加载**********/
+                       
+                        if(userList!=null&&userList.length>0){//回显业务系统已经关联的系统管理员(并加上默认的用户，如果是登陆用户且在所在vdc下)
+                           var rightTableBodyFirst1 ="";
+                           var rightTableBodyFirst2 ="";
+                           for(var i=0;i<userList.length;i++){
+                               var authType = userList[i].authType;
+                               var value_ = userList[i].account+","+authType;
+                               var authType_=self.changeType(authType);
+                               
+                               if(!(acc_==userList[i].account&&utype_==authType)){
+                                   rightTableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ value_ +"\" /><i></i></label></div></td>";
+                                   rightTableBody += "<td>"+userList[i].account+"</td><td>"+authType_+"</td></tr>";
+                               }
+                               //判断登陆的用户信息是不是关联vdc
+                               var exits_ = false;
+                               for(var j = 0; j < data.results.length; j++){
+                                   if(acc_==data.results[j].account&&utype_==data.results[j].authType){
+                                       exits_ = true;
+                                       break;
+                                   }
+                               }
+                               
+                           }
+                        }
+                        
+                        for(var j = 0; j < data.results.length; j++){
+                            if(acc_==data.results[j].account&&utype_==data.results[j].authType){
+                                value_ = acc_+","+utype_;
+                                authType_=self.changeType(utype_);
+                                rightTableBodyFirst1 += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ value_ +"\" disabled/><i></i></label></div></td>";
+                                rightTableBodyFirst2 +="<td>"+acc_+"</td><td>"+authType_+"</td></tr>";
+                                break;
+                            }
+                        }
+                        
+                        rightTableBody += rightTableBodyFirst1;
+                        rightTableBody += rightTableBodyFirst2;
+                        
+                        $("#availableUserId").html(leftTableBody);
+                        $("#preAddUserTableId").html(rightTableBody);
+                      //注册左边第一行的单击事件
+                        $("#availableUserId input[type='checkbox']").each(function(index, item){
+                            $(item).bind("click", function(){
+                                if(!this.checked){
+                                    $("#availableUserId_isSelectedAll")[0].checked = false; 
+                                 }else{
+                                    var is_selectedAll = true;
+                                    var checkboxes = $("#availableUserId input[type='checkbox']");
+                                    for(var i=0; i<checkboxes.length;i++){
+                                        if(!checkboxes[i].checked){
+                                            is_selectedAll = false;
+                                    		break;
+                                        }
+                                    }
+                                    if(is_selectedAll){
+                                        $("#availableUserId_isSelectedAll")[0].checked = true; 
+                                    } 
+                                 }
+                             })
+                        })
+                        
+                        //注册右边第一行的单击事件
+                        $("#preAddUserTableId input[type='checkbox']").each(function(index, item){
+                            $(item).bind("click", function(){
+                                if(!this.checked){
+                                    $("#preAddUserTableId_isSelectedAll")[0].checked = false; 
+                                 }else{
+                                    var is_selectedAll = true;
+                                    var checkboxes = $("#preAddUserTableId input[type='checkbox']");
+                                    for(var i=0; i<checkboxes.length;i++){
+                                        if(!checkboxes[i].checked){
+                                            is_selectedAll = false;
+                                    		break;
+                                        }
+                                    }
+                                    if(is_selectedAll){
+                                        $("#preAddUserTableId_isSelectedAll")[0].checked = true; 
+                                    } 
+                                 }
+                             })
+                        })
+                        
+                    })
+             });
+            
+            //向右边添加数据
+             $("#addUser2PreAddList").bind("click",function(data){
+                 $("#availableUserId input[type='checkbox']").each(function(){
+                     if($(this).prop("checked")){
+                 	   $("#preAddUserTableId").append($(this).parents("tr").prop("outerHTML")) 
+                 	   $(this).parents("tr").remove();
+                     } 
+                 })
+                 $("#availableUserId_isSelectedAll")[0].checked =false;
+                 
+             })
+             //向左边添加数据
+             $("#removeUser2PreAddList").bind("click",function(data){
+                 $("#preAddUserTableId input[type='checkbox']").each(function(){
+                     if($(this).prop("checked")){
+                         $("#availableUserId").append($(this).parents("tr").prop("outerHTML")) 
+                         $(this).parents("tr").remove()
+                     }
+                 })
+                 $("#preAddUserTableId_isSelectedAll")[0].checked =false;
+             })
+             
+             //左边选中全选
+             $("#availableUserId_isSelectedAll").bind("click", function(){
+                 var _self = this;
+                  $("#availableUserId input[type='checkbox']").each(function(index, item){
+                      if(!item.disabled){
+                        	item.checked = _self.checked;
+                        }
+                  })
+             })
+             //右边选中全选
+             $("#preAddUserTableId_isSelectedAll").bind("click", function(){
+                 var _self = this;
+                  $("#preAddUserTableId input[type='checkbox']").each(function(index, item){
+                      if(!item.disabled){
+                      	item.checked = _self.checked;
+                      }
+                  })
+             })
+             
+             
+        }
+        self.confirmAddUser = function(){
+            var userValues = "";
+            var userNames = "";
+            var input_ = $("#preAddUserTableId input[type='checkbox']");
+            if(input_.length==0)return systemMsg.alert('没有选择可用数据!');
+            
+            input_.each(function(){
+                userValues += $(this).val()+';';
+                userNames += self.dealStr($(this).val())+';';
+            })
+            userNames = userNames.substring(0,userNames.length-1);
+            userValues = userValues.substring(0,userValues.length-1);
+            
+            self.subsysVo.fromJSON({
+                userNames:userNames,//显示的值
+                userValues:userValues//隐藏的值
+            });
+            self.addUserModel(false);
+        }
+        
+        //解析格式为 'account,0' -> account(本地用户)，'account,1' -> account(AD域用户)
+        this.dealStr = function(value){
+            if (value==null||value=="" || typeof(value)=="undefined") return;
+            
+            var arrStr = value.split(",");
+            var account = arrStr[0];
+            var type = arrStr[1];
+            if (type=="1"){
+                type = "(AD域用户)";
+             }else{
+                 type = "(本地用户)";
+             }
+            return account+type;
+        }
+        
+        /************选择用户**********/
+            
+            
         //提交保存业务系统
         this.addToSave = function(){
             if(!self.subsysVo().name.isValid()){
@@ -239,9 +514,25 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             if(!self.subsysVo().vdcUuid.isValid()){
                 return;
             }
-            if(!self.subsysVo().accounts_string.isValid()){
+            if(!self.subsysVo().userNames.isValid()){
                 return;
             }
+            var userValues = self.subsysVo().userValues();
+            var arry = userValues.split(";");//userValues数据格式为：account,0;localUser,0;chenming,1;zhongyi,1
+            var users_ = [];
+            if (arry!=null&&arry.length>0){
+                for(var i=0;i<arry.length;i++){
+                    var accountV = arry[i].split(",");//arry格式为 account,0
+                    users_.push({
+                        account: accountV[0],
+                        authType: accountV[1],
+                        type: 'MANGER'
+                    });
+                }
+            }
+            //保存处理后的值，用于传给后台
+            self.subsysVo().accounts(users_);
+            
             //置灰按钮
             $("#add_submit").attr("disabled","true");
 
@@ -277,38 +568,46 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             /**********获取业务中用户信息，组装用于回显********/
             csc.rest.get("api/v5.0.0/bussys/"+object.uuid, function(data){
             
-        		var userList = data.userList;
-   	        	var results = [];
-        		if (userList!=null&&userList.length>0){
-    	        	for(var i = 0; i < userList.length; i++){
-    	        		
-    	        		results.push(JSON.stringify({
-	        				account: userList[i].account,
-	        				authType: userList[i].authType,
-	        				type: 'MANGER'
-	        			}));
-    	        	}
-        		}
-        		self.subsysVo().accounts_string(results);
-        	});
+                var userValues = "";
+                var userNames = "";
+                var userList = data.userList;
+                if (userList!=null&&userList.length>0){
+                    for(var i = 0; i < userList.length; i++){
+                        var type_ = userList[i].authType;
+                        if (type_=="1"){
+                            type_ = "(AD域用户)";
+                         }else{
+                             type_ = "(本地用户)";
+                         }
+                        userValues += userList[i].account+","+userList[i].authType+';';
+                        userNames += userList[i].account+type_+';';
+                    }
+                    userNames = userNames.substring(0,userNames.length-1);//去掉后面的;
+                    userValues = userValues.substring(0,userValues.length-1);//去掉后面的;
+                }
+                
+                self.subsysVo.fromJSON({
+                    userValues:userValues,
+                    userNames:userNames
+                })
+           });
             /**********获取业务中用户信息，组装用于回显********/
             self.subsysVo.fromJSON(object);
                    
          }
         /*********************业务系统修改-end**************************/
- 
 
         /************************业务系统删除-start********************/
          this.remove = function(object,event){
         
-        	 confirm("确定删除业务系统【"+object.name+"】?",function(arg){
-        		 csc.rest.del('api/v5.0.0/bussys/'+object.uuid,function(data){
-     		 		systemMsg.alert('删除业务系统成功!');
+            confirm("确定删除业务系统【"+object.name+"】?",function(arg){
+                csc.rest.del('api/v5.0.0/bussys/'+object.uuid,function(data){
+                    systemMsg.alert('删除业务系统成功!');
                     self.table.refreshData();
-     		    },function(data,textStatus) {
-     		 		systemMsg.alert('删除业务系统失败!');
-     			});
- 			 });
+                },function(data,textStatus) {
+                    systemMsg.alert('删除业务系统失败!');
+                });
+            });
          }
        /************************业务系统删除-end**********************/
 
@@ -327,4 +626,5 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);  
 
 });
+
 </script>
