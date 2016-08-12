@@ -31,6 +31,7 @@ myApp.onPageInit("login", function(page) {
       var self = this;
 
       function goLogin(data){
+        USER_INFO = data;
         data.password = self.password();
         Storage.setItem("userInfo",JSON.stringify(data));
         Storage.setItem("cacheTime",new Date().getTime());

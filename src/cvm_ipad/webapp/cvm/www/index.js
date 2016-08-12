@@ -1,5 +1,6 @@
 var Storage = window.localStorage;
 var CVM_PAD = {};
+var USER_INFO = {};
 
 $.ajaxSetup({
   cache: false

@@ -1,10 +1,26 @@
 $.ajaxSetup({
 	cache : false
 })
+var loading_counter = 0;
+function showLoading(){
+	loading_counter++;
+	_.debounce(function(){
+	  	if(loading_counter>0){
+	 		$('[data-ajax-content=true]').ace_ajax('startLoading', true);
+	 	}
+	}, 1000)();
+}
+function hideLoading(){
+	loading_counter--;
+	if(loading_counter<=0){
+		$('[data-ajax-content=true]').ace_ajax('stopLoading', true);
+	}
+}
 var csc = {};
 
 csc.rest = {
 	post : function(url, content, successFun, errorFun) {
+		showLoading();
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -13,17 +29,20 @@ csc.rest = {
 			data : JSON.stringify(content),
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				hideLoading();
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
+				hideLoading();
 				successFun(data, textStatus);
 			}
 		});
 
 	},
 	put : function(url, content, successFun, errorFun) {
+		showLoading();
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -32,17 +51,20 @@ csc.rest = {
 			dataType : "json",
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				hideLoading();
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
+				hideLoading();
 				successFun(data, textStatus);
 			}
 		});
 
 	},
 	del : function(url, successFun, errorFun) {
+		showLoading();
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -50,16 +72,19 @@ csc.rest = {
 			dataType : "json",
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				hideLoading();
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
+				hideLoading();
 				successFun(data, textStatus);
 			}
 		});
 	},
 	get : function(url, successFun, errorFun,callbackCustParam) {
+		showLoading();
 		$.ajax({
 			//headers: {'Cookie' : document.cookie },
 			url : url,
@@ -68,11 +93,13 @@ csc.rest = {
 			dataType : 'json',
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				hideLoading();
 				if (errorFun) {
 					errorFun(XMLHttpRequest, textStatus, errorThrown);
 				}
 			},
 			success : function(data, textStatus) {
+				hideLoading();
 				successFun(data, textStatus,callbackCustParam);
 			}
 		});
