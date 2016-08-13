@@ -31,7 +31,7 @@ myApp.onPageInit("vm-list", function(page) {
           resourcePoolId=page.query.resourcePoolId
           break;
       }
-      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor || '',"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$.ajax("tpl/vm/list.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){

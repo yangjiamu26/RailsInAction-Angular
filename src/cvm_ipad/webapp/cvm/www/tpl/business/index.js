@@ -240,7 +240,7 @@ function init_storage_chart(data) {
         this.busdomainNum(window.indexFilter_busdomain_viewModel.busdomain.busdomainNum);
       }
       
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
 
         self.projectNum(data.size);
         if(id&&name){

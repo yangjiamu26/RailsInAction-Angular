@@ -4,7 +4,7 @@ myApp.onPageInit("settings-profile", function(page) {
 		this.info = ko.observable({
 			"name": "", 
 			"account": "", 
-			"role": "", 
+			"roleName": "", 
 			"email":"", 
 			"telephone":""
 		});

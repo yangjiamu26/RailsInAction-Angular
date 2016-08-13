@@ -60,7 +60,7 @@ function initSingleHost_cpu_chart(data) {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: data.cpuSpeed-data.availCpu,
+                  y: data.totalCpu-data.availCpu,
                   color:"#ffd800"
               },
               {
@@ -230,6 +230,7 @@ function initSingleHost_storage_chart(data) {
     this.loadData = function(data){
       var self = this;
       data.cpuSpeed = Number((parseFloat(data.cpuSpeed)/1024).toFixed(2));
+      data.totalCpu = Number((parseFloat(data.totalCpu)/1024).toFixed(2));
       data.memory = Number((parseFloat(data.memory)/1024).toFixed(2));
       data.storage = Number((parseFloat(data.storage)/1024).toFixed(2));
       data.availCpu = Number((parseFloat(data.availCpu)/1024).toFixed(2));

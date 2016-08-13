@@ -24,7 +24,7 @@ myApp.onPageInit("volumn-list", function(page) {
           break;
       }
 
-      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$$.getJSON("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page, function(data){
         self.loading = false;
         if(!is_loadMore){

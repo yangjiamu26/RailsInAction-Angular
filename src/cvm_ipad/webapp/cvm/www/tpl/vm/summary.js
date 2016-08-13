@@ -1,7 +1,7 @@
 myApp.onPageInit("vm-summary", function(page) {
-  
   function ViewModel(){
     var self = this;
+    this.hypervisor = ko.observable(page.query.hypervisor);
     this.summary = ko.observable({
       "osVersion": "",
       "cpu": "",
