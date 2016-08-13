@@ -277,6 +277,13 @@
         //let's keep a list of loaded scripts so that we don't load them more than once!
         
         function finishLoading() {
+        	if(window.timers){
+        		for(var key in window.timers){
+        			clearInterval(window.timers[key]);
+        		}
+        	}
+        	window.timers = [];
+        	
           if(typeof callback === 'function') {
             var args=new Object();         
 

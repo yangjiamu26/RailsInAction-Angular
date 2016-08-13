@@ -18,15 +18,15 @@ myApp.onPageInit("settings-password", function(page) {
 			myApp.alert('密码最少6位!');
 			return;
 		}
-		self.saveNow(self.info().newPassword_a);
+		self.saveNow(self.info().oldPassword, self.info().newPassword_a);
 	}
 	this.info = ko.observable({
 		"oldPassword": "", 
 		"newPassword_a": "", 
 		"newPassword_b": "",
 	});
-	this.saveNow = function(password){
-		RestServiceJs(BASE_URL+"/user/"+USER_INFO.id).put({"password":password},function(data){
+	this.saveNow = function(oldPassword, password){
+		RestServiceJs(BASE_URL+"/user/"+USER_INFO.id).put({"password":password,"oldPassword":oldPassword},function(data){
 			myApp.alert('恭喜，密码修改成功!');
 			self.info({
 				"oldPassword": "", 

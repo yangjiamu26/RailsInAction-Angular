@@ -621,6 +621,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  this.maxFireWallNum = ko.observable().extend({positiveIntegerRule : true});
     	  this.maxSSHNum = ko.observable().extend({positiveIntegerRule : true});
     	  this.maxLoadBalanceNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxSecurityGroupNum = ko.observable().extend({positiveIntegerRule : true});
+    	  this.maxVpnNum = ko.observable().extend({positiveIntegerRule : true});
       }
       //云主机VO
       function vmVO(){
@@ -838,6 +840,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
     				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
     				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
+    				  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
+    				  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
     			  }
     		  }else{
     			  //初始化AZ数据
@@ -968,6 +972,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  if(self.releaseRange().length > 0){
 			  self.releaseRange.removeAll();
 		  }
+    	  if(self.packages_chosen().length > 0){
+			  self.packages_chosen.removeAll();
+		  }
     	  
     	  this.showItems("no");
     	  this.showItems.subscribe(function(value){
@@ -984,6 +991,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: true, onlyIf:function(){return true}}});
     	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: true, onlyIf:function(){return true}}});
     	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxSecurityGroupNum.extend({required: {params: true, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxVpnNum.extend({required: {params: true, onlyIf:function(){return true}}});
     	       	  }else{
     	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: false, onlyIf:function(){return true}}})
     	       		self.serviceVO().serviceVDC.maxVmNum.extend({required: {params: false, onlyIf:function(){return true}}});
@@ -997,6 +1006,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: false, onlyIf:function(){return true}}});
     	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: false, onlyIf:function(){return true}}});
     	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxSecurityGroupNum.extend({required: {params: false, onlyIf:function(){return true}}});
+    	       		self.serviceVO().serviceVDC.maxVpnNum.extend({required: {params: false, onlyIf:function(){return true}}});
     	       	  }
     	  })
     	  this.isFee("1");
@@ -1154,12 +1165,25 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 					  isMandatory = false;
 //    	    		  return;
     	    	  }
+    	    	  var maxSecurityGroupNum = obj.maxSecurityGroupNum(); 
+    	    	  if(typeof(maxSecurityGroupNum) == "undefined" || maxSecurityGroupNum == ""){
+//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
+    	    	  }
+    	    	  var maxVpnNum = obj.maxVpnNum(); 
+    	    	  if(typeof(maxVpnNum) == "undefined" || maxVpnNum == ""){
+//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
+					  isMandatory = false;
+//    	    		  return;
+    	    	  }
     	    	  if(!isMandatory){
           			  alert("请输入限制的配额的值！");
           			  return;
           		  }
     		  }
     	  }
+
     	  this.step(this.step()+1);
       }
       this.prevStep = function(){
@@ -1340,8 +1364,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    this.saveService = function(){
   	      this.buttonEnable(false);
   	      this.serviceVO().charge(this.isFee());//是否计费
-  		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
-  		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则
+  	      if(this.isFee() == 0){
+  	    	  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
+    		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则
+  	      }
   		  this.serviceVO().productId(this.selected_product());
   		  
   		  if(this.selected_product()=='VDC'){//VDC保存时的数据
@@ -1350,21 +1376,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   			  this.serviceVO().serviceIP = null;
   			  this.serviceVO().serviceVDC.isLimit(this.showItems());
   			  this.serviceVO().serviceVDC.osType(getVdcOsType(this.osTypeList()));
-  			  var limit = this.showItems();
-  			  if(limit == "yes"){
-				  self.serviceVO().serviceVDC.maxCpu.extend({required : true});
-				  self.serviceVO().serviceVDC.maxVmNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxMemory.extend({required : true});
-				  self.serviceVO().serviceVDC.maxDiskNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxStorager.extend({required : true});
-				  self.serviceVO().serviceVDC.maxIpNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxVPC.extend({required : true});
-				  self.serviceVO().serviceVDC.maxRouterNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxObjStorageNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxFireWallNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxSSHNum.extend({required : true});
-				  self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required : true});
-			  }
+  			  
   	      }else {
   	    	  //当修改时根据选择的可用分区联动过滤已选择的发布范围
   	    	  var range = "";
@@ -1440,8 +1452,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	    this.saveServiceAndRelease = function(){
   	    	  this.buttonEnable(false);
   	    	  this.serviceVO().charge(this.isFee());//是否计费
-    		  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
-    		  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则 	  
+  	    	  if(this.isFee() == 0){
+    	    	  this.serviceVO().chargeType(getPackages(this.packages_chosen()));//套餐
+      		  	  this.serviceVO().rules(getRules(this.packages_chosen()));//计费规则
+    	      }
     		  this.serviceVO().productId(this.selected_product());
     		  
     		  if(this.selected_product()=='VDC'){//VDC保存时的数据
@@ -1534,7 +1548,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         
         <!-- 云盘start  -->
         this.diskTypeList = ko.observableArray();
-        this.diskTypeCheck = ko.observable("HDD");
+        this.diskTypeCheck = ko.observable("SSD");
         <!-- 云盘end  -->
         
         <!-- 公网IP   start-->
@@ -2109,6 +2123,22 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     <label class="col-xs-6 control-label">最大负载均衡数(个)：</label>
                     <div class="col-xs-6">
                       <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大安全组数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSecurityGroupNum">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-6">
+                  <div class="form-group">
+                    <label class="col-xs-6 control-label">最大VPN数(个)：</label>
+                    <div class="col-xs-6">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVpnNum">
                     </div>
                   </div>
                 </div>

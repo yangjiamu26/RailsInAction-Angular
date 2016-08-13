@@ -31,6 +31,15 @@
    		        })
 			},
 			/**
+			 * 删除ObjectStorage
+			 *  @param uuid ObjectStorage uuid
+			 */
+			getObjectStorage:function(uuid,callback){
+				csc.rest.get('api/v5.0.0/objectStorages/'+uuid,function(data){
+					 callback(data)
+   		        })
+			},
+			/**
 			 * 获取ObjectStorage列表
 			 * @param param  查询条件
 			 */
@@ -49,7 +58,9 @@
 					 callback(data)
    		        })
 			},
-			
+			/**
+			 * 停止上传，发送到servlet
+			 */
 			stopUpload:function(url,data,successFun,errorFun){
 				$.ajax({					
 					url : url,

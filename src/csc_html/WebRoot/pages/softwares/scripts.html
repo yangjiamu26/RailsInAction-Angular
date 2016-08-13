@@ -56,7 +56,7 @@
 				</thead>
 				<tbody>
 					<tr data-bind="visible: showNoData">
-						<td colspan=11 class="aligncenter">This table has no data.</td>
+						<td colspan=11 class="aligncenter">暂无数据</td>
 					</tr>
 					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 					<tr>
@@ -333,7 +333,7 @@
 				<button type="button" class="close" data-dismiss="modal">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h3 class='modal-title'>关联脚本</h3>
+				<h3 class='modal-title'>关联软件</h3>
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-group string required">
@@ -367,7 +367,7 @@
 						</thead>
 						<tbody>
 							<tr data-bind="visible: showNoData">
-								<td colspan=11 class="aligncenter">This table has no data.</td>
+								<td colspan=11 class="aligncenter">暂无数据</td>
 							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
@@ -831,14 +831,16 @@
 					/** 验证提交 **/
 					this.validSubmit = function() {
 						var flag = true;
+						var hasExecScript = false;
 						
 						if (self.currentVO.isValid()) {
+							// 脚本文件列表不能为空
 							if (self.fileTable().length == 0) {
 								systemMsg.alert('未指定脚本文件');
 								flag = false;
 								return flag; 
 							}
-							
+							// 验证是否存在未上传脚本
 							$.each(self.fileTable(), function(i, val) {
 								if (!val.path()) {
 									
@@ -848,6 +850,18 @@
 									return flag; 
 								}
 							});
+							// 验证是否存在一个可执行脚本
+							$.each(self.fileTable(), function(i, val) {
+								if (val.isExec == 1) {
+									hasExecScript = true;
+								}
+							});
+							
+							if (!hasExecScript) {
+								systemMsg.alert('必须指定可执行脚本');
+								flag = false;
+								return flag; 
+							}
 						} else {
 							flag = false;
 						}

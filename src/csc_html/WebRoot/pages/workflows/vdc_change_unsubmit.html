@@ -71,6 +71,14 @@
                         <td data-bind="text: metaVdc().objectStorage"></td>
                         <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().objectStorage"></td>
                       </tr>
+                      <tr>
+                        <td>安全组(个)</td>
+                        <td data-bind="text: metaVdc().securityGroup"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().securityGroup"></td>
+                        <td>VPN(个)</td>
+                        <td data-bind="text: metaVdc().vpn"></td>
+                        <td><input type="text" class="form-control input-sm w-xxs" data-bind="value: changeVdc().vpn"></td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -113,7 +121,9 @@
   	        firewall: ko.observable(""),
   	        loadBalance: ko.observable(""),
   	        secretKey: ko.observable(""),
-  	        objectStorage: ko.observable("")
+  	        objectStorage: ko.observable(""),
+	  	    securityGroup: ko.observable(""),
+	  	    vpn: ko.observable("")
   	      });
 		  
 		  this.metaVdc = ko.validatedObservable({
@@ -128,7 +138,9 @@
   	        firewall: ko.observable(""),
   	        loadBalance: ko.observable(""),
   	        secretKey: ko.observable(""),
-  	        objectStorage: ko.observable("")
+  	        objectStorage: ko.observable(""),
+	  	    securityGroup: ko.observable(""),
+	  	    vpn: ko.observable("")
   	      });
 	  	  
 		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -169,6 +181,10 @@
 	      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
 	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
 	      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+	      				self.changeVdc().securityGroup(vdcQuotaList[i].value);
+	      			}else if(vdcQuotaList[i].type=='VPN'){
+	      				self.changeVdc().vpn(vdcQuotaList[i].value);
 	      			}
 	      		}
 	      		for(var i=0;i<osType.length;i++){
@@ -182,7 +198,7 @@
 	      		}
 	      		self.vdcQuotaList(vdcQuotaList);
 	      		
-	      		$.VDC.getVdcQuota(itemListData[0].vdcUuid,"",function(data){
+	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
 		    		var vdcQuotaList = data.results;
 		    		for(var i=0;i<vdcQuotaList.length;i++){
 		    			if(vdcQuotaList[i].type=='CPU'){
@@ -209,6 +225,10 @@
 		      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
 		      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+		      				self.metaVdc().securityGroup(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPN'){
+		      				self.metaVdc().vpn(vdcQuotaList[i].value);
 		      			}
 		    		}
 		    	})
@@ -234,6 +254,8 @@
 			 vdcQuotaList.push({type:"SECRET_KEY",value:self.changeVdc().secretKey()});
 			 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.changeVdc().objectStorage()});
 			 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.changeVdc().loadBalance()});
+			 vdcQuotaList.push({type:"SECURITY_GROUP",value:self.changeVdc().securityGroup()});
+			 vdcQuotaList.push({type:"VPN",value:self.changeVdc().vpn()});
 				 
 			 resBaseInfo.vdcQuotaList=vdcQuotaList;
 			 var osType = [];

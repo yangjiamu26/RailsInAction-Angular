@@ -319,7 +319,7 @@
            {name:'GB',value:'GB'}
             ],
        SECRET_KEY:[
-          {name:'个',value:'num'}
+          {name:'对',value:'num'}
         ],
         PUBLICIP:[
           {name:'个',value:'num'}
@@ -337,39 +337,14 @@
       };
       this.attrUnitVo = ko.observable(attrUnits.CPU);
       this.add = function(){
-
         self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
         self.currentVO = new CurrentVO();
-        self.currentVO().attrType.subscribe(function(){
-          if(self.currentVO().attrType() == 'DISK') {
-            self.attrUnitVo(attrUnits.DISK)
-          } else if(self.currentVO().attrType() == 'CPU'){
-            self.attrUnitVo(attrUnits.CPU)
-          } else if(self.currentVO().attrType() == 'MEMORY'){
-            self.attrUnitVo(attrUnits.MEMORY)
-          } else if(self.currentVO().attrType() == 'SECRET_KEY'){
-            self.attrUnitVo(attrUnits.SECRET_KEY)
-          } else if(self.currentVO().attrType() == 'PUBLICIP'){
-            self.attrUnitVo(attrUnits.PUBLICIP)
-          } else if(self.currentVO().attrType() == 'STORAGE'){
-            self.attrUnitVo(attrUnits.STORAGE)
-          } else if(self.currentVO().attrType() == 'OBJECT_STORAGE'){
-            self.attrUnitVo(attrUnits.OBJECT_STORAGE)
-          } else if(self.currentVO().attrType() == 'VDC'){
-            self.attrUnitVo(attrUnits.VDC)
-          } else if(self.currentVO().attrType() == 'LOAD_BALANCING'){
-            self.attrUnitVo(attrUnits.LOAD_BALANCING)
-          }
-        });
+        self.currentVO().attrType.subscribe(self.resetAttrUnit);
+        self.resetAttrUnit();
         self.isAdd(true);
-
-        
       };
       
-      this.edit = function(object, event){
-    	  self.currentVO = new CurrentVO();
-    	  self.currentVO.fromJSON(object);
-    	  
+      this.resetAttrUnit = function(){
     	  if(self.currentVO().attrType() == 'DISK') {
             self.attrUnitVo(attrUnits.DISK)
           } else if(self.currentVO().attrType() == 'CPU'){
@@ -389,7 +364,12 @@
           } else if(self.currentVO().attrType() == 'LOAD_BALANCING'){
             self.attrUnitVo(attrUnits.LOAD_BALANCING)
           }
-    	  
+      }
+      
+      this.edit = function(object, event){
+    	  self.currentVO = new CurrentVO();
+    	  self.currentVO.fromJSON(object);
+    	  self.resetAttrUnit();
     	  self.cycles([{name: '天', id: 'DAY'},{name: '月', id: 'MONTH'}, {name: '季', id: 'QUARTER'},{name: '年', id: 'YEAR'}])
           self.isAdd(true);
       };

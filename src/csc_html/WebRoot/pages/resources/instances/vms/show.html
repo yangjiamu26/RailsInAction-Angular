@@ -421,13 +421,12 @@
       <div class='modal-body form-horizontal'>
         <div>
           <button class="btn btn-default btn-sm pull-right" data-bind="click: installVM">选择软件</button>
-          虚拟机名称：<span data-bind="text:vmVO().name"></span>&nbsp;
-     IP：<input />&nbsp;
-     用户名：<input />&nbsp;
-     密码：<input />&nbsp;
+          虚拟机名称：<span data-bind="text: vmVO().name"></span>
         </div>
         <hr />
-        <p class="text-muted">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
+         	<span>用户名：<input data-bind="value: installSoftwareVO().userName"/></span>
+     		<span>密码：<input data-bind="value: installSoftwareVO().password"/></span>
+        	<p class="text-muted" style="padding-top:10px;">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -939,21 +938,15 @@
         </div>
         <div class='modal-body form-horizontal row'>
           <div class="form-group">
-            <label class="col-sm-3 control-label">IP：</label>
-            <div class="col-sm-8">
-              <input type="email" class="form-control" data-bind="value: volumeVO().name">
-            </div>
-          </div>
-          <div class="form-group">
             <label class="col-sm-3 control-label">用户名：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" data-bind="value: volumeVO().size">
+              <input type="email" class="form-control" data-bind="value: reInstallVO().userName">
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-3 control-label">密码：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" data-bind="value: volumeVO().targetSize">
+              <input type="password" class="form-control" data-bind="value: reInstallVO().password">
             </div>
           </div>
 
@@ -1125,7 +1118,6 @@
   	this.doReInstall = function(object,event){
     	self.isReInstall(true);
     	self.reInstallVO().uuid(object.uuid);
-    	self.reInstallVO().ip('');
     	self.reInstallVO().userName('');
     	self.reInstallVO().password('');
     }
@@ -1133,7 +1125,6 @@
     
     this.reInstallVO = ko.observable({
     	uuid: ko.observable(),
-    	ip: ko.observable(),
     	userName: ko.observable(),
     	password: ko.observable()
     })
@@ -1142,7 +1133,6 @@
     	var vm = {};
     	vm.id = self.vmVO().id;
     	vm.uuid = self.vmVO().uuid;
-    	vm.ip = self.reInstallVO().ip();
     	vm.userName = self.reInstallVO().userName();
     	vm.userPwd = self.reInstallVO().password();
     		
@@ -1179,7 +1169,12 @@
     //------------------------------------------安装软件开始----------------------------
     
     this.softwareItems = ko.observableArray([]);
-              
+    
+    this.installSoftwareVO = ko.observable({
+    	userName: ko.observable(),
+    	password: ko.observable()
+    });
+    
     //增加数据
 	/*人和骰子一样，向自己决定的地方扔出自己，正是因为这样，人才是自由的；
 	    每个人的境遇都不一样，但是无论多么微不足道的选择，都可以投入自己，不是偶然；也不是随波逐流，而是自己选择的结果。 */
@@ -1241,12 +1236,15 @@
     			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid + ",";
     		}
     	}
+    	if(csc.util.isNull(softwareUuids)){
+    		systemMsg.alert('请选择一个软件！');
+    		return;
+    	}
     	var vm = {};
     	vm.id = self.vmVO().id;
     	vm.uuid = self.vmVO().uuid;
-    	/* vm.ip = self.reInstallVO().ip();
-    	vm.userName = self.reInstallVO().userName();
-    	vm.userPwd = self.reInstallVO().password(); */
+    	vm.userName = self.installSoftwareVO().userName();
+    	vm.userPwd = self.installSoftwareVO().password();
     		
     	var vms = [];
     	vms.push(vm);

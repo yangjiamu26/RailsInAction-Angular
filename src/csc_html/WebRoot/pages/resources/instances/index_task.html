@@ -53,12 +53,12 @@
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr> 
-                <td data-bind="text: taskId"></td>
+                <td ><a data-bind="text: taskId,click: $root.showTaskInfo"></a></td>
                 <td data-bind="text: taskName"></td>
                 <td data-bind="text: progress"></td>
                 <td>
                 	<span class="label label-success" data-bind="if: $row.state == 'success'">成功</span>
-                	<span class="label label-warning" data-bind="if: $row.state == 'active'">进行中</span>
+                	<span class="label label-warning" data-bind="if: $row.state == 'in-progress'">进行中</span>
                 	<span class="label label-danger" data-bind="if: $row.state == 'completedAndError'">失败</span>
                 </td>
                 <td data-bind="text: targetName"></td>
@@ -108,6 +108,52 @@
 				   </footer>
 </div>
         
+   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isLogText }"> 
+
+      <div class='modal-dialog' role='document'> 
+         <div class='modal-content'> 
+            <div class='modal-header'> 
+               <button type="button" class="close" data-dismiss="modal"> 
+                  <span aria-hidden="true">&times;</span> 
+               </button> 
+               <h3 class='modal-title'>任务日志</h3> 
+            </div> 
+            <div class='modal-body form-horizontal'> 
+	            <div class="panel panel-info">
+			        <div class="panel-heading">基本信息</div>
+			        <div class="panel-body">
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>任务名称：</strong><span data-bind="text: taskLogVO().taskName"></span></p>
+			                </div>
+			                <div class="col-xs-6">
+			                    <p><strong>任务进度：</strong><span data-bind="text: taskLogVO().progress"></span>%</p>
+			                </div>
+			            </div>
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>开始时间：</strong><span data-bind="text: taskLogVO().executeDate"></span></p>
+			                </div>
+			                <div class="col-xs-6">
+			                    <p><strong>结束时间：</strong><span data-bind="text: taskLogVO().endDate"></span></p>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+            	<div class="panel panel-info">
+			        <div class="panel-heading">详细信息</div>
+			        <div class="panel-body">
+		            	<div contenteditable="true" class="csc_dailyTextarea" id="task_log_text" style="width:519px;padding:3px 0 0 8px;"></div>
+		            </div>
+               </div>
+               <div class='modal-footer' style="text-align: center"> 
+                  <button name="button" type="submit" 
+                     class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button> 
+               </div> 
+            </div> 
+         </div> 
+      </div> 
+   </div> 
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
@@ -134,7 +180,48 @@
 		  self.table.path('api/v5.0.0/tasks');
       }
       this.reloadTaskList();
-    }
+      
+      //任务详情
+      this.taskLogVO = ko.observable({});
+      this.isLogText = ko.observable(false);
+      
+      this.showTaskInfo = function(object,event){
+    	  self.isLogText(true);
+    	  self.taskLogVO(object);
+    	  csc.rest.get("api/v5.0.0/tasks/"+object.taskId+"/logs",function(infoData){
+    		  if(infoData){
+	    		  var logText = "";
+	    		  for(var i=0;i<infoData.logs.length;i++){
+	    			  var executeTime = infoData.logs[i].executeTime;
+	    			  executeTime = self.integerToDate(executeTime);
+	    			  var message = infoData.logs[i].message;
+	    			  var state = infoData.logs[i].state;
+	    			  if(state == "completed"){
+	    				  state = "完成";
+	    			  }else if(state == "active"){
+	    				  state = "开始";
+	    			  }else if(state == "completedAndError"){
+	    				  state = "完成但有错误";
+	    			  }
+	    			  logText = logText + "<div>"+executeTime + "	-" + message + "	-" + state + "</div>";
+	    		  }
+	    			  $("#task_log_text").html(logText);
+    		  }
+    	  });
+      }
+      
+      this.integerToDate = function(timestamp){
+	      var d = new Date(timestamp);    //根据时间戳生成的时间对象
+	      var date = (d.getFullYear()) + "-" + 
+	                 (d.getMonth() + 1) + "-" +
+	                 (d.getDate()) + " " + 
+	                 (d.getHours()) + ":" + 
+	                 (d.getMinutes()) + ":" + 
+	                 (d.getSeconds());
+	      return date;
+	    }
+      }
+      
     ko.applyBindings(new ViewModel_Task(), $('#partition_tasks')[0]);
   })
 </script>

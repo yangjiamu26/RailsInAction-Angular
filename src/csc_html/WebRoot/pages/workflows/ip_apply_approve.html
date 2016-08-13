@@ -19,11 +19,7 @@
 							<td data-bind="text:instanceName"></td>
 							<td data-bind="text:vdcName"></td>
 							<td data-bind="text:vpcName"></td>
-							<td >
-								<span data-bind="visible: expireType==1">永久</span>
-								<span data-bind="visible: expireType==2"><label data-bind="text:expireValue"></label></span>
-								<span data-bind="visible: expireType==3"><label data-bind="text:expireTime"></label></span>
-							</td>
+							<td data-bind="text:applyTime"></td>
 							<td data-bind="text:fee"></td>
 							
 						</tr>
@@ -54,6 +50,8 @@
 						  	var metaData = JSON.parse(orderItem.metaData);
 						  	var resInfoJson = metaData.resBaseInfo;
 						  	var resInfo = JSON.parse(resInfoJson);
+						  	var applyTime = csc.util.getExpireText(orderItem.expireType,orderItem.expireValue);
+							orderItem.applyTime=applyTime;
 							orderItem.vpcName = resInfo.vpcName;
 						  	itemArray.push(orderItem);
 					  	}
@@ -71,7 +69,7 @@
 					if(isLast){
 					  saveComment(taskId,function(){
 						var databody = {"userId":"","action":"designated"};
-						csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
+						csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
 						  alert("审核成功！");
 						  location.href = "#pages/workflows/tasks?type=work";
 						},function(){alert("操作失败！")});

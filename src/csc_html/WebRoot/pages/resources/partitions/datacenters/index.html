@@ -35,7 +35,7 @@
         <tbody>
           <tr data-bind="visible: showNoData">
             <td colspan=6 class="aligncenter">
-              This table has no data.
+              	暂无数据
             </td>
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -73,8 +73,8 @@
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title' data-bind="ifnot: currentVO().id">创建数据中心</h3>
-        <h3 class='modal-title' data-bind="if: currentVO().id">修改数据中心</h3>
+        <h3 class='modal-title' data-bind="ifnot: currentVO().uuid">创建数据中心</h3>
+        <h3 class='modal-title' data-bind="if: currentVO().uuid">修改数据中心</h3>
       </div>
       <div class='modal-body form-horizontal row' data-bind="with:currentVO">
         <div class="form-group">
@@ -111,7 +111,14 @@
       
       var CurrentVO = function(){
         return ko.validatedObservable({
-            "name": ko.observable().extend({required:true})
+        	name: ko.observable().extend({required: true,
+				 validation: {
+		                validator: function (val, someOtherVal) {
+		                	return csc.util.invalidValueParam(val);
+		                },
+		                message: '名称不能包含特殊字符！'
+		            }
+			})
         });
       };
       
@@ -138,7 +145,7 @@
 		var datacenterUuid = rowObj.uuid;
 		confirm("确定删除数据中心["+dcName+"]？",function(arg){
 			csc.rest.del('api/v5.0.0/datacenters/'+datacenterUuid, function(data){
-				systemMsg.alert("删除数据中心：["+dcName+"]成功！");
+				systemMsg.alert("删除数据中心["+dcName+"]成功！");
 				self.table.refreshData();
 		    });
 		 });

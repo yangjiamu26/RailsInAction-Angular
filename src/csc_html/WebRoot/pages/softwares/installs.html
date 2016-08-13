@@ -20,7 +20,8 @@
 				<div class="input-group">
 					<span class="input-group-addon">软件类型</span> 
 					<select class="form-control input-sm"
-						data-bind="value: searchParam().softTypeName, options: $root.types, optionsText: 'name', optionsValue: 'name', optionsCaption: ''"></select>
+						data-bind="value: searchParam().softTypeName, options: $root.types, optionsText: 'name', optionsValue: 'name', optionsCaption: ''">
+					</select>
 				</div>
 			</div>
 			<div class="col-xs-3">
@@ -52,7 +53,7 @@
 				</thead>
 				<tbody>
 					<tr data-bind="visible: showNoData">
-						<td colspan="7" class="aligncenter">This table has no data.</td>
+						<td colspan="7" class="aligncenter">暂无数据</td>
 					</tr>
 					<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 					<tr>
@@ -101,27 +102,27 @@
 			<div class='modal-body form-horizontal'>
 				<div>
 					<button class="btn btn-default btn-sm pull-right"
-						data-bind="click: installVM">选择虚拟机</button>
+						data-bind="click: installVM">选择云主机</button>
 					脚本名称：<span data-bind="text: softwareVO().name"></span>
 					 软件版本：<span data-bind="text: softwareVO().version">1</span>
 				</div>
 				<hr />
-				<p class="text-muted">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
+				<p class="text-muted">注：没有密钥对的虚拟机需输入云主机用户密码。</p>
 				<table class="table table-striped">
 					<thead>
 						<tr>
-							<th>虚拟机名称</th>
-              				<th>虚拟机IP</th>
+							<th>云主机名称</th>
+              				<th>云主机IP</th>
               				<th>静默安装属性</th>
-              				<th>虚拟机账户</th>
-              				<th>虚拟机密码</th>
+              				<th>云主机账户</th>
+              				<th>云主机密码</th>
               				<th>操作</th>
 						</tr>
 					</thead>
 					<tbody data-bind="foreach: toInstallTable">
 						<tr>
-							<td data-bind="text:name">虚拟机名称</td>
-							<td data-bind="text:ip">虚拟机IP</td>
+							<td data-bind="text:name"></td>
+							<td data-bind="text:ip"></td>
 							<td>
 								<a data-bind="click: $root.openAttr">查看</a>
 							</td>
@@ -152,12 +153,12 @@
 				<button type="button" class="close" data-dismiss="modal">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h3 class='modal-title'>选择虚拟机</h3>
+				<h3 class='modal-title'>选择云主机</h3>
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-inline">
-					虚拟机名称：<input type="text" class="form-control" />
-					虚拟机：<input type="text" class="form-control" />
+					云主机名称：<input type="text" class="form-control" />
+					云主机IP：<input type="text" class="form-control" />
 					<button class="btn btn-default">搜索</button>
 				</div>
 				<p>&nbsp;</p>
@@ -172,15 +173,15 @@
 										</label>
 									</div>
 								</th>
-								<th>虚拟机名称</th>
-								<th>虚拟机IP</th>
+								<th>云主机名称</th>
+								<th>云主机IP</th>
 								<th>所属业务系统</th>
 								<th>所属业务域</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr data-bind="visible: showNoData">
-								<td colspan=11 class="aligncenter">This table has no data.</td>
+								<td colspan=11 class="aligncenter">暂无数据</td>
 							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
@@ -324,7 +325,6 @@
 
 					/** 安装数据对象 **/
 					this.installVO = ko.observable({
-						softwareUuids: '',
 						vms:[]
 					});
 					
@@ -377,7 +377,7 @@
 						softType : "",
 						softTypeName : "",
 						softwareName : "",
-						status: 1
+						installable: 'Y'
 					});
 					
 					/** 安装弹窗 **/
@@ -385,7 +385,6 @@
 						self.softwareVO(object);
 						
 						self.installVO({
-							softwareUuids: '',
 							vms:[]
 						});
 						
@@ -519,7 +518,6 @@
 					
 					/** 提交执行安装信息 **/
 					this.confirmInstall = function () {
-						self.installVO().softwareUuids = self.softwareVO().uuid;
 						
 						$.each(self.toInstallTable(), function (i, val) {
 							
@@ -544,19 +542,16 @@
 								userPwd: val.userPwd(),
 								uuid: val.uuid,
 								vdcName: val.vdcName,
-								installAttrs: installAttrs
+								installAttrs: installAttrs, 
+								softwareUuid: self.softwareVO().uuid
 							});
 						});
 						
-						console.log(self.installVO());
-						
-						console.log(window.location.href);
-						//   #pages/softwares/logs
 						$.INSTALL.installSoft(self.installVO(), function(data) {
-							//console.log(data);
 							self.isInstall(false);
-							
-							window.location.href = '#pages/softwares/logs';
+							setTimeout(function () {
+								window.location.href = '#pages/softwares/logs';
+							}, 1000);
 						});
 					};
 					
@@ -569,6 +564,5 @@
 					var viewModel = new ViewModel();
 					ko.applyBindings(viewModel, $('#page-content')[0]);
 				});
-				
 			});
 </script>
