@@ -68,9 +68,9 @@
                     <span>告警</span> <span class='badge badge-sm up bg-danger' data-bind="text: alarmStatVO().totalAlarm()"></span> <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu" role="menu" id="warnings-tabs">
-                    <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
-                    <li ><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
-                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
+                    <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/systems/warnings/index?showTab=sysTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
+                    <li ><a href="#pages/systems/warnings/index?showTab=vmTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index?showTab=vdcTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
                 </ul>                
             </li>
             <li class='dropdown' data-bind="visible: (roleVO().roleFlag()!='AG' && roleVO().roleFlag()!='AS')">
@@ -95,7 +95,7 @@
                 <li>
                     <table class="table text-xs">
                         <tbody data-bind="with:user">
-                            <tr>
+                            <tr data-bind="visible: userType()=='0'">
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_profile.html')" class="btn btn-info btn-xs">修改信息</a></td>
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_password.html')" class="btn btn-primary btn-xs">修改密码</a></td>
                             </tr>
@@ -113,7 +113,7 @@
                             </tr>
                             <tr>
                                 <td>组织：</td>
-                                <td data-bind="text:organizationName"></td>
+                                <td data-bind="text:organizationName()==''?'本地用户':organizationName()"></td>
                             </tr>
                             <tr>
                                 <td>手机：</td>
@@ -510,11 +510,11 @@
                           <span>SSH密钥</span>
                         </a>
                       </li>
-                      <li>
+<!--                       <li>
                         <a data-url="pages/services/service_applies/index?type=7" href="#pages/services/service_applies/index?type=7">
                           <span>自定义产品</span>
                         </a>
-                      </li>
+                      </li> -->
                       
                     </ul>
                 </li>  
@@ -737,6 +737,14 @@
 	    	}
 	    	this.getUapUrl();
 	    	
+	    	this.fetchActionsForCheck = function(){
+	    		csc.rest.get("api/v5.0.0/roles/currentRole/getCurrUserPrivMenuToList", function(data){
+	    			ko.actionsMap = data.currentPriv;
+	    			/* setTimeout(function(){
+	    		  	  ko.actionsMap = ["action1", "action2"]
+	    		    }, 2000) */
+	    		});
+	    	}
 	    	this.roleVO = ko.observable({
 		    	roleName: ko.observableArray([]),
 		    	currentRole: ko.observable(),
@@ -776,6 +784,7 @@
 		    			self.roleVO().roleFlag("COMMON");
 		    		}
 		   	    });
+		    	self.fetchActionsForCheck();
 		    }
 		    self.roleVO().roleFlag("ALL");
 		    this.loadRoles();
@@ -816,6 +825,7 @@
 	    			self.roleVO().roleFlag("COMMON");
 	    			window.location.hash = '#pages/welcome/index?role=com';
 	    		}
+		    	self.fetchActionsForCheck();
 		    }
 		    
 		    this.alarmStatVO = ko.observable({
@@ -849,6 +859,7 @@
 				this.status = ko.observable("");
 				this.roleName = ko.observable("");
 				this.organizationName = ko.observable("");
+				this.userType = ko.observable("");
 			}
 				
 			this.user = ko.validatedObservable(new cscUser());

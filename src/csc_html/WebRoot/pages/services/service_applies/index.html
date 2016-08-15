@@ -698,9 +698,9 @@
 		    
 		    this.vpcChange = function(obj){
 		    	var _self = this;
-		        csc.rest.get("api/v5.0.0/cart/getNetworkList/1/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
+		        csc.rest.get("api/v5.0.0/cart/getNetworkList/"+obj.serviceUuid()+"/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
 		        	_self.networkList(data);
-		        });
+		        },function(){},null,true);
 		    }
 		    
 		    this.vpcChangeByPublic = function(obj){
@@ -1171,12 +1171,6 @@
 			   this.ip = ko.observable(e.ip);
 		   }
 		   
-		   function softwareVo(e){
-			   this.softwareUuid = ko.observable(e.softwareUuid);
-			   this.scriptUuid = ko.observable(e.scriptUuid);
-			   this.softwareParamsList = ko.observableArray();
-		   }
-		   
 		   function softwareParamsVO(e){
 			    this.paramsUuid = ko.observable(e.paramsUuid);
 		    	this.paramsValue = ko.observable(e.paramsValue!=null?e.paramsValue:"");
@@ -1202,14 +1196,6 @@
 		    	   if("VM" == productKey){
 		    		   relateUuid=csc.util.getUuid();
 		    		   baseInfo.networkList.push(new networkVO(e));
-		    		   /* e.softwares.forEach(function (soft){
-		    			   var software = new softwareVo(soft);
-		    		   	   soft.softwareParams.forEach(function (params){
-			    			   var softwareParam = new softwareParamsVO(params);
-			    			   software.softwareParamsList.push(softwareParam);
-			    		   })
-			    		   baseInfo.softwareList.push(software);
-		    		   }); */
 		    	   }
 		    	   if(e.mountDisks!=null && e.mountDisks.length>0){
 		    		   item.relateUuid(relateUuid);
@@ -1217,19 +1203,20 @@
 			    		   var i =new itmesVO(m);
 				    	   i.resourceType("DISK");
 				    	   i.relateUuid(relateUuid);
-				    	   i.azUuid = ko.observable(e.azUuid);
-				    	   i.vdcUuid = ko.observable(e.vdcUuid);
+				    	   i.azUuid(e.azUuid);
+				    	   i.vdcUuid(e.vdcUuid);
+				    	   i.expireType(e.applyType);
+							var expireValue="";
+				    	    if(e.applyType == "2"){
+				    		   expireValue = e.applyNum;
+				    	    }else if(e.applyType == "3"){
+				    		   expireValue = e.applyTime;
+				    	    }
+				    		i.expireValue(expireValue);
+				    	   
 				    	   var md=new metaDataVO();
 				    	   var bi =new baseInfoVO(m);
-				    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
-				    		   delete baseInfo.softwareList;
-				    	   }
-				    	   if(bi.partitionList && bi.partitionList().length==0){
-				    		   delete bi.partitionList;
-				    	   }
-				    	   if(bi.networkList && bi.networkList().length==0){
-				    		   delete bi.networkList;
-				    	   }
+				    	   self.delBaseInfoArrly(bi);
 				    	   md.resBaseInfo(bi);
 				    	   i.metaData(ko.toJSON(md));
 				    	   self.ordersVO().orderItems.push(i);
@@ -1242,29 +1229,31 @@
 			    		   var i =new itmesVO(m);
 				    	   i.resourceType("SOFTWARE");
 				    	   i.relateUuid(relateUuid);
+				    	   i.azUuid(e.azUuid);
+				    	   i.vdcUuid(e.vdcUuid);
 				    	   var md=new metaDataVO();
 				    	   var bi =new baseInfoVO(m);
 				    	   m.softwareParams.forEach(function(p){
 				    		   var softwareParam = new softwareParamsVO(p);
 			    			   bi.softwareParamsList.push(softwareParam);
 				    	   });
-				    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
-				    		   delete baseInfo.softwareList;
-				    	   }
-				    	   if(bi.partitionList && bi.partitionList().length==0){
-				    		   delete bi.partitionList;
-				    	   }
-				    	   if(bi.networkList && bi.networkList().length==0){
-				    		   delete bi.networkList;
-				    	   }
+				    	   self.delBaseInfoArrly(bi);
 				    	   md.resBaseInfo(bi);
 				    	   i.metaData(ko.toJSON(md));
 				    	   self.ordersVO().orderItems.push(i);
 			    	   });
 		    	   }
 		    	   
-		    	   if(baseInfo.softwareList && baseInfo.softwareList().length==0){
-		    		   delete baseInfo.softwareList;
+		    	   self.delBaseInfoArrly(baseInfo);
+		    	   meta.resBaseInfo(baseInfo);
+		    	   item.metaData(ko.toJSON(meta));
+		    	   self.ordersVO().orderItems.push(item);
+			    });
+		    }
+		
+			 this.delBaseInfoArrly=function (baseInfo){
+				   if(baseInfo.softwareParamsList && baseInfo.softwareParamsList().length==0){
+		    		   delete baseInfo.softwareParamsList;
 		    	   }
 		    	   if(baseInfo.partitionList && baseInfo.partitionList().length==0){
 		    		   delete baseInfo.partitionList;
@@ -1272,12 +1261,7 @@
 		    	   if(baseInfo.networkList && baseInfo.networkList().length==0){
 		    		   delete baseInfo.networkList;
 		    	   }
-		    	   meta.resBaseInfo(baseInfo);
-		    	   item.metaData(ko.toJSON(meta));
-		    	   self.ordersVO().orderItems.push(item);
-			    });
-		    }
-		
+			 }
 			/************************************ 封装订单数据格式  ************************************/
 			 
 			/************************************ 提交到订单  ************************************/
@@ -1352,6 +1336,9 @@
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
+		 	    		if(parseInt(price)!=price){
+		 	    			price = price.toFixed(2);
+		 	    		}
 		 	    		if(type=="DAY"){
 		 	    			price+="元/天";
 		 	    		}else if(type=="MONTH"){
@@ -1500,6 +1487,9 @@
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
+		 	    		if(parseInt(price)!=price){
+		 	    			price = price.toFixed(2);
+		 	    		}
 		 	    		if(type=="DAY"){
 		 	    			price+="元/天";
 		 	    		}else if(type=="MONTH"){
@@ -1633,6 +1623,9 @@
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
+		 	    		if(parseInt(price)!=price){
+		 	    			price = price.toFixed(2);
+		 	    		}
 		 	    		if(type=="DAY"){
 		 	    			price+="元/天";
 		 	    		}else if(type=="MONTH"){
@@ -1770,6 +1763,9 @@
 			 	    				price +=e.unitPrice;
 			 	    			}
 			 	    		});
+			 	    		if(parseInt(price)!=price){
+			 	    			price = price.toFixed(2);
+			 	    		}
 			 	    		if(type=="DAY"){
 			 	    			price+="元/天";
 			 	    		}else if(type=="MONTH"){
@@ -1908,6 +1904,9 @@
 			 	    				price +=e.unitPrice;
 			 	    			}
 			 	    		});
+			 	    		if(parseInt(price)!=price){
+			 	    			price = price.toFixed(2);
+			 	    		}
 			 	    		if(type=="DAY"){
 			 	    			price+="元/天";
 			 	    		}else if(type=="MONTH"){
@@ -2013,12 +2012,12 @@
 			    	var osType = data.serviceVDC.osType;
 			    	var isLimit = data.serviceVDC.isLimit;
 			    	self.osTypeArray(getArrayByString(osType));
-			    	self.model_VDC().billRuleArray(setArrayCharge(data.chargeType));
+			    	
 			    	if(data.charge==1){
 			    		self.model_VDC().charge("false");
 			    	}else{
 			    		self.model_VDC().charge("true");
-			    		getArrayByString(data.chargeType);
+			    		self.model_VDC().billRuleArray(setArrayCharge(data.chargeType));
 			    		//self.model_VDC().vdcCartInfo().billRuleArray(getArrayByString(data.chargeType));
 			    	}
 			    	if(isLimit=="no"){
@@ -2054,6 +2053,9 @@
 		    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceType.serviceUuid()+"&cycle="+serviceType.billRuleUuid(), function(result){
 		    		
 		    		price = "费用:"+result.ruleList[0].unitPrice;
+	 	    		if(parseInt(price)!=price){
+	 	    			price = price.toFixed(2);
+	 	    		}
 		    		if(type=="DAY"){
 		    			price+="元/天";
 		    		}else if(type=="MONTH"){
@@ -2145,9 +2147,7 @@
 	            this.memory = ko.observable().extend({required:{onlyIf:function(){
 	      			return self.isAdd_VMMore()?self.myStep()==2:true
 	      		}}});
-	            this.storage = ko.observable().extend({required:{onlyIf:function(){
-	      			return self.isAdd_VMMore()?self.myStep()==2:true
-	      		}}});
+	            
 	            
 	            this.vpcOrIpPoolList = ko.observable().extend({required:{onlyIf:function(){
 	      			return self.isAdd_VMMore()?self.myStep()==3:true
@@ -2214,6 +2214,33 @@
 	    				} 
     				})(this)
     			}});
+	            //镜像大小
+	            this.imageSize = ko.pureComputed(function(){
+	            	var item = _.findWhere(this.osVersionList(), {uuid: this.osVersion()});
+	            	if(item!=null){
+	            		return csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
+	            	}else{
+	            		return 0;
+	            	} 
+	            }, this);
+	            this.storage = ko.observable().extend({required:{onlyIf:function(){
+	      			return self.isAdd_VMMore()?self.myStep()==2:true
+	      		}},min:{params:this.imageSize,onlyIf: 
+    				(function(_this){  
+	    				return function(){
+	    					return  _this.imageSize()
+	    				} 
+    				})(this)
+    			}});
+	            //openstack or cnware
+	            this.cloudPlatform = ko.pureComputed(function(){
+	            	var item = _.findWhere(this.azList(), {uuid: this.azUuid()});
+	            	if(item!=null){
+	            		return item.cloudPlatform == 'OpenStack' && this.osType()!='windows' ?true:false;
+	            	}else{
+	            		return false;
+	            	}
+	            }, this);
 	            
 	            //分区
 	            this.partitions = ko.observableArray([]);
@@ -2225,7 +2252,7 @@
 	            this.id = ko.observable();
 	            
 	   
-	            this.password=ko.observable();
+	            this.password=ko.observable().extend({minLength:6});
 	            this.repeatPassword=ko.observable().extend({equal: { params:this.password ,onlyIf : this.password, message :
 	            	(function(_this){  
 	    				return function(){
@@ -2285,6 +2312,9 @@
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
+		 	    		if(parseInt(price)!=price){
+		 	    			price = price.toFixed(2);
+		 	    		}
 		 	    		if(cycle=="DAY"){
 		 	    			price+="元/天";
 		 	    		}else if(cycle=="MONTH"){
@@ -2363,6 +2393,9 @@
 		 	    				price +=e.unitPrice;
 		 	    			}
 		 	    		});
+		 	    		if(parseInt(price)!=price){
+		 	    			price = price.toFixed(2);
+		 	    		}
 		 	    		if(cycle=="DAY"){
 		 	    			price+="元/天";
 		 	    		}else if(cycle=="MONTH"){
@@ -2416,13 +2449,26 @@
 
             /************************************ 云主机 单个申请  ************************************/
 		    this.isAdd_VMSingle = ko.observable(false);
+            this.isViewPartition = ko.observable(false);//显示系统盘分区
 		    this.isAdd_VM = ko.observable(false);
 		    var editObject;
 		    this.add_VMSingle = function(obj){
+		    	self.step1(true);
+		    	self.step2(false);
+		    	self.step3(false);
+		    	self.step4(false);
+		    	self.step5(false);
+		    	
 		    	    var serviceUuid = obj.serviceUuid;
 		            var uri="serviceUuid="+serviceUuid;
 		            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
-		                      self.model_VM().vmCartInfo([]);
+		            	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
+		            	if(data.serviceVm.virtualName=="PowerVM"){
+		            		self.isViewPartition(true);
+		            	}else{
+		            		self.isViewPartition(false);
+		            	}
+		            		self.model_VM().vmCartInfo([]);
 		  		 	    	  var info = new Info();
 		  		 	    	  info.vdcList(result.vdcList);
 		                      info.osTypeList(result.osTypeList);
@@ -2433,7 +2479,10 @@
 		                      info.charge(obj.isFee=="否"?"false":"true");
 		                      self.model_VM().vmCartInfo.push(new ko.validatedObservable(info));
 		  		 		      self.isAdd_VMSingle(true);
+		            	});
 		            });
+		            
+		            
 		        }
 		    /************************************ 云主机 单个申请  ************************************/	
 		    
@@ -2517,33 +2566,42 @@
 		    this.getAzForVdcChange = function(data){
 		        csc.rest.get("api/v5.0.0/cart/getAzList/"+data.serviceUuid()+"/"+data.vdcUuid(), function(result){
 		        	data.azList(result);
+		        	if(data.bussyList!=null){
+			        	csc.rest.get("api/v5.0.0/bussys?vdcuuid="+data.vdcUuid(),function(result2){
+				        	data.bussyList(result2.results);
+				        }); 
+		        	}
 		        });
-		        if(data.bussyList!=null){
-		        	csc.rest.get("api/v5.0.0/bussys?vdcuuid="+data.vdcUuid(),function(result2){
-			        	data.bussyList(result2.results);
-			        }); 
-	        	}
+		    	if(data.mountDisks!=null){
+		    		data.mountDisks.removeAll();
+		    	}
 		    };
 		    this.getVpcForAzChange = function(data){
 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+data.vdcUuid()+"/"+data.azUuid(), function(result){
 		        	data.vpcList(result);
+		        	if(data.sshList!=null){
+			        	csc.rest.get("api/v5.0.0/sshKeys?getList=true&isValidate=true&azUuid="+data.azUuid()+"&vcdUuid="+data.vdcUuid(),function(result){
+			            	data.sshList(result);
+			            });
+			        }
 		        });
-		        if(data.sshList!=null){
-		        	csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+data.azUuid()+"&vcdUuid="+data.vdcUuid(),function(result){
-		            	data.sshList(result);
-		            });
-		        }
+		    	if(data.mountDisks!=null){
+		    		data.mountDisks.removeAll();
+		    	}
 		    }
 		    this.getOsVersionForOsTypeChange = function(data){
 		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.serviceUuid()+"/"+data.azUuid()+"/"+data.osType(), function(result){
 		        	data.osVersionList(result);
 		        });
+		    	if(data.softwares!=null){
+		    		data.softwares.removeAll();
+		    	}
 		    }
 		    this.getIpForNetWorkChange = function(data){
 		    	if(data.vpcNetworkUuid()!=null){
 		    		csc.rest.get("api/v5.0.0/vpcNetworks/" + data.vpcNetworkUuid() + "/availableIp", function(result) {
 			    		data.ipList(result);
-	                });
+	                },function(){},null,true);
 		    	}
 		    	
 		    } 
@@ -2618,11 +2676,11 @@
 	      	/************************************ 云主机 批量 上一下一步  ************************************/
 	      	
 	      	/************************************ 云主机  单个 显示隐藏  ************************************/
-	      	this.step1 = ko.observable(false);
-	        this.step2 = ko.observable(true);
-	        this.step3 = ko.observable(true);
-	        this.step4 = ko.observable(true);
-	        this.step5 = ko.observable(true);
+	      	this.step1 = ko.observable(true);
+	        this.step2 = ko.observable(false);
+	        this.step3 = ko.observable(false);
+	        this.step4 = ko.observable(false);
+	        this.step5 = ko.observable(false);
 	        /************************************ 云主机 单个 显示隐藏  ************************************/
 	
 	        /************************************ 云主机 软件添加  ************************************/
@@ -2690,7 +2748,18 @@
 	        
 	        this.attrList_VM = ko.observableArray([]);
 	        this.showAttr_VM = function(viewOrEdit,data,event){
-	        	self.attrList_VM(data.softwareParams());
+	        	self.attrList_VM([]);
+	            data.softwareParams().forEach(function (e){
+	            	var parames = new SoftwareAttrVO();
+	            	parames.defaultValue(e.defaultValue());
+	            	parames.paramsKey(e.paramsKey());
+	            	parames.paramsName(e.paramsName());
+	            	parames.paramsUuid(e.paramsUuid());
+	            	parames.paramsValue(e.paramsValue());
+	            	parames.scriptUuid(e.scriptUuid());
+	            	parames.softwareUuid(e.softwareUuid());
+	            	self.attrList_VM.push(parames);
+	            });
 	        	self.disableAttr_VM(viewOrEdit);
 	        	self.showSoftwareAttr(true);
 	        	editObject = data;
@@ -3843,7 +3912,7 @@
 	        </div>
       
         <div class="panel panel-default no-height" style="margin:0;border:none">
-          <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step1(!$root.step1()),css:{'glyphicon-chevron-up': $root.step1(), 'glyphicon-chevron-down': !$root.step1()}"></span></div>
+          <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){$root.step1(!$root.step1())},css:{'glyphicon-chevron-up': $root.step1(), 'glyphicon-chevron-down': !$root.step1()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step1">
             <div class="form-group col-md-6">
               <div class="row">
@@ -3950,7 +4019,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-4" data-bind="visible:cloudPlatform">
               <div class="row">
                 <label class="col-xs-5 control-label">选择密钥：</label>
                 <div class="col-xs-7">
@@ -3998,7 +4067,7 @@
         </div>
 
         <div class="panel panel-default no-height" style="margin:0;border:none">
-          <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step2(!$root.step2()),css:{'glyphicon-chevron-up': $root.step2(), 'glyphicon-chevron-down': !$root.step2()}"></span></div>
+          <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){$root.step2(!$root.step2())},css:{'glyphicon-chevron-up': $root.step2(), 'glyphicon-chevron-down': !$root.step2()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step2">
             <div style="margin:0;">
               <a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addVdisk_VM">添加硬盘</a>
@@ -4038,7 +4107,7 @@
 
 
         <div class="panel panel-default no-height" style="margin:0;border:none">
-          <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step3(!$root.step3()),css:{'glyphicon-chevron-up': $root.step3(), 'glyphicon-chevron-down': !$root.step3()}"></span></div>
+          <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){$root.step3(!$root.step3())},css:{'glyphicon-chevron-up': $root.step3(), 'glyphicon-chevron-down': !$root.step3()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step3">
             <div style="margin:0;">
               <a class="btn btn-info btn-sm pull-right" data-bind="click: $root.selectSoftware_VM">添加软件</a>
@@ -4070,10 +4139,10 @@
         </div>
 
         <div class="panel panel-default no-height" style="margin:0;border:none">
-          <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step4(!$root.step4()),css:{'glyphicon-chevron-up': $root.step4(), 'glyphicon-chevron-down': !$root.step4()}"></span></div>
+          <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){$root.step4(!$root.step4())},css:{'glyphicon-chevron-up': $root.step4(), 'glyphicon-chevron-down': !$root.step4()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step4">
             <div style="margin:0;">
-              <a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addPartition_VM">添加分区</a>
+              <a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addPartition_VM,visible:$root.isViewPartition">添加分区</a>
               <div class="clearfix" style="height:10px;clear:both;"></div>
               <div class="panel panel-default table-responsive no-height">
                 <table class="table table-striped">
@@ -4096,7 +4165,7 @@
         </div>
 
         <div class="panel panel-default no-height" style="margin:0;border:none">
-          <div class="panel-heading">高级选项 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: $root.step5(!$root.step5()),css:{'glyphicon-chevron-up': $root.step5(), 'glyphicon-chevron-down': !$root.step5()}"></span></div>
+          <div class="panel-heading">高级选项 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){$root.step5(!$root.step5())},css:{'glyphicon-chevron-up': $root.step5(), 'glyphicon-chevron-down': !$root.step5()}"></span></div>
           <div class="panel-body" data-bind="visible: $root.step5">
               <div class="form-group col-md-6">
                   <div class="row">
@@ -4249,8 +4318,8 @@
 			                       <td><select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcOrIpPoolList,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select></td>
 			                       <td><select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,event:{change:$root.getIpForNetWorkChange},optionsCaption:'请选择'"></select></td>
 			                       <td><select class="form-control w-x" data-bind="options:ipList,optionsText:'ip',optionsValue:'ip',value:ip,optionsCaption:'请选择'"></select></td>
-			                       <td>
-			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择'"></select>
+			                       <td >
+			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择',visible:cloudPlatform"></select>
 			                       </td>
 			                    </tr>
 			                </tbody>
@@ -4258,10 +4327,10 @@
 			            </div>
 			          </div>
 			
-			          <div data-bind="visible: myStep()==4">
+			          <div data-bind="visible: myStep()==4" >
 			              <div data-bind="foreach: model_VM().vmCartInfo">
 				              <div style="margin:0;margin-top:10px">
-				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addPartition_VM">添加分区</a>
+				              <span class="pull-left" style="font-size:16px;position:relative;top:8px;" data-bind="text:vmName"></span><a class="btn btn-info btn-sm pull-right" data-bind="click: $root.addPartition_VM,visible:$root.isViewPartition">添加分区</a>
 				              <div class="clearfix" style="height:10px;clear:both;"></div>
 				              <div class="panel panel-default table-responsive no-height">
 				                  <table class="table table-striped">

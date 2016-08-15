@@ -514,12 +514,14 @@
 								progress: ko.observable(),
 								size: csc.util.bytesToSize(file.size),
 								path: ko.observable(),
-								isExec: (self.fileTable().length == 0 ? 1 : 0),
+								isExec: (self.fileTable().length == '0' ? '1' : '0'),
 								isExecName: self.fileTable().length == 0 ? 
 										ko.observable('可执行') : ko.observable('不可执行'),
 								uploadTime: ko.observable()
 			      			};
 			      			
+			      			
+			      			console.log(addFile);
 							self.fileTable.push(addFile);
 						});
 			      		
@@ -601,10 +603,9 @@
 					
 					/** 修改脚本文件 弹窗**/
 					this.openUpdateFile = function(object, event) {
-						self.scriptFileVO.fromJSON(object);
-						
+						self.scriptFileVO().name = object.name;
+						self.scriptFileVO().isExec(object.isExec);
 						self.scriptFileVO().fileTableRow = object;
-						
 						self.isScriptFile(true);
 					};
 					
@@ -613,7 +614,9 @@
 						var flag = true;
 						
 						$.each(self.fileTable(), function(i, val) {
-							if (self.scriptFileVO().isExec == '1' && val.name != self.scriptFileVO().name 
+							
+							console.log();
+							if (self.scriptFileVO().isExec() == '1' && val.name != self.scriptFileVO().name 
 									&& val.isExec == '1') {
 								
 								systemMsg.alert('已存在可执行属性脚本文件');
@@ -624,8 +627,9 @@
 						
 						if (flag) {
 							self.scriptFileVO().fileTableRow.isExec = self.scriptFileVO().isExec();
-							self.scriptFileVO().fileTableRow.isExecName(self.scriptFileVO().isExec == '1' ?
+							self.scriptFileVO().fileTableRow.isExecName(self.scriptFileVO().isExec() == '1' ?
 									'可执行' : '不可执行');
+							
 							self.isScriptFile(false);
 						}
 					};
@@ -639,7 +643,10 @@
 						} else {
 							self.fileTable.remove(object);
 							
-							object.progress(object.progress().replace('%', ''));
+							if (object.progress()) {
+								object.progress(object.progress().replace('%', ''));
+							}
+							
 							self.currentVO().deleteScriptFiles.push(object);
 						}
 					};
@@ -992,7 +999,7 @@
 						if (viewModel.currentVO().newScriptFiles.length == 0 ) {
 							$.each(viewModel.fileTable(), function(i, val) {
 								if (!val.uuid && val.path()) {
-									filePathStr += (val.path() + ',');	
+									filePathStr += (val.path()+val.name + ',');	
 								}
 							});
 							

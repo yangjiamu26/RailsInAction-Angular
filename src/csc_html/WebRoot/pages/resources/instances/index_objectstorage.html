@@ -3,7 +3,7 @@
 	
 <div class="row wrapper">
   <div class="col-xs-1">
-    <button class="btn btn-sm  btn-info" data-bind="click:createDisk">创建</button>
+    <button class="btn btn-sm  btn-info" data-bind="click:createDisk, check_action:'ins_Store_Create'">创建</button>
   </div>
   <div class="col-xs-3">
     <div class="input-group">
@@ -55,7 +55,7 @@
         </tr>
         <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
         <tr>
-          <td><a  href="#" data-bind="text:name,click:$root.showFileTable">cdisk</a></td>
+          <td><a data-bind="text:name,check_click:$root.showFileTable,action:'ins_Store_Info'">cdisk</a></td>
           <td data-bind="text:azName">AX1</td>
           <td data-bind="text:vdcName">VDC1</td>
           <td data-bind="text:applySize2">50</td>
@@ -73,13 +73,13 @@
            	| <a href="#" data-bind="click: $root.validate">终止</a>   
            	| <a data-bind="click: $root.removeOne">删除</a> -->
            	
-           	<a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> | 
+           	<a data-bind="click: $root.editValidateTime,check_action:'ins_Store_TimeModify'">有效时间变更</a> | 
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                        <li data-bind="if: $row.isValidate == true"><a data-bind="click: $root.upload">上传文件</a></li>
-                      	<li data-bind="if: $row.isValidate == true"><a href="#" data-bind="click: $root.validate">终止</a></li>
-                      	<li data-bind="if: $row.isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
+                        <li data-bind="if: $row.isValidate == true,check_action:'ins_Store_Upload'"><a data-bind="click: $root.upload">上传文件</a></li>
+                      	<li data-bind="if: $row.isValidate == true,check_action:'ins_Store_Stop'"><a href="#" data-bind="click: $root.validate">终止</a></li>
+                      	<li data-bind="if: $row.isValidate == false,check_action:'ins_Store_Delete'"><a data-bind="click: $root.removeOne">删除</a></li>
                     </ul>
                 </div> 
            	
@@ -124,7 +124,7 @@
   <div class="row wrapper">
     <div class="col-xs-7 m-b-xs">
       <a class="btn btn-sm btn-default" href="#" onclick="$('#instance_object_storages').show().siblings().hide();$('#instance_object_storages').prev().show()"><i class="fa fa-arrow-left"></i> 返回</a>
-      <button class="btn btn-sm btn-info" data-bind="click: uploadInFileView,visible:containerVO().containerIsValidate">上传</button>
+      <button class="btn btn-sm btn-info" data-bind="click: uploadInFileView,visible:containerVO().containerIsValidate,check_action:'ins_Store_Upload'">上传</button>
     </div>
     <div class="col-xs-3">
       <div class="input-group">
@@ -222,7 +222,7 @@
         <div class="form-group">
           <label class="col-sm-3 control-label">所属VDC</label>
           <div class="col-sm-8">
-            <select class="form-control" data-bind="value:vdcUuid, options: $root.add_vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vdcs}"></select>
+            <select class="form-control" data-bind="optionsCaption: '请选择',value:vdcUuid, options: $root.add_vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vdcs}"></select>
           </div>
           <div class="col-sm-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -232,7 +232,7 @@
         <div class="form-group">
           <label class="col-sm-3 control-label">可用分区</label>
           <div class="col-sm-8">
-            <select class="form-control" data-bind="value: azUuid, options: $root.add_partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
+            <select class="form-control" data-bind="optionsCaption: '请选择',value: azUuid, options: $root.add_partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
           </div>
           <div class="col-sm-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -465,6 +465,9 @@
       var vdcListForAdd = [];
       var self = this;
       this.isCreateDisk = ko.observable(false);
+
+      
+      
       //初始化vo
       this.currentVO = ko.validatedObservable({});
       
@@ -583,7 +586,7 @@
 	    	  {
 	    	     if(temp[i].checked){
 	    	    	 if(temp[i].value == "option1"){
-	    	    		 expiryTime = "2099-12-30 23:59:59";
+	    	    		 expiryTime = "2099-12-31 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
 	    	    		 if($("#resource_instance_objectStorage_limit_option2_unit").val() == "MONTH"){
 	    	    			 var plusMonth = parseInt($("#resource_instance_objectStorage_limit_option2").val());
@@ -618,12 +621,8 @@
 	    		  if(data.id){
 	    			  self.table.refreshData();
 		    		  self.isCreateDisk(false);//关闭弹出框
-		    		  alert('创建成功！');
-	    		  }else{
-	    			  alert('创建失败！');
-	    		  }	    		  	    		  
-	    	  },function(data){
-	    		  alert('创建失败！');
+		    		  alert('创建对象存储成功！');
+	    		  }    		  	    		  
 	    	  })
 	      }
       }
@@ -814,7 +813,7 @@
 		    	    	    	self.currentFile().setStatus('inited','初始化');
 		    	    	    	self.uploader.addFiles(self.currentFile()); 
 		    	    	    	
-		    	    	    	console.log('失败了,重新初始化');
+		    	    	    	//console.log('失败了,重新初始化');
 		    				}
 		
 		    			}
@@ -918,7 +917,7 @@
           this.table.params(p);
       }
       
-      this.table = new DataTable([], {path: 'api/v5.0.0/objectStorages?account='+account,loader:function(result){
+      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/objectStorages?account='+account,loader:function(result){
     	  //将时间转换一下
     	  if(result.expiryDate){
     		  var expiryDate = result.expiryDate;    	  
@@ -1076,7 +1075,7 @@
     	  });
       }
       var i = 0;
-      this.fileTable = new DataTable([],{loader:function(result){
+      this.fileTable = new DataTable([],{perPage:10,loader:function(result){
     	  var name = result.name;    	  
     	  if(name.substring(name.length-1)=='/'){//斜杠结尾是虚拟目录
     		  result.sizeInBytes = "虚拟目录";
@@ -1239,7 +1238,7 @@ function renderSize(value){
   if(null==value||value==''){
     return "0 B";
   }
-  var unitArr = new Array("B","KB","MB","GB","TB","PB","EB","ZB","YB");
+  var unitArr = new Array(" 字节"," KB"," MB"," GB"," TB","PB","EB","ZB","YB");
   var index=0;
   var srcsize = parseFloat(value); 
   var size =roundFun(srcsize/Math.pow(1024,(index=Math.floor(Math.log(srcsize)/Math.log(1024)))),2); 

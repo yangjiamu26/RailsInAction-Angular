@@ -141,7 +141,7 @@
                     <div class="form-group">
                         <label class="col-xs-3 control-label">可用分区</label>
                         <div class="col-xs-8">
-                            <select class="form-control input-sm" data-bind="value: azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_azs_add}"></select>
+                            <select class="form-control input-sm" data-bind="value: azUuid, options: $root.partitions_add, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_azs_add}"></select>
                         </div>
                         <div class="col-xs-1">
                             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -371,8 +371,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 expiryDate: ko.observable(),
                 description: ''
             });
+            self.currentVO().expiryDate('');
             self.loadVdcs_add();
-
+            self.onchange_vdcs_add();
+            self.onchange_azs_add();
+            self.onchange_vms_add();
             self.isAddvdisk(true);
         }
 
@@ -555,7 +558,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             });
         }
 
-        //查询：下拉选择，加载VDC
+        //新增：下拉选择，加载VDC
         this.vdcs_add = ko.observableArray([]);
         //新增页面加载，不需要全部选项
         this.loadVdcs_add = function() {
@@ -566,14 +569,17 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     }
                 });
             }
-            //新增：选择不同VDC后，可用分区下拉框要跟着改变
+        //新增：选择不同VDC后，可用分区下拉框要跟着改变
+        this.partitions_add = ko.observableArray([]);
         this.onchange_vdcs_add = function() {
             var vdcUuid = self.currentVO.toJSON().vdcUuid;
-            csc.rest.get('api/v5.0.0/vdcs/' + vdcUuid + '/azs', function(data) {
-                if (data.results) {
-                    self.partitions(data.results);
-                }
-            });
+            if(vdcUuid){
+            	csc.rest.get('api/v5.0.0/vdcs/' + vdcUuid + '/azs', function(data) {
+                    if (data.results) {
+                        self.partitions_add(data.results);
+                    }
+                });            	
+            }
         }
 
         //修改：选择不同的可用分区云主机列表也要跟着改变
@@ -699,7 +705,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		  var myDate = new Date();
   		  self.adjustProcessVO().time(myDate.toLocaleString());
   		  self.adjustProcessVO().user("");
-  		  
+  		  self.adjustProcessVO().vdcName(object.vdcName);
   		  self.adjustProcessVO().size(object.volumeSize);
   		  
   		  self.adjustProcessVO().targetSize('');
@@ -713,13 +719,21 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  serviceInstanceUuid: ko.observable(),
       	  vmUuid: ko.observable(),
       	  size: ko.observable(),
+      	  vdcName: ko.observable(),
       	  
       	  targetSize: ko.observable()
         });
         
         //申请
         this.adjustProcessPost = function(){
-      	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustProcessVO().targetSize()+"\"}}";
+        	var targetSize = self.adjustProcessVO().targetSize();
+        	var size = self.adjustProcessVO().size();
+        	if(targetSize <= size){
+        		alert("扩展后的大小应大于原来的大小！");
+        		return;
+        	}
+      	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustProcessVO().vmUuid() + "\",\"volumeSize\":\""+targetSize
+      	 	+ "\",\"metaSize\":\""+size+"\"}}";
       	  
       	  var orderItem = {};
       	  orderItem.instanceName = self.adjustProcessVO().name();
@@ -727,6 +741,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  orderItem.resourceType = "DISK";
       	  orderItem.metaData = metaData;
       	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+      	  orderItem.vdcName = self.adjustProcessVO().vdcName();
       	  
       	  var orderItems = [];
       	  orderItems.push(orderItem);

@@ -26,13 +26,13 @@
 			</div>
 			<div class="col-xs-3">
 				<div class="input-group">
-					<span class="input-group-addon">名称</span> <input type="text"
-						class="input-sm form-control" placeholder="请输入名称"
+					<span class="input-group-addon">名称</span>
+					<input type="text" class="input-sm form-control" placeholder="请输入名称"
 						data-bind="value: searchParam().softwareName">
 				</div>
 			</div>
 			<div class="col-xs-2">
-				<button class="btn btn-sm" type="button">重置</button>
+				<button class="btn btn-sm" type="button" data-bind="click: resetSearch">重置</button>
 				<button class="btn btn-sm btn-default" type="button"
 					data-bind="click: search">搜索</button>
 			</div>
@@ -155,9 +155,9 @@
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-inline">
-					云主机名称：<input type="text" class="form-control" /> 
-					云主机IP：<input type="text" class="form-control" />
-					<button class="btn btn-default">搜索</button>
+					云主机名称：<input type="text" class="form-control" data-bind="value: searchVmParam().vmName" /> 
+					云主机IP：<input type="text" class="form-control" data-bind="value: searchVmParam().vmIp" />
+					<button class="btn btn-default" data-bind="click: filterVm">搜索</button>
 				</div>
 				<p>&nbsp;</p>
 				<div class="table-responsive" data-bind="with: vmTable">
@@ -380,11 +380,35 @@
 					
 					/** 搜索参数数据对象 **/
 					this.searchParam = ko.observable({
-						softType : "",
-						softTypeName : "",
-						softwareName : "",
+						softType: ko.observable(""),
+						softTypeName: ko.observable(""),
+						softwareName: ko.observable(""),
 						installable: 'Y'
 					});
+					
+					/** 搜索云主机数据对象 **/
+					this.searchVmParam = ko.observable({
+						vmName: "",
+						vmIp: ""
+					});
+					
+					/** 重置搜索条件 **/
+					this.resetSearch = function() {
+						self.searchParam().softType('');
+						self.searchParam().softTypeName('');
+						self.searchParam().softwareName('');
+					};
+					
+					/** 过滤云主机 **/
+					this.filterVm = function() {
+						var param = self.searchVmParam();
+						
+						param.softTypeName = self.softwareVO().softTypeName;
+						
+						param.ltStorage = self.softwareVO().spaceSize;
+						
+						self.vmTable.params(param);
+					};
 					
 					/** 安装弹窗 **/
 					this.upgrade = function(object, event) {
@@ -395,7 +419,7 @@
 							vms:[]
 						});
 						
-						self.vmTable.params({hasSoftwareUuid:object.uuid, ltStorage: object.spaceSize});
+						self.vmTable.params({softTypeName:object.softTypeName, ltStorage: object.spaceSize});
 						
 						self.toUpgradeTable([]);
 						
@@ -410,7 +434,6 @@
 					/** 选择云主机弹窗 **/
 					this.upgradeVM = function() {
 						self.toUpgradeTable().splice(0, self.toUpgradeTable().length);
-						
 						self.isUpgradeVM(true);
 					};
 					
@@ -443,16 +466,16 @@
 						self.isUpgradeVM(false);
 					};
 
-					this.searchParam = ko.observable({
-						softType : "",
-						softTypeName : "",
-						softwareName : "",
-						installable: 'Y'
-					});
-					
 					/** 搜索可安装软件 **/
 					this.search = function() {
-						this.table.params(this.searchParam());
+						var param = self.searchParam();
+						
+						self.table.params({
+							softType : param.softType(),
+							softTypeName : param.softTypeName(),
+							softwareName : param.softwareName(),
+							installable : 'Y'
+						});
 					};
 					
 					/** 加载安装属性 **/
@@ -557,11 +580,12 @@
 								uuid: val.uuid,
 								vdcName: val.vdcName,
 								installAttrs: installAttrs,
-								softwareUuid: self.softwareVO().uuid;
+								softwareUuid: self.softwareVO().uuid
 							});
 						});
 						
-						$.INSTALL.installSoft(self.installVO(), function(data) {
+						$.INSTALL.installSoft(self.upgradeVO(), function(data) {
+							
 							self.isUpgrade(false);
 							setTimeout(function () {
 								window.location.href = '#pages/softwares/logs';

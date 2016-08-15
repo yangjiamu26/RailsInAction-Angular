@@ -107,8 +107,8 @@ csc.rest = {
 			}
 		});
 	},
-	get : function(url, successFun, errorFun,callbackCustParam) {
-		if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+	get : function(url, successFun, errorFun,callbackCustParam,notShowLoading) {
+		if(!notShowLoading){
 			showLoading();
 		}
 		$.ajax({
@@ -119,7 +119,7 @@ csc.rest = {
 			dataType : 'json',
 			contentType : 'application/json; charset=utf-8',
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
-				if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+				if(!notShowLoading){
 					hideLoading();
 				}
 				if (errorFun) {
@@ -127,7 +127,7 @@ csc.rest = {
 				}
 			},
 			success : function(data, textStatus) {
-				if(url.indexOf("api/v5.0.0/homepage/datacenter")==-1){
+				if(!notShowLoading){
 					hideLoading();
 				}
 				successFun(data, textStatus,callbackCustParam);
@@ -263,7 +263,7 @@ csc.util = {
 		return uuid;
 	},
 	getLBMothedList : function (){
-		return [{name:'轮训',value:'ROUND_ROBIN'},{name:'最少连接',value:'LEAST_CONNECTIONS'},{name:'源IP',value:'SOURCE_IP'}];
+		return [{name:'轮询',value:'ROUND_ROBIN'},{name:'最少连接',value:'LEAST_CONNECTIONS'},{name:'源IP',value:'SOURCE_IP'}];
 	},
 	getProtocolList : function (){
 		return [{name:'TCP',value:'TCP'},{name:'HTTP',value:'HTTP'},{name:'HTTPS',value:'HTTPS'}];
@@ -299,8 +299,113 @@ csc.util = {
 			billTxt = "按年"
 		}
         return billTxt;
+	}, 
+	getResourceText:function(resourceType){
+		var text = "";
+	    switch (resourceType) {
+		case "VM":
+			text = "云主机";
+			break;
+		case "DISK":
+			text  = "云硬盘";
+			break;
+		case "ROUTER":
+			text = "路由器";
+			break;
+		case "PUBLICIP":
+			text = "公网IP";
+			break;
+		case "LOAD_BALANCING":
+			text =  "负载均衡";
+			break;
+		case "SECRET_KEY":
+			text =  "密钥";
+			break;
+		case "OBJECT_STORAGE":
+			text =  "对象存储";
+			break;
+		case "CPU":
+			text  =  "CPU";
+			break;
+		case "MEMORY":
+			text  =  "内存";
+			break;
+		case "STORAGE":
+			text =  "存储";
+			break;
+		case "FIREWALL":
+			text =  "防火墙";
+			break;
+		case "VPC":
+			text  =  "VPC";
+			break;
+		case "VPN":
+			text =  "VPN";
+			break;
+		case "SECURITY_GROUP":
+			text =  "安全组";
+			break;
+		case "SOFTWARE":
+			text =  "云软件";
+			break;
+		default:
+			break;
+		}
+        return text;
 	},
-	
+	getResourceUnit:function(resourceType){
+		var text = "";
+	    switch (resourceType) {
+		case "VM":
+			text = "个";
+			break;
+		case "DISK":
+			text  = "个";
+			break;
+		case "ROUTER":
+			text = "个";
+			break;
+		case "PUBLICIP":
+			text = "个";
+			break;
+		case "LOAD_BALANCING":
+			text = "个";
+			break;
+		case "SECRET_KEY":
+			text =  "个";
+			break;
+		case "OBJECT_STORAGE":
+			text =  "GB";
+			break;
+		case "CPU":
+			text  =  "个";
+			break;
+		case "MEMORY":
+			text  =  "GB";
+			break;
+		case "STORAGE":
+			text =  "GB";
+			break;
+		case "FIREWALL":
+			text =  "个";
+			break;
+		case "VPC":
+			text  =  "个";
+			break;
+		case "VPN":
+			text =  "个";
+			break;
+		case "SECURITY_GROUP":
+			text =  "个";
+			break;
+		case "SOFTWARE":
+			text =  "个";
+			break;
+		default:
+			break;
+		}
+        return text;
+	},
     invalidValueParam : function(val){
     	var telReg = /[。~!@#$%\^\+\*&\\\/\?\|:\.<>{}【】';="]+/;
         if(telReg.test(val)){
@@ -308,6 +413,23 @@ csc.util = {
         }else{
         	return true;
         }
+    },
+    
+    getToFixedNum:function(num){//获取 不四舍五入 的两位小数   5.201 结果为 5.21
+    	var bb = num+"";  
+        var dian = bb.indexOf('.');  
+        var result = "";  
+        if(dian == -1){  
+            result =  num.toFixed(2);  
+        }else{  
+            var cc = bb.substring(dian+1,bb.length);  
+            if(cc.length >=3){  
+                result =  (Number(num.toFixed(2))+0.01);  
+            }else{  
+                result =  num.toFixed(2);  
+            }  
+        } 
+        return result;
     }
 	  
 }

@@ -1,7 +1,8 @@
     <div class="panel panel-info" id="resure">
         <div class="panel-heading">申请信息</div>
         <div id="orderDetailedList" class="wrapper">
-
+          <button style="display:none;" name="button" id="batch_construct_" data-bind="click:$root.batchConstruct"  class="btn btn-default btn btn-default">重施工</button>
+         
           <div class="table-responsive no-height" data-bind="visible:$root.vdiskNum()>0">
            <h5 class="text-info">云硬盘数：
             <span class="badge bg-danger" data-bind="text:vdiskNum"></span>
@@ -24,7 +25,7 @@
                         <td data-bind="text:instanceName"></td>
                         <td data-bind="text:vdcName"></td>
                         <td data-bind="text:vmName"></td>
-                        <td data-bind="text:size"data-bind="text:size"></td>
+                        <td data-bind="text:size"></td>
                         <td data-bind="text:fee"></td>
                         <td data-bind="text:azName"></td>
                         <td>
@@ -34,16 +35,23 @@
 		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click:$root.reConstruct">重施工|</a>  
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_DOING'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" disabled="disabled">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }" disabled="disabled">失败原因</button>
+                            </span>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_FAILED'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct"">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</button>
+                            </span>
                         </td>
                     </tr>
                 </tbody>
             </table>
           </div>
 
-          <div class="table-responsive no-height" data-bind="visible:$root.lbNum()>0">
-          <h5 class="text-info">负载均衡器数：<span class="badge bg-danger" data-bind="text:lbNum"></span></h5>
+        <div class="table-responsive no-height" data-bind="visible:$root.lbNum()>0">
+          <h5 class="text-info">负载均衡器数：<span class="badge bg-danger" data-bind="text:lbNum"></span>
+          </h5>
             <table class="table">
                 <thead>
                     <tr>
@@ -68,16 +76,70 @@
 		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click:$root.reConstruct">重施工|</a>  
-                            <a data-bind="if: itemState == 'CONSTRUCTION_FAILED',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_DOING'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" disabled="disabled">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }" disabled="disabled">失败原因</button>
+                            </span>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_FAILED'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct"">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</button>
+                            </span>
                         </td>					
 					</tr>
 				</tbody>
             </table>
           </div>
 
+		  <div class="table-responsive no-height" data-bind="visible:$root.publicNetworkNum()>0">
+           <h5 class="text-info">公网IP数：
+            <span class="badge bg-danger" data-bind="text:publicNetworkNum"></span>
+           </h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>公网IP名称</th>
+                        <th>所属VDC</th>
+                        <th>申请时长</th>
+                        <th>收费标准</th>
+                        <th>VPC名称</th>
+                        <th>子网名称</th>
+                        <th>指定IP</th>
+                        <th>施工状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:publicNetworkList">
+                    <tr>
+                        <td data-bind="text:instanceName"></td>
+                        <td data-bind="text:vdcName"></td>
+						<td data-bind="text:applyTime"></td>
+						<td data-bind="text:fee"></td>
+                        <td data-bind="text:vpcName"></td>
+                        <td data-bind="text:networkName"></td>
+                        <td data-bind="text:ip"></td>
+                        <td>
+                          <span class="label label-success" data-bind="if: itemState == 'CONSTRUCTION_SUCCESS'">施工成功</span>
+		                  <span class="label label-danger" data-bind="if: itemState == 'CONSTRUCTION_FAILED'">施工失败</span>
+		                  <span class="label label-info" data-bind="if: itemState == 'CONSTRUCTION_READY'">待施工</span>
+		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
+                        </td>
+                        <td>
+                             <span data-bind="if: itemState == 'CONSTRUCTION_DOING'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" disabled="disabled">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }" disabled="disabled">失败原因</button>
+                            </span>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_FAILED'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct"">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</button>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+          
           <div class="table-responsive no-height" data-bind="visible:$root.sshNum()>0">
-          <h5 class="text-info">SSH密钥数：1</h5>
+          <h5 class="text-info">SSH密钥数：<span class="badge bg-danger" data-bind="text:sshNum"></span></h5>
             <table class="table">
                 <thead>
                     <tr>
@@ -98,14 +160,65 @@
                           <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
                         </td>
                         <td>
-                            <a data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct">重施工|</a>  
-                            <a data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</a>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_DOING'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" disabled="disabled">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }" disabled="disabled">失败原因</button>
+                            </span>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_FAILED'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct"">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</button>
+                            </span>
                         </td>
                     </tr>
                 </tbody>
             </table>
           </div>
 
+       <div class="table-responsive no-height" data-bind="visible:$root.objectStroageNum()>0">
+          <h5 class="text-info">对象存储数：<span class="badge bg-danger" data-bind="text:objectStroageNum"></span>
+          </h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>对象存储名称</th>
+                        <th>存储大小(G)</th>
+                        <th>所属VDC</th>
+                        <th>可用分区</th>
+                        <th>申请时长</th>
+                        <th>收费标准</th>
+                        <th>施工状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:objectStroageList">
+                     <tr>
+                        <td data-bind="text:instanceName"></td>
+                        <td data-bind="text:size"></td>
+                        <td data-bind="text:vdcName"></td>
+                        <td data-bind="text:azName"></td>
+                        <td data-bind="text:applyTime"></td>
+                        <td data-bind="text:fee"></td>
+                        <td>
+                          <span class="label label-success" data-bind="if: itemState == 'CONSTRUCTION_SUCCESS'">施工成功</span>
+		                  <span class="label label-danger" data-bind="if: itemState == 'CONSTRUCTION_FAILED'">施工失败</span>
+		                  <span class="label label-info" data-bind="if: itemState == 'CONSTRUCTION_READY'">待施工</span>
+		                  <span class="label label-warning" data-bind="if: itemState == 'CONSTRUCTION_DOING'">施工中</span>
+                        </td>
+                        <td>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_DOING'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" disabled="disabled">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }" disabled="disabled">失败原因</button>
+                            </span>
+                            <span data-bind="if: itemState == 'CONSTRUCTION_FAILED'">
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click:$root.reConstruct"">重施工</button>  |
+                                <button name="button" class="btn btn-default btn btn-default" data-bind="if: itemState != 'CONSTRUCTION_SUCCESS',click: function(data, event){ systemMsg.alert(data.workFailedMessage) }">失败原因</button>
+                            </span>
+                        </td>					
+					</tr>
+				</tbody>
+            </table>
+          </div>
+          
         </div>
 </div>
 
@@ -124,56 +237,147 @@
 	            this.lbNum = ko.observable("");
 	            this.sshNum = ko.observable("");
 	            this.ltNum = ko.observable("0"); //路由器数
+	            this.objectStroageNum = ko.observable("0"); //对象存储数
 	            
+	            this.publicNetworkList = ko.observableArray();
 	            this.vdiskList = ko.observableArray();
 	            this.sshList = ko.observableArray();
 	            this.lbList = ko.observableArray();
-			     csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-		    	     var processInstanceId = data.taskInfo[0].processInstanceId;
-		    	     //获取订单数据
-			      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
-			            var vdiskNum = 0;
-			            var objectStorageNum = 0;
-			            var publicNetworkNum = 0;
-			            var lbNum = 0;
-			            var sshNum = 0;
-			            
-			      		data.orderItems.forEach(function(e){
-			      			var metaData = JSON.parse(e.metaData);
-			      			var resBaseInfo = {};
-			      			if(metaData.resBaseInfo!=""){
-			      				resBaseInfo = JSON.parse(metaData.resBaseInfo);
-			      			}
-			      			if(e.resourceType=='DISK'){
-			      				vdiskNum ++;
-			      				
-			      				var disk = e;
-				      			disk.size = resBaseInfo.volumeSize;
-				      			
-				      			var vmName = resBaseInfo.vmName;
-				      			disk.vmName = vmName;
-				      			self.vdiskList.push(disk);
-			      			}else if(e.resourceType=='SECRET_KEY'){
-			      				sshNum ++;
-			      				self.sshList.push(e);
-			      			}else if(e.resourceType=='LOAD_BALANCING'){
-			      				lbNum++;
-			      				if(e.expireType == "1"){
-			      					e.expireTime = "永久";
-			      				}else if(e.expireType == "2"){
-			      					e.expireTime = e.expireValue+"月";
-			      				}else if(e.expireType == "3"){
-			      					e.expireTime = e.expireTime;
-			      				}
-			      				self.lbList.push(e);
-			      			}
-			      		})
-			      		
-			      		self.vdiskNum(vdiskNum);
-			      		self.sshNum(sshNum);
-			      		self.lbNum(lbNum);
-			      	 })
-			  })
+	            this.objectStroageList = ko.observableArray();
+	            this.loadData = function(){
+	                /**清空值*/
+	                self.vdiskNum("");
+	                self.objectStorageNum(""); 
+		            self.publicNetworkNum("");
+		            self.lbNum("");
+		            self.sshNum("");
+		            self.ltNum("0"); //路由器数
+		            self.objectStroageNum("0"); //路由器数
+		            
+		            self.publicNetworkList([]);
+		            self.vdiskList([]);
+		            self.sshList([]);
+		            self.lbList([]);
+		            self.objectStroageList([]);
+		            $('#batch_construct_').css('display', 'none');
+	                /**清空值*/
+		            
+	                csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+			    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+			    	     //获取订单数据
+				      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+				            var vdiskNum = 0;
+				            var objectStorageNum = 0;
+				            var publicNetworkNum = 0;
+				            var objectStroageNum = 0;
+				            var lbNum = 0;
+				            var sshNum = 0;
+				      		data.orderItems.forEach(function(e){
+				      			var metaData = JSON.parse(e.metaData);
+				      			var resBaseInfo = {};
+				      			if(metaData.resBaseInfo!=""){
+				      				resBaseInfo = JSON.parse(metaData.resBaseInfo);
+				      			}
+				      			if(e.resourceType=='DISK'){
+				      				vdiskNum ++;
+				      				
+				      				var disk = e;
+					      			disk.size = resBaseInfo.volumeSize;
+					      			
+					      			var vmName = resBaseInfo.vmName;
+					      			disk.vmName = vmName;
+					      			self.vdiskList.push(disk);
+				      			}else if(e.resourceType=='SECRET_KEY'){
+				      				sshNum ++;
+				      				self.sshList.push(e);
+				      			}else if(e.resourceType=='LOAD_BALANCING'){
+				      				lbNum++;
+				      				if(e.expireType == "1"){
+				      					e.expireTime = "永久";
+				      				}else if(e.expireType == "2"){
+				      					e.expireTime = e.expireValue+"月";
+				      				}else if(e.expireType == "3"){
+				      					e.expireTime = e.expireTime;
+				      				}
+				      				self.lbList.push(e);
+				      			}else if(e.resourceType=='PUBLICIP'){
+				      				publicNetworkNum ++;
+				      				var metaData = JSON.parse(e.metaData);
+								  	var resInfoJson = metaData.resBaseInfo;
+								  	var resInfo = JSON.parse(resInfoJson);
+									e.vpcName = resInfo.vpcName;
+									e.networkName = resInfo.vpcNetworkName;
+									e.ip = resInfo.publicIp;
+				      				var applyTime = csc.util.getExpireText(e.expireType,e.expireValue);
+									e.applyTime=applyTime;
+				      				self.publicNetworkList.push(e);
+				      				
+				      			}else if(e.resourceType=='OBJECT_STORAGE'){
+                                    objectStroageNum ++;
+                                    var metaData = JSON.parse(e.metaData);
+                                    var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+                                    var applyTime;
+                                    if(e.expireType=='1'){
+                                        applyTime = "永久";
+                                     }else if(e.expireType=='2'){
+                                          applyTime = e.expireValue+"个月";
+                                     }else{
+                                         applyTime = "有效期至"+e.expireValue;
+                                    }
+                                    e.applyTime = applyTime;
+                                    e.size = resBaseInfo.applySize;
+                                    
+                                    self.objectStroageList.push(e);
+                                  }
+                                      
+                                      
+                                  if(e.itemState=="CONSTRUCTION_FAILED"){
+                                      $('#batch_construct_').css('display', 'block');
+                                  }
+				      		})
+				      		
+				      		//设置数量
+				      		self.vdiskNum(vdiskNum);
+				      		self.sshNum(sshNum);
+				      		self.lbNum(lbNum);
+				      		self.publicNetworkNum(publicNetworkNum);
+				      		self.objectStroageNum(objectStroageNum);
+				      		
+				      		//如果有item在施工中，审批按钮置灰
+				      		var isInConstruct = false;
+				      		var orderItems_ = data.orderItems;
+				      		if(csc.util.isNotNull(orderItems_)&&orderItems_.length){
+				      		    for(var i=0;i<orderItems_.length;i++){
+				      		        if(orderItems_[i].itemState=="CONSTRUCTION_DOING"){
+				      		           $("#btn_task_complete").attr("disabled","false"); 
+				      		           break;
+				      		        }
+				      		    }
+				      		}
+				      		//批量重施工
+				      		self.batchConstruct = function(){
+				      		    var itemInstanceNames = "";
+				      		    for(var i=0;i<orderItems_.length;i++){
+				      		      if(orderItems_[i].itemState=="CONSTRUCTION_FAILED"){
+				      		         itemInstanceNames += orderItems_[i].instanceName+",";
+				      		      }
+				      		    }
+				      		  
+				      		    confirm("确定对["+itemInstanceNames.substring(0,itemInstanceNames.length-1)+"]批量重施工?",function(arg){
+					      		  if(csc.util.isNotNull(orderItems_)&&orderItems_.length){
+						      		    for(var i=0;i<orderItems_.length;i++){
+						      		        if(orderItems_[i].itemState=="CONSTRUCTION_FAILED"){
+						      		          self.toConstruct(orderItems_[i]); 
+						      		        }
+						      		    }
+						      		}
+				      		    })
+				      		}
+				      	 })
+				  },null,null,true)
+	            }
+	            //初始化列表数据
+	            self.loadData();
 			  
 			  this.save = function(){
 	       		saveComment(args.taskId,function(){
@@ -195,17 +399,21 @@
 			  	}
 			  }
 			  
-			  //重施工
+			  //确认重施工
 			  self.reConstruct = function(orderItem){
 			      confirm("确定["+orderItem.instanceName+"]进入重施工?",function(arg){
-	      			  var orderUuid = orderItem.orderUuid;
-	      			  var uuid = orderItem.uuid;
-	      			  csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,orderItem){
-	      				 orderItem.itemState("CONSTRUCTION_DOING"); //更新订单状态
-	      				 alert("提交重施工成功！")
-	      			  },function(){},false,orderItem);
+			          self.toConstruct(orderItem);
 			      });
       		  }
+			  //执行重施工操作
+			  self.toConstruct = function(orderItem){
+			      var orderUuid = orderItem.orderUuid;
+      			  var uuid = orderItem.uuid;
+      			  csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,orderItem){
+      			     self.loadData();
+      				 alert("提交重施工成功！");
+      			  },function(){alert("施工失败,未知异常!")},false,orderItem);
+			  }
 		 }
 				
 		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 

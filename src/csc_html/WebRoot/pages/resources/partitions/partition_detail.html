@@ -4,7 +4,7 @@
     <li>当前位置：</li>
     <li>资源</li>
     <li><a href="#pages/resources/partitions/index">可用分区</a></li>
-    <li class="active" id="positionInfoDIV"><span data-bind="text:azName"></li>
+    <li class="active" id="positionInfoDIV"><span data-bind="text:azName"></span></li>
   </ol>
 </div>
 <div class='wrapper-md'>
@@ -204,7 +204,7 @@
                     <span class='text-danger h4'><span data-bind="text:azSummaryVO().storageUseRate"></span>%</span></div>
                 </div>
                 <div class="text-primary-lt">
-                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>TB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>TB</div> 
+                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>GB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>GB</div> 
                 </div>               
               </div>
             </div>
@@ -1938,15 +1938,30 @@
           this.azSummaryVO = ko.observable({});
           var self = this;
           this.loadAzSummary = function(){
-            //加载数据中心摘要
-            $.ajax("api/v5.0.0/azs/"+azUuid+"/summary").done(function(data){
-            //console.log(data);
-            //CPU使用率
-            data.cpuUseRate = (data.cpuAllocated/data.cpuTotal * 100.0).toFixed(2);
-            //内存使用率
-            data.memoryUseRate = (data.memoryAllocated/data.memoryTotal * 100.0).toFixed(2);
-            //存储使用率
-            data.storageUseRate = (data.storageAllocated/data.storageTotal * 100.0).toFixed(2);
+              //加载数据中心摘要
+              $.ajax("api/v5.0.0/azs/"+azUuid+"/summary").done(function(data){
+              //console.log(data);
+              //CPU使用率
+              data.cpuUseRate = (data.cpuAllocated/data.cpuTotal * 100.0).toFixed(2);
+              if(data.cpuUseRate == 'NaN'){
+            	  data.cpuUseRate = 0;
+              }
+              //内存使用率
+              data.memoryUseRate = (data.memoryAllocated/data.memoryTotal * 100.0).toFixed(2);
+              if(data.memoryUseRate == 'NaN'){
+            	  data.memoryUseRate = 0;
+              }
+              //存储使用率
+              data.storageUseRate = (data.storageAllocated/data.storageTotal * 100.0).toFixed(2);
+              if(data.storageUseRate == 'NaN'){
+            	  data.storageUseRate = 0;
+              }
+              
+              //单位转换，原单位：MB,转换后：GB 
+              data.memoryTotal = (data.memoryTotal/1024).toFixed(2);
+              data.memoryAvail = (data.memoryAvail/1024).toFixed(2);
+              data.memoryAllocated = (data.memoryAllocated/1024).toFixed(2);
+              
               self.azSummaryVO(data);
               //console.log(self.azSummaryVO().cpuTotal);
             });
@@ -2255,8 +2270,8 @@
           /****************************收集开始********************************/
           this.collectISO = function(){
             csc.rest.get('api/v5.0.0/images/collect?azUuid='+azUuid, function(data){
-              alert("镜像收集成功");
-          self.table.refreshData();
+              alert("镜像收集任务ID：["+data.taskId+"]!");
+          	  self.table.refreshData();
           });
           }
           /****************************收集结束********************************/

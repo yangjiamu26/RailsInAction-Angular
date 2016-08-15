@@ -424,8 +424,9 @@
           虚拟机名称：<span data-bind="text: vmVO().name"></span>
         </div>
         <hr />
-         	<span>用户名：<input data-bind="value: installSoftwareVO().userName"/></span>
-     		<span>密码：<input data-bind="value: installSoftwareVO().password"/></span>
+         <div class="form-inline">
+          用户名：<input type="text" class="form-control" data-bind="value: installSoftwareVO().userName"/>&nbsp;&nbsp;&nbsp;&nbsp; 密码：<input type="password" class="form-control" data-bind="value: installSoftwareVO().password"/>
+        </div>
         	<p class="text-muted" style="padding-top:10px;">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
         <table class="table table-striped">
           <thead>
@@ -529,50 +530,42 @@
       </div>
       <div class='modal-body'>
         <div>
-           脚本名称：DB2 软件版本：1
+           脚本名称：<span data-bind="text: updateSoftwareVO().scriptName"></span> 软件版本：<span data-bind="text: updateSoftwareVO().version"></span>
         </div>
         <hr />
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th style="width:60px" class="text-center">选择</th>
-              <th>软件名称</th>
-              <th>软件名称版本</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="radio">
-                  <label class="i-checks">
-                    <input type="radio" name="softwareupdate" />
-                    <i></i>
-                  </label>
-                </div>
-              </td>
-              <td>MQ</td>
-              <td>8.0</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="radio">
-                  <label class="i-checks">
-                    <input type="radio" name="softwareupdate" />
-                    <i></i>
-                  </label>
-                </div>
-              </td>
-              <td>MQ</td>
-              <td>8.0</td>
-            </tr>
-          </tbody>
-        </table>
+        <div data-bind="with: software_update_table">
+	        <table class="table table-bordered">
+	          <thead>
+	            <tr>
+	              <th style="width:60px" class="text-center">选择</th>
+	              <th>软件名称</th>
+	              <th>软件名称版本</th>
+	            </tr>
+	          </thead>
+	          <tbody>
+	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+	            <tr>
+	              <td>
+	                <div class="radio">
+	                  <label class="i-checks">
+	                    <input type="radio" name="softwareupdate" data-bind="value: uuid"/>
+	                    <i></i>
+	                  </label>
+	                </div>
+	              </td>
+	              <td data-bind="text: name"></td>
+	              <td data-bind="text: version"></td>
+	            </tr>
+	            <!-- /ko -->
+	          </tbody>
+	        </table>
+        </div>
         <div class="form-inline">
-          用户名：<input type="text" class="form-control" />&nbsp;&nbsp;&nbsp;&nbsp; 密码：<input type="password" class="form-control" />
+          用户名：<input type="text" class="form-control" data-bind="value: updateSoftwareVO().userName"/>&nbsp;&nbsp;&nbsp;&nbsp; 密码：<input type="password" class="form-control" data-bind="value: updateSoftwareVO().password"/>
         </div>
       </div>
       <div class='modal-footer'>
-        <input type="button" name="commit" value="确定升级" class="btn btn-default btn-primary" />
+        <input type="button" name="commit" value="确定升级" class="btn btn-default btn-primary" data-bind="click: $root.doUpdateSoftware"/>
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
       </div>
     </div>
@@ -1076,9 +1069,6 @@
       this.installVMCancel = function(){
         this.isInstallVM(false);
       }
-      this.update = function(){
-        this.isUpdate(true);
-      };
       
       //获取云主机摘要
       this.vmVO = ko.validatedObservable({});
@@ -1135,21 +1125,88 @@
     	vm.uuid = self.vmVO().uuid;
     	vm.userName = self.reInstallVO().userName();
     	vm.userPwd = self.reInstallVO().password();
+    	vm.softwareUuid = self.reInstallVO().uuid();
     		
     	var vms = [];
     	vms.push(vm);
     	
     	var postBody = {};
-    	postBody.softwareUuids = self.reInstallVO().uuid();
     	postBody.vms = vms;
-    	return;
     	csc.rest.post("api/v5.0.0/install",postBody,function(data){
     		//重安装结束
     		self.isReInstall(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
     	});
     }
     
     //------------------------------------------软件重安装结束------------------------
+    
+    //------------------------------------------软件升级开始------------------------
+
+    //this.isUpdate(true);
+    
+    this.software_update_table = new DataTable([]);
+    
+    this.updateSoftwareVO = ko.observable({
+    	scriptName: ko.observable(),
+    	version: ko.observable(),
+    	userName: ko.observable(),
+    	password: ko.observable()
+    });
+    
+    this.updateSearchParam = ko.observable({
+    	firstResult: -1,
+    	maxResult: -1
+    });
+    
+    this.update = function(object,event){
+        self.isUpdate(true);
+        self.software_update_table.params(self.updateSearchParam());
+    	self.software_update_table.path('api/v5.0.0/soft/softwares?installable=Y&installType=升级&softwareName='+object.name);
+    	self.updateSoftwareVO().scriptName(object.scriptName);
+    	self.updateSoftwareVO().version(object.version);
+    };
+    
+    this.doUpdateSoftware = function(){
+    	//获取选中的软件
+    	var softwareUuid= "";
+    	var temp = document.getElementsByName("softwareupdate");
+	  	for(var i=0;i<temp.length;i++){
+	  	  if(temp[i].checked){
+	  	    softwareUuid = temp[i].value;
+	  	    break;
+	  	  }
+	  	}
+	  	if(csc.util.isNull(softwareUuid)){
+	  		systemMsg.alert('请选择一个软件！');
+	  		return;
+	  	}
+	  	//TODO　要获取高版本的软件
+    	var vm = {};
+    	vm.id = self.vmVO().id;
+    	vm.uuid = self.vmVO().uuid;
+    	vm.userName = self.updateSoftwareVO().userName();
+    	vm.userPwd = self.updateSoftwareVO().password();
+    	vm.softwareUuid = softwareUuid;
+    		
+    	var vms = [];
+    	vms.push(vm);
+    	
+    	var postBody = {};
+    	postBody.vms = vms;
+    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    		//升级结束
+    		self.isUpdate(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
+    	});
+    }
+    
+    
+    //------------------------------------------软件升级结束------------------------
   
     //------------------------------------------软件安装日志开始------------------------
     this.installLogVO = ko.observable({
@@ -1217,7 +1274,7 @@
     
     this.software_check_search = function(){
   	  	self.software_check_table.params(self.software_param());
-		self.software_check_table.path('api/v5.0.0/soft/softwares');
+		self.software_check_table.path('api/v5.0.0/soft/softwares?installable=Y&installType=安装');
     }
     self.software_check_search();
     
@@ -1228,15 +1285,15 @@
     //4.安装完成后将公网IP与虚拟机解绑
     this.submitInstallSoftwares = function(){
     	//获取待安装软件的uuids
-    	var softwareUuids = "";
+    	var softwareUuid = "";
     	for(var ia=0;ia<self.softwareItems().length;ia++){
     		if(ia == self.softwareItems().length-1){
-    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid;
+    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid;
     		}else{
-    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid + ",";
+    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid + ",";
     		}
     	}
-    	if(csc.util.isNull(softwareUuids)){
+    	if(csc.util.isNull(softwareUuid)){
     		systemMsg.alert('请选择一个软件！');
     		return;
     	}
@@ -1245,16 +1302,18 @@
     	vm.uuid = self.vmVO().uuid;
     	vm.userName = self.installSoftwareVO().userName();
     	vm.userPwd = self.installSoftwareVO().password();
+    	vm.softwareUuid = softwareUuid;
     		
     	var vms = [];
     	vms.push(vm);
     	
     	var postBody = {};
-    	postBody.softwareUuids = softwareUuids;
     	postBody.vms = vms;
-    	return;
     	csc.rest.post("api/v5.0.0/install",postBody,function(data){
-    		//self.isReInstall(false);
+    		self.isInstall(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
     	}); 
     }
     
@@ -1273,7 +1332,7 @@
 	 
     this.showScriptConfig = function(object,event){
     	self.software_script_table.params(self.software_script_param());
-    	self.software_script_table.path('api/v5.0.0/script/defaultAttrs?status=1&scriptUuid'+object.scriptUuid);
+    	self.software_script_table.path('api/v5.0.0/script/defaultAttrs?status=1&scriptUuid='+object.scriptUuid);
     	self.isScriptConfig(true);
     }
     

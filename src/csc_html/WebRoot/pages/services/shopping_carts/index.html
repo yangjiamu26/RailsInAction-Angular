@@ -77,7 +77,7 @@
                             <i class="fa fa-close fa-lg text-danger" title="删除"></i></a>
                             </td>
                         </tr>
-                        <!-- /ko -->
+                        <!-- /ko -->			
                     </tbody>
                 </table>
             </div>
@@ -500,10 +500,19 @@
 			   this.sshIsMount = ko.observable();
 			   this.sshUuid = ko.observable();
 			   this.busSysUuid = ko.observable();
+			   
 		   }
-		   	   
+		   
+		   function SOFT_baseInfo(){
+			   //软件
+			   this.softwareParamsList = ko.observableArray();
+			   this.softwareUuid = ko.observable();
+			   this.scriptUuid = ko.observable();
+		   }
+		   
 		   function VM_network (){
 			   this.networkId = ko.observable();
+			   this.ip = ko.observable();
 		   }
 		   function VM_partition (){
 			   this.name = ko.observable();
@@ -764,17 +773,26 @@
          	    	   
          	    	   var n = new VM_network;
          	    	   n.networkId(f.vpcNetworkUuid);
+         	    	   n.ip(f.ip);
          	    	   baseInfo.networkList.push(n);
          	    	   //安装软件
          	    	   if(f.softwares!=null){
          	    		   f.softwares.forEach(function(soft){
-                	    		   var software = new VM_softwareVo(soft);
-                	    		   soft.softwareParams.forEach(function (params){
-        			    			   var softwareParam = new VM_softwareParamsVO(params);
-        			    			   software.softwareParamsList.push(softwareParam);
-                	    		   })
-                	    		   baseInfo.softwareList.push(software);
-                	    	   });
+                	    		   var i =new items(soft);
+        				    	   i.resourceType("SOFTWARE");
+        				    	   i.relateUuid(relateUuid);
+        				    	   var md=new metaData();
+        				    	   var bi =new SOFT_baseInfo();
+        				    	   bi.softwareUuid(soft.softwareUuid);
+        				    	   bi.scriptUuid(soft.scriptUuid);
+        				    	   soft.softwareParams.forEach(function(p){
+        				    		   var softwareParam = new VM_softwareParamsVO(p);
+        				    		   bi.softwareParamsList.push(softwareParam);
+        				    	   });
+        				    	   md.resBaseInfo(bi);
+        				    	   i.metaData(ko.toJSON(md));
+        				    	   self.orders_vm().orderItems.push(i);
+                	       });
          	    	   }         	    	   
          	    	   
          	    	   meta.resBaseInfo(baseInfo);
@@ -784,6 +802,17 @@
                 	    		   var i =new items(m);
                 		    	   i.resourceType("DISK");
                 		    	   i.relateUuid(relateUuid);
+                		    	   i.azUuid(e.azUuid);
+        				    	   i.vdcUuid(e.vdcUuid);
+        				    	   i.expireType(e.applyType);
+	       						   var expireValue="";
+	       				    	    if(e.applyType == "2"){
+	       				    		   expireValue = e.applyNum;
+	       				    	    }else if(e.applyType == "3"){
+	       				    		   expireValue = e.applyTime;
+	       				    	    }
+	       				    		i.expireValue(expireValue);
+        				    	   
                 		    	   var md=new metaData();
                 		    	   var bi =new DISK_baseInfo();
                 		    	   
@@ -1024,6 +1053,9 @@
                 csc.rest.get("api/v5.0.0/cart/getAzList/"+data[arg]().serviceUuid()+"/" + data[arg]().vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().azList(result);
                 });
+            	if(arg=="vmCartInfo"){
+            		data[arg]().mountDisks.removeAll();
+            	}
             };
 
             this.azChangeGetVm = function(arg, data, event) {
@@ -1037,9 +1069,13 @@
                     data[arg]().vpcList(result);
                 });
                 
-                csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+data[arg]().azUuid()+"&vcdUuid="+data[arg]().vdcUuid(),function(result){
+                csc.rest.get("api/v5.0.0/sshKeys?getList=true&isValidate=true&azUuid="+data[arg]().azUuid()+"&vcdUuid="+data[arg]().vdcUuid(),function(result){
                 	data[arg]().sshList(result);
                 });
+                
+            	if(arg=="vmCartInfo"){
+            		data[arg]().mountDisks.removeAll();
+            	}
             }
 
             this.vpcChange = function(arg, data, event) {
@@ -1063,7 +1099,7 @@
             	if(data[arg]().vpcNetworkUuid()!=null){
             		csc.rest.get("api/v5.0.0/vpcNetworks/" + data[arg]().vpcNetworkUuid() + "/availableIp", function(result) {
                     	data[arg]().ipList(result);
-                    });
+                    },function(){},null,true);
             	}
             }
             
@@ -1247,7 +1283,7 @@
                 vpcNetworkUuid: ko.observable("").extend({required:true}),
                 ip: ko.observable(""),
                 account: ko.observable(""),
-                password: ko.observable(),
+                password: ko.observable().extend({minLength:6}),
                 repeatPassword: ko.observable(),
                 sshIsMount: ko.observable(""),
                 remark: ko.observable(""),
@@ -1260,22 +1296,25 @@
                 mountDiskNum:ko.observable(),
                 softwareNum:ko.observable(),
                 charge:ko.observable(),
-                vdcText: ko.pureComputed(function() {
-                	if(self.vdcList!=null){
-                		var item = _.findWhere(self.vdcList(), {
-                            uuid: this.vdcUuid()
-                        });
-                        if (item != null) {
-                            return item.name;
-                        } else {
-                            return "";
-                        }
-                	}else{
-                		return "";
-                	}
-                    
-
-                }, this),
+                
+              //镜像大小
+                imageSize : ko.pureComputed(function(){
+	            	var item = _.findWhere(self.vmCartInfo().osVersionList(), {uuid: self.vmCartInfo().osVersion()});
+	            	if(item!=null){
+	            		return csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
+	            	}else{
+	            		return 0;
+	            	} 
+	            }, this),
+	          //openstack or cnware
+	            cloudPlatform : ko.pureComputed(function(){
+	            	var item = _.findWhere(self.vmCartInfo().azList(), {uuid: self.vmCartInfo().azUuid()});
+	            	if(item!=null){
+	            		return item.cloudPlatform == 'OpenStack' && self.vmCartInfo().osType()!='windows' ?true:false;
+	            	}else{
+	            		return false;
+	            	}
+	            }, this),
                 //分区
                 partitions: ko.observableArray([]),
                 //硬盘
@@ -1311,6 +1350,12 @@
             	}
             });
             
+            this.vmCartInfo().storage.subscribe(function(value){
+            		self.vmCartInfo().billRuleUuid.extend({required: {params: true, onlyIf:function(){return true}},min:{params:self.vmCartInfo().imageSize,onlyIf: 
+        				 function(){return  self.vmCartInfo().imageSize()}} })
+            });
+            
+            this.isViewPartition = ko.observable(false);//显示系统盘分区
             /************************************ 购物车VO定义  ************************************/
             
             /************************************ 云主机订阅事件  ************************************/
@@ -1363,6 +1408,12 @@
             this.editElement = function(viewOrEdit,arg,object, event){
                 self.vmCartInfo().mountDisks([]);
                 self.vmCartInfo().partitions([]);
+                self.step1(true);
+		    	self.step2(false);
+		    	self.step3(false);
+		    	self.step4(false);
+		    	self.step5(false);
+                
                 csc.rest.get('api/v5.0.0/cart/query/'+arg+'/'+object.uuid(),function(data){
                         if(arg=='vdiskCartInfo'){
                             var serviceUuid=data.serviceUuid;
@@ -1470,6 +1521,15 @@
                             	 //+"&userUuid="
                                  csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+azUuid+"&vcdUuid="+vdcUuid,function(result3){
                                 	 csc.rest.get("api/v5.0.0/vpcNetworks/"+vpcNetworkUuid+"/availableIp", function(result4){
+                                		 csc.rest.get("api/v5.0.0/service/getServiceInfo/"+serviceUuid, function(result5){
+                     		            	if(result5.serviceVm.virtualName=="PowerVM"){
+                     		            		self.isViewPartition(true);
+                     		            	}else{
+                     		            		self.isViewPartition(false);
+                     		            	}
+                     		             }); 
+                                		 
+                                		 
 	                                	self.vmCartInfo().ipList(result4);
 	                                    self.vmCartInfo().sshList(result3.results);
 	                                    self.vmCartInfo().bussyList(result2.results); 
@@ -1800,11 +1860,11 @@
             
             
             
-            this.step1 = ko.observable(false);
-            this.step2 = ko.observable(true);
-            this.step3 = ko.observable(true);
-            this.step4 = ko.observable(true);
-            this.step5 = ko.observable(true);
+            this.step1 = ko.observable(true);
+            this.step2 = ko.observable(false);
+            this.step3 = ko.observable(false);
+            this.step4 = ko.observable(false);
+            this.step5 = ko.observable(false);
 
             function MountDiskVO(){
                 this.name = ko.observable().extend({required:true});
@@ -2038,6 +2098,9 @@
      	    				price +=e.unitPrice;
      	    			}
     	    		});
+	 	    		if(parseInt(price)!=price){
+	 	    			price = price.toFixed(2);
+	 	    		}
     	    		if(type=="DAY"){
     	    			price+="元/天";
     	    		}else if(type=="MONTH"){
@@ -2117,7 +2180,18 @@
 	        
 	        this.attrList_VM = ko.observableArray([]);
 	        this.showAttr_VM = function(viewOrEdit,data,event){
-	        	self.attrList_VM(data.softwareParams());
+	        	self.attrList_VM([]);
+	            data.softwareParams().forEach(function (e){
+	            	var parames = new SoftwareAttrVO();
+	            	parames.defaultValue(e.defaultValue());
+	            	parames.paramsKey(e.paramsKey());
+	            	parames.paramsName(e.paramsName());
+	            	parames.paramsUuid(e.paramsUuid());
+	            	parames.paramsValue(e.paramsValue());
+	            	parames.scriptUuid(e.scriptUuid());
+	            	parames.softwareUuid(e.softwareUuid());
+	            	self.attrList_VM.push(parames);
+	            });
 	        	self.disableAttr_VM(viewOrEdit);
 	        	self.showSoftwareAttr(true);
 	        	objectSoft = data;
@@ -2658,7 +2732,7 @@
                 </div>
                 <div class='modal-body form-horizontal row' style="max-width: 910px;">
                     <div class="panel panel-default no-height" style="margin:0;border:none">
-                        <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step1(!step1()),css:{'glyphicon-chevron-up': step1(), 'glyphicon-chevron-down': !step1()}"></span></div>
+                        <div class="panel-heading">基本信息 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click:function(){ step1(!step1())},css:{'glyphicon-chevron-up': step1(), 'glyphicon-chevron-down': !step1()}"></span></div>
                         <div class="panel-body" data-bind="visible: step1">
                             <div class="form-group col-md-6">
                                 <div class="row">
@@ -2765,7 +2839,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-3" data-bind="visible:vmCartInfo().cloudPlatform">
                                 <div class="row">
                                     <label class="col-xs-5 control-label">选择密钥</label>
                                     <div class="col-xs-7">
@@ -2812,7 +2886,7 @@
                         </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
-                      <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step2(!step2()),css:{'glyphicon-chevron-up': step2(), 'glyphicon-chevron-down': !step2()}"></span></div>
+                      <div class="panel-heading">挂载云硬盘 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){step2(!step2())},css:{'glyphicon-chevron-up': step2(), 'glyphicon-chevron-down': !step2()}"></span></div>
                       <div class="panel-body" data-bind="visible: step2">
                         <div style="margin:0;">
                           <a class="btn btn-info btn-sm pull-right" data-bind="click: addMountDisks ,visible:!$root.viewOrEdit()">添加硬盘</a>
@@ -2848,7 +2922,7 @@
                       </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
-                        <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step3(!step3()),css:{'glyphicon-chevron-up': step3(), 'glyphicon-chevron-down': !step3()}"></span></div>
+                        <div class="panel-heading">安装软件 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){step3(!step3())},css:{'glyphicon-chevron-up': step3(), 'glyphicon-chevron-down': !step3()}"></span></div>
                         <div class="panel-body" data-bind="visible: step3">
                             <div style="margin:0;">
                                 <a class="btn btn-info btn-sm pull-right"  data-bind="click: $root.selectSoftware_VM ,visible:!$root.viewOrEdit()">添加软件</a>
@@ -2879,10 +2953,10 @@
                         </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
-                      <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step4(!step4()),css:{'glyphicon-chevron-up': step4(), 'glyphicon-chevron-down': !step4()}"></span></div>
+                      <div class="panel-heading">系统盘分区 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){step4(!step4())},css:{'glyphicon-chevron-up': step4(), 'glyphicon-chevron-down': !step4()}"></span></div>
                       <div class="panel-body" data-bind="visible: step4">
                         <div style="margin:0;">
-                          <a class="btn btn-info btn-sm pull-right" data-bind="click: addPartitions ,visible:!$root.viewOrEdit()">添加分区</a>
+                          <a class="btn btn-info btn-sm pull-right" data-bind="click: addPartitions ,visible:!$root.viewOrEdit() && $root.isViewPartition">添加分区</a>
                           <div class="clearfix" style="height:10px;clear:both;"></div>
                           <div class="panel panel-default table-responsive no-height">
                             <table class="table table-striped">
@@ -2904,7 +2978,7 @@
                       </div>
                     </div>
                     <div class="panel panel-default no-height" style="margin:0;border:none">
-                        <div class="panel-heading">高级选项 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: step5(!step5()),css:{'glyphicon-chevron-up': step5(), 'glyphicon-chevron-down': !step5()}"></span></div>
+                        <div class="panel-heading">高级选项 <span style="cursor:pointer;" class="glyphicon pull-right" data-bind="click: function(){step5(!step5())},css:{'glyphicon-chevron-up': step5(), 'glyphicon-chevron-down': !step5()}"></span></div>
                         <div class="panel-body" data-bind="visible: step5">
                             <div class="form-group col-md-6">
                                 <div class="row">

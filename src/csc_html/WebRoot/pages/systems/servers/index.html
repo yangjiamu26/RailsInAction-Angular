@@ -380,10 +380,10 @@
         }
  	  //保存集算配置
       this.reportSave = function(){
-	  	  var url = /^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9]):\d{0,5}/;
-			if(self.server_rep().url()==""||!url.test(self.server_rep().url())){
+	  	  var url = /^http:\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"\"])*$/;
+			if(csc.util.isNull(self.server_rep().url())||!url.test(self.server_rep().url())){
 		    	alert("请输入正确的url地址！");
-		    }else if(self.server_rep().user()==""||self.server_rep().password()==""){
+		    }else if(csc.util.isNull(self.server_rep().user())||csc.util.isNull(self.server_rep().password())){
 		    	alert("请输入用户名或密码！");
 		    }else{
 		    	var postBody = {};
@@ -414,17 +414,17 @@
       }
       //保存ftp配置
       this.ftpSave = function(){
-    	  var ipReg = /(\d+)\.(\d+)\.(\d+)\.(\d+)/;
-	      	var port =  /^([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])/;//端口号正则表达式，0-65535
-			if(self.server_ftp().url() == ""||!ipReg.test(self.server_ftp().url())){			//判断ip地址格式是否正确
+    	  var ipReg = /^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])/;
+	      	var port =  /^\d{1,5}$/;//端口号正则表达式，0-65535
+			if(csc.util.isNull(self.server_ftp().url())||!ipReg.test(self.server_ftp().url())){			//判断ip地址格式是否正确
 	        	alert("请输入正确的服务器地址！");
-	        }else if(self.server_ftp().port() == ""||!port.test(self.server_ftp().port())){		//判断端口号格式是否正确
+	        }else if(csc.util.isNull(self.server_ftp().port())||!port.test(self.server_ftp().port())){		//判断端口号格式是否正确
 	        	alert("请输入正确的端口号！");
-	        }else if(self.server_ftp().softPath() == ""){
+	        }else if(csc.util.isNull(self.server_ftp().softPath())){
 	        	alert("请输入软件库地址！");
-	        }else if(self.server_ftp().scriptPath() == ""){
+	        }else if(csc.util.isNull(self.server_ftp().scriptPath())){
 	        	alert("请输入脚本库地址！");
-	        }else if(self.server_ftp().user() == ""||self.server_ftp().password() == ""){
+	        }else if(csc.util.isNull(self.server_ftp().user())||csc.util.isNull(self.server_ftp().password())){
 	        	alert("请输入用户名或密码！");
 	        }else{
 	        	var postBody = {};
@@ -446,20 +446,20 @@
     	  putBody.serverName = "chef";
     	  putBody.serverConf = "url:"+self.server_chef().url()+",port:"+self.server_chef().port()+",user:"+self.server_chef().user()+",password:"+self.server_chef().password();
     		  csc.rest.put("api/v5.0.0/serverConf/chefConn",putBody,function(data){
-    			  if(data && data.msg) {
-  	      			alert(data.msg + '！');
+    			  if(data && data.resultMsg) {
+  	      			alert(data.resultMsg + '！');
   	      		}
     		  });
       }
 	  //保存chef连接
       this.chefSave = function(){
-        var ipReg = /(\d+)\.(\d+)\.(\d+)\.(\d+)/;
-      	var port =  /^([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])/;//端口号正则表达式，0-65535
-      	 if(self.server_chef().url() == ""||!ipReg.test(self.server_chef().url())){		//判断ip地址格式是否正确
+        var ipReg = /^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])/;
+      	var port =  /^\d{1,5}$/;//端口号正则表达式
+      	 if(csc.util.isNull(self.server_chef().url())||!ipReg.test(self.server_chef().url())){		//判断ip地址格式是否正确
       	   alert("请输入正确的ip地址！");
-         }else if(self.server_chef().port() == ""||!port.test(self.server_chef().port())){		//判断端口号格式是否正确
+         }else if(csc.util.isNull(self.server_chef().port())||!port.test(self.server_chef().port())){		//判断端口号格式是否正确
       	   alert("请输入正确的端口号！");
-         }else if(self.server_chef().user() == ""||self.server_chef().password() == ""){
+         }else if(csc.util.isNull(self.server_chef().user())||csc.util.isNull(self.server_chef().password())){
       	   alert("请输入用户名或密码！");
          }else{
         	 var postBody = {};

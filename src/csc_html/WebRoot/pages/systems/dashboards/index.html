@@ -26,8 +26,7 @@
 					<tr>
 						<td data-bind="text: $row.homeModleName"></td>
 						<td data-bind="text: $row.configRoles"></td>
-						<td><label class="i-switch v-middle"> <input
-								type="checkbox" checked> <i></i>
+						<td><label class="i-switch v-middle"> <input type="checkbox" data-bind="checked: $row.state_input"> <i></i>
 						</label></td>
 						<td><a data-bind="click:$root.edit">角色配置</a></td>
 					</tr>
@@ -100,8 +99,6 @@
 	</div>
 </div>
 
-
-
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [ "api/systems/log/loginLog.js",
@@ -113,11 +110,11 @@
 			function(args) {
 				function LogViewModel() {
 					var self = this;
-					this.wantsSpam = ko.observable(true);
 					csc.rest.get('api/v5.0.0/roles', function(data) {
 						self.fields(data.results);
 					})
 					this.fields = ko.observableArray([]);
+					this.state_selected = ko.observableArray([]);
 					this.fields_selected_ids = ko.observableArray([]);
 					this.fields_all = ko.pureComputed({
 						read : function() {
@@ -125,7 +122,6 @@
 									.fields().length;
 						},
 						write : function(value) {
-							console.log(value);
 							this.fields_selected_ids(value ? _.pluck(this
 									.fields(), 'name') : []);
 						},
@@ -140,7 +136,6 @@
 					this.configSave = function() {
 						var params = {
 							configRoles : "" + self.fields_selected_ids() + "",
-							state : self.state
 						} 
 						csc.rest.put('api/v5.0.0/homeConfigs/' + self.uuid(), params,
 								function(data) {
@@ -149,19 +144,81 @@
 									self.table.refreshData();
 								});
 					}
-					//显示编辑字典页面
+					//显示角色配置页面
 					this.edit = function(object,event) {
-						console.log(self.uuid());
 						self.uuid(object.uuid);
-						
 						self.isEdit(true);
+			      		csc.rest.get('api/v5.0.0/homeConfigs',function(data){
+			      			var count = 0;
+			      			for(var num=0;num<data.results.length;num++){
+			      				if(data.results[num].uuid == object.uuid){
+			      					var db_fields = data.results[num].configRoles.split(",");
+			      					self.fields_selected_ids(db_fields);
+			      					
+			      				}
+			      			}
+
+			    		});
 					};
+					
+					function Dashboard(uuid, homeModleName, configRoles, state){
+						var _self = this;
+						this.uuid = uuid;
+						this.homeModleName = homeModleName;
+						this.configRoles = configRoles;
+						this.state = ko.observable(state);
+						this.state.subscribe(function(value){
+							var params = {
+								state : value,
+							} 
+							csc.rest.put('api/v5.0.0/homeConfigs/' + _self.uuid, params,
+									function(data) {
+										self.table.refreshData();
+									});
+						})
+						this.state_input = ko.pureComputed({
+							read : function() {
+								return this.state()=='1';
+							},
+							write : function(value) {
+								console.log(value);
+								if(value){
+									this.state("1")
+								}else{
+									this.state("0");
+								}
+							},
+							owner : this
+						});
+					}
 					self.table = new DataTable({
-						perPage : 10,
+						perPage : 5,
 						path : 'api/v5.0.0/homeConfigs',
+						loader: function(item){
+							return new Dashboard(item.uuid, item.homeModleName, item.configRoles, item.state);
+						}
 					})
+					
+				this.changeState = function(object,event){
+						var temp = document.getElementsByName("system_conf");
+				    	for(var i=0;i<temp.length;i++)
+				    	{
+				    		console.log(temp[i].value);	
+				    		console.log(object.modelID);
+				    		    if(object.modelID == temp[i].value){
+				    		    	
+				    			temp[i].id = temp[i].value;
+				    			$("#"+temp[i].id).prop("checked",true);
+				    		    }
+				    	}
+						
+					} 
+					
 				}
 				ko.applyBindings(new LogViewModel(), $('#page-content')[0]);
 
 			});
+	
+	
+	     
 </script>

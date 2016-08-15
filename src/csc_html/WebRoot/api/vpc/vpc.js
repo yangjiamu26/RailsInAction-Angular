@@ -65,6 +65,15 @@
 				 csc.rest.get('api/v5.0.0/vpcNetworks?'+param,function(data){
 					     callback(data);
 	    		    }); 
+			},
+			/**
+			 * 获取VPC网络中可用的IP地址
+			 *  @param uuid vpc uuid
+			 */
+			getNetworkAvailableIp:function(uuid,callback){
+				csc.rest.get('api/v5.0.0/vpcNetworks/' + uuid + "/availableIp",function(data){
+					 callback(data)
+   		        })
 			}
 	};
 }(window.jQuery);

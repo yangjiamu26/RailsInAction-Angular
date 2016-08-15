@@ -15,6 +15,8 @@
 			<li role="presentation">
 				<a aria-controls="router" data-toggle="tab" href="#router" role="tab">云主机</a>
 			</li>
+			<li role='presentation'>
+        	<a aria-controls='partition_tasks' data-toggle='tab' href='#partition_tasks' role='tab'>调度任务</a></li>
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane active" id="VM_OPERATION" role="tabpanel">
@@ -300,7 +302,154 @@
 		    	<!--modal end -->
                 
                 </div>	
-               </div>
+        
+        <!-- 调度任务 -->
+			<div class='tab-pane' id='partition_tasks' role='tabpanel'>
+				<div class="row wrapper">
+				  <div class="col-xs-2">
+				    <div class="input-group">
+				      <span class="input-group-addon">类型</span>
+				      <select class="form-control input-sm" data-bind="value: searchParam().targetType">
+				        <option value="VM,DISK,PUBLICIP,LOAD_BALANCING,SECRET_KEY,OBJECT_STORAGE">全部</option>
+				        <option value="VM">云主机</option>
+				        <option value="DISK">云硬盘</option>
+				        <option value="PUBLICIP">公网IP</option>
+				        <option value="LOAD_BALANCING">负载均衡器</option>
+				        <option value="SECRET_KEY">SSH密钥</option>
+				        <option value="OBJECT_STORAGE">对象存储</option>
+				      </select>
+				    </div>      
+				  </div>           
+				  <div class="col-xs-2">
+				    <div class="input-group">
+				      <span class="input-group-addon">任务名称</span>
+				      <input type="text" class="input-sm form-control" placeholder="请输入任务名称" data-bind="value: searchParam().taskName">
+				    </div>
+				  </div>  
+				  <div class="col-xs-2">
+				    <div class="input-group">
+				      <span class="input-group-addon">资源名称</span>
+				      <input type="text" class="input-sm form-control" placeholder="请输入资源名称" data-bind="value: searchParam().targetName">
+				    </div>
+				  </div>                                    
+				  <div class="col-xs-2">
+				    <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
+				  </div>        
+				</div>
+				
+				<div id='instance_tasks'>
+				  <div class='table-responsive' data-bind="with: table">
+				    <table class='table table-striped'>
+				      <thead>
+				        <tr>
+				          <th>任务编号</th>
+				          <th>任务名称</th>
+				          <th>任务进度（%）</th>
+				          <th>任务状态</th>
+				          <th>资源名称</th>
+				          <th>资源类型</th>
+				          <th>操作人</th>
+				          <th>开始时间</th>
+				          <th>完成时间</th>
+				        </thead>
+				        	<tbody>
+				            <tr data-bind="visible: showNoData">
+				              <td colspan=14 class="aligncenter">
+				                	暂无数据
+				              </td>
+				            </tr>
+				            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+				            <tr> 
+				                <td data-bind="text: taskId"></td>
+				                <td data-bind="text: taskName"></td>
+				                <td data-bind="text: progress"></td>
+				                <td>
+				                	<span class="label label-success" data-bind="if: $row.state == 'success'">成功</span>
+				                	<span class="label label-warning" data-bind="if: $row.state == 'active'">进行中</span>
+				                	<span class="label label-danger" data-bind="if: $row.state == 'completedAndError'">失败</span>
+				                </td>
+				                <td data-bind="text: targetName"></td>
+				                <td>
+				                	<span data-bind="if: $row.targetType == 'VM'">云主机</span>
+				                	<span data-bind="if: $row.targetType == 'DISK'">云硬盘</span>
+				                	<span data-bind="if: $row.targetType == 'PUBLICIP'">公网IP</span>
+				                	<span data-bind="if: $row.targetType == 'LOAD_BALANCING'">负载均衡器</span>
+				                	<span data-bind="if: $row.targetType == 'SECRET_KEY'">SSH密钥</span>
+				                	<span data-bind="if: $row.targetType == 'OBJECT_STORAGE'">对象存储</span>
+				                </td>
+				                <td data-bind="text: user"></td>
+				                <td data-bind="text: executeDate"></td>
+				                <td data-bind="text: endDate"></td>
+				            </tr>
+				          	<!-- /ko -->
+				          </tbody>
+				        </table>
+				      </div>
+				       <footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
+					     <ul class="pagination">
+					       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+					         <a href="#">首页</a>
+					       </li>
+					       <li data-bind="css: leftPagerClass, click: prevPage">
+					         <a href="#">&laquo;</a>
+					       </li>
+					       <li >
+					         <a href="#"  data-bind="text: currentPage"></a>
+					       </li>
+					       <li data-bind="css: rightPagerClass, click: nextPage">
+					         <a href="#">&raquo;</a>
+					       </li>
+					       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+					         <a href="#">末页</a>
+					       </li>
+					       <li class="page-control-li">
+					         <div class="input-group form-group-sm">
+					           <input type="text" class="form-control" data-bind="value: targetPage"  />
+					           <div class="input-group-btn">
+					             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+					           </div>
+					         </div>
+					         <div class="page-info-div" data-bind="text: recordsText"></div>
+					       </li>
+					     </ul>
+					   </footer>
+				</div>
+				        
+				<script type="text/javascript">
+				  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
+				  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+				    function ViewModel_Task(){
+				    	//系统当前登录用户标识
+				      var account = "";
+				      var self = this;
+				    //查询条件初始化
+				      this.searchParam = ko.observable({
+				        targetType: '',
+				        taskName: '',
+				        targetName: '',
+				        orderBy: 'executeDate:desc'
+				      })
+				      
+				      //https://i.iwinhong.com:8099/csc/api/v5.0.0/tasks?targetId={业务系统uuid}&taskCode=BUS_SYS_POWER
+				      
+				      this.search = function(){
+				        this.table.params(this.searchParam());
+				      }
+				    
+				      this.table = new DataTable([]);
+				      
+				      this.reloadTaskList = function(){
+				    	  self.table.params(self.searchParam());
+						  self.table.path('api/v5.0.0/tasks');
+				      }
+				      this.reloadTaskList();
+				    }
+				    ko.applyBindings(new ViewModel_Task(), $('#partition_tasks')[0]);
+				  })
+				</script>
+			</div>
+        
+        </div>
     </div>
 </div>
 

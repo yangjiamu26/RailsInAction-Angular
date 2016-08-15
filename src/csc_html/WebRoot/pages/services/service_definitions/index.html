@@ -112,7 +112,7 @@
 											</thead>
 											<tbody>
 												<tr data-bind="visible: showNoData">
-													<td colspan="7" class="aligncenter">This table has no data.</td>
+													<td colspan="7" class="aligncenter">暂无数据.</td>
 												</tr>
 												<!-- ko foreach: {data: pagedRows, as: '$row'} -->
 												<tr>
@@ -1272,8 +1272,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
      	  self.isAdd_Fee(true);              
         }
         this.addFeeToList = function(){
-      	  this.package_current.feeList(this.feeList.chosenItems());
-      	  self.isAdd_Fee(false);
+        	//计费因子相同时的校验
+            for (var i = 0; i < this.feeList.chosenItems().length; i++){  //外循环是循环的次数
+                for (var j = this.feeList.chosenItems().length - 1 ; j > i; j--){  //内循环是 外循环一次比较的次数
+                    if (this.feeList.chosenItems()[i].attrType == this.feeList.chosenItems()[j].attrType){
+                        alert("相同的计费因子只能选择一个！");
+                        return;
+                    }
+                }
+            }
+        	
+      	    this.package_current.feeList(this.feeList.chosenItems());
+      	    self.isAdd_Fee(false);
         }
         
         this.deleteRuleFee = function(feeList,data,event){
@@ -1754,7 +1764,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-3 control-label">服务介绍：</label>
                 <div class="col-xs-7">
-                  <textarea class="form-control" cols="30" rows="3" data-bind="value: serviceVO().desc"></textarea>
+                  <textarea class="form-control" cols="30" rows="3" data-bind="value: serviceVO().desc" maxlength="250"></textarea>
                 </div>
               </div>
               <div class="form-group">

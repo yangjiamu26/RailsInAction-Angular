@@ -554,21 +554,55 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
 	
   	// 如果是 系统管理员、运维管理员、运营管理员，并且系统还没有创建数据中心，则跳转到向导页预览
-	csc.rest.get('api/v5.0.0/homepage/user',function(data){
+ 	csc.rest.get('api/v5.0.0/homepage/user',function(data){
 		if(data == null || data == "" ){
 			return ;
 		}
 		if(data.roleName == '系统管理员' || data.roleName == '运维管理员' || data.roleName == '运营管理员'){
-			csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){
-				if(data2 == null || data2 == "" || data2.results == null){
+			csc.rest.get('api/v5.0.0/service?maxResult=1&firstResult=0&state=1',function(data1){//判断是否已完成运营向导
+				if(data1 == null || data1 == ""){
 					return ;
 				}
-				if(data2.results.length == 0){
+				if(data1.results.length > 0){//如果还未创建产品，则进入向导页面
+					csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){//判断是否完成入云向导
+						if(data2 == null || data2 == "" || data2.results == null){
+							return ;
+						}
+						if(data2.results.length == 0){//如果还未创建数据中心，则进入向导页面
+							window.location.href='#pages/guide/index';
+						}else{
+							csc.rest.get('api/v5.0.0/azs?cloudPlatform=CNware&maxResult=1&firstResult=0',function(data3){
+								if(data3 == null || data3 == ""){
+									return ;
+								}
+								if(data3.results.length == 0){//如果还未创建CNWARE可用分区，则判断是否有openstack可用分区
+									csc.rest.get('api/v5.0.0/azs?cloudPlatform=OpenStack&maxResult=1&firstResult=0',function(data4){
+										if(data4 == null || data4 == ""){
+											return ;
+										}
+										if(data4.results.length == 0){//如果还未创建openstack可用分区，则进入向导页面
+											window.location.href='#pages/guide/index';
+										}else{
+											csc.rest.get('api/v5.0.0/images/counts',function(data5){
+												if(data5 == null || data5 == ""){
+													return ;
+												}
+												if(data5.imageCount == 0){//如果已创建openstack可用分区，则判断有没镜像存在，没则进入向导页面
+													window.location.href='#pages/guide/index';
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+					});
+				}else{
 					window.location.href='#pages/guide/index';
 				}
 			});
-		}
-    });	
+		} 
+    });	 
   	
     function doHighchartsVDC(data){
       // cpu占比图
@@ -1662,7 +1696,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 	  self.dcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/datacenter", function(data){
      	 self.dcList(data);
-      });
+      },function(){},null,true);
       
       //默认没有选中
       this.selectedDc = ko.observable("");
@@ -1730,7 +1764,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  }else{
     			  self.dcStatResult("统计错误！");
     		  }
-    	  });
+    	  },function(){},null,true);
       }
       this.loadDCStatistics();
       //--------------------数据中心资源模块end--------------//
