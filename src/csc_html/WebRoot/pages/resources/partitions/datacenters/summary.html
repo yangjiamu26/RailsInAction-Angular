@@ -368,7 +368,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     this.currentVO = ko.validatedObservable({});
     
     //数据中心基础信息VO
-    this.dataCenterInfoVO = ko.observable({});
+    this.dataCenterInfoVO = ko.validatedObservable({
+    	name: ko.observable(),
+    	createTime: ko.observable(),
+    	description: ko.observable()
+    });
     //数据中心摘要统计信息VO
     this.summaryVO = ko.observable({});
 
@@ -384,7 +388,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     }
     
     this.saveDataCenter = function(){
-    	csc.rest.put('api/v5.0.0/datacenters/'+self.dataCenterUUID, this.dataCenterInfoVO(), function(data){
+    	csc.rest.put('api/v5.0.0/datacenters/'+self.dataCenterUUID, this.dataCenterInfoVO.toJSON(), function(data){
             self.isEditDataCenter(false);
     		systemMsg.alert("修改成功");
             //location.href = "#pages/resources/partitions/datacenters/index";
@@ -407,7 +411,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
     this.loadDataCenterInfo = function(){
     	$.ajax("api/v5.0.0/datacenters/"+self.dataCenterUUID).done(function(data){
-      	  self.dataCenterInfoVO(data);
+    		self.dataCenterInfoVO.fromJSON(data);
       	  //console.log(self.summaryVO().azNum);
   	    });
     }
@@ -425,7 +429,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     		  var obj = {};
     		  obj.name=data.virTualHypervisor;
     		  obj.y=data.azNum;
-    		  if(data.virTualHypervisor == "Kvm"){
+    		  if(data.virTualHypervisor == "KVM"){
     			  obj.color="#5bd544";
     		  }else{
     			  obj.color="#ffd800"

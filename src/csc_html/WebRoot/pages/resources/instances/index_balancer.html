@@ -86,7 +86,7 @@
             <td data-bind="text: $row.expiredDate">20160605</td><!-- 有效期 -->
             <td data-bind="text: $row.account">admin</td><!-- 创建人 -->
             <td>
-            	<a href="#" data-bind="click: $root.showChangeValiTimePage, check_action:'lb_Creat'">有效时间变更</a> |
+            	<span data-bind="check_action:'lb_Creat'"><a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |</span>
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
@@ -445,6 +445,7 @@
         <div class="wrapper" data-bind="with: $root.currentLbVo">
           <a class="btn btn-sm btn-default" data-bind="click: $root.showDetailFun"><i class="fa fa-arrow-left"></i> 返回</a>
           <a class="btn btn-sm btn-info" data-bind="visible: csc.util.isNotNull(vipUuid)&&isValidate==true, click:$root.showEditVip">编辑VIP</a>
+          <a class="btn btn-sm btn-info" data-bind="visible: csc.util.isNotNull(vipUuid)&&isValidate==false, click:$root.delVip">删除VIP</a>
           <a class="btn btn-sm btn-info" data-bind="click: $root.showChangeValiTimeInDetail">有效时间变更</a>
           <span data-bind="if: isValidate == true">
           	<a class="btn btn-sm btn-info" data-bind="click: $root.terminateService">终止</a>
@@ -468,14 +469,20 @@
             <div class="row m-b">
               <div class="col-xs-1 font-bold">所属VPC：</div>
               <div class="col-xs-3" data-bind="text: vpcName">VPC1</div>
-              <div class="col-xs-1 font-bold">网络：</div>
+              <div class="col-xs-1 font-bold">网络名称：</div>
+              <div class="col-xs-3" data-bind="text: networkName">208</div>
+              <div class="col-xs-1 font-bold">网段：</div>
               <div class="col-xs-3" data-bind="text: cidr">208</div>
-              <div class="col-xs-1 font-bold">协议：</div>
-              <div class="col-xs-3" data-bind="text: protocol">TCP</div>
             </div>
             <div class="row m-b">
+              <div class="col-xs-1 font-bold">协议：</div>
+              <div class="col-xs-3" data-bind="text: protocol">TCP</div>
               <div class="col-xs-1 font-bold">负载方式：</div>
               <div class="col-xs-3" data-bind="text: lbMethod_">SOURCE_IP</div>
+              <div class="col-xs-1 font-bold">公网IP：</div>
+              <div class="col-xs-3" data-bind="text: publicIp">192.168.212.5</div>
+            </div>
+            <div class="row m-b">
               <div class="col-xs-1 font-bold">状态：</div>
               <div class="col-xs-3"><span class="label label-success" data-bind="text: state">运行中</span></div>
               <div class="col-xs-1 font-bold">创建人：</div>
@@ -525,7 +532,7 @@
                     <p>协议端口：<span data-bind="text: protocolPort">8080</span></p>
                   </div>
                   <div class="col-xs-6">
-                    <p>会话持久性：<span data-bind="text: sessionPersistenceType">是</span></p>
+                    <p>会话持久性：<span data-bind="text: sessionPersistenceType()">是</span></p>
                   </div>
                   <div class="col-xs-6">
                     <p>连接限制：<span data-bind="text: connectionLimit">5000</span></p>
@@ -1330,7 +1337,7 @@
       	};
       	
       	this.addVip = function(){
-      		var p = self.currentVipVo();
+      		var p = ko.toJS(self.currentVipVo());
       		$.LOAD_BALANCER.createLoadBalancerVip(p, function(data){
       			self.isShowAddVip(false);
  	    		self.loadBalancerTable.refreshData();
@@ -1348,7 +1355,10 @@
         	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
         	//self.spTypeList.unshift("");
         	//初始化VIP参数
-        	$.LOAD_BALANCER.getLoadBalancerVip(row.vipUuid, function(data){
+        	loadCurrentVipInfo(row.vipUuid);
+      	};
+      	var loadCurrentVipInfo = function(vipUuid){
+      		$.LOAD_BALANCER.getLoadBalancerVip(vipUuid, function(data){
         		oldEditVip.name = data.name;
         		oldEditVip.desc = data.desc;
         		oldEditVip.sessionPersistenceType = data.sessionPersistenceType == null?"":data.sessionPersistenceType;
@@ -1375,14 +1385,14 @@
               		"desc":data.desc
             	});
       		});
-        	
       	};
+      	
       	//VIP是否修改
       	var isVipChange = function(o, n){
       		n.cookieName = n.cookieName == null ? "":n.cookieName;
       		if(o.name.trim() != n.name.trim()
       		 || o.desc.trim() != n.desc.trim()
-      		 || o.sessionPersistenceType != n.sessionPersistenceType()
+      		 || o.sessionPersistenceType != n.sessionPersistenceType
       		 || o.cookieName.trim() != n.cookieName.trim()
       		 || o.connectionLimit != n.connectionLimit
       		 ){
@@ -1392,11 +1402,14 @@
       	}
       	
       	this.editVip = function(){
-      		var p = self.currentVipVo();
+      		var p = ko.toJS(self.currentVipVo());
       		if(isVipChange(oldEditVip, p)){
       			$.LOAD_BALANCER.editLoadBalancerVip(p.uuid, p, function(data){
           			self.isShowAddVip(false);
      	    		self.loadBalancerTable.refreshData();
+     	    		if(self.isShowDetail()){
+     	    			loadCurrentVipInfo(p.uuid);
+     	    		}
      				alert("修改负载均衡器VIP成功！");
           		})
       		}else{
@@ -1422,6 +1435,10 @@
 	      		confirm("确定删除负载均衡器VIP[" + name + "]？", function(arg){
 	      			$.LOAD_BALANCER.deleteLoadBalancerVip(row.vipUuid, function(data){
 	      				self.loadBalancerTable.refreshData();
+	      				//如果进入详情页，则更新详情页
+	      				if(self.isShowDetail()){
+	      					self.currentLbVo().vipUuid = "";
+	      				}
 	      				alert("删除负载均衡器VIP[" + name + "]成功！")
 	           		});
 	      		});
@@ -1839,6 +1856,7 @@
          	  
          	  var postBody = {}; 
          	  postBody.resourceType = "LOAD_BALANCING";
+         	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
          	  postBody.orderItems = orderItems;
          	  
          	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -1859,6 +1877,7 @@
       	  self.isValidateProcess(true);
   		  self.validateProcessVO().name(object.name);
   		  self.validateProcessVO().uuid(object.uuid);
+  		  self.validateProcessVO().vdcUuid(object.vdcUuid);
   		  self.validateProcessVO().vdcName(object.vdcName);
   		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
   		  var myDate = new Date();
@@ -1887,6 +1906,7 @@
         this.validateProcessVO = ko.observable({
       	  name: ko.observable(),
       	  uuid: ko.observable(),
+      	  vdcUuid: ko.observable(),
       	  vdcName: ko.observable(),
       	  time: ko.observable(),
       	  user: ko.observable(),
@@ -1913,6 +1933,8 @@
       	  
       	  var postBody = {};
       	  postBody.resourceType = "LOAD_BALANCING";
+      	  postBody.type = "VALIDTIME_CHANGE";
+      	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
       	  postBody.orderItems = orderItems;
       	  
       	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

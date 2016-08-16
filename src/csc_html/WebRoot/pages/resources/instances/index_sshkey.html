@@ -123,7 +123,7 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机列表</h3>
       </div>
       <div class='modal-body form-horizontal row'>
-        			<div class='table-responsive'>
+        			<div class='table-responsive' data-bind="with: vmsTable">
 					    <table class='table table-striped'>
 					      <thead>
 					        <tr>
@@ -135,13 +135,13 @@
 					        </tr>
 					      </thead>
 					      <tbody>
-						       <tr data-bind="visible: vmTableArray().length==0">
-						              <td colspan=5 class="aligncenter">
-						                	暂无数据
-						              </td>
-						       </tr>
-						 </tbody>
-					        <tbody data-bind="foreach:vmTableArray">
+						       <tr data-bind="visible: showNoData">
+					              <td colspan=5 class="aligncenter">
+					                	暂无数据
+					              </td>
+					            </tr>
+					         <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+						 
 						        <tr>
 						          <td data-bind="text:name">vm名称</td>
 						          <td data-bind="text:ip">vpc</td>
@@ -161,10 +161,39 @@
 						          <td data-bind="text:vdcName">vdc</td>
 						          <td data-bind="text:azName">az</td>
 						        </tr>
+						        <!-- /ko -->
 					        </tbody>
 					        
 					      </table>
 					    </div>
+					    <footer class="panel-footer" data-bind="with: vmsTable, visible: vmsTable.pages() > 1">
+						     <ul class="pagination">
+						       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+						         <a href="#">首页</a>
+						       </li>
+						       <li data-bind="css: leftPagerClass, click: prevPage">
+						         <a href="#">&laquo;</a>
+						       </li>
+						       <li >
+						         <a href="#"  data-bind="text: currentPage"></a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: nextPage">
+						         <a href="#">&raquo;</a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+						         <a href="#">末页</a>
+						       </li>
+						       <li class="page-control-li">
+						         <div class="input-group form-group-sm">
+						           <input type="text" class="form-control" data-bind="value: targetPage"  />
+						           <div class="input-group-btn">
+						             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+						           </div>
+						         </div>
+						         <div class="page-info-div" data-bind="text: recordsText"></div>
+						       </li>
+						     </ul>
+						</footer>
         
       </div>
       <div class='modal-footer' style="text-align:center;">
@@ -397,9 +426,8 @@
       this.isBindvmForSecretkey = ko.observable(false);
       this.isAddSecretkey = ko.observable(false);
 
-      this.vmTableArray = ko.observableArray([]);
-      
-      //查看绑定的云主机列表
+      /* this.vmTableArray = ko.observableArray([]);
+      //查看绑定的云主机列表,不分页
       this.bindvmForSecretkey = function(object,event){
     	  $.SSH_KEY.getVms(object.uuid,function(data){
     		  if(data.length>0){
@@ -409,7 +437,15 @@
     		  }
     	  });
         self.isBindvmForSecretkey(true);
-      };
+      }; */
+      
+      //查看分页的云主机列表
+      this.bindvmForSecretkey = function(object,event){
+    	self.vmsTable.path('api/v5.0.0/sshKeys/'+object.uuid+'/vmsByPage');
+        self.isBindvmForSecretkey(true);
+      }; 
+      
+      this.vmsTable = new DataTable([],{perPage:10}); 
 
       //弹出创建窗口
       this.addSecretkey = function(){
@@ -745,6 +781,7 @@
      	  self.isDeleteProcess(true);
  		  self.deleteProcessVO().name(object.name);
  		  self.deleteProcessVO().uuid(object.uuid);
+ 		  self.deleteProcessVO().vdcUuid(object.vdcUuid);
  		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
  		  var myDate = new Date();
  		  self.deleteProcessVO().time(myDate.toLocaleString());
@@ -756,6 +793,7 @@
      	  uuid: ko.observable(),
      	  time: ko.observable(),
      	  user: ko.observable(),
+     	  vdcUuid: ko.observable(),
      	  serviceInstanceUuid: ko.observable()
        });
        
@@ -772,6 +810,7 @@
        	  
        	  var postBody = {}; 
        	  postBody.resourceType = "SECRET_KEY";
+       	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -793,6 +832,7 @@
  		  self.validateProcessVO().name(object.name);
  		  self.validateProcessVO().uuid(object.uuid);
  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+ 		  self.validateProcessVO().vdcUuid(object.vdcUuid);
  		  self.validateProcessVO().vdcName(object.vdcName);
  		  var myDate = new Date();
  		  self.validateProcessVO().time(myDate.toLocaleString());
@@ -825,6 +865,7 @@
      	  user: ko.observable(),
      	  serviceInstanceUuid: ko.observable(),
      	  metaTime: ko.observable(),
+     	  vdcUuid: ko.observable(),
      	  vdcName: ko.observable(),
      	  
      	  validateTime: ko.observable(),
@@ -847,7 +888,10 @@
      	  
      	  var postBody = {};
      	  postBody.resourceType = "SECRET_KEY";
+     	  postBody.type = "VALIDTIME_CHANGE";
+     	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
      	  postBody.orderItems = orderItems;
+     	  
      	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
      		  if(data.code){
      			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');

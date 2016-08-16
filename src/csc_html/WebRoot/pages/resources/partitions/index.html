@@ -47,7 +47,7 @@
         <tbody>
           <tr data-bind="visible: showNoData">
             <td colspan=9 class="aligncenter">
-              This table has no data.
+              	暂无数据
             </td>
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -135,7 +135,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">虚拟化类型</label>
           <div class="col-xs-8">
-            <select class="form-control" data-bind="value:virtualHypervisor, options: $root.virtualHypervisors, optionsText: 'name', optionsValue: 'name',attr:{disabled:id}">
+            <select class="form-control" data-bind="value:virtualHypervisor, options: $root.virtualHypervisors, optionsText: 'virtualHypervisor', optionsValue: 'virtualHypervisor',attr:{disabled:id}">
               <!-- 
               <option value="1">1</option>
               <option value="2">2</option>
@@ -222,14 +222,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       
       var CurrentVO = function(){
         return ko.validatedObservable({
-            "name": ko.observable().extend({required: true,
-				 validation: {
-		                validator: function (val, someOtherVal) {
-		                	return csc.util.invalidValueParam(val);
-		                },
-		                message: '名称不能包含特殊字符！'
-		            }
-			})
+            "name": ko.observable().extend({required: true,cscNameRule:true,maxLength:32})
         });
       };
       this.currentVO = new CurrentVO();
@@ -242,7 +235,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       this.virtualHypervisors = ko.observableArray([]);
       //加载数据中心方法
       this.loadDcs = function(){
-        $.ajax("api/v5.0.0/datacenters").done(function(data){
+        $.ajax("api/v5.0.0/datacenters?isFilter=true").done(function(data){
           self.dcs(data.results);
           self.onchange_dcs();
         });
@@ -261,17 +254,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       };
       //加载虚拟化类型方法
       this.loadVirtualHypervisors = function(type){
-    	  self.virtualHypervisors([]);
-    	  if(type == "OpenStack"){
-    		  self.virtualHypervisors.unshift({name:"Kvm",cloudPlatform:'Kvm'});
-    		  self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});
-    	  }else{
-    		  self.virtualHypervisors.unshift({name:"Xen",cloudPlatform:'Xen'});
-   			  self.virtualHypervisors.unshift({name:"WinServer",cloudPlatform:'WinServer'});
-   			  self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});		
-   			  self.virtualHypervisors.unshift({name:"PowerVM",cloudPlatform:'PowerVM'});
-    	  }
-		
+          self.virtualHypervisors([]);
+    	  $.ajax("api/v5.0.0/azs/0/hypervisor?cloudPlatform=" + type).done(function(data){
+    		  self.virtualHypervisors(data);
+ 	      }); 
       };
       
       //数据中心下拉框onChange

@@ -1,0 +1,194 @@
+<div class="bg-light lter b-b wrapper-sm">
+  <ol class="breadcrumb">
+    <li>当前位置：</li>
+    <li>订单</li>
+    <li><a href="#pages/orders/service_orders">订单管理</a></li>
+    <li class="active">15137订单详情</li>
+  </ol>
+</div>
+
+<div class="wrapper-md" id="vdcChangeDetail">
+	<div class="panel panel-info">
+		<div class="panel-heading">基本信息</div>
+		<div class="panel-body" data-bind="with:$root.order">
+			<div class="row">
+				<div class="col-xs-4">
+					<p><strong>订单号：</strong><span data-bind="text:code"></span></p>
+				</div>
+				<div class="col-xs-4">
+					<p><strong>流程类型：</strong>
+						<span data-bind="visible: type=='RESOURCE_APPLY'">资源申请</span>
+						<span data-bind="visible: type=='RESOURCEC_HANGE'">资源变更</span>
+						<span data-bind="visible: type=='RESOURCER_ECYCLE'">资源删除</span>
+						<span data-bind="visible: type=='RESOURCE_DELETE'">资源删除</span>
+						<span data-bind="visible: type=='VALIDTIME_CHANGE'">有效时间变更</span>
+						<span data-bind="visible: type=='VDC_APPLY'">VDC申请</span>
+						<span data-bind="visible: type=='VDC_CHANGE'">VDC变更</span>
+					</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-4">
+					<p><strong>流程状态：</strong>
+						<span class="label label-warning" data-bind="visible: state=='UNSUBMIT'">未提交</span>
+						<span class="label label-info" data-bind="visible: state=='DOING'">审批中</span>
+						<span class="label label-success" data-bind="visible: state=='FINISHED'">审批完成</span>
+						<a>查看</a>
+					</p>
+				</div>
+				<div class="col-xs-4">
+					<p><strong>当前节点：</strong><label data-bind="text:flowState"></label></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-4">
+					<p><strong>申请人：</strong><label data-bind="text:userName"></label></p>
+				</div>
+				<div class="col-xs-4">
+					<p><strong>申请数量：</strong><label data-bind="text:itemCount"></label></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-4">
+					<p><strong>申请日期：</strong><label data-bind="text:createTime"></label></p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="panel panel-info" data-bind="foreach:orderItems()">
+		<div class="panel-heading">订单信息</div>
+		
+		<div class="panel-body">
+	      <div class="row">
+	        <div class="col-xs-4">
+	          <p><strong>VDC名称：</strong><label data-bind="text:instanceName"></label></p>
+	        </div>
+	      </div>
+	      
+	      <div class="row">
+	        <div class="col-xs-8">
+	         	<h5><i class="fa fa-minus fa-rotate-90 text-info"></i>申请配额</h5>
+                <div class="table-responsive no-height">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                        <th></th>
+                        <th>申请前</th>
+                        <th>申请后</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                      <td>CPU(个)：</td>
+                      <td>4</td>
+                      <td>6</td>
+                      <td>内存(G)：</td>
+                      <td>4</td>
+                      <td>8</td>
+                    </tr>
+                    <tr>
+                      <td>存储(G)：</td>
+                      <td>50</td>
+                      <td>100</td>
+                      <td>云主机(个)：</td>
+                      <td>2</td>
+                      <td>4</td>
+                    </tr>
+                    <tr>
+                      <td>云硬盘(个)：</td>
+                      <td>5</td>
+                      <td>6</td>
+                      <td>云软件(个)：</td>
+                      <td>5</td>
+                      <td>5</td>
+                    </tr>
+                    <tr>
+                      <td>路由器(个)：</td>
+                      <td>4</td>
+                      <td>4</td>
+                      <td>公网IP(个)：</td>
+                      <td>10</td>
+                      <td>10</td>
+                    </tr>
+                    <tr>
+                      <td>负载均衡器(个)：</td>
+                      <td>6</td>
+                      <td>6</td>
+                      <td>防火墙(个)：</td>
+                      <td>8</td>
+                      <td>8</td>
+                    </tr>
+                    <tr>
+                      <td>SSH密钥(对)：</td>
+                      <td>6</td>
+                      <td>8</td>
+                      <td>存储对象(个)：</td>
+                      <td>2</td>
+                      <td>6</td>
+                    </tr>
+                  </tbody>
+                    </table>
+                  </div>
+	        </div>
+	      </div>
+	    </div>
+	</div>
+</div>
+<script type="text/javascript">
+	var scripts = [null, null];
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		function ViewModel(){
+			
+			var flowInstanceUuid = args.flowInstanceId;
+			var self = this;
+			self.order = ko.observable();
+			self.orderItems = ko.observableArray([]);
+			var itemArray = [];
+			csc.rest.get("api/v5.0.0/orders/byFlowInstanceUuid/"+flowInstanceUuid,function(data){
+				self.order(data);
+				//添加data.resourceType == orderItem.resourceTy判断,为了过滤详情和订单不同类型的对象
+				for(var i=0;i<data.orderItems.length;i++){
+				  	var orderItem =	data.orderItems[i];
+				  	var metaData = JSON.parse(orderItem.metaData);
+				  	var resInfoJson = metaData.resBaseInfo;
+				  	var resInfo = JSON.parse(resInfoJson);
+				  	var applyTime = csc.util.getExpireText(orderItem.expireType,orderItem.expireValue);
+				  	orderItem.applyTime = applyTime;
+				  	/* if(orderItem.resourceType == "VDC"){
+				  		var osType = '';
+				  		var osLength = metaData.osType.length;
+				  		for(var i=0;i<osLength;i++){
+				  			osType+=metaData.osType[i];
+				  			if(i != (osLength-1)){
+				  				osType+=','
+				  			}
+				  		}
+				  		orderItem.osType = osType;
+				  	} */
+				  	itemArray.push(orderItem);
+			  	}
+				self.orderItems(itemArray);
+			});
+			
+		}
+		
+		/* var showItems = args.items.split('-');
+		var orderDetailedList = $("#orderDetailedList");
+		$.each($("#orderDetailedList > div"),function(n,v){
+			var hasItem = false;
+			$.each(showItems,function(a,b){
+				if($(v).attr("item").indexOf(b) > -1)
+					hasItem = true;
+			});
+			if(!hasItem)
+				$(this).remove();
+		}); */
+		
+		ko.applyBindings(new ViewModel(), $('#vdcChangeDetail')[0]);  
+	});
+	
+</script>

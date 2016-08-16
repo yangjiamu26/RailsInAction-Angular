@@ -1,6 +1,6 @@
   <div class="row wrapper">
       <div class="col-xs-1">
-        <button class="btn btn-sm btn-info" data-bind="click: addvm">创建</button>
+        <button class="btn btn-sm btn-info" data-bind="click: addvm,check_action:'cloudServerCreate'">创建</button>
       </div>            
       <div class="col-xs-3">
         <div class="input-group">
@@ -95,30 +95,21 @@
                 <td data-bind="text: storage"></td>
                 <td data-bind="text: userName"></td>
                 <td data-bind="text: createTime"></td>
-                <td><a data-bind="click: $root.console">控制台</a> | <a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |
+                <td><span data-bind="check_action:'cs_Console'"><a data-bind="click: $root.console">控制台</a> | </span> <span data-bind="check_action:'cs_TimeMidify'"><a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |</span>
                   <div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                       更多<span class="fa fa-caret-down"></span>
                     </a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                         <li data-bind="if: isValidate == true && state != 'SUSPENDED'"><a data-bind="click: $root.vmAdjustment">调整资源</a></li>
-                        <li data-bind="if: state == 'SHUTOFF' && isValidate == true"><a data-bind="click: $root.startOne">开机</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.shutoffOne">关机</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.restartOne">重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true"><a data-bind="click: $root.suspend">挂起</a></li>
-                        <li data-bind="if: state == 'SUSPENDED' && isValidate == true"><a data-bind="click: $root.resume">恢复</a></li>
-                        
-                       <!--  <a data-bind="click: $root.startOne">开机</a>
-                        <a data-bind="click: $root.shutoffOne">关机</a>
-                        <a data-bind="click: $root.restartOne">重启</a>
-                        <a data-bind="click: $root.restartForceOne">强制重启</a>
-                        <a data-bind="click: $root.suspend">挂起</a>
-                        <a data-bind="click: $root.resume">恢复</a> -->
-                        <li data-bind="if: isValidate == true"><a data-bind="click: $root.validate">终止</a></li>
-                        <li data-bind="if: (state == 'SHUTOFF' || state == 'ACTIVE' || state == 'SUSPENDED') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
-                        <!--  <li><a data-bind="click: $root.removeOne">删除</a></li> -->
-                      
+                         <li data-bind="check_action:'cs_Resomodify',if: isValidate == true && state != 'SUSPENDED'"><a data-bind="click: $root.vmAdjustment">调整资源</a></li>
+                        <li data-bind="if: state == 'SHUTOFF' && isValidate == true,check_action:'cs_PowerOn'"><a data-bind="click: $root.startOne">开机</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_PowerOff'"><a data-bind="click: $root.shutoffOne">关机</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_Reboot'"><a data-bind="click: $root.restartOne">重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_PoweReboot'"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
+                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_Wait'"><a data-bind="click: $root.suspend">挂起</a></li>
+                        <li data-bind="if: state == 'SUSPENDED' && isValidate == true,check_action:'cs_Recovery'"><a data-bind="click: $root.resume">恢复</a></li>
+                        <li data-bind="if: isValidate == true,check_action:'cs_Stop'"><a data-bind="click: $root.validate">终止</a></li>
+                        <li data-bind="check_action:'cs_Delete',if: (state == 'SHUTOFF' || state == 'ACTIVE' || state == 'SUSPENDED') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
                     </ul>
                   </div>                     
                 </td>
@@ -891,21 +882,23 @@
     		  if(data.results){
     			  azList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
-    			  var azUuids = "";
+/*     			  var azUuids = "";
 		    	  for(var i=0;i<azList.length;i++){
 		    		  if(i == (azList.length-1)){
 		    			  azUuids = azUuids + azList[i].uuid;
 					  }else{
 						  azUuids = azUuids + azList[i].uuid + ",";
 					  }
-		    	  }
-		    	  var azDef = {"name":"全部","uuid":azUuids};
+		    	  } */
+		    	  var azDef = {};
+		    	  azDef.name = "全部";
+		    	  azDef.azUuid = "";
 		    	  azList.unshift(azDef);
     			  //self.reBandai();
     			  self.partitions(azList);
     		  }
     		  self.table.params(self.searchParam());
-    		  self.table.path('api/v5.0.0/vms');
+    		  self.table.path('api/v5.0.0/vms/list/byAccount');
     	  });
       }
       
@@ -917,15 +910,17 @@
     		  if(data.results){
     			  vdcList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
-    			  var vdcUuids = "";
+/*     			  var vdcUuids = "";
 		    	  for(var i=0;i<vdcList.length;i++){
 		    		  if(i == (vdcList.length-1)){
 						  vdcUuids = vdcUuids + vdcList[i].uuid;
 					  }else{
 						  vdcUuids = vdcUuids + vdcList[i].uuid + ",";
 					  }
-		    	  }
-		    	  var vdcDef = {"name":"全部","uuid":vdcUuids};
+		    	  } */
+		    	  var vdcDef = {};
+		    	  vdcDef.name = "全部";
+		    	  vdcDef.vdcUuid = "";
 				  vdcList.unshift(vdcDef);
     			  //self.reBandai();
     			  self.vdcs(vdcList);
@@ -1383,6 +1378,7 @@
             	  
             	  var postBody = {}; 
             	  postBody.resourceType = "VM";
+            	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
             	  postBody.orderItems = orderItems;
             	  
             	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -1415,6 +1411,7 @@
 		  self.adjustProcessVO().targetMemory('');
 		  self.adjustProcessVO().targetStorage('');
 		  
+		  self.adjustProcessVO().vdcUuid(object.vdcUuid);
 		  self.adjustProcessVO().vdcName(object.vdcName);
 		  self.adjustProcessVO().busSysName(object.busSysName);
       }
@@ -1434,6 +1431,7 @@
     	  targetMemory: ko.observable(),
     	  targetStorage: ko.observable(),
     	  
+    	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
     	  busSysName: ko.observable()
       });
@@ -1456,6 +1454,8 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "VM";
+    	  postBody.type = "RESOURCE_CHANGE";
+    	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
@@ -1474,6 +1474,7 @@
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(object.name);
 		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
 		  self.validateProcessVO().busSysName(Object.busSysName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
@@ -1506,6 +1507,7 @@
     	  metaTime: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
+    	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
     	  busSysName: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
@@ -1529,6 +1531,8 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "VM";
+    	  postBody.type = "VALIDTIME_CHANGE";
+    	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

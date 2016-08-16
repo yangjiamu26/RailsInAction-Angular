@@ -76,7 +76,7 @@
             <td data-bind="text: $row.expiredDate"></td><!-- 有效期 -->
             <td data-bind="text: $row.account"></td><!-- 创建人 -->
             <td><!-- 操作 -->
-            	<a href="#" data-bind="click: $root.showChangeValiTimePage, check_action:'pubIp_TimeModify'">有效时间变更</a> |
+            	<span data-bind="check_action:'pubIp_TimeModify'"><a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |</span>
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
@@ -294,7 +294,7 @@
     <div class='modal-dialog modal-lg' style="width:600px;">
       <div class='modal-content'>
         <div class='modal-header'>
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定云主机</h3>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定负载均衡器</h3>
         </div>
         <div class='modal-body form-horizontal' data-bind="with: bindingLbVo">
           <div class="form-group">
@@ -976,6 +976,7 @@
        	  
        	  var postBody = {}; 
        	  postBody.resourceType = "PUBLICIP";
+       	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -996,6 +997,7 @@
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(object.name);
 		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
@@ -1024,6 +1026,7 @@
       this.validateProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
     	  vdcName:ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
@@ -1050,6 +1053,8 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "PUBLICIP";
+    	  postBody.type = "VALIDTIME_CHANGE";
+    	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

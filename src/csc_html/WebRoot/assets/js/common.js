@@ -430,7 +430,22 @@ csc.util = {
             }  
         } 
         return result;
-    }
+    },
+    compTimeIsEffective:function(beginTime,endTime) {/*比较当前时间是否在有效期内  */
+    	if(beginTime!=null && endTime!=null){
+		    var beginTimes = beginTime.substring(0, 10).split('-');
+		    var endTimes = endTime.substring(0, 10).split('-');
+		    beginTime = beginTimes[1] + '-' + beginTimes[2] + '-' + beginTimes[0] + ' ' + beginTime.substring(10, 19);
+		    endTime = endTimes[1] + '-' + endTimes[2] + '-' + endTimes[0] + ' ' + endTime.substring(10, 19);
+		    if(Date.parse(endTime) > Date.parse(new Date()) && Date.parse(beginTime) < Date.parse(new Date())){
+			   return true
+		    }else {
+			   return false
+		    }
+    	}else{
+    		return false
+    	}
+	}
 	  
 }
 

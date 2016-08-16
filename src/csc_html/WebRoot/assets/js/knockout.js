@@ -5892,7 +5892,8 @@ ko.bindingHandlers.translate = {
 	    }
 	  };
 
-ko.actionsMap = [];
+
+ko.actionsMap = ko.observableArray([]);
 //< data-bind="check_action: 'action1'"  />
 ko.bindingHandlers.check_action = {
 	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -5902,20 +5903,19 @@ ko.bindingHandlers.check_action = {
 	        var value = valueAccessor();
 
 	        var flag = false;
-	        if(ko.actionsMap){
-	        	if(ko.actionsMap.indexOf(value)!=-1){
+	        if(ko.actionsMap()){
+	        	if(ko.actionsMap().indexOf(value)!=-1){
 	        		flag = true;
 	        	}
 	        }
-	        
 	        if(flag){
 	        	$(element).show();
 	        }else{
 	        	$(element).hide();
 	        }
-	        
 	    }
 	  };
+
 ko.bindingHandlers.check_click = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        // This will be called when the binding is first applied to an element
@@ -5924,8 +5924,8 @@ ko.bindingHandlers.check_click = {
 	        var value = valueAccessor();
 
 	        var flag = false;
-	        if(ko.actionsMap){
-	        	if(ko.actionsMap.indexOf(allBindings()["action"])!=-1){
+	        if(ko.actionsMap()){
+	        	if(ko.actionsMap().indexOf(allBindings()["action"])!=-1){
 	        		flag = true;
 	        	}
 	        }
@@ -5937,7 +5937,6 @@ ko.bindingHandlers.check_click = {
 	        }
 	    }
 	  };
-
 	
 
 

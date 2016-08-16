@@ -72,7 +72,9 @@
 						<td data-bind="text: $row.billingUuid"></td>
 						<td data-bind="text: $row.installTime"></td>
 						<td data-bind="text: $row.progress"></td>
-						<td data-bind="text: $row.statusName, attr: {id: 'status_'+$row.uuid}"></td>
+						<td>
+							<span data-bind="text: $row.statusName, attr: {id: 'status_'+$row.uuid, class: $root.statusCss($row)}"></span>
+						</td>
 						<td><a data-bind="click:$root.openAttr, visible: ($row.attrCnt > 0)">查看</a></td>
 						<td><a data-bind="click:$root.openInstall, visible: ($row.status == 2), attr: {id: $row.uuid}">重安装 | </a><a data-bind="click: $root.showLogText">查看日志</a></td>
 					</tr>
@@ -102,7 +104,7 @@
 <div role="dialog" aria-hidden="true" class="modal fade" id="logTextModal"
 	data-bind="modal: { show: isLogText }">
 
-	<div class='modal-dialog' role='document'>
+	<div class='modal-dialog' role='document' style="width: 760px;">
 		<div class='modal-content'>
 			<div class='modal-header'>
 				<button type="button" class="close" data-dismiss="modal">
@@ -334,6 +336,17 @@
 				self.searchParam().orderNo('');
 			};
 
+			/** 软件状态属性 css样式 **/
+			this.statusCss = function (item) {
+				if (item.status == 1) {
+					return 'label label-success';	
+				} else if(item.status == 2) {
+					return 'label label-danger';
+				} else {
+					return 'label label-warning';
+				}
+			};
+			
 			// 日志列表数据
 			this.table = new DataTable([], {
 				path : 'api/v5.0.0/install/logs'

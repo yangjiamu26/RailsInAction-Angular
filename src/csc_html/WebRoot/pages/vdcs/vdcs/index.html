@@ -893,21 +893,22 @@
                           </div>
                           <div class="col-xs-3 text-right">
                             <div class="input-group">
-                              <span class="input-group-addon">是否VDC管理员</span>
-                              <select class="input-sm form-control w-sm inline v-middle">
-                                <option value="0">是</option>
-                                <option value="1">否</option>
+                              <span class="input-group-addon">VDC管理员</span>
+                              <select class="input-sm form-control w-sm inline v-middle"  data-bind="value: $root.searchVdcUserParam().roles">
+                                <option value="">请选择</option>
+                                <option value="VDC_MANAGER">是</option>
+                                <option value="VDC_USER">否</option>
                               </select>
                             </div>
                           </div>            
                           <div class="col-xs-3">          
                             <div class="input-group">
                               <span class="input-group-addon">账号</span>
-                              <input type="text" class="input-sm form-control" placeholder="请输入账号">
+                              <input type="text" class="input-sm form-control" placeholder="请输入账号" data-bind="value: $root.searchVdcUserParam().account">
                             </div>
                           </div>
                           <div class="col-xs-1">
-                            <button class="btn btn-sm btn-default" type="button">搜索</button>
+                            <button class="btn btn-sm btn-default" type="button"  data-bind="click:$root.searchVdcUser">搜索</button>
                           </div>
                         </div>        
                         <div class="table-responsive no-height">
@@ -929,7 +930,7 @@
 						      <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                               <tr>
                                 <td data-bind="text: account"></td>
-                                <td data-bind="text: roles == 'VDC_MANAGER' ? 'VDC管理员' : '非VDC管理员'"></td>
+                                <td data-bind="text: sysRoles"></td>
                                 <td data-bind="text: roles == 'VDC_MANAGER' ? '是' : '否'"></td>
                                 <td>
                                   <a data-bind="click: $root.editUser">修改</a> | 
@@ -1029,7 +1030,7 @@
 										      </div>
 						                    </th>
 						                    <th>账号</th>
-						                    <th>角色</th>
+						                    <th>VDC管理员</th>
 						                  </thead>
 						                  <tbody>
 						                  <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -1046,8 +1047,8 @@
 						                      <td data-bind="text: userType" name="selectUserType" style="display: none"></td>
 						                      <td>
 						                        <select name='role'>
-						                          <option value="VDC_MANAGER">VDC管理员</option>
-						                          <option value="VDC_USER">非VDC管理员</option>
+						                          <option value="VDC_USER">否</option>
+						                          <option value="VDC_MANAGER">是</option>
 						                        </select>
 						                      </td>
 						                    </tr>
@@ -1080,11 +1081,11 @@
 							          </div>
 							        </div>
 							        <div class="form-group">
-							          <label for="inputEmail3" class="col-xs-3 control-label">是否VDC管理员：</label>
+							          <label for="inputEmail3" class="col-xs-3 control-label">VDC管理员：</label>
 							          <div class="col-xs-9">
 							            <select class="form-control" data-bind="value: userRolesVO().roles">
-							              <option value="VDC_MANAGER">VDC管理员</option>
-							              <option value="VDC_USER">非VDC管理员</option>
+							              <option value="VDC_MANAGER">是</option>
+							              <option value="VDC_USER">否</option>
 							            </select>
 							          </div>
 							        </div>
@@ -1143,7 +1144,8 @@
    	              srcEvent.preventDefault();
    				  vdcListViewModal.orgUsersTable.params({
    					  orgId: node.code,
-   					  userType: node.userType
+   					  userType: node.userType,
+   					  vdcUuid:vdcListViewModal.selectVdcVO().uuid
    				  })
    	          }
    	      }
@@ -1163,6 +1165,17 @@
 	    		self.isLimit = ko.observable("0");//是否限制配额
 	    		self.vdcRelAzListTable = new DataTable([]);//可用分区列表
 	    		self.networkRelAzListTable = new DataTable([]);//网络列表
+	    		
+	    		self.searchVdcUserParam = ko.observable({
+        	        account: "",
+        	        roles:""
+        	    })
+        	    
+	       	    self.searchVdcUser = function(){
+	       	       self.vdcRelUsersListTable.params(this.searchVdcUserParam());
+	       	    }
+			
+	    		
 	    		var validateForInt = {
             			required:true,
             			maxLength: 10,
@@ -1586,6 +1599,8 @@
 		    				
 		    				self.networkRelAzListTable.perPage(100000);//重新加载数据 
 		    				self.vdcRelUsersListTable.path("api/v5.0.0/vdcs/"+vdc.uuid+"/users");//vdc下用户
+
+		    	    	
 		    				
 		    				self.removeAzRul = function(rowObj){
 		    					var name = rowObj.name;
@@ -1858,7 +1873,7 @@
 	    	    }	    	    
 	    	    
 	    	    //左边的待选择用户
-	    	    this.orgUsersTable = new DataTable([], {path: "api/v5.0.0/uap/users"});
+	    	    this.orgUsersTable = new DataTable([], {path: "api/v5.0.0/uap/vdcAvailableUsers"});
 	    	    
 	    	    //右边的已选择用户
 	    	    this.seletedOrgUserList = new DataTable([]);
@@ -1887,6 +1902,7 @@
 	    	    	var roleList = $("[name='role']");
 	    	    	var userTypeList = $("[name='selectUserType']");
 	    	    	var orgUserList = self.seletedOrgUserList.pagedRows();
+	    	    	var addUserLit = [];
 	    	    	if(orgUserList.length > 0){
 	    	    		for(var i = 0; i < orgUserList.length; i++){
 	    	    			var userType = userTypeList[i].innerHTML;
@@ -1900,14 +1916,14 @@
 	    	    				"roles": roleList[i].value,
 	    	    				"authType": userType
 	    	    			}
-	    	    			self.userList.push(user);
+	    	    			addUserLit.push(user);
 	    	    		}
 	    	    	}
 	    	    	var dataBody = {
-	    	    		"accounts" : self.userList()
+	    	    		"accounts" : addUserLit
 	    	    	}
 	    	    	var uuid = self.selectVdcVO().uuid;
-	    	    	$.VDC.modifyVdcUsers(uuid,dataBody,function(data){
+	    	    	$.VDC.addUsers(uuid,dataBody,function(data){
 	    	    		self.addUserModel(false);
 	    	    		self.vdcRelUsersListTable.refreshData();
 	    	    		alert("添加成功！");

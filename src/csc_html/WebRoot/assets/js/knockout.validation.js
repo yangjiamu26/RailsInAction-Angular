@@ -970,7 +970,7 @@ kv.rules['equal'] = {
 
 kv.rules['cscNameRule'] = {
 		  validator: function (val, params) {
-			    var nameExp =new RegExp("[\\^`~!@#\\$%&\\*=\\+\\[\\]\\{\\}\\|;:\\', <>\\\\\\/?\"！￥【】：；“’？》《 ]+");
+			    var nameExp =new RegExp("[\\^`~!@#\\$%&\\*=\\+\\[\\]\\{\\}\\|;:\\',<>\\\\\\/?\"！￥【】：；“’？》《]+");
 	  	        if(nameExp.test(val)){
 	  	        	return false;
 	  	        }	
@@ -1078,6 +1078,8 @@ kv.rules['unique'] = {
 };
 kv.rules['userNameSpecial'] = {
 	validator: function (val, params) {
+		if (!params) { return true; }
+		if (kv.utils.isEmptyVal(val)) { return true; }
 		var portReg = /^[\u4e00-\u9fa5a-zA-Z0-9\@\(\)\-\_\.^ ]+$/;
 	    if(portReg.test(val)){
         	return true;
@@ -1089,6 +1091,8 @@ kv.rules['userNameSpecial'] = {
 
 kv.rules['userPhone'] = {
 	validator: function (val, params) {
+		if (!params) { return true; }
+		if (kv.utils.isEmptyVal(val)) { return true; }
 		var portReg = /^((\+?86)|(\(\+86\)))?(13[0-9]|14[0-9]|15[0-9]|18[0-9])\d{8}$/;
 	    if(portReg.test(val)){
         	return true;

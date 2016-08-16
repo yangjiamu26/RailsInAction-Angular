@@ -135,7 +135,7 @@ vsanApp.controller('mainPageTopCtrl',function($scope,$rootScope,mainFactory){
                 {
                     name:'访问来源',
                     type:'pie',
-                    center:['40%','50%'],
+                    center:['50%','50%'],
                     radius : ['70%', '90%'],
                     itemStyle : {
                         normal : {

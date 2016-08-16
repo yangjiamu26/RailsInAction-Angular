@@ -168,6 +168,16 @@
 			csc.rest.del('api/v5.0.0/script?' + param, function(data) {
 				callback(data);
 			});
+		},
+		/**
+		 * 下载脚本文件
+		 */
+		downloadScript: function (path, params, callback, errorCallback) {
+			var param = csc.util.httpQueryParamConvert(params);
+			
+			csc.rest.get('api/v5.0.0/script/download/' + path + '?' + param, function(data) {
+				callback(data);
+			});
 		}
 	};
 	

@@ -681,7 +681,7 @@ vsanApp.controller("configController",["$scope","$state","configFactory",functio
                 html: true,
                 content: function () {
                     if (_this.data("tipMsg")) {
-                        return "<div style='color:#000;'>" + _this.data("tipMsg") + "</div>";
+                        return "<div>" + _this.data("tipMsg") + "</div>";
                     }
                     return "";
                 }

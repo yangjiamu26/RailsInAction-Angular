@@ -413,18 +413,18 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             <div id="titleBar5" class='panel-heading text-base'>快捷入口</div>
             <div class='panel-body'>
               <div class='row row-sm text-center'>
-                <div class='col-xs-4'>
+                <div class='col-xs-4' data-bind="visible:$root.isView_sevice">
                   <a class='block panel padder-v bg-primary m-t' href='#pages/vdcs/businesses/index' >
                     <span class='text-white font-thin h4 block'>创建业务系统</span>
                   </a>
                 </div>
-                <div class='col-xs-4'>
-                  <a class='block panel padder-v bg-info m-t' href='#pages/services/service_applies/index'>
+                <div class='col-xs-4' data-bind="visible:$root.isView_serviceApply">
+                  <a class='block panel padder-v bg-info m-t' href='#pages/services/service_applies/index' >
                     <span class='text-white font-thin h4 block'>申请服务</span>
                   </a>
                 </div>
-                <div class='col-xs-4'>
-                  <a class='block panel padder-v bg-success m-t' href='#pages/services/service_definitions/index' data-bind="visible: resourceVO().role()=='系统管理员' || resourceVO().role()=='运营管理员'">
+                <div class='col-xs-4' data-bind="visible:$root.isView_busiSystem">
+                  <a class='block panel padder-v bg-success m-t' href='#pages/services/service_definitions/index' >
                     <span class='text-white font-thin h4 block'>创建服务</span>
                   </a>
                 </div>
@@ -1758,7 +1758,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  csc.rest.get(url, function(data){
     		  self.dcStatistics(data);
     		  self.storageSize((data.storageSize?data.storageSize:0)+"GB");
-    		  self.memorySize((data.memorySize?data.memorySize:0)+"TB");
+    		  self.memorySize((data.memorySize?(data.memorySize/1024).toFixed(2):0)+"GB");
     		  if(data){
     			  self.dcStatResult("");
     		  }else{
@@ -1912,6 +1912,28 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  });
       }
    	  //--------------------VDC配额模块end--------------//
+   	  
+   	  //--------------------当前用户角色所有权限 start--------------//
+   	  this.isView_sevice=ko.observable(false);
+   	  this.isView_serviceApply=ko.observable(false);
+   	  this.isView_busiSystem=ko.observable(false);
+   	  csc.rest.get("api/v5.0.0/roles/currentRole/getCurrUserPrivMenuToList", function(data){
+   		  if(data.currentPriv!=null){
+   			data.currentPriv.forEach(function(e){
+   	   			if("servManage"==e){
+   	   				self.isView_sevice(true);
+   	   			}
+   	   			if("serviceAppl"==e){
+   	   				self.isView_serviceApply(true);
+   	   			}
+   	   			if("busiSystem"==e){
+   	   				self.isView_busiSystem(true);
+   	   			}
+   	   		});
+   		  }
+   		
+   	  });
+   	//--------------------当前用户角色所有权限 start--------------//
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);

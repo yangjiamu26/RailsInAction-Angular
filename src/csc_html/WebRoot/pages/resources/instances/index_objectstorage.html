@@ -1074,7 +1074,7 @@
         	  });
     	  });
       }
-      var i = 0;
+      
       this.fileTable = new DataTable([],{perPage:10,loader:function(result){
     	  var name = result.name;    	  
     	  if(name.substring(name.length-1)=='/'){//斜杠结尾是虚拟目录
@@ -1125,6 +1125,7 @@
        	  
        	  var postBody = {}; 
        	  postBody.resourceType = "OBJECT_STORAGE";
+       	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -1145,6 +1146,7 @@
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(object.name);
 		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
@@ -1173,6 +1175,7 @@
       this.validateProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
@@ -1199,6 +1202,8 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "OBJECT_STORAGE";
+    	  postBody.type = "VALIDTIME_CHANGE";
+    	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

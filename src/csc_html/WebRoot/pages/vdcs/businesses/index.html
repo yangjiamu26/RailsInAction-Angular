@@ -40,7 +40,7 @@
           <tbody>
             <tr data-bind="visible: showNoData">
               <td colspan="5" class="aligncenter">
-                This table has no data.
+                暂无数据
               </td>
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -105,7 +105,7 @@
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">业务系统名称</label>
           <div class="col-xs-7">
-            <input type="text" class="form-control" placeholder="业务系统名称" data-bind="value:subsysVo().name">
+            <input maxlength="32" type="text" class="form-control" placeholder="业务系统名称" data-bind="value:subsysVo().name">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -140,7 +140,7 @@
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">备注</label>
           <div class="col-xs-7">
-            <textarea class="form-control" data-bind="value:subsysVo().desc" style="max-width: 300px;"></textarea>
+            <textarea maxlength="255" class="form-control" data-bind="value:subsysVo().desc" style="max-width: 300px;"></textarea>
           </div>
         </div>
       </div>
@@ -232,7 +232,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         //定义属性
         this.subsysVo = ko.validatedObservable({
              uuid:ko.observable(""),
-             name:ko.observable().extend({required:true}),
+             name:ko.observable().extend({required: true,maxLength:32,cscNameRule:true}),
              vdcUuid:ko.observable("").extend({required:true}),
              userNames:ko.observableArray([]).extend({required:true}),
              userValues:ko.observable(""),
@@ -479,7 +479,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             var userValues = "";
             var userNames = "";
             var input_ = $("#preAddUserTableId input[type='checkbox']");
-            if(input_.length==0)return systemMsg.alert('没有选择可用数据!');
+            if(input_.length==0)return systemMsg.alert('没有选择可用数据！');
             
             input_.each(function(){
                 userValues += $(this).val()+';';
@@ -546,21 +546,21 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
            var uuid = self.subsysVo().uuid();
            if (uuid!=null&&uuid!=""){//修改
                 csc.rest.put('api/v5.0.0/bussys/'+uuid,self.subsysVo.toJSON(),function(data){
-                    systemMsg.alert('修改成功!');
+                    systemMsg.alert('修改成功！');
                     self.isAdd(false);
                     self.table.refreshData();//刷新数据
                 },function(data,textStatus) {
                     $("#add_submit").removeAttr("disabled");
-                    systemMsg.alert('修改失败!');
+                    systemMsg.alert('修改失败！');
                 }); 
              }else{// 创建
                  csc.rest.post('api/v5.0.0/bussys',self.subsysVo.toJSON(),function(data){
-                    systemMsg.alert('创建成功!');
+                    systemMsg.alert('创建成功！');
                     self.isAdd(false);
                     self.table.refreshData();//刷新数据
               },function(data,textStatus) {
                   $("#add_submit").removeAttr("disabled");
-                  systemMsg.alert('创建失败!');
+                  systemMsg.alert('创建失败！');
               }); 
             }
         }
@@ -609,10 +609,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         
             confirm("确定删除业务系统【"+object.name+"】?",function(arg){
                 csc.rest.del('api/v5.0.0/bussys/'+object.uuid,function(data){
-                    systemMsg.alert('删除业务系统成功!');
+                    systemMsg.alert('删除业务系统成功！');
                     self.table.refreshData();
                 },function(data,textStatus) {
-                    systemMsg.alert('删除业务系统失败!');
+                    systemMsg.alert('删除业务系统失败！');
                 });
             });
          }

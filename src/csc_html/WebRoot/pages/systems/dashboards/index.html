@@ -67,7 +67,6 @@
 								<div class="col-xs-12">
 									<div class="checkbox">
 										<label class="i-checks">
-										<input type = "text" value = "" data-bind = "value:uuid">
 										 <input type="checkbox"
 											data-bind="checked:fields_all"> <i></i>
 										</label> <span class="control-label">全选</span>
@@ -111,10 +110,17 @@
 				function LogViewModel() {
 					var self = this;
 					csc.rest.get('api/v5.0.0/roles', function(data) {
-						self.fields(data.results);
+						var result = new Array(); 
+		                  for(var i=0;i<data.results.length;i++){ 
+		                     var e = data.results[i]; 
+		                     if(e.name != '安全管理员' && e.name != '安全审计员'){ 
+		                        result.push(e); 
+		                     } 
+		                  } 
+		                   
+		                self.fields(result);
 					})
 					this.fields = ko.observableArray([]);
-					this.state_selected = ko.observableArray([]);
 					this.fields_selected_ids = ko.observableArray([]);
 					this.fields_all = ko.pureComputed({
 						read : function() {
@@ -149,7 +155,6 @@
 						self.uuid(object.uuid);
 						self.isEdit(true);
 			      		csc.rest.get('api/v5.0.0/homeConfigs',function(data){
-			      			var count = 0;
 			      			for(var num=0;num<data.results.length;num++){
 			      				if(data.results[num].uuid == object.uuid){
 			      					var db_fields = data.results[num].configRoles.split(",");
@@ -181,7 +186,6 @@
 								return this.state()=='1';
 							},
 							write : function(value) {
-								console.log(value);
 								if(value){
 									this.state("1")
 								}else{
@@ -192,7 +196,7 @@
 						});
 					}
 					self.table = new DataTable({
-						perPage : 5,
+						perPage : 10,
 						path : 'api/v5.0.0/homeConfigs',
 						loader: function(item){
 							return new Dashboard(item.uuid, item.homeModleName, item.configRoles, item.state);
@@ -203,8 +207,6 @@
 						var temp = document.getElementsByName("system_conf");
 				    	for(var i=0;i<temp.length;i++)
 				    	{
-				    		console.log(temp[i].value);	
-				    		console.log(object.modelID);
 				    		    if(object.modelID == temp[i].value){
 				    		    	
 				    			temp[i].id = temp[i].value;
