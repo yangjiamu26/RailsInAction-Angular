@@ -902,7 +902,6 @@
     	  });
       }
       
-      
       //获取VDC数据
       this.vdcs = ko.observableArray([]);
       this.loadVdcs = function(){
@@ -1052,13 +1051,12 @@
       //VDC->可用分区
       this.onchange_add_vdcs = function(){
     	  var vdcUuid = self.currentVO().vdc();
-    	  for(var i=0;i<vdcListForAdd.length;i++){
-    		  if(vdcListForAdd[i].uuid == vdcUuid){
-    			  self.add_partitions(vdcListForAdd[i].azs);
-    			  break;
+    	  csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
+    		  if(data.results){
+		    	  self.add_partitions(data.results);
+		    	  self.add_vpcs_def();
     		  }
-    	  }
-    	  self.add_vpcs_def();
+    	  });
       }
       
       //可用分区

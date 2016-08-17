@@ -74,19 +74,31 @@
                 </a>
                 <ul class="dropdown-menu" role="menu" id="warnings-tabs">
                     <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/systems/warnings/index?showTab=sysTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
+                    <!-- ko if: roleVO().platForm()=='operate' -->
                     <li ><a href="#pages/systems/warnings/index?showTab=vmTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+                    <!-- /ko -->
+        			<!-- ko if: roleVO().platForm()=='self' -->
+                    <li ><a href="#pages/systems/warnings/index?type=vm&showTab=vmTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+        			<!-- /ko -->
                     <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index?showTab=vdcTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
                 </ul>                
             </li>
             <li class='dropdown' data-bind="visible: (roleVO().roleFlag()!='AG' && roleVO().roleFlag()!='AS')">
+              <!-- ko if: roleVO().platForm()=='operate' -->
               <a  href='#pages/systems/notices/index'>
                 <i class='fa fa-bell'></i> 通知
                 <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
+              <!-- /ko -->
+        	  <!-- ko if: roleVO().platForm()=='self' -->
+        	  <a  href='#pages/systems/notices/index?showTab=sysTab'>
+                <i class='fa fa-bell'></i> 通知
+                <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
+        	  <!-- /ko -->
             </li>
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li >
               <a  data-bind="attr:{href: uapUrl}">
-                <i class='fa fa-desktop'></i> 认证平台
+                <i class='fa fa-desktop'></i> 统一认证平台
                 <span class=' up bg-info'></span></a>
             </li>
             <li class='dropdown'>
@@ -394,7 +406,7 @@
                         <span>资源属性</span></a>
                     </li>                                                                                  
                     <li data-bind="check_action:'warn'">
-                      <a data-url="pages/systems/warnings/index" href="#pages/systems/warnings/index">
+                      <a data-url="pages/systems/warnings/index" data-url-params="showTab" href="#pages/systems/warnings/index">
                         <span>告警</span></a>
                     </li>                    
                     <li data-bind="check_action:'notify'">
@@ -598,39 +610,21 @@
                   </a>
                 </li>
                 <li data-bind="check_action:'warn'">
-                  <a data-url="pages/systems/warnings/index_user" href="#pages/systems/warnings/index_user">
+                  <a data-url="pages/systems/warnings/index?type=vm&showTab=vmTab" data-url-params="type,showTab" href="#pages/systems/warnings/index?type=vm&showTab=vmTab">
                     <i class="icon system"></i>
-                    <span class='text-base'>告警</span>
+                    <span class='text-base'>云主机告警</span>
                   </a>
                 </li> 
                 <li data-bind="check_action:'notify'">
-                  <a data-url="pages/systems/notices/index" href="#pages/systems/notices/index">
+                  <a data-url="pages/systems/notices/index?showTab=sysTab" data-url-params="showTab" href="#pages/systems/notices/index?showTab=sysTab">
                     <i class="icon system"></i>
                     <span class='text-base'>通知</span>
                   </a>
                 </li>
                 <li data-bind="check_action:'report'">
-                  <a class='auto'>
-                    <span class='pull-right text-muted'>
-                      <i class='fa fa-fw fa-angle-right text'></i>
-                      <i class='fa fa-fw fa-angle-down text-active'></i>
-                    </span>
+                  <a data-url="pages/reports/stats" href="#pages/reports/stats">
                     <i class="icon report"></i>
-                    <span class='text-base'>报表</span></a>
-                  <ul class='nav nav-sub dk'>
-                    <li class='nav-sub-header'>
-                      <a>
-                        <span class='text-base'>报表</span></a>
-                    </li>
-                    <li data-bind="check_action:'cloudServerRepo'">
-                      <a data-url="pages/reports/stats" href="#pages/reports/stats">
-                        <span>报表统计</span></a>
-                    </li>
-                    <li data-bind="check_action:'selfDefRepo'">
-                      <a data-url="pages/reports/definitions" href="#pages/reports/definitions">
-                        <span>自定义报表</span></a>
-                    </li>
-                  </ul>
+                    <span class='text-base'>报表统计</span></a>
                 </li>                                                      
               </ul>
             </nav>

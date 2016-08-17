@@ -1369,7 +1369,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	 
    	// 获取用户板块信息
     function getPanelConfig(){
-    	csc.rest.get('api/v5.0.0/homeConfigs?state=1&orderBy=displayOrder:asc',function(data){
+    	csc.rest.get('api/v5.0.0/homeConfigs?state=1&orderBy=displayOrder:asc&forWhat=forIndexDispayConfig',function(data){
 	     	if(data == null || data == "" || data.results == null || data.results.length==0){
 				return ;
 	     	}
@@ -1614,9 +1614,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       this.sshUri = ko.observable();//ssh密钥
       this.objStorageUri = ko.observable();//对象存储
       
-      //订单更多URI
-      this.orderUri = ko.observable();
-      
       //加载资源管理统计信息
       this.loadResourceStat = function(){
     	  csc.rest.get("api/v5.0.0/homepage/resource", function(data){
@@ -1640,7 +1637,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     			  self.loadBalanceUri("#pages/resources/instances/index?type=3");
     			  self.sshUri("#pages/resources/instances/index?type=4");
     			  self.objStorageUri("#pages/resources/instances/index?type=5");
-    			  self.orderUri("#pages/orders/service_orders");
     		  } else{
     			  self.vmUri("#pages/resources/instances/index?showTab=vmsTab");
     			  self.volumeUri("#pages/resources/instances/index?showTab=storagesTab");
@@ -1648,7 +1644,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     			  self.loadBalanceUri("#pages/resources/instances/index?showTab=balancerTab");
     		      self.sshUri("#pages/resources/instances/index?showTab=sshkeysTab");
     		      self.objStorageUri("#pages/resources/instances/index?showTab=objectStoragesTab");
-    		      self.orderUri("#pages/orders/service_orders?type=order");
     		  }
    	      });
       }
@@ -1845,7 +1840,37 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
    	  
    	  //--------------------我的任务模块end--------------//
    	  
-    //--------------------VDC配额模块start------------//
+      //--------------------VDC配额模块start------------//
+      this.loadVdcStat = function(){
+    	  var url = "api/v5.0.0/homepage/vdcQuota?vdcUuid="+self.selectedVdc();
+    	  csc.rest.get(url, function(data){
+    		  self.doHighchartsVDC(data);
+    		  self.vdcQuotaVO().cpu(parseFloat(data.cpuTotal)+""+data.cpuUnit);
+    		  self.vdcQuotaVO().mem(parseFloat(data.memTotal)+""+data.memUnit);
+    		  self.vdcQuotaVO().sto(parseFloat(data.stoTotal)+""+data.stoUnit);
+    		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
+    		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
+    		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
+    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
+    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
+    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
+    		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
+    		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
+    		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().blaA(parseFloat(data.blaTotal)+""+data.blaUnit);
+    		  self.vdcQuotaVO().blaB(parseFloat(data.blaUsed)+"/"+(parseFloat(data.blaTotal)-parseFloat(data.blaUsed))+"("+data.blaUnit+")");
+    		  self.vdcQuotaVO().blaRate(parseFloat(data.blaTotal)==0?'0%':Math.round(parseFloat(data.blaUsed)/parseFloat(data.blaTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().ipA(parseFloat(data.ipTotal)+""+data.ipUnit);
+    		  self.vdcQuotaVO().ipB(parseFloat(data.ipUsed)+"/"+(parseFloat(data.ipTotal)-parseFloat(data.ipUsed))+"("+data.ipUnit+")");
+    		  self.vdcQuotaVO().ipRate(parseFloat(data.ipTotal)==0?'0%':Math.round(parseFloat(data.ipUsed)/parseFloat(data.ipTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
+    		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
+    		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
+    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
+    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
+    	  });
+      }
    	  //加载VDC列表
 	  this.vdcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/vdcs", function(data){
@@ -1881,36 +1906,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  vpnRate: ko.observable()
       });
       this.doHighchartsVDC = doHighchartsVDC;
-      this.loadVdcStat = function(){
-    	  var url = "api/v5.0.0/homepage/vdcQuota?vdcUuid="+self.selectedVdc();
-    	  csc.rest.get(url, function(data){
-    		  self.doHighchartsVDC(data);
-    		  self.vdcQuotaVO().cpu(parseFloat(data.cpuTotal)+""+data.cpuUnit);
-    		  self.vdcQuotaVO().mem(parseFloat(data.memTotal)+""+data.memUnit);
-    		  self.vdcQuotaVO().sto(parseFloat(data.stoTotal)+""+data.stoUnit);
-    		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
-    		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
-    		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
-    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
-    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
-    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
-    		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
-    		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
-    		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().blaA(parseFloat(data.blaTotal)+""+data.blaUnit);
-    		  self.vdcQuotaVO().blaB(parseFloat(data.blaUsed)+"/"+(parseFloat(data.blaTotal)-parseFloat(data.blaUsed))+"("+data.blaUnit+")");
-    		  self.vdcQuotaVO().blaRate(parseFloat(data.blaTotal)==0?'0%':Math.round(parseFloat(data.blaUsed)/parseFloat(data.blaTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().ipA(parseFloat(data.ipTotal)+""+data.ipUnit);
-    		  self.vdcQuotaVO().ipB(parseFloat(data.ipUsed)+"/"+(parseFloat(data.ipTotal)-parseFloat(data.ipUsed))+"("+data.ipUnit+")");
-    		  self.vdcQuotaVO().ipRate(parseFloat(data.ipTotal)==0?'0%':Math.round(parseFloat(data.ipUsed)/parseFloat(data.ipTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
-    		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
-    		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
-    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
-    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
-    	  });
-      }
    	  //--------------------VDC配额模块end--------------//
    	  
    	  //--------------------当前用户角色所有权限 start--------------//
@@ -1934,6 +1929,21 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
    		
    	  });
    	//--------------------当前用户角色所有权限 start--------------//
+   	
+   	//--------------------获取当前用户角色start---------------//
+   	      
+    //订单更多URI
+    this.orderUri = ko.observable();
+   	csc.rest.get("api/v5.0.0/homepage/user", function(data){
+   		if(data.roleName && ("普通用户" == data.roleName)){
+			self.orderUri("#pages/orders/service_orders");
+	  	} else if(data.roleName && ("普通用户" != data.roleName)){
+			self.orderUri("#pages/orders/service_orders?type=order");
+	  	} else{
+	  		console.log("用户角色为空！");
+	  	}
+   	})
+   	//--------------------获取当前用户角色end-----------------//
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);
