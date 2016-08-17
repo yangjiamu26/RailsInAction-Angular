@@ -15,6 +15,7 @@ function RestServiceJs(newurl) {
           contentType: 'application/json',
           success: callback,  
           error: function(req, status, ex) {
+            console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -35,6 +36,7 @@ function RestServiceJs(newurl) {
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
+            console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -59,7 +61,7 @@ function RestServiceJs(newurl) {
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
-            console.log(req.responseText)
+            console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -79,6 +81,7 @@ function RestServiceJs(newurl) {
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
+            console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{
@@ -97,6 +100,7 @@ function RestServiceJs(newurl) {
           contentType: 'application/json',  
           success: callback,  
           error: function(req, status, ex) {
+            console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
             }else{

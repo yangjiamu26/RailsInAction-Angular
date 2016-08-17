@@ -1,6 +1,8 @@
 myApp.onPageInit("pool-summary", function(page) {
 // 单个资源池-cpu占比图
 function initSinglePool_cpu_chart(data) {
+    var unit = 'GHz';
+    if(data.hypervisor == 'PowerVM') unit = '核';
     $('#singlePool_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -32,7 +34,7 @@ function initSinglePool_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>颗',
+        labelFormat: '{name}：<b>{y:.2f}</b>'+unit,
       },
       plotOptions: {
           pie: {
@@ -174,7 +176,7 @@ function initSinglePool_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>T',
       },
       plotOptions: {
           pie: {
@@ -220,13 +222,20 @@ function initSinglePool_storage_chart(data) {
       "hypervisor":"",
       "cpu":"",
       "memory":"",
-      "storage":""
+      "storage":"",
+      "cpuSlots":""
     });
     this.loadData = function(){
       var self = this;
       RestServiceJs(BASE_URL+"/resPool").get(page.query.id,{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolName":page.query.resourcePoolName},function(data){
       //$.ajax("tpl/pool/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
+        data.cpu = data.hypervisor == 'PowerVM' ? Number(Number(data.cpu).toFixed(2)) : Number((Number(data.cpu)/1024).toFixed(2));
+        data.availCpu = data.hypervisor == 'PowerVM' ? Number(Number(data.availCpu).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
+        data.memory = Number((Number(data.memory)/1024).toFixed(2));
+        data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
+        data.storage = Number((Number(data.storage)/1024).toFixed(2));
+        data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
         self.summary(data);
 
         initSinglePool_cpu_chart(data);
