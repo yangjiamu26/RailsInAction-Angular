@@ -2,13 +2,13 @@
 <div class="row wrapper">
   <div class="col-xs-1">
     <div class="input-group">
-      <button class="btn btn-info btn-sm" data-bind="click:showCreatePage">创建</button>
+      <button class="btn btn-info btn-sm" data-bind="click:showCreatePage, check_action:'pubIp_Create'">创建</button>
     </div>      
   </div>
   <div class="col-xs-3">
     <div class="input-group">
       <span class="input-group-addon">所属VDC</span>
-      <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
+      <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, optionsCaption: '全部', options: $root.searchVdcList, optionsText: 'name', optionsValue: 'uuid'">
         <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
       </select>
     </div>      
@@ -16,7 +16,7 @@
   <div class="col-xs-3">
     <div class="input-group">
       <span class="input-group-addon">所属可用分区</span>
-      <select class="form-control input-sm" data-bind="value: searchParam().azUuid, options: $root.searchAzList, optionsText: 'name', optionsValue: 'uuid'"></select>
+      <select class="form-control input-sm" data-bind="value: searchParam().azUuid, optionsCaption: '全部', options: $root.searchAzList, optionsText: 'name', optionsValue: 'uuid'"></select>
     </div>      
   </div> 
            
@@ -43,8 +43,8 @@
           <th>可用分区</th>
           <th>所属VDC</th>
           <th>所属VPC</th>
-          <th>路由器</th>
-          <th>云主机</th>
+          <!-- <th>路由器</th> -->
+          <th>云主机/负载均衡器</th>
           <th>服务状态</th>
           <!-- <th>创建时间</th> -->
           <th>有效期</th>
@@ -66,7 +66,7 @@
             <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
             <td data-bind="text: $row.vdcName"></td><!-- 所属VDC -->
             <td data-bind="text: $row.vpcName"></td><!-- 所属VPC -->
-            <td data-bind="text: $row.routerName"></td><!-- 路由器 -->
+            <!-- <td data-bind="text: $row.routerName"></td> --><!-- 路由器 -->
             <td data-bind="text: $row.vmName"></td><!-- 云主机 -->
             <td>
             	<span class="label label-success" data-bind="if: $row.isValidate == true">正常</span>
@@ -76,14 +76,15 @@
             <td data-bind="text: $row.expiredDate"></td><!-- 有效期 -->
             <td data-bind="text: $row.account"></td><!-- 创建人 -->
             <td><!-- 操作 -->
-            	<a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |
+            	<span data-bind="check_action:'pubIp_TimeModify'"><a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |</span>
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                        <li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == true"><a data-bind="click: $root.showBindingPage">绑定云主机</a></li>
-                      	<li data-bind="if: csc.util.isNotNull($row.vmUuid)"><a data-bind="click: $root.unbindVm">解绑</a></li>
-                      	<li data-bind="if: $row.isValidate == true"><a data-bind="click: $root.terminateService">终止</a></li>
-                      	<li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == false"><a data-bind="click: $root.deleteIp">删除</a></li>
+                        <li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == true, check_action:'pubIp_CS_Bind'"><a data-bind="click: $root.showBindingPage">绑定云主机</a></li>
+                        <li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == true, check_action:'pubIp_LB_Bind'"><a data-bind="click: $root.showBindingLbPage">绑定负载均衡器</a></li>
+                      	<li data-bind="if: csc.util.isNotNull($row.vmUuid), check_action:'pubIp_CS_Unbind'"><a data-bind="click: $root.unbindVm">解绑</a></li>
+                      	<li data-bind="if: $row.isValidate == true, check_action:'pubIp_Stop'"><a data-bind="click: $root.terminateService">终止</a></li>
+                      	<li data-bind="if: csc.util.isNull($row.vmUuid)&&$row.isValidate == false, check_action:'pubIp_Delete'"><a data-bind="click: $root.deleteIp">删除</a></li>
                     </ul>
                 </div> 
             </td>
@@ -132,7 +133,7 @@
           </button>
           <h3 class='modal-title'>创建公网IP</h3>
         </div>
-        <div class='modal-body form-horizontal row'  data-bind="with:currentIpVo">
+        <div class='modal-body form-horizontal'  data-bind="with:currentIpVo">
 
           <div class="form-group">
             <label class="col-sm-3 control-label">公网IP名称</label>
@@ -147,7 +148,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">所属VDC</label>
             <div class="col-sm-8">
-              <select class="form-control" data-bind="options:$root.vdcList,optionsText:'name',value: vdcUuid,optionsValue:'uuid'">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.vdcList,optionsText:'name',value: vdcUuid,optionsValue:'uuid'">
                 <option value="f91c14a2-5981-405c-bcba-5170f5b3a86d">crnVDC</option>
                 <option>研发部2</option>
               </select>
@@ -160,7 +161,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">可用分区</label>
             <div class="col-sm-8">
-              <select class="form-control" data-bind="options:$root.azList,optionsText:'name',optionsValue:'uuid',value: azUuid, disable: vdcUuid==null">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.azList,optionsText:'name',optionsValue:'uuid',value: azUuid, disable: vdcUuid==null">
                 <option>可用分区1</option>
               </select>
             </div>
@@ -172,7 +173,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">所属VPC</label>
             <div class="col-sm-8">
-              <select class="form-control" data-bind="options:$root.vpcList,optionsText:'name',optionsValue:'uuid',value: vpcUuid, disable: csc.util.isNull(azUuid)">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.vpcList,optionsText:'name',optionsValue:'uuid',value: vpcUuid, disable: csc.util.isNull(azUuid)">
                 <option>208</option>
                 <option>206</option>
               </select>
@@ -185,7 +186,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">网络名称</label>
             <div class="col-sm-8">
-              <select class="form-control" data-bind="options:$root.networkList,optionsText:'name',optionsValue:'uuid',value: networkUuid, disable: vpcUuid==null">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.networkList,optionsText:'name',optionsValue:'uuid',value: networkUuid, disable: vpcUuid==null">
                 <option>网络1</option>
                 <option>网络2</option>
               </select>
@@ -194,10 +195,25 @@
               <span class="text-danger inline m-l-n m-t-sm">*</span>
             </div>
           </div>
+          <!-- 是否系统保留使用 -->
+          <div class="form-group">
+            <label class="col-sm-3 control-label">系统保留</label>
+            <div class="col-sm-8">
+            	<div class="checkbox">
+            		<label>
+                      <input type="checkbox" data-bind="checked: systemReserve">
+                    </label>	
+                </div>
+            </div>
+            <div class="col-sm-1">
+              <span class="text-danger inline m-l-n m-t-sm"></span>
+            </div>
+          </div>
+          
           <!-- 有效期 -->
 		  <div class="form-group">
-               <label class="col-sm-3 control-label no-padder-h">申请时长</label>
-               <div class="col-sm-9">
+               <label class="col-sm-3 control-label">申请时长</label>
+               <div class="col-sm-8">
                	 <div>
 	                 <label class="radio-inline" style="padding-top: 2px">
 	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option1" checked="checked"> 永久
@@ -225,7 +241,6 @@
                </div>
           </div>
           
-
           <div class="form-group">
             <label class="col-sm-3 control-label">备注</label>
             <div class="col-sm-8">
@@ -259,7 +274,7 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">云主机：</label>
             <div class="col-sm-8">
-              <select class="form-control" data-bind="options:$root.vmList,optionsText:'vmName', value: vm">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.vmList,optionsText:'vmName', value: vm">
                 <option value="1">1</option>
               </select>
             </div>
@@ -272,7 +287,39 @@
         </div>
       </div>
     </div>
-  </div>  
+  </div> 
+  
+  <!-- 绑定负载均衡器页面 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isShowBindingLbPage }">
+    <div class='modal-dialog modal-lg' style="width:600px;">
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>绑定负载均衡器</h3>
+        </div>
+        <div class='modal-body form-horizontal' data-bind="with: bindingLbVo">
+          <div class="form-group">
+            <label class="col-sm-3 control-label">公网IP：</label>
+            <div class="col-sm-8">
+              <span data-bind="text: ip">150.152.11.25</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">负载均衡器：</label>
+            <div class="col-sm-8">
+              <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.vipList,optionsText:'vmName', value: vip">
+                <option value="1">1</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="attr: {disabled: $root.disableBindingLbBtn()}, click: $root.bindLb">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div>   
   
   <!-- 修改有效期 -->
   <div role="dialog" aria-hidden="true" class="modal fade"  id="modal_publicIp_valiTime" data-bind="modal: { show: isValidateTime }">
@@ -419,10 +466,10 @@
       
       /************************** 创建公网IP ********************************/
       //创建页面
-      this.vdcList = ko.observableArray();
-      this.azList = ko.observableArray();
-      this.vpcList = ko.observableArray();
-      this.networkList = ko.observableArray();
+      this.vdcList = ko.observableArray([]);
+      this.azList = ko.observableArray([]);
+      this.vpcList = ko.observableArray([]);
+      this.networkList = ko.observableArray([]);
       
       $("#modal_addPublicIp").on("shown.bs.modal",function(){
           // daterange             
@@ -445,10 +492,10 @@
       
       this.currentIpVo = ko.validatedObservable({
     	  "name": ko.observable("").extend({required: true}),
-    	  "vdcUuid": ko.observable("").extend({required: true}),
-  		  "azUuid":  ko.observable("").extend({required: true}),
-  		  "vpcUuid": ko.observable("").extend({required: true}),
-  		  "networkUuid": ko.observable("").extend({required: true}),
+    	  "vdcUuid": ko.observable().extend({required: true}),
+  		  "azUuid":  ko.observable().extend({required: true}),
+  		  "vpcUuid": ko.observable().extend({required: true}),
+  		  "networkUuid": ko.observable().extend({required: true}),
   		  "timeType": "",
   		  "timeValue":"",
     	  "desc": "",
@@ -462,7 +509,8 @@
     	  "createTime":"",
     	  "valiTime":"",
     	  "account":"",
-    	  "expiredDate":""
+    	  "expiredDate":"",
+    	  "systemReserve": ""
 	  });
       
       this.vmObj = ko.observable({
@@ -493,7 +541,8 @@
 		  		"networkUuid": "",
 		  		"timeType": "",
 		  		"timeValue":"",
-		    	"desc": ""
+		    	"desc": "",
+		    	"systemReserve": ""
 			});
 			$.VDC.getVDCs({},function(data){
 				 if(data && data.results){
@@ -568,15 +617,15 @@
    	    		"azUuid":	self.currentIpVo().azUuid(),
    	    		"vpcUuid": self.currentIpVo().vpcUuid(),
    	    		"networkUuid": self.currentIpVo().networkUuid(),
-   	    		"desc": self.currentIpVo().desc
+   	    		"desc": self.currentIpVo().desc,
+   	    		"systemReserve": self.currentIpVo().systemReserve
    	    	  };
-        	  
         	  var expiryTime = "";
       	  	  var temp = document.getElementsByName("publicIpExpiredRadioOptions");
       	  	  for(var i=0;i<temp.length;i++){
       	      if(temp[i].checked){
       	    	 if(temp[i].value == "option1"){
-      	    		 expiryTime = "2099-12-30 23:59:59";
+      	    		 expiryTime = "2099-12-31 23:59:59";
       	    	 }else if(temp[i].value == "option2"){
       	    		 if($("#resource_public_ip_time_unit").val() == "MONTH"){
       	    			 var plusMonth = parseInt($("#resource_public_ip_time_value").val());
@@ -668,6 +717,60 @@
 				alert("绑定云主机[" + vmName + "]成功！")
    		});
       };
+      
+      //绑定负载均衡器
+      this.isShowBindingLbPage = ko.observable(false);
+      this.disableBindingLbBtn = ko.observable(false);
+      this.bindingLbVo = ko.validatedObservable({
+    	  uuid: 	ko.observable(),
+    	  vip: 		ko.observable(),
+    	  ip:		ko.observable()
+      });
+      this.vipList = ko.observableArray();
+      this.showBindingLbPage = function(vo){
+           self.isShowBindingLbPage(true);
+           self.disableBindingLbBtn(false);
+           //对当前公网IP对象进行绑定
+           self.bindingLbVo({
+        	   uuid: vo.uuid,
+        	   vip:	"",
+        	   ip:	vo.ip
+           });
+           var p = {
+            	   tenantId: vo.tenantId,
+            	   networkUuid:vo.networkUuid,
+            	   azUuid: vo.azUuid
+           };
+           self.vipList([]);
+           $.PORT.getBindableVipList(p, function(data){
+        	   if(data && data.results){
+        		   self.vipList(data.results);
+        	   }
+           })
+      };
+	  
+      this.bindLb = function(){
+    	  if(self.disableBindingLbBtn()){
+    		  return;
+    	  }
+    	  self.disableBindingLbBtn(true);
+    	  var uuid = self.bindingLbVo().uuid;
+    	  var portId = self.bindingLbVo().vip.portId;
+    	  var vmUuid = self.bindingLbVo().vip.vmUuid; //负载均衡器VIP的uuid
+    	  var vmName = self.bindingLbVo().vip.vmName;  //负载均衡器VIP的名称
+    	  
+    	  var p = {
+    			"portId":portId,
+    			"vmUuid":vmUuid,
+    			"vmName":vmName
+    	  };
+    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
+				self.publicIpTable.refreshData();
+				self.isShowBindingLbPage(false);
+				alert("绑定负载均衡器[" + vmName + "]成功！")
+   		});
+      };
+      
       
       //解绑公网IP
       this.unbindVm = function(vo){
@@ -771,33 +874,29 @@
       //初始化查询参数
       var subSearchVdc;//subscription.dispose();
       this.init = function(){
-    	  self.searchVdcList([{"name": "全部", "uuid": ""}]);
+    	  self.searchVdcList([]);
     	  $.VDC.getVDCs({},function(data){
     			if(data && data.results){
-    				data.results.unshift({"name": "全部", "uuid": ""});
     				self.searchVdcList(data.results);
     			}
     	  });
-    	  self.searchAzList([{"name": "全部", "uuid": ""}]);
+    	  self.searchAzList([]);
     	  $.AZ.getAzs({},function(data){
 			 if(data && data.results){
-				 data.results.unshift({"name": "全部", "uuid": ""});
 				 self.searchAzList(data.results);
 			 }
 		 });
     	  subSearchVdc = self.searchParam().vdcUuid.subscribe(function(val){
-			    self.searchAzList([{"name": "全部", "uuid": ""}]);
+			    self.searchAzList([]);
 			    if(csc.util.isNotNull(val)){
 			    	$.VDC.getVdcAzs(val,{},function(data){
 		   				 if(data && data.results){
-		   					 data.results.unshift({"name": "全部", "uuid": ""});
 		   					 self.searchAzList(data.results);
 		   				 }
 		   			});
 			    }else{
 			    	$.AZ.getAzs({},function(data){
 		   				 if(data && data.results){
-		   					 data.results.unshift({"name": "全部", "uuid": ""});
 		   					 self.searchAzList(data.results);
 		   				 }
 		   			});
@@ -877,6 +976,7 @@
        	  
        	  var postBody = {}; 
        	  postBody.resourceType = "PUBLICIP";
+       	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -897,6 +997,7 @@
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(object.name);
 		  self.validateProcessVO().uuid(object.uuid);
+		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
@@ -925,6 +1026,7 @@
       this.validateProcessVO = ko.observable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
+    	  vdcUuid: ko.observable(),
     	  vdcName:ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
@@ -951,6 +1053,8 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "PUBLICIP";
+    	  postBody.type = "VALIDTIME_CHANGE";
+    	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

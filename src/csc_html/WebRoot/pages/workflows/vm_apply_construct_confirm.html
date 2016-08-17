@@ -93,10 +93,10 @@
 											<div class="col-xs-3">
 												<span  data-bind="text:ip"></span>
 											</div>
-											<div class="col-xs-1 font-bold">主机账号：</div>
+											<!-- <div class="col-xs-1 font-bold">主机账号：</div>
 											<div class="col-xs-3">
 												<span data-bind="text:account"></span>
-											</div>
+											</div> -->
 										</div>
 										<div class="row m-b">
 											<div class="col-xs-1 font-bold">选择密钥：</div>
@@ -121,29 +121,6 @@
 									</div>
 									
 									
-									 	<h5><i class="fa fa-minus fa-rotate-90 text-info"></i>安装软件</h5>
-				                        <div class="table-responsive no-height">
-				                          <table class="table table-striped table-hover">
-				                            <thead>
-				                              <tr>
-				                                <th>软件名称</th>
-				                                <th>软件分类</th>
-				                                <th>软件类型</th>
-				                                <th>软件版本</th>
-				                                <th>静默安装属性</th>
-				                              </tr>
-				                            </thead>
-				                            <tbody data-bind="foreach:softwareList">
-				                              <tr>
-				                                  <td data-bind="text:name"></td>
-							                      <td data-bind="text:softType"></td>
-							                      <td data-bind="text:softTypeName"></td>
-							                      <td data-bind="text:version"></td>
-							                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a></td>
-				                              </tr>
-				                            </tbody>
-				                          </table>            
-				                        </div>          
 				
 				                     <!--    <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>系统盘分区</h5>
 				                        <table class="table table-striped table-hover">
@@ -205,9 +182,10 @@
                         <td><span data-bind="text: azName"></span></td>
                         <td data-bind="html:itemStateHtml"></td>
                         <td>
-                            <span data-bind="visible: itemState() == 'CONSTRUCTION_FAILED'">
+	                             <span data-bind="visible: itemState() == 'CONSTRUCTION_FAILED'">
 	                             |
-	                            <a data-bind="click:$root.reConstruct" >重施工</a> | 
+	                            <span data-bind="visible:vmItemState() != 'CONSTRUCTION_SUCCESS'" title="云主机施工成功后才能操作！" >重施工</span>
+	                            <a data-bind="visible:vmItemState() == 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" >重施工</a> | 
 	                            <a data-bind="click:$root.vmErrorMsg">失败原因</a>
                             </span>
                         </td>
@@ -215,6 +193,45 @@
                 </tbody>
             </table>
           </div>
+          
+          
+             <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>安装软件</h5>
+              <div class="table-responsive no-height">
+                <table class="table table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th>软件名称</th>
+                      <th>软件分类</th>
+                      <th>软件类型</th>
+                      <th>软件版本</th>
+                      <th>云主机</th>
+                      <th>静默安装属性</th>
+                      <th>施工状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody data-bind="foreach:currentVO().softApplyList">
+                    <tr>
+                       <td data-bind="text:name"></td>
+		               <td data-bind="text:softType"></td>
+		               <td data-bind="text:softTypeName"></td>
+		               <td data-bind="text:version"></td>
+		               <td><span data-bind="text: vmName"></span></td>
+		               <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a></td>
+		               <td data-bind="html:itemStateHtml"></td>
+                        <td>
+                             <span data-bind="visible: itemState() == 'CONSTRUCTION_FAILED'">
+	                             |
+	                            <span data-bind="visible:vmItemState() != 'CONSTRUCTION_SUCCESS'" title="云主机施工成功后才能操作！" >重施工</span>
+	                            <a data-bind="visible:vmItemState() == 'CONSTRUCTION_SUCCESS',click:$root.reConstruct" >重施工</a> | 
+	                            <a data-bind="click:$root.vmErrorMsg">失败原因</a>
+                            </span>
+                        </td>
+                    </tr>
+                  </tbody>
+                </table>            
+              </div>     
+          
    </div>
    </div>
    
@@ -323,7 +340,7 @@
                         	     }
                         	     vmInfo.availableIpList(ipList);
                         	     vmInfo.ip(vmInfo.selectIp);
-                             },function(){},vmInfo); 
+                             },function(){},vmInfo,true); 
 		 	                
 		 	                vmInfo.uuid(orderItem.uuid);
 		 	                vmInfo.orderUuid(orderItem.orderUuid);
@@ -415,6 +432,7 @@
 		 	      		      var metaData = JSON.parse(orderItem.metaData);
 		 	      		      var diskInParamData = JSON.parse(metaData.resBaseInfo);
 		      				  var diskInfo = new DiskInfo();
+		      				  diskInfo.uuid(orderItem.uuid);
 		      				  diskInfo.orderUuid(orderItem.orderUuid);
 		      				  diskInfo.serviceUuid(orderItem.serviceUuid);
 		      				  diskInfo.instanceName(orderItem.instanceName);
@@ -447,12 +465,16 @@
 			 	      		    var softInParamData = JSON.parse(metaData.resBaseInfo);
 			 	      		    var software = new Software();
 			 	      		    software.relateUuid(relateUuid);
-			 	      		    software.uuid(softInParamData.softwareUuid);
+			 	      		    software.orderUuid(orderItem.orderUuid);
+			 	      		    software.uuid(orderItem.uuid);
+			 	      		    software.softwareUuid(softInParamData.softwareUuid);
 							    software.scriptUuid(softInParamData.scriptUuid);
+							    software.itemState(orderItem.itemState); 
+							    software.workFailedMessage(orderItem.workFailedMessage);
 							    csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,software) {
 							    	for(var j=0;j<softList.results.length;j++){
 		      							var querySoftVO = softList.results[j];
-		      							if(software.uuid() == querySoftVO.uuid){
+		      							if(software.softwareUuid() == querySoftVO.uuid){
 		      								software.name(querySoftVO.name);
 		      								software.softType(querySoftVO.softType);
 		      								software.softTypeName(querySoftVO.softTypeName);
@@ -498,8 +520,6 @@
 		      				 alert("提交重施工成功！")
 		      			  },function(){},false,orderItem);
 		      		  }
-		      		  
-		      		  console.log("self.currentVO().diskApplyLis()-----------",self.currentVO().diskApplyList())
 		      		 
 		      		  var vmList = self.currentVO().vmApplyList();
 		      		  var diskList = self.currentVO().diskApplyList();
@@ -520,20 +540,29 @@
 				    			   },diskVo);
 		          				  diskVo.vmName(vmVO.instanceName());
 		          				  vmVO.mountDiskList.push(diskVo);
+		          				  
+		          				  diskVo.vmItemState(vmVO.itemState());
+		          				  vmVO.itemState.subscribe(function(val){
+		          					  this.vmItemState(val);
+		          				  },diskVo);
+		          				  
 		          			  }
 		          		  }
-		          		  
 		          		  
 		          		 for(var i=0;i<softList.length;i++){
 		          			  var softVo = softList[i];
 		          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == softVo.relateUuid()){
+		          				  softVo.vmName(vmVO.instanceName());
+		          				  
+		          				  softVo.vmItemState(vmVO.itemState());
+		          				  vmVO.itemState.subscribe(function(val){
+		          					  this.vmItemState(val);
+		          				  },softVo);
+		          				  
 		          				  vmVO.softwareList.push(softVo);
-		          				  break;
 		          			  }
 		          		  }
 		      		  }
-		      		  
-		      		 
 		      		
 		      		/***************云软件详情页面***********************/  
 		      	    self.showSoftwareAttr = ko.observable(false);
@@ -550,13 +579,22 @@
 		      		/******************实体对象定义**********************/  
 		      		function Software(){
 		      			this.relateUuid =ko.observable();
+		      			this.orderUuid= ko.observable(""),
 		      		    this.uuid = ko.observable();
+		      			this.softwareUuid = ko.observable();
 				    	this.scriptUuid = ko.observable();
 				    	this.name = ko.observable();
 				    	this.softType = ko.observable();
 				    	this.softTypeName = ko.observable();
 				    	this.version = ko.observable();
+				    	this.vmName = ko.observable();
 				    	this.softwareParams=ko.observableArray([]);
+				        this.itemState = ko.observable(); 
+				        this.vmItemState = ko.observable(); 
+				      	this.itemStateHtml =  ko.pureComputed(function(){
+			 	            	 return getStateHtml(this.itemState());
+			 	            }, this);
+		        	    this.workFailedMessage = ko.observable(); 
 		      		}
 		      		
 		      		function SoftwareParam(){
@@ -594,6 +632,7 @@
 		      	        this.isBill=ko.observable(""),
 		      	        this.relateUuid=ko.observable(""),
 		      	        this.itemState = ko.observable(); 
+		      	        this.vmItemState = ko.observable(); 
 			      	  	this.itemStateHtml =  ko.pureComputed(function(){
 		 	            	 return getStateHtml(this.itemState());
 		 	            }, this);

@@ -20,9 +20,18 @@
 					<li role="presentation" class="active"><a href="#tab1"
 						aria-controls="home" role="tab" data-toggle="tab">组织架构</a></li>
 				</ul>
-				<div class="tab-content">
+<!-- 				<div class="tab-content">
 					<div role="tabpanel" class="tab-pane active" id="tab1">
 						<ul class="ztree" id="orgZtree"></ul>
+					</div>
+				</div> -->
+				<div class="row-row">
+					<div class="cell scrollable hover">
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="tab1">
+								<ul class="ztree" id="orgZtree"></ul>
+							</div>
+				        </div>
 					</div>
 				</div>
 			</div>
@@ -41,7 +50,7 @@
 						</thead>
 						<tbody>
 							<tr data-bind="visible: showNoData">
-								<td colspan=5 class="aligncenter">This table has no data.</td>
+								<td colspan=5 class="aligncenter">暂无数据</td>
 							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
@@ -82,7 +91,7 @@
 						</thead>
 						<tbody>
 							<tr data-bind="visible: showNoData">
-								<td colspan=5 class="aligncenter">This table has no data.</td>
+								<td colspan=5 class="aligncenter">暂无数据</td>
 							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
@@ -126,30 +135,43 @@
 				if(treeNode.code == '0'){
 				    searchParamLeft = {
 				    		orgId : "",
+				    		systemId : "csc5.0",
 				    		userType : treeNode.userType
 				    		};
 				    searchParamRight = {
 							orgId : "",
 							roleId : roleId,
+							systemId : "csc5.0",
+							userType : treeNode.userType
+						};
+				}else if(treeNode.code == '-1'){
+					searchParamLeft = {
+				    		orgId : "",
+				    		systemId : "csc5.0",
+				    		userType : treeNode.userType
+				    		};
+				    searchParamRight = {
+							orgId : "",
+							roleId : roleId,
+							systemId : "csc5.0",
 							userType : treeNode.userType
 						};
 				}else{
 				    searchParamLeft = {
 							orgId : treeNode.code,
+							systemId : "csc5.0",
 							userType : treeNode.userType
 							};
 				    searchParamRight = {
 							orgId : treeNode.code,
 							roleId : roleId,
+							systemId : "csc5.0",
 							userType : treeNode.userType
 						};
 				}
-					
 			    orgId = treeNode.code;
 	            self.tableLeft.params(searchParamLeft);
 	            self.tableRight.params(searchParamRight);
-	            
-			   // alert(treeNode.code + ", " + treeNode.name);
 			};
 			
 			$(document).ready(function() {
@@ -157,7 +179,6 @@
 					$.fn.zTree.init($("#orgZtree"), setting, data);
 				})
 			});
-			
 			
 			this.addRoleUsers = function() {
 				var param = {};
@@ -195,8 +216,6 @@
 								      self.tableRight.refreshData();
 									});
 					}); 
-				
-				
 			};
 			
 			function getCharge(check,data) {
@@ -224,13 +243,12 @@
             //初始化预分配表格
 			this.tableLeft = new DataTable([], {
 				perPage : 15,
-				path : '/csc/api/v5.0.0/uap/users'
+				path : '/csc/api/v5.0.0/uap/roleUsers?roleId='+ roleId
 			});
 			//初始化已分配表格
 			this.tableRight = new DataTable([], {
 				path : '/csc/api/v5.0.0/uap/users?roleId='+ roleId
 			});
-            self.tableRight.params(searchParamRight);
 
 		}
 		ko.applyBindings(new ViewModel(), $('#page-content')[0]);

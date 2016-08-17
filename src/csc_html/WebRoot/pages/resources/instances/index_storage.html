@@ -48,7 +48,7 @@
             <tbody>
                 <tr data-bind="visible: showNoData">
                     <td colspan=11 class="aligncenter">
-                        This table has no data.
+                        	暂无数据
                     </td>
                 </tr>
                 <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -141,7 +141,7 @@
                     <div class="form-group">
                         <label class="col-xs-3 control-label">可用分区</label>
                         <div class="col-xs-8">
-                            <select class="form-control input-sm" data-bind="value: azUuid, options: $root.partitions, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_azs_add}"></select>
+                            <select class="form-control input-sm" data-bind="value: azUuid, options: $root.partitions_add, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_azs_add}"></select>
                         </div>
                         <div class="col-xs-1">
                             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -350,7 +350,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
         this.currentVO = ko.validatedObservable({
             volumeName: ko.observable().extend({
-                required: true
+                required: true,cscNameRule:true,maxLength:32
             }),
             volumeSize: ko.observable().extend({
                 required: true
@@ -371,8 +371,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 expiryDate: ko.observable(),
                 description: ''
             });
+            self.currentVO().expiryDate('');
             self.loadVdcs_add();
-
             self.isAddvdisk(true);
         }
 
@@ -474,9 +474,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         });
 
         this.reset = function() {
+        	//重置下拉
+        	self.vdcs([]);
+        	self.partitions([]);
+        	self.loadVdcs();
             this.searchParam({
-                azUuid: '',
                 vdcUuid: '',
+                azUuid: '',
                 volumeName: ''
             })
         }
@@ -555,34 +559,37 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             });
         }
 
-        //查询：下拉选择，加载VDC
+        //新增：下拉选择，加载VDC
         this.vdcs_add = ko.observableArray([]);
-        //新增页面加载，不需要全部选项
+        //新增页面VDC加载，不需要全部选项
         this.loadVdcs_add = function() {
                 csc.rest.get('api/v5.0.0/vdcs', function(data) {
                     if (data.results) {
                         vdcList = data.results;
                         self.vdcs_add(vdcList);
+                        //VDC加载完成后，触发VDC下拉变更事件，加载az
+                        self.onchange_vdcs_add();
                     }
                 });
             }
-            //新增：选择不同VDC后，可用分区下拉框要跟着改变
+        //新增：选择不同VDC后，可用分区下拉框要跟着改变
+        this.partitions_add = ko.observableArray([]);
         this.onchange_vdcs_add = function() {
             var vdcUuid = self.currentVO.toJSON().vdcUuid;
-            csc.rest.get('api/v5.0.0/vdcs/' + vdcUuid + '/azs', function(data) {
-                if (data.results) {
-                    self.partitions(data.results);
-                }
-            });
+            if(vdcUuid){
+            	csc.rest.get('api/v5.0.0/vdcs/' + vdcUuid + '/azs', function(data) {
+                    if (data.results) {
+                        self.partitions_add(data.results);
+                    }
+                    //az加载完成后，触发az下拉变更事件，加载vms
+                    self.onchange_azs_add();
+                });            	
+            }
         }
 
         //修改：选择不同的可用分区云主机列表也要跟着改变
         this.onchange_azs_add = function() {
-            self.loadVms();
-        }
-
-        this.loadVms = function() {
-            var vdcUuid = self.currentVO.toJSON().vdcUuid;
+        	var vdcUuid = self.currentVO.toJSON().vdcUuid;
             var azUuid = self.currentVO.toJSON().azUuid;
             //console.log(vdcUuid);
             //console.log(azUuid);
@@ -590,19 +597,26 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 if (data.results) {
                     var vms = data.results;
                     self.vms(vms);
+                    //vms加载完成后，触发vms下拉变更事件，加载有效时间 
+                    self.onchange_vms_add();
                 }
             });
         }
-        
+
         //关联云主机下拉列表变更事件
         this.onchange_vms_add = function(){
         	// 级联加载所属云主机的有效时间 
         	var currentVmUuid = self.currentVO().vmUuid;
-        	for(var i=0;i<self.vms().length;i++){
-        		if(currentVmUuid == self.vms()[i].uuid){
-	        		self.currentVO().expiryDate(self.vms()[i].expiryDate);
-        		}
+        	if(currentVmUuid){
+        		for(var i=0;i<self.vms().length;i++){
+            		if(currentVmUuid == self.vms()[i].uuid){
+    	        		self.currentVO().expiryDate(self.vms()[i].expiryDate);
+            		}
+            	}	
+        	}else{
+        		self.currentVO().expiryDate('');
         	}
+        	
         }
 
         /* 为VDC和可用分区下拉框添加"全部"备选项*/
@@ -648,6 +662,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
   		  self.deleteProcessVO().vmUuid(object.vmUuid);
   		  self.deleteProcessVO().uuid(object.uuid);
+  		  self.deleteProcessVO().vdcUuid(object.vdcUuid);
   		  var myDate = new Date();
   		  self.deleteProcessVO().time(myDate.toLocaleString());
   		  self.deleteProcessVO().user("");
@@ -659,6 +674,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  time: ko.observable(),
       	  user: ko.observable(),
       	  serviceInstanceUuid: ko.observable(),
+      	  vdcUuid: ko.observable(),
       	  vmUuid: ko.observable()
         });
         
@@ -675,6 +691,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
           	  
           	  var postBody = {}; 
           	  postBody.resourceType = "DISK";
+          	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
           	  postBody.orderItems = orderItems;
           	  
           	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -699,7 +716,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		  var myDate = new Date();
   		  self.adjustProcessVO().time(myDate.toLocaleString());
   		  self.adjustProcessVO().user("");
-  		  
+  		  self.adjustProcessVO().vdcUuid(object.vdcUuid);
+  		  self.adjustProcessVO().vdcName(object.vdcName);
   		  self.adjustProcessVO().size(object.volumeSize);
   		  
   		  self.adjustProcessVO().targetSize('');
@@ -713,13 +731,22 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  serviceInstanceUuid: ko.observable(),
       	  vmUuid: ko.observable(),
       	  size: ko.observable(),
+      	  vdcUuid: ko.observable(),
+      	  vdcName: ko.observable(),
       	  
       	  targetSize: ko.observable()
         });
         
         //申请
         this.adjustProcessPost = function(){
-      	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustProcessVO().targetSize()+"\"}}";
+        	var targetSize = self.adjustProcessVO().targetSize();
+        	var size = self.adjustProcessVO().size();
+        	if(targetSize <= size){
+        		alert("扩展后的大小应大于原来的大小！");
+        		return;
+        	}
+      	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustProcessVO().vmUuid() + "\",\"volumeSize\":\""+targetSize
+      	 	+ "\",\"metaSize\":\""+size+"\"}}";
       	  
       	  var orderItem = {};
       	  orderItem.instanceName = self.adjustProcessVO().name();
@@ -727,12 +754,15 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  orderItem.resourceType = "DISK";
       	  orderItem.metaData = metaData;
       	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+      	  orderItem.vdcName = self.adjustProcessVO().vdcName();
       	  
       	  var orderItems = [];
       	  orderItems.push(orderItem);
       	  
       	  var postBody = {};
       	  postBody.resourceType = "DISK";
+      	  postBody.type = "RESOURCE_CHANGE";
+      	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
       	  postBody.orderItems = orderItems;
       	  
       	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

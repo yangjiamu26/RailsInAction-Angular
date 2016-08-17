@@ -892,7 +892,7 @@ vsanApp.controller('MainCtrl', function ($scope,$state,$rootScope,mainFactory) {
                 html: true,
                 content: function () {
                     if (_this.data("tipMsg")) {
-                        return "<div style='color:#000;'>" + _this.data("tipMsg") + "</div>";
+                        return "<div>" + _this.data("tipMsg") + "</div>";
                     }
                     return "";
                 }

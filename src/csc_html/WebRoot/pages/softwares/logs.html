@@ -43,7 +43,7 @@
 				</div>
 			</div>
 			<div class="col-xs-2">
-				<button class="btn btn-sm" type="button">重置</button>
+				<button class="btn btn-sm" type="button" data-bind="click: resetSearch">重置</button>
 				<button class="btn btn-sm btn-default" data-bind="click: search">搜索</button>
 			</div>
 		</div>
@@ -52,7 +52,7 @@
 				<thead>
 					<tr>
 						<th>软件名称</th>
-						<th>虚拟机名称</th>
+						<th>云主机名称</th>
 						<th>订单编号</th>
 						<th>时间</th>
 						<th>软件安装进度</th>
@@ -72,9 +72,11 @@
 						<td data-bind="text: $row.billingUuid"></td>
 						<td data-bind="text: $row.installTime"></td>
 						<td data-bind="text: $row.progress"></td>
-						<td data-bind="text: $row.statusName"></td>
+						<td>
+							<span data-bind="text: $row.statusName, attr: {id: 'status_'+$row.uuid, class: $root.statusCss($row)}"></span>
+						</td>
 						<td><a data-bind="click:$root.openAttr, visible: ($row.attrCnt > 0)">查看</a></td>
-						<td><a data-bind="click:$root.openInstall, visible: ($row.status == 2)">重安装 | </a><a data-bind="click: $root.showLogText">查看日志</a></td>
+						<td><a data-bind="click:$root.openInstall, visible: ($row.status == 2), attr: {id: $row.uuid}">重安装 | </a><a data-bind="click: $root.showLogText">查看日志</a></td>
 					</tr>
 					<!-- /ko -->
 				</tbody>
@@ -102,7 +104,7 @@
 <div role="dialog" aria-hidden="true" class="modal fade" id="logTextModal"
 	data-bind="modal: { show: isLogText }">
 
-	<div class='modal-dialog' role='document'>
+	<div class='modal-dialog' role='document' style="width: 760px;">
 		<div class='modal-content'>
 			<div class='modal-header'>
 				<button type="button" class="close" data-dismiss="modal">
@@ -113,7 +115,7 @@
 			<div class='modal-body form-horizontal'>
 				<div class="form-group">
 					<div class="col-xs-12">
-						<textarea class="form-control" style="min-height: 250px;" data-bind="value: logTextVal">
+						<textarea class="form-control" style="min-height: 300px;" data-bind="value: logTextVal">
 						</textarea>
 					</div>
 				</div>
@@ -310,16 +312,41 @@
 			});
 			
 			this.searchParam = ko.observable({
-				status : "",
-				vmName : "",
-				softwareName : "",
-				orderNo : ""
+				status : ko.observable(""),
+				vmName : ko.observable(""),
+				softwareName : ko.observable(""),
+				orderNo : ko.observable("")
 			});
 			
 			this.search = function() {
-				this.table.params(this.searchParam());
+				var param = self.searchParam();
+				
+				self.table.params({
+					status : param.status(),
+					vmName : param.vmName(),
+					softwareName : param.softwareName(),
+					orderNo : param.orderNo()
+				});
+			};
+			
+			this.resetSearch = function() {
+				self.searchParam().status('');
+				self.searchParam().vmName('');
+				self.searchParam().softwareName('');
+				self.searchParam().orderNo('');
 			};
 
+			/** 软件状态属性 css样式 **/
+			this.statusCss = function (item) {
+				if (item.status == 1) {
+					return 'label label-success';	
+				} else if(item.status == 2) {
+					return 'label label-danger';
+				} else {
+					return 'label label-warning';
+				}
+			};
+			
 			// 日志列表数据
 			this.table = new DataTable([], {
 				path : 'api/v5.0.0/install/logs'
@@ -423,15 +450,22 @@
 			
 			// 重安装
 			this.reInstall = function() {
-				self.reInstallVO.toJSON();
-				
 				if (self.reInstallVO.isValid()) {
-					
 					var arr = [];
-					arr.push(self.reInstallVO.toJSON());
+					
+					var vo = self.reInstallVO.toJSON();
+					
+					$('#'+vo.uuid).hide();
+					$('#status_'+vo.uuid).html('安装中');
+					
+					if (vo.progress.indexOf('%') != -1) {
+						vo.progress = vo.progress.replace('%', '');
+					}
+					
+					arr.push(vo);
 					
 					$.INSTALL.retryInstall(arr, function (data) {
-						this.table.refreshData();
+						self.table.refreshData();
 					});
 					self.isReInstall(false);
 				} else {

@@ -1,16 +1,44 @@
 myApp.onPageInit("vm-index", function(page) {
   
   function ViewModel(){
+<<<<<<< HEAD
     this.dataList = ko.observableArray([]);
 
     this.loading = false;
     this.page = 1;
     this.loadData = function(is_loadMore){
+=======
+    this.hypervisor = ko.observable("");
+    this.resPoolId = ko.observable("");
+    this.hostId = ko.observable("");
+    this.dataList = ko.observableArray([]);
+    this.vmNum = ko.observable("");
+
+    this.loading = false;
+    this.page = 1;
+    this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
+      if(hypervisor){
+        this.hypervisor(hypervisor);
+      }else{
+        this.hypervisor("");
+      }
+      if(resPoolId){
+        this.resPoolId(resPoolId);
+      }else{
+        this.resPoolId("");
+      }
+      if(hostId){
+        this.hostId(hostId);
+      }else{
+        this.hostId("");
+      }
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
+<<<<<<< HEAD
       $.ajax("tpl/vm/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
@@ -25,6 +53,117 @@ myApp.onPageInit("vm-index", function(page) {
         }
         self.page++;
         if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
+=======
+      RestServiceJs(BASE_URL+"/vm").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      //$$.getJSON("tpl/vm/index.json?id="+page.query.id+"&page="+self.page,function(data){
+        self.loading = false;
+        if(!is_loadMore){
+          myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          self.dataList.removeAll();
+
+          self.vmNum(data.size);
+          var os = [data.winVm,data.linuxVm,data.othersVm], status = [data.okStateVm,data.stoppeStatedVm,data.otherStatedVm];
+          
+          initVm_os_chart(os);
+          initVm_status_chart(status);
+        }
+        for(var i=0; i<data.data.length; i++){
+          var reg1 = /windows/i,
+              reg2 = /centos/i,
+              reg3 = /redhat/i,
+              reg4 = /suse/i;
+          if(data.data[i].osVersion.match(reg1)&&data.data[i].osVersion.match(reg1).index>-1){
+            data.data[i].type="windows";
+          }else if(data.data[i].osVersion.match(reg2)&&data.data[i].osVersion.match(reg2).index>-1){
+            data.data[i].type="centos";
+          }else if(data.data[i].osVersion.match(reg3)&&data.data[i].osVersion.match(reg3).index>-1){
+            data.data[i].type="redhat";
+          }else if(data.data[i].osVersion.match(reg4)&&data.data[i].osVersion.match(reg4).index>-1){
+            data.data[i].type="suse";
+          }else{
+            data.data[i].type="others";
+          }
+          switch(data.data[i].state){
+            case 'STOPPED':
+              data.data[i].state='已关机';
+              data.data[i].stateCss='gray';
+              break;
+            case 'OK':
+              data.data[i].state='运行中';
+              data.data[i].stateCss='green';
+              break;
+            case 'disconnected':
+              data.data[i].state='已断开';
+              data.data[i].stateCss='gray';
+              break;
+            case 'STOPPING':
+              data.data[i].state='正在关机';
+              data.data[i].stateCss='orange';
+              break;
+            case 'STARTING':
+              data.data[i].state='正在开机';
+              data.data[i].stateCss='yellow';
+              break;
+            case 'DELETING':
+              data.data[i].state='正在删除';
+              data.data[i].stateCss='orange';
+              break;
+            case 'RESTARTING':
+              data.data[i].state='正在重启';
+              data.data[i].stateCss='yellow';
+              break;
+            case 'EXECUTING':
+              data.data[i].state='正在部署';
+              data.data[i].stateCss='yellow';
+              break;
+            case 'UNKNOWN':
+              data.data[i].state='未知';
+              data.data[i].stateCss='gray';
+              break;
+            case 'SUSPENDED':
+              data.data[i].state='挂起';
+              data.data[i].stateCss='orange';
+              break;
+            case 'RESIZING':
+              data.data[i].state='调整中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'SUSPENDING':
+              data.data[i].state='挂起中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'RESUMEING':
+              data.data[i].state='恢复中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'CONVERTING':
+              data.data[i].state='转换中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'RELOCATING':
+              data.data[i].state='迁移中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'REVERTING':
+              data.data[i].state='还原中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'SAVE_AS_TEMPLATE':
+              data.data[i].state='另存为模板中';
+              data.data[i].stateCss='orange';
+              break;
+            default:
+              data.data[i].state='异常';
+              data.data[i].stateCss='orange';
+              break;
+          }
+          
+          self.dataList.push(data.data[i]);
+        }
+        self.page++;
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }
@@ -33,21 +172,36 @@ myApp.onPageInit("vm-index", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
+<<<<<<< HEAD
+=======
+  window.vm_index_viewModel = viewModel;
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
   viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+<<<<<<< HEAD
     viewModel.loadData();
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true);
+=======
+    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
+  });
+  $$(page.container).find('.infinite-scroll').on('infinite', function () {
+    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
   });  
   
 });
 
 
 // 虚拟机-操作系统占比
+<<<<<<< HEAD
 function initVm_os_chart() {
+=======
+function initVm_os_chart(os) {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     $('#vm_os_chart').highcharts({
         chart: {
             marginTop: 15,
@@ -93,6 +247,7 @@ function initVm_os_chart() {
             name: '操作系统',
             data: [{
                   name: 'Windows',
+<<<<<<< HEAD
                   y: 40,
                   color:"#4791d2"
               },
@@ -104,6 +259,19 @@ function initVm_os_chart() {
               {
                   name: 'Linux',
                   y: 28,
+=======
+                  y: os[0],
+                  color:"#4791d2"
+              },
+              {
+                  name: 'Linux',
+                  y: os[1],
+                  color:"#ffd800"
+              },
+              {
+                  name: 'Other',
+                  y: os[2],
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
                   color:"#5bd544"
               }
           ]
@@ -113,7 +281,11 @@ function initVm_os_chart() {
 
 
 // 虚拟机-状态占比
+<<<<<<< HEAD
 function initVm_status_chart() {
+=======
+function initVm_status_chart(states) {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     $('#vm_status_chart').highcharts({
         chart: {
             marginTop: 15,
@@ -159,24 +331,39 @@ function initVm_status_chart() {
             name: '状态',
             data: [{
                   name: '运行中',
+<<<<<<< HEAD
                   y: 55,
                   color:"#4791d2"
               },
               {
                   name: '已关机',
                   y: 10,
+=======
+                  y: states[0],
+                  color:"#5bd544"
+              },
+              {
+                  name: '已关机',
+                  y: states[1],
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
                   color:"#ffd800"
               },
               {
                   name: '其他',
+<<<<<<< HEAD
                   y: 13,
                   color:"#5bd544"
+=======
+                  y: states[2],
+                  color:"#4791d2"
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
               }
           ]
         }]
     });
 }
 
+<<<<<<< HEAD
 // 单个虚拟机内存使用率曲线
 function initMemoryUse_chart() {
     $('#memoryUse_chart').highcharts({
@@ -306,3 +493,6 @@ function initcpuUse_chart2() {
         }]
     });
 }
+=======
+
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6

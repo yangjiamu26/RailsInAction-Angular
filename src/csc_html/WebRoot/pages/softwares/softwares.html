@@ -102,13 +102,13 @@
 													<td data-bind="text: $row.version"></td>
 													<td data-bind="text: $row.progress, attr: {id: $row.uuid}"></td>
 													<td data-bind="text: $row.softTypeName"></td>
-													<td data-bind="text: $row.cpuArch"></td>
+													<td data-bind="text: $row.cpuArchName"></td>
 													<td data-bind="text: $row.osType"></td>
 													<td data-bind="text: $row.osName"></td>
 													<td data-bind="text: $row.scriptName"></td>
-													<td><span
-														data-bind="text: $row.statusName, attr: {class: $root.statusCss($row)}"
-														class="label label-success"></span></td>
+													<td>
+														<span data-bind="text: $row.statusName, attr: {class: $root.statusCss($row)}"></span>
+													</td>
 													<td data-bind="text: $row.createTime"></td>
 													<td><a data-bind="click: $root.edit">修改</a></td>
 
@@ -187,7 +187,7 @@
 						<label class="col-xs-3 control-label"> 软件类型 </label>
 						<div class="col-xs-8">
 							<select class="form-control input-sm"
-								data-bind="value: currentVO().softTypeName, options: $root.editTypeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: ''">
+								data-bind="value: currentVO().softTypeName, options: $root.editTypeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '', attr: {selected: $root.osNameSelected}">
 							</select>
 						</div>
 						<div class="col-xs-1">
@@ -241,12 +241,15 @@
 					</div>
 					
 					<div class="form-group">
-						<label class="col-xs-3 control-label"> 适用操作系统 </label>
+						<div class="col-xs-3">
+							<label class="control-label"> 适用操作系统 </label>
+							<label class="control-label" style="color: #CCCCCC;"> (按Ctrl键可多选 )</label>
+						</div>
 						<div class="col-xs-8">
-							<input type="text" class="form-control" id="selVal"
+							<input type="text" class="form-control" id="selVal" readonly="readonly"
 								placeholder="" data-bind="value: currentVO().osName"> 
 							<select multiple="multiple" class="form-control" id="sel"
-						 		data-bind="options: $root.osNames, optionsText: 'name', optionsValue: 'name'">
+						 		data-bind="options: $root.osNames, optionsText: 'name', optionsValue: 'name', selectedOptions: osNameOptions">
 							</select>
 						</div>
 						<div class="col-xs-1">
@@ -302,7 +305,7 @@
 	<!-- 软件增改维护弹窗   end -->
 
 	<!-- 软件类型维护弹窗   start -->
-	<div role="dialog" aria-hidden="true" class="modal fade"
+	<div role="dialog" aria-hidden="true" class="modal fade" id="softTypeModal"
 		data-bind="modal: { show: isManageType }">
 		<div class='modal-dialog' role='document'>
 			<div class='modal-content'>
@@ -315,7 +318,8 @@
 				<div class='modal-body form-horizontal'>
 					<div class="form-group string required">
 						<div class="col-xs-12 form-inline">
-							软件类型名称：<input type="text" class="form-control" data-bind="value: searchSoftTypeNm"/>
+							软件类型名称：
+							<input type="text" class="form-control" id="soft_type_search_input" data-bind="value: searchSoftTypeNm" />
 							<button class="btn btn-default" data-bind="click: searchType">查询</button>
 							<button class="btn btn-default" data-bind="click: addType">添加</button>
 							<button class="btn btn-default" data-bind="click: removeType">删除</button>
@@ -403,7 +407,7 @@
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件分类 </label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" data-bind="value: sofyTypeVO().type" />
+							<input class="string required form-control" maxlength="32" type="text" data-bind="value: sofyTypeVO().type" />
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -412,7 +416,7 @@
 					<div class="form-group">
 						<label class="col-xs-3 control-label"> 软件类型名称</label>
 						<div class="col-xs-8">
-							<input class="string required form-control" type="text" data-bind="value: sofyTypeVO().name"/>
+							<input class="string required form-control" maxlength="32" type="text" data-bind="value: sofyTypeVO().name"/>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -530,6 +534,8 @@
 						name : ko.observable().extend({required : true})
 					});
 					
+					this.osNameOptions = ko.observableArray([]);
+					
 					this.currentVO = ko.validatedObservable({
 						Id: null,
 						uuid: null,
@@ -538,7 +544,7 @@
 						softType: ko.observable().extend({required : true}),
 						softTypeName: ko.observable().extend({required : true}),
 						cpuArch: ko.observable().extend({required : true}),
-						spaceSize: ko.observable().extend({digit:{params:true}, required : true}),
+						spaceSize: ko.observable().extend({number:{params:true}, required : true}),
 						osType: ko.observable().extend({required : true}),
 						osName: ko.observable().extend({required : true}),
 						installType: ko.observable().extend({required : true}),
@@ -551,29 +557,29 @@
 					var self = this;
 					
 					this.treeSetting = {
-							view : {
-								showIcon : false,
-								showLine : false
-							},
-							
-							callback : {
-								onClick: function(event, treeId, treeNode) {
-									
-									var params = {
-										softTypeName : "",
-										softType : ""
-									}
-									
-									if (treeNode.level == 1) {
-										params.softType = treeNode.name;
-									} else if (treeNode.level == 2) {
-										params.softTypeName = treeNode.name;
-									}
-									
-									self.table.params(params);
-								} 
-							}
-						};
+						view : {
+							showIcon : false,
+							showLine : false
+						},
+						
+						callback : {
+							onClick: function(event, treeId, treeNode) {
+								
+								var params = {
+									softTypeName : "",
+									softType : ""
+								}
+								
+								if (treeNode.level == 1) {
+									params.softType = treeNode.name;
+								} else if (treeNode.level == 2) {
+									params.softTypeName = treeNode.name;
+								}
+								
+								self.table.params(params);
+							} 
+						}
+					};
 					
 					/** 软件状态属性 css样式 **/
 					this.statusCss = function (item) {
@@ -582,7 +588,7 @@
 						} else {
 							return 'label label-danger';
 						}
-					}
+					};
 					
 					/**新增软件**/
 					this.add = function() {
@@ -612,6 +618,7 @@
 	
 					/**修改软件**/
 					this.edit = function(object, event) {
+						self.osNameOptions().splice(0, self.osNameOptions().length);
 						
 						self.cpuArchArr(object.cpuArch.split(','));
 						
@@ -620,11 +627,18 @@
 						self.loadTypes(function(data) {
 							self.loadTypeNames({softType: object.softType, fromModel:'Y'}, function(data) {
 								self.currentVO.fromJSON(object);
+								
+								var osNames = object.osName.split(',');
+								
+								$.each(osNames, function(i, val){      
+									self.osNameOptions.push(val);
+							  	});   
+								
 								self.isAdd(true);
 							});
 						});
 					};
-	
+					
 					/**删除软件**/
 					this.remove = function() {
 						if (self.table.chosenItems().length == 0) {
@@ -710,7 +724,7 @@
 		        			self.osNames([]);
 
 			        		$.each(data.vmTemplates, function(i, val) {
-			        			if (val.osVersion.toLowerCase().indexOf(osType) != -1) {
+			        			if (val.osType.toLowerCase().indexOf(osType) != -1) {
 					          		self.osNames.push({name: val.osVersion});
 			        			}
 			        		});
@@ -841,7 +855,10 @@
 										
 										self.table.refreshData();
 								 		self.isAdd(false);
+									} else if (data.message) {
+										systemMsg.alert(data.message);
 									}
+									
 									self.submitBtnStatus(true);
 								});
 							}
@@ -864,7 +881,6 @@
 					/** 软件类型搜索 **/
 					this.searchType = function() {
 						var params = {softTypeName: self.searchSoftTypeNm()};
-						
 						self.typeTable.params(params);
 					}
 			      	
@@ -888,6 +904,10 @@
 	
 					/**软件类型删除**/
 					this.removeType = function() {
+						if (self.typeTable.chosenItems().length == 0) {
+							systemMsg.alert('没有选择操作对象');
+							return;
+						}
 						
 						var entityIds = '';
 						
@@ -999,8 +1019,16 @@
 								alert(response.message);
 							}
 						}); */
-
 					});
+					
+					$("#softTypeModal").on("shown.bs.modal", function() {
+						$('#soft_type_search_input').keyup(function(evt) {
+							if (evt.keyCode == 13) {
+								viewModel.searchType();									
+							}
+						});
+					});
+					
 				});
 			});
 </script>

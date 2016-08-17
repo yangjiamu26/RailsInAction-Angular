@@ -40,7 +40,7 @@
           <tbody>
             <tr data-bind="visible: showNoData">
               <td colspan="5" class="aligncenter">
-                This table has no data.
+                暂无数据
               </td>
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -105,7 +105,7 @@
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">业务系统名称</label>
           <div class="col-xs-7">
-            <input type="text" class="form-control" placeholder="业务系统名称" data-bind="value:subsysVo().name">
+            <input maxlength="32" type="text" class="form-control" placeholder="业务系统名称" data-bind="value:subsysVo().name">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -124,7 +124,7 @@
         <div class="form-group" >
           <label for="inputEmail3" class="col-xs-3 control-label">系统负责人</label>
           <div class="col-xs-7">
-            <textarea  data-bind="value:subsysVo().userNames" rows="3" readonly="readonly" disabled="disabled" style="margin: 0px; width: 300px; height: 80px;">
+            <textarea   data-bind="value:subsysVo().userNames" rows="5" cols="47" readonly="readonly" style="max-width: 300px; ">
             </textarea>
             <input type="hidden" data-bind="value:subsysVo().userValues"/>
            
@@ -133,14 +133,14 @@
             <span class="text-danger inline m-l-n m-t-sm">*</span>
           </div> 
           <div class="col-xs-2" style="text-align:left; padding-left:0">
-             <button data-bind="click:addManagerUser">选择</button>
+             <button name="button" type="submit" class="btn btn-default btn btn-default" data-bind="click:addManagerUser">选择</button>
           </div>      
                    
         </div>
         <div class="form-group">
           <label for="inputEmail3" class="col-xs-3 control-label">备注</label>
           <div class="col-xs-7">
-            <textarea class="form-control" data-bind="value:subsysVo().desc"></textarea>
+            <textarea maxlength="255" class="form-control" data-bind="value:subsysVo().desc" style="max-width: 300px;"></textarea>
           </div>
         </div>
       </div>
@@ -232,7 +232,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         //定义属性
         this.subsysVo = ko.validatedObservable({
              uuid:ko.observable(""),
-             name:ko.observable().extend({required:true}),
+             name:ko.observable().extend({required: true,maxLength:32,cscNameRule:true}),
              vdcUuid:ko.observable("").extend({required:true}),
              userNames:ko.observableArray([]).extend({required:true}),
              userValues:ko.observable(""),
@@ -253,6 +253,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             self.vdcList.removeAll();
             self.vdcList(data.results);
         });
+        self.subsysVo().vdcUuid.subscribe(function(value){
+            self.subsysVo.fromJSON({
+                userNames:"",
+                userValues:""
+            });
+        })
+        
         this.add = function(){
             self.vdcList.removeAll();
             csc.rest.get("api/v5.0.0/vdcs", function(data){
@@ -341,9 +348,9 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                         }
                         /*******左边数据加载**********/
                        
+                        var rightTableBodyFirst1 ="";
+                        var rightTableBodyFirst2 ="";
                         if(userList!=null&&userList.length>0){//回显业务系统已经关联的系统管理员(并加上默认的用户，如果是登陆用户且在所在vdc下)
-                           var rightTableBodyFirst1 ="";
-                           var rightTableBodyFirst2 ="";
                            for(var i=0;i<userList.length;i++){
                                var authType = userList[i].authType;
                                var value_ = userList[i].account+","+authType;
@@ -364,8 +371,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                                
                            }
                         }
-                        
                         for(var j = 0; j < data.results.length; j++){
+                            
                             if(acc_==data.results[j].account&&utype_==data.results[j].authType){
                                 value_ = acc_+","+utype_;
                                 authType_=self.changeType(utype_);
@@ -472,7 +479,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             var userValues = "";
             var userNames = "";
             var input_ = $("#preAddUserTableId input[type='checkbox']");
-            if(input_.length==0)return systemMsg.alert('没有选择可用数据!');
+            if(input_.length==0)return systemMsg.alert('没有选择可用数据！');
             
             input_.each(function(){
                 userValues += $(this).val()+';';
@@ -539,21 +546,21 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
            var uuid = self.subsysVo().uuid();
            if (uuid!=null&&uuid!=""){//修改
                 csc.rest.put('api/v5.0.0/bussys/'+uuid,self.subsysVo.toJSON(),function(data){
-                    systemMsg.alert('修改成功!');
+                    systemMsg.alert('修改成功！');
                     self.isAdd(false);
                     self.table.refreshData();//刷新数据
                 },function(data,textStatus) {
                     $("#add_submit").removeAttr("disabled");
-                    systemMsg.alert('修改失败!');
+                    systemMsg.alert('修改失败！');
                 }); 
              }else{// 创建
                  csc.rest.post('api/v5.0.0/bussys',self.subsysVo.toJSON(),function(data){
-                    systemMsg.alert('创建成功!');
+                    systemMsg.alert('创建成功！');
                     self.isAdd(false);
                     self.table.refreshData();//刷新数据
               },function(data,textStatus) {
                   $("#add_submit").removeAttr("disabled");
-                  systemMsg.alert('创建失败!');
+                  systemMsg.alert('创建失败！');
               }); 
             }
         }
@@ -602,10 +609,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         
             confirm("确定删除业务系统【"+object.name+"】?",function(arg){
                 csc.rest.del('api/v5.0.0/bussys/'+object.uuid,function(data){
-                    systemMsg.alert('删除业务系统成功!');
+                    systemMsg.alert('删除业务系统成功！');
                     self.table.refreshData();
                 },function(data,textStatus) {
-                    systemMsg.alert('删除业务系统失败!');
+                    systemMsg.alert('删除业务系统失败！');
                 });
             });
          }

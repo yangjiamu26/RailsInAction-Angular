@@ -11,7 +11,7 @@
     <ul class='nav nav-tabs' role='tablist'>
       <li class='active' role='presentation'>
         <a aria-controls='instance_vm_summary' data-toggle='tab' href='#instance_vm_summary' role='tab'>云主机摘要</a></li>
-      <li role='presentation'>
+      <li role='presentation' data-bind="check_action:'cs_Minitor'">
         <a aria-controls='instance_vm_softwares' data-toggle='tab' id="vm_monitor_tab" href='#instance_vm_monitor' role='tab'>监控</a></li>
       <li role='presentation'>
     </ul>
@@ -20,17 +20,17 @@
 
           <div class="wrapper">
               <a class="btn btn-sm btn-default" href="#pages/resources/instances/index"><i class="fa fa-arrow-left"></i> 返回</a>
-              <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >开机</button></a>
-              <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >关机</button></a>
-              <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >重启</button></a>
-              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >强制重启</button></a>
-              <a data-bind="click: $root.console"><button class="btn btn-sm btn-info" >控制台</button></a>
-              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >挂起</button></a>
-              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED' && vmVO().isValidate == true"><button class="btn btn-sm btn-info" >恢复</button></a>
-              <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true && vmVO().state != 'SUSPENDED'"><button class="btn btn-sm btn-info" >调整资源</button></a>
-              <a data-bind="click: $root.editValidateTime"><button class="btn btn-sm btn-info">有效时间变更</button></a>
-              <a data-bind="click: $root.validate,if: vmVO().isValidate == true"><button class="btn btn-sm btn-info">终止</button></a>
-              <a data-bind="click: $root.removeOne,if: (vmVO().state == 'SHUTOFF' || vmVO().state == 'ACTIVE' || vmVO().state == 'SUSPENDED') && vmVO().isValidate == false"><button class="btn btn-sm btn-info" >删除</button></a>
+              <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF' && vmVO().isValidate == true,check_action:'cs_PowerOn'"><button class="btn btn-sm btn-info" >开机</button></a>
+              <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_PowerOff'"><button class="btn btn-sm btn-info" >关机</button></a>
+              <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_Reboot'"><button class="btn btn-sm btn-info" >重启</button></a>
+              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_PoweReboot'"><button class="btn btn-sm btn-info" >强制重启</button></a>
+              <a data-bind="click: $root.console,check_action:'cs_Console'"><button class="btn btn-sm btn-info" >控制台</button></a>
+              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_Wait'"><button class="btn btn-sm btn-info" >挂起</button></a>
+              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED' && vmVO().isValidate == true,check_action:'cs_Recovery'"><button class="btn btn-sm btn-info" >恢复</button></a>
+              <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true && vmVO().state != 'SUSPENDED',check_action:'cs_Resomodify'"><button class="btn btn-sm btn-info" >调整资源</button></a>
+              <a data-bind="click: $root.editValidateTime,check_action:'cs_TimeMidify'"><button class="btn btn-sm btn-info">有效时间变更</button></a>
+              <a data-bind="click: $root.validate,if: vmVO().isValidate == true,check_action:'cs_Stop'"><button class="btn btn-sm btn-info">终止</button></a>
+              <a data-bind="click: $root.removeOne,if: (vmVO().state == 'SHUTOFF' || vmVO().state == 'ACTIVE' || vmVO().state == 'SUSPENDED') && vmVO().isValidate == false,check_action:'cs_Delete'"><button class="btn btn-sm btn-info" >删除</button></a>
           </div>
           
           <div class="wrapper">
@@ -195,7 +195,7 @@
               <h5 class="pull-left text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>软件列表</h5>
             </div>
             <div class="row padder-v">
-              <div class="col-xs-1">
+              <div class="col-xs-1" data-bind="if: vmVO().state == 'ACTIVE'">
                 <a class="btn btn-info btn-sm" data-bind="click: install">安装软件</a>
               </div>
               <div class="col-xs-3">
@@ -249,7 +249,7 @@
                       <td data-bind="text: softwareVersion"></td>
                       <td data-bind="text: softwareTypeName"></td>
                       <td>
-                      	<a>查看</a>
+                      	<a data-bind="click: $root.showScriptConfig">查看</a>
                       </td>
                       <td data-bind="text: installTime"></td>
                       <td>
@@ -258,9 +258,9 @@
 	                      <span class="label label-danger" data-bind="if: status == 2">安装失败</span>
                       </td>
                       <td>
-                      	<a data-bind="click: $root.doReInstall">重安装</a> | 
-                      	<a data-bind="click: $root.doInstallLog">安装日志</a> | 
-                      	<a data-bind="click: $root.update">升级</a>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status != 1"><a data-bind="click: $root.doReInstall">重安装</a> | </span>
+                      	<a data-bind="click: $root.doInstallLog">安装日志</a>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE'"> | <a data-bind="click: $root.update">升级</a></span>
                       </td>
                     </tr>
                     <!-- /ko -->
@@ -424,8 +424,10 @@
           虚拟机名称：<span data-bind="text: vmVO().name"></span>
         </div>
         <hr />
-         	<span>用户名：<input data-bind="value: installSoftwareVO().userName"/></span>
-     		<span>密码：<input data-bind="value: installSoftwareVO().password"/></span>
+         <div class="form-inline">
+          用户名：<input type="text" class="form-control" data-bind="value: installSoftwareVO().userName"/>&nbsp;&nbsp;&nbsp;&nbsp; 
+          <span data-bind="if: vmVO().sshKeyName == null">密码：<input type="password" class="form-control" data-bind="value: installSoftwareVO().password"/></span>
+        </div>
         	<p class="text-muted" style="padding-top:10px;">注：没有密钥对的虚拟机需输入虚拟机用户密码。</p>
         <table class="table table-striped">
           <thead>
@@ -471,7 +473,7 @@
         </div>
         <hr />
         <div class="form-inline">
-          软件名称：<input type="text" class="form-control" data-bind="value: software_param().name"/>&nbsp;&nbsp;
+          软件名称：<input type="text" class="form-control" data-bind="value: software_param().softwareName"/>&nbsp;&nbsp;
           软件分类：
           <select class="form-control" data-bind="value: software_param().softType, options: $root.software_check_table_softTypeName_partitions, optionsText: 'type', optionsValue: 'type'">
           </select>&nbsp;&nbsp;
@@ -493,6 +495,11 @@
 	            </tr>
 	          </thead>
 	          <tbody>
+		        <tr data-bind="visible: showNoData">
+	              <td colspan=14 class="aligncenter">
+	                	暂无数据
+	              </td>
+	            </tr>
 	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 	            <tr>
 	              <td>
@@ -529,50 +536,50 @@
       </div>
       <div class='modal-body'>
         <div>
-           脚本名称：DB2 软件版本：1
+           脚本名称：<span data-bind="text: updateSoftwareVO().scriptName"></span> 软件版本：<span data-bind="text: updateSoftwareVO().version"></span>
         </div>
         <hr />
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th style="width:60px" class="text-center">选择</th>
-              <th>软件名称</th>
-              <th>软件名称版本</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="radio">
-                  <label class="i-checks">
-                    <input type="radio" name="softwareupdate" />
-                    <i></i>
-                  </label>
-                </div>
-              </td>
-              <td>MQ</td>
-              <td>8.0</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="radio">
-                  <label class="i-checks">
-                    <input type="radio" name="softwareupdate" />
-                    <i></i>
-                  </label>
-                </div>
-              </td>
-              <td>MQ</td>
-              <td>8.0</td>
-            </tr>
-          </tbody>
-        </table>
+        <div data-bind="with: software_update_table">
+	        <table class="table table-bordered">
+	          <thead>
+	            <tr>
+	              <th style="width:60px" class="text-center">选择</th>
+	              <th>软件名称</th>
+	              <th>软件名称版本</th>
+	            </tr>
+	          </thead>
+	          <tbody>
+	          	<tr data-bind="visible: showNoData">
+	              <td colspan=14 class="aligncenter">
+	                	暂无数据
+	              </td>
+	            </tr>
+	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+	            <tr>
+	              <td>
+	                <div class="radio">
+	                  <label class="i-checks">
+	                    <input type="radio" name="softwareupdate" data-bind="value: uuid"/>
+	                    <i></i>
+	                  </label>
+	                </div>
+	              </td>
+	              <td data-bind="text: name"></td>
+	              <td data-bind="text: version"></td>
+	            </tr>
+	            <!-- /ko -->
+	          </tbody>
+	        </table>
+        </div>
         <div class="form-inline">
-          用户名：<input type="text" class="form-control" />&nbsp;&nbsp;&nbsp;&nbsp; 密码：<input type="password" class="form-control" />
+          用户名：<input type="text" class="form-control" data-bind="value: updateSoftwareVO().userName"/>&nbsp;&nbsp;&nbsp;&nbsp; 
+          <span data-bind="if: vmVO().sshKeyName == null">
+          密码：<input type="password" class="form-control" data-bind="value: updateSoftwareVO().password"/>
+          </span>
         </div>
       </div>
       <div class='modal-footer'>
-        <input type="button" name="commit" value="确定升级" class="btn btn-default btn-primary" />
+        <input type="button" name="commit" value="确定升级" class="btn btn-default btn-primary" data-bind="click: $root.doUpdateSoftware"/>
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
       </div>
     </div>
@@ -943,13 +950,14 @@
               <input type="email" class="form-control" data-bind="value: reInstallVO().userName">
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">密码：</label>
-            <div class="col-sm-8">
-              <input type="password" class="form-control" data-bind="value: reInstallVO().password">
-            </div>
-          </div>
-
+          <div data-bind="if: vmVO().sshKeyName == null">
+	          <div class="form-group">
+	            <label class="col-sm-3 control-label">密码：</label>
+	            <div class="col-sm-8">
+	              <input type="password" class="form-control" data-bind="value: reInstallVO().password">
+	            </div>
+	          </div>
+		  </div>
         </div>
         <div class='modal-footer' style="text-align:center;">
           <a class="btn btn-default btn-info" data-bind="click: $root.submitReInstall">确定</a>
@@ -1076,9 +1084,6 @@
       this.installVMCancel = function(){
         this.isInstallVM(false);
       }
-      this.update = function(){
-        this.isUpdate(true);
-      };
       
       //获取云主机摘要
       this.vmVO = ko.validatedObservable({});
@@ -1106,6 +1111,9 @@
   	})
   	
   	this.reloadSoftware = function(){
+     	if(self.softwareSearchParam().softTypeName == "全部"){
+     		self.softwareSearchParam().softTypeName = null;
+    	}
     	self.vm_software_table.params(self.softwareSearchParam());
     	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
     }
@@ -1135,21 +1143,88 @@
     	vm.uuid = self.vmVO().uuid;
     	vm.userName = self.reInstallVO().userName();
     	vm.userPwd = self.reInstallVO().password();
+    	vm.softwareUuid = self.reInstallVO().uuid();
     		
     	var vms = [];
     	vms.push(vm);
     	
     	var postBody = {};
-    	postBody.softwareUuids = self.reInstallVO().uuid();
     	postBody.vms = vms;
-    	return;
     	csc.rest.post("api/v5.0.0/install",postBody,function(data){
     		//重安装结束
     		self.isReInstall(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
     	});
     }
     
     //------------------------------------------软件重安装结束------------------------
+    
+    //------------------------------------------软件升级开始------------------------
+
+    //this.isUpdate(true);
+    
+    this.software_update_table = new DataTable([]);
+    
+    this.updateSoftwareVO = ko.observable({
+    	scriptName: ko.observable(),
+    	version: ko.observable(),
+    	userName: ko.observable(),
+    	password: ko.observable()
+    });
+    
+    this.updateSearchParam = ko.observable({
+    	firstResult: -1,
+    	maxResult: -1
+    });
+    
+    this.update = function(object,event){
+        self.isUpdate(true);
+        self.software_update_table.params(self.updateSearchParam());
+    	self.software_update_table.path('api/v5.0.0/soft/softwares?installable=Y&installType=升级&softwareName='+object.softwareName);
+    	self.updateSoftwareVO().scriptName(object.scriptName);
+    	self.updateSoftwareVO().version(object.version);
+    };
+    
+    this.doUpdateSoftware = function(){
+    	//获取选中的软件
+    	var softwareUuid= "";
+    	var temp = document.getElementsByName("softwareupdate");
+	  	for(var i=0;i<temp.length;i++){
+	  	  if(temp[i].checked){
+	  	    softwareUuid = temp[i].value;
+	  	    break;
+	  	  }
+	  	}
+	  	if(csc.util.isNull(softwareUuid)){
+	  		systemMsg.alert('请选择一个软件！');
+	  		return;
+	  	}
+	  	//TODO　要获取高版本的软件
+    	var vm = {};
+    	vm.id = self.vmVO().id;
+    	vm.uuid = self.vmVO().uuid;
+    	vm.userName = self.updateSoftwareVO().userName();
+    	vm.userPwd = self.updateSoftwareVO().password();
+    	vm.softwareUuid = softwareUuid;
+    		
+    	var vms = [];
+    	vms.push(vm);
+    	
+    	var postBody = {};
+    	postBody.vms = vms;
+    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    		//升级结束
+    		self.isUpdate(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
+    	});
+    }
+    
+    
+    //------------------------------------------软件升级结束------------------------
   
     //------------------------------------------软件安装日志开始------------------------
     this.installLogVO = ko.observable({
@@ -1204,11 +1279,15 @@
     this.software_check_table_softTypeName_partitions = ko.observableArray([]);
     csc.rest.get("api/v5.0.0/soft/softTypes",function(softTypeNameData){
     	if(softTypeNameData){
+    		var defualObj = {};
+    		defualObj.name = "全部";
+    		defualObj.type = "全部";
+    		softTypeNameData.results.unshift(defualObj);
 	    	self.software_check_table_softTypeName_partitions(softTypeNameData.results);
     	}
     });
     this.software_param = ko.observable({
-  	  name: '',
+      softwareName: '',
   	  softTypeName: '',
   	  softType: '',
   	  firstResult: -1,
@@ -1216,8 +1295,14 @@
     })
     
     this.software_check_search = function(){
+     	if(self.software_param().softTypeName == "全部"){
+     		self.software_param().softTypeName = null;
+    	}
+     	if(self.software_param().softType == "全部"){
+     		self.software_param().softType = null;
+    	}
   	  	self.software_check_table.params(self.software_param());
-		self.software_check_table.path('api/v5.0.0/soft/softwares');
+		self.software_check_table.path('api/v5.0.0/soft/softwares?installable=Y&installType=安装');
     }
     self.software_check_search();
     
@@ -1228,15 +1313,15 @@
     //4.安装完成后将公网IP与虚拟机解绑
     this.submitInstallSoftwares = function(){
     	//获取待安装软件的uuids
-    	var softwareUuids = "";
+    	var softwareUuid = "";
     	for(var ia=0;ia<self.softwareItems().length;ia++){
     		if(ia == self.softwareItems().length-1){
-    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid;
+    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid;
     		}else{
-    			softwareUuids = softwareUuids + self.softwareItems()[ia].uuid + ",";
+    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid + ",";
     		}
     	}
-    	if(csc.util.isNull(softwareUuids)){
+    	if(csc.util.isNull(softwareUuid)){
     		systemMsg.alert('请选择一个软件！');
     		return;
     	}
@@ -1244,17 +1329,21 @@
     	vm.id = self.vmVO().id;
     	vm.uuid = self.vmVO().uuid;
     	vm.userName = self.installSoftwareVO().userName();
-    	vm.userPwd = self.installSoftwareVO().password();
+    	if(csc.util.isNotNull(self.installSoftwareVO().password())){
+	    	vm.userPwd = self.installSoftwareVO().password();
+    	}
+    	vm.softwareUuid = softwareUuid;
     		
     	var vms = [];
     	vms.push(vm);
     	
     	var postBody = {};
-    	postBody.softwareUuids = softwareUuids;
     	postBody.vms = vms;
-    	return;
     	csc.rest.post("api/v5.0.0/install",postBody,function(data){
-    		//self.isReInstall(false);
+    		self.isInstall(false);
+    		if(data.message){
+    			systemMsg.alert(data.message+'！');
+    		}
     	}); 
     }
     
@@ -1273,7 +1362,7 @@
 	 
     this.showScriptConfig = function(object,event){
     	self.software_script_table.params(self.software_script_param());
-    	self.software_script_table.path('api/v5.0.0/script/defaultAttrs?status=1&scriptUuid'+object.scriptUuid);
+    	self.software_script_table.path('api/v5.0.0/script/defaultAttrs?status=1&scriptUuid='+object.scriptUuid);
     	self.isScriptConfig(true);
     }
     
@@ -1654,7 +1743,7 @@
       }
       //------------------------------------------资源变更-流程结束--------------------------------
       
-    //------------------------------------------有效期-流程开始--------------------------------
+    　　//------------------------------------------有效期-流程开始--------------------------------
 	  this.isValidateProcess = ko.observable(false);
       
       this.doValidateProcessPost = function(){

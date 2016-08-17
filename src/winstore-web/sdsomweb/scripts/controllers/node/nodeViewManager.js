@@ -39,7 +39,7 @@ vsanApp.controller("nodeViewManager", ["$scope", "$timeout", "nodeFactory", func
                 html: true,
                 content: function () {
                     if (_this.data("tipMsg")) {
-                        return "<div style='color:#000;'>" + _this.data("tipMsg") + "</div>";
+                        return "<div>" + _this.data("tipMsg") + "</div>";
                     }
                     return "";
                 }

@@ -1,6 +1,6 @@
 <div class="row wrapper">
   <div class="col-xs-1">
-    <button class="btn btn-sm btn-info" data-bind="click: addSecretkey">创建</button>
+    <button class="btn btn-sm btn-info" data-bind="click: addSecretkey,check_action:'ssh_key_Create'">创建</button>
   </div>
   <div class="col-xs-3">
     <div class="input-group">
@@ -68,14 +68,14 @@
    			| <a href="#" data-bind="click: $root.validate">终止</a>   
    			| <a data-bind="click: $root.removeOne">删除</a> -->
    			
-   			<a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> | 
+   			<a data-bind="click: $root.editValidateTime,check_action:'ssh_key_TimeModify'">有效时间变更</a> | 
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                        <li><a href="#" data-bind="attr:{href:'api/v5.0.0/sshKeys/'+uuid+'/download'}">下载</a></li>
-                        <li><a href="#" data-bind="click: $root.bindvmForSecretkey">查看挂载云主机</a></li>
-                      	<li data-bind="if: $row.isValidate == true"><a href="#" data-bind="click: $root.validate">终止</a></li>
-                      	<li data-bind="if: $row.isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
+                        <li data-bind="check_action:'ssh_key_DownLoad'"><a href="#" data-bind="attr:{href:'api/v5.0.0/sshKeys/'+uuid+'/download'}">下载</a></li>
+                        <li data-bind="check_action:'ssh_key_CS_Watch'"><a href="#" data-bind="click: $root.bindvmForSecretkey">查看挂载云主机</a></li>
+                      	<li data-bind="if: $row.isValidate == true,check_action:'ssh_key_Stop'"><a href="#" data-bind="click: $root.validate">终止</a></li>
+                      	<li data-bind="if: $row.isValidate == false,check_action:'ssh_key_Delete'"><a data-bind="click: $root.removeOne">删除</a></li>
                     </ul>
                 </div> 
    	
@@ -123,7 +123,7 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>云主机列表</h3>
       </div>
       <div class='modal-body form-horizontal row'>
-        			<div class='table-responsive'>
+        			<div class='table-responsive' data-bind="with: vmsTable">
 					    <table class='table table-striped'>
 					      <thead>
 					        <tr>
@@ -135,13 +135,13 @@
 					        </tr>
 					      </thead>
 					      <tbody>
-						       <tr data-bind="visible: vmTableArray().length==0">
-						              <td colspan=5 class="aligncenter">
-						                	暂无数据
-						              </td>
-						       </tr>
-						 </tbody>
-					        <tbody data-bind="foreach:vmTableArray">
+						       <tr data-bind="visible: showNoData">
+					              <td colspan=5 class="aligncenter">
+					                	暂无数据
+					              </td>
+					            </tr>
+					         <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+						 
 						        <tr>
 						          <td data-bind="text:name">vm名称</td>
 						          <td data-bind="text:ip">vpc</td>
@@ -161,10 +161,39 @@
 						          <td data-bind="text:vdcName">vdc</td>
 						          <td data-bind="text:azName">az</td>
 						        </tr>
+						        <!-- /ko -->
 					        </tbody>
 					        
 					      </table>
 					    </div>
+					    <footer class="panel-footer" data-bind="with: vmsTable, visible: vmsTable.pages() > 1">
+						     <ul class="pagination">
+						       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+						         <a href="#">首页</a>
+						       </li>
+						       <li data-bind="css: leftPagerClass, click: prevPage">
+						         <a href="#">&laquo;</a>
+						       </li>
+						       <li >
+						         <a href="#"  data-bind="text: currentPage"></a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: nextPage">
+						         <a href="#">&raquo;</a>
+						       </li>
+						       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+						         <a href="#">末页</a>
+						       </li>
+						       <li class="page-control-li">
+						         <div class="input-group form-group-sm">
+						           <input type="text" class="form-control" data-bind="value: targetPage"  />
+						           <div class="input-group-btn">
+						             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+						           </div>
+						         </div>
+						         <div class="page-info-div" data-bind="text: recordsText"></div>
+						       </li>
+						     </ul>
+						</footer>
         
       </div>
       <div class='modal-footer' style="text-align:center;">
@@ -194,7 +223,7 @@
         <div class="form-group">
     <label class="col-sm-3 control-label">所属VDC</label>
     <div class="col-sm-8">
-      <select class="form-control" data-bind="value:vdcUuid, options: $root.add_vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vdcs}"></select>
+      <select class="form-control" data-bind="optionsCaption: '请选择',value:vdcUuid, options: $root.add_vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_add_vdcs}"></select>
     </div>
     <div class="col-sm-1">
       <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -204,7 +233,7 @@
   <div class="form-group">
     <label class="col-sm-3 control-label">可用分区</label>
     <div class="col-sm-8">
-      <select class="form-control" data-bind="value: azUuid, options: $root.add_partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
+      <select class="form-control" data-bind="optionsCaption: '请选择',value: azUuid, options: $root.add_partitions, optionsText: 'name', optionsValue: 'uuid'"></select>
     </div>
     <div class="col-sm-1">
       <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -397,9 +426,8 @@
       this.isBindvmForSecretkey = ko.observable(false);
       this.isAddSecretkey = ko.observable(false);
 
-      this.vmTableArray = ko.observableArray([]);
-      
-      //查看绑定的云主机列表
+      /* this.vmTableArray = ko.observableArray([]);
+      //查看绑定的云主机列表,不分页
       this.bindvmForSecretkey = function(object,event){
     	  $.SSH_KEY.getVms(object.uuid,function(data){
     		  if(data.length>0){
@@ -409,7 +437,15 @@
     		  }
     	  });
         self.isBindvmForSecretkey(true);
-      };
+      }; */
+      
+      //查看分页的云主机列表
+      this.bindvmForSecretkey = function(object,event){
+    	self.vmsTable.path('api/v5.0.0/sshKeys/'+object.uuid+'/vmsByPage');
+        self.isBindvmForSecretkey(true);
+      }; 
+      
+      this.vmsTable = new DataTable([],{perPage:10}); 
 
       //弹出创建窗口
       this.addSecretkey = function(){
@@ -525,7 +561,7 @@
 	    	  {
 	    	     if(temp[i].checked){
 	    	    	 if(temp[i].value == "option1"){
-	    	    		 expiryTime = "2099-12-30 23:59:59";
+	    	    		 expiryTime = "2099-12-31 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
 	    	    		 if($("#resource_instance_ssh_limit_option2_unit").val() == "MONTH"){
 	    	    			 var plusMonth = parseInt($("#resource_instance_ssh_limit_option2").val());
@@ -563,12 +599,8 @@
 	    		  if(data.id){
 	    			  self.table.refreshData();
 		    		  self.isAddSecretkey(false);//关闭弹出框
-		    		  alert('创建成功！');
-	    		  }else{
-	    			  alert('创建失败！');
-	    		  }	    		  	    		  
-	    	  },function(data){
-	    		  alert('创建失败！');
+		    		  alert('创建SSH密钥成功！');
+	    		  }    		  	    		  
 	    	  })
 	      }
       }
@@ -669,7 +701,7 @@
       this.search = function(){
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([], {path: 'api/v5.0.0/sshKeys',loader:function(result){
+      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/sshKeys',loader:function(result){
     	  //由于公钥太长，采用省略号
     	  if(result.publicKey){
     		  var publicKeyString = result.publicKey.substring(0,25)+'....';
@@ -749,6 +781,7 @@
      	  self.isDeleteProcess(true);
  		  self.deleteProcessVO().name(object.name);
  		  self.deleteProcessVO().uuid(object.uuid);
+ 		  self.deleteProcessVO().vdcUuid(object.vdcUuid);
  		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
  		  var myDate = new Date();
  		  self.deleteProcessVO().time(myDate.toLocaleString());
@@ -760,6 +793,7 @@
      	  uuid: ko.observable(),
      	  time: ko.observable(),
      	  user: ko.observable(),
+     	  vdcUuid: ko.observable(),
      	  serviceInstanceUuid: ko.observable()
        });
        
@@ -776,6 +810,7 @@
        	  
        	  var postBody = {}; 
        	  postBody.resourceType = "SECRET_KEY";
+       	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
@@ -797,6 +832,7 @@
  		  self.validateProcessVO().name(object.name);
  		  self.validateProcessVO().uuid(object.uuid);
  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
+ 		  self.validateProcessVO().vdcUuid(object.vdcUuid);
  		  self.validateProcessVO().vdcName(object.vdcName);
  		  var myDate = new Date();
  		  self.validateProcessVO().time(myDate.toLocaleString());
@@ -829,6 +865,7 @@
      	  user: ko.observable(),
      	  serviceInstanceUuid: ko.observable(),
      	  metaTime: ko.observable(),
+     	  vdcUuid: ko.observable(),
      	  vdcName: ko.observable(),
      	  
      	  validateTime: ko.observable(),
@@ -851,7 +888,10 @@
      	  
      	  var postBody = {};
      	  postBody.resourceType = "SECRET_KEY";
+     	  postBody.type = "VALIDTIME_CHANGE";
+     	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
      	  postBody.orderItems = orderItems;
+     	  
      	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
      		  if(data.code){
      			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');

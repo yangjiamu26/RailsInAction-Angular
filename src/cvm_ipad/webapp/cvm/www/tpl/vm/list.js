@@ -124,6 +124,10 @@ myApp.onPageInit("vm-list", function(page) {
               data.data[i].state='另存为模板中';
               data.data[i].stateCss='orange';
               break;
+            default:
+              data.data[i].state='异常';
+              data.data[i].stateCss='orange';
+              break;
           }
           data.data[i].memory = Number((Number(data.data[i].memory)/1024).toFixed(2));
           self.dataList.push(data.data[i]);

@@ -32,7 +32,7 @@
 				</div>
 			</div>
 			<div class="col-xs-2">
-				<button class="btn btn-sm" type="button">重置</button>
+				<button class="btn btn-sm" type="button" data-bind="click: resetSearch">重置</button>
 				<button class="btn btn-sm btn-default" type="button"
 					data-bind="click: search">搜索</button>
 			</div>
@@ -157,9 +157,9 @@
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-inline">
-					云主机名称：<input type="text" class="form-control" />
-					云主机IP：<input type="text" class="form-control" />
-					<button class="btn btn-default">搜索</button>
+					云主机名称：<input type="text" class="form-control" data-bind="value: searchVmParam().vmName" />
+					云主机IP：<input type="text" class="form-control" data-bind="value: searchVmParam().vmIp" />
+					<button class="btn btn-default" data-bind="click: filterVm">搜索</button>
 				</div>
 				<p>&nbsp;</p>
 				<div class="table-responsive" data-bind="with: vmTable">
@@ -372,13 +372,39 @@
 						//path : 'pages/softwares/vm.json'
 					});
 					
-					/** 搜索参数数据对象 **/
+					/** 搜索软件参数数据对象 **/
 					this.searchParam = ko.observable({
-						softType : "",
-						softTypeName : "",
-						softwareName : "",
+						softType : ko.observable(""),
+						softTypeName : ko.observable(""),
+						softwareName : ko.observable(""),
 						installable: 'Y'
 					});
+					
+					/** 搜索云主机数据对象 **/
+					this.searchVmParam = ko.observable({
+						vmName: "",
+						vmIp: ""
+					});
+					
+					/** 过滤云主机 **/
+					this.filterVm = function() {
+						var param = self.searchVmParam();
+						
+						param.notSoftwareUuid = self.softwareVO().uuid;
+						
+						param.ltStorage = self.softwareVO().spaceSize;
+						
+						param.includeOs = self.softwareVO().osName;
+						
+						self.vmTable.params(param);
+					};
+					
+					/** 重置搜索条件 **/
+					this.resetSearch = function() {
+						self.searchParam().softType('');
+						self.searchParam().softTypeName('');
+						self.searchParam().softwareName('');
+					};
 					
 					/** 安装弹窗 **/
 					this.install = function(object, event) {
@@ -388,7 +414,7 @@
 							vms:[]
 						});
 						
-						self.vmTable.params({notSoftwareUuid:object.uuid, ltStorage: object.spaceSize});
+						self.vmTable.params({notSoftwareUuid:object.uuid, ltStorage: object.spaceSize, includeOs: object.osName});
 						
 						self.toInstallTable([]);
 						
@@ -438,7 +464,14 @@
 
 					/** 搜索可安装软件 **/
 					this.search = function() {
-						this.table.params(this.searchParam());
+						var param = self.searchParam();
+						
+						self.table.params({
+							softType : param.softType(),
+							softTypeName : param.softTypeName(),
+							softwareName : param.softwareName(),
+							installable : 'Y'
+						});
 					};
 					
 					/** 加载静默安装属性 **/

@@ -111,8 +111,8 @@
 			/**
 			 * 修改VDC下AZ 网络
 			 */
-			modifyVdcNetworks:function(uuid,param,callback){
-				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/networks",param,function(data){
+			addNetworks:function(uuid,param,callback){
+				 csc.rest.put('api/v5.0.0/vdcs/'+uuid+"/addNetworks",param,function(data){
 					 callback(data)
     		    }); 
 			},
@@ -135,10 +135,10 @@
 			},
 			
 			/**
-			 * 修改VDC下的用户
+			 * 添加VDC下的用户
 			 */
-			modifyVdcUsers:function(uuid,param,callback){
-				 csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/users",param,function(data){
+			addUsers:function(uuid,param,callback){
+			    csc.rest.put("api/v5.0.0/vdcs/"+uuid+"/addUsers",param,function(data){
 					 callback(data)
     		    }); 
 			},

@@ -1188,6 +1188,7 @@
 	  	
 	  	var subscriptionVdc;
 		var subscriptionVpc;
+		var subscriptionRouter;
 		//添加vpn弹窗初始化
 	  	this.addVPN = function(){
 	  		var vo = new vpnVO();
@@ -1211,16 +1212,19 @@
 	   					 self.routerList(data.results);
 	   				 }
 	   			});
-    	    	self.extNetList([]);
-    	    	$.VPC.getVpcNet({vpcUuid:val,type:"INNER"},function(data){
-	    			  if(data && data.results){
-	    				  var extNet = [{"name":"请选择","originalId":""}];
-	    				  extNet =  extNet.concat(data.results);
-	    				  self.extNetList(extNet);
-	    			  }
-	    		});
     	    })
-	  		
+	  		//路由器下拉事件
+    	    subscriptionRouter = vo.vpcRouterUuid.subscribe(function(routerUuid){
+	  			self.extNetList([]);
+    	    	$.ROUTER.getNetworkByRouterUuid(routerUuid, function(data){
+					if(data && data.results){
+						var extNet = [{"name":"请选择","originalId":""}];
+						extNet = extNet.concat(data.results);
+						self.extNetList(extNet);
+					}
+	    		}); 
+	  		})
+    	    
 	  		self.isAddVPN(true);
 	  	};
 	  	

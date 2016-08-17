@@ -4,7 +4,7 @@
     <li>当前位置：</li>
     <li>资源</li>
     <li><a href="#pages/resources/partitions/index">可用分区</a></li>
-    <li class="active" id="positionInfoDIV"><span data-bind="text:azName"></li>
+    <li class="active" id="positionInfoDIV"><span data-bind="text:azName"></span></li>
   </ol>
 </div>
 <div class='wrapper-md'>
@@ -204,7 +204,7 @@
                     <span class='text-danger h4'><span data-bind="text:azSummaryVO().storageUseRate"></span>%</span></div>
                 </div>
                 <div class="text-primary-lt">
-                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>TB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>TB</div> 
+                  <div class="inline m-a text-left l-h-2x">已用：<span data-bind="text:azSummaryVO().storageAvail"></span>GB<br/>未用：<span data-bind="text:azSummaryVO().storageAllocated"></span>GB</div> 
                 </div>               
               </div>
             </div>
@@ -865,19 +865,19 @@
             <div class="form-group" id="imageSourceDiv">
               <label class="col-xs-3 control-label">镜像源：</label>
               <div class="col-xs-5">
-                <select class="form-control" data-bind="value:uploadType,event:{change:function(data, event){$root.changUploadType()}}">
+                <select class="form-control" data-bind="value:uploadType">
                   <option value="file">文件</option>
                   <option value="url">url地址</option>
                 </select>
               </div>
             </div>
-            <div class="form-group" id="imageSourceDiv_URL">
+            <div class="form-group" data-bind="visible: uploadType()!='file'">
               <label class="col-xs-3 control-label">URL地址：</label>
               <div class="col-xs-5">
                 <input type="email" class="form-control" placeholder="请输入URL地址"  data-bind="value:uploadUrl">
               </div>
             </div>
-            <div class="form-group" id="imageSourceDiv_FILE">
+            <div class="form-group" data-bind="visible: uploadType()=='file'">
               <label class="col-xs-3 control-label">镜像文件：</label>
               <!-- <div class="col-xs-5">
                 <input type="file" class="form-control">
@@ -1906,7 +1906,7 @@
               networkName : object.name,
               networkType : object.networkType,
               networkProviderSegID : object.providerSegID,
-              networkStatus : object.status
+              networkStatus : object.statusCN
               
             });   
 
@@ -1938,15 +1938,30 @@
           this.azSummaryVO = ko.observable({});
           var self = this;
           this.loadAzSummary = function(){
-            //加载数据中心摘要
-            $.ajax("api/v5.0.0/azs/"+azUuid+"/summary").done(function(data){
-            //console.log(data);
-            //CPU使用率
-            data.cpuUseRate = (data.cpuAllocated/data.cpuTotal * 100.0).toFixed(2);
-            //内存使用率
-            data.memoryUseRate = (data.memoryAllocated/data.memoryTotal * 100.0).toFixed(2);
-            //存储使用率
-            data.storageUseRate = (data.storageAllocated/data.storageTotal * 100.0).toFixed(2);
+              //加载数据中心摘要
+              $.ajax("api/v5.0.0/azs/"+azUuid+"/summary").done(function(data){
+              //console.log(data);
+              //CPU使用率
+              data.cpuUseRate = (data.cpuAllocated/data.cpuTotal * 100.0).toFixed(2);
+              if(data.cpuUseRate == 'NaN'){
+            	  data.cpuUseRate = 0;
+              }
+              //内存使用率
+              data.memoryUseRate = (data.memoryAllocated/data.memoryTotal * 100.0).toFixed(2);
+              if(data.memoryUseRate == 'NaN'){
+            	  data.memoryUseRate = 0;
+              }
+              //存储使用率
+              data.storageUseRate = (data.storageAllocated/data.storageTotal * 100.0).toFixed(2);
+              if(data.storageUseRate == 'NaN'){
+            	  data.storageUseRate = 0;
+              }
+              
+              //单位转换，原单位：MB,转换后：GB 
+              data.memoryTotal = (data.memoryTotal/1024).toFixed(2);
+              data.memoryAvail = (data.memoryAvail/1024).toFixed(2);
+              data.memoryAllocated = (data.memoryAllocated/1024).toFixed(2);
+              
               self.azSummaryVO(data);
               //console.log(self.azSummaryVO().cpuTotal);
             });
@@ -1996,16 +2011,9 @@
           //加载虚拟化类型方法
           this.loadVirtualHypervisors = function(type){
             self.virtualHypervisors([]);
-            if(type == "OpenStack"){
-              self.virtualHypervisors.unshift({name:"Kvm",cloudPlatform:'Kvm'});
-              self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});
-            }else{
-              self.virtualHypervisors.unshift({name:"Xen",cloudPlatform:'Xen'});
-              self.virtualHypervisors.unshift({name:"WinServer",cloudPlatform:'WinServer'});
-              self.virtualHypervisors.unshift({name:"VMware",cloudPlatform:'VMware'});    
-              self.virtualHypervisors.unshift({name:"PowerVM",cloudPlatform:'PowerVM'});
-            }
-        
+	      	$.ajax("api/v5.0.0/azs/0/hypervisor?cloudPlatform=" + type).done(function(data){
+	      	  self.virtualHypervisors(data);
+	   	    }); 
           };
           
           //数据中心下拉框onChange
@@ -2053,23 +2061,36 @@
       /****************************可用分区 摘要END*********************************/
       
       /****************************镜像 START*********************************/
+      function ImageView(){
+          this.imageName = ko.observable().extend({required:true,cscNameRule:true,maxLength:32});
+          this.uploadType = ko.observable().extend({require: true});
+          this.defineFile = ko.observable().extend({required:{onlyIf:
+              	(function(_this){
+              		return function(){
+              			return _this.uploadType()=="file"
+              		}
+              	})(this)
+             	}});
+          this.uploadUrl = ko.observable().extend({required:{onlyIf:
+              	(function(_this){
+              		return function(){
+              			return _this.uploadType()!="file"
+              		}
+              	})(this)
+              }});
+          
+          this.diskFormat = ko.observable();
+          this.minDisk = ko.observable();
+          this.minRam = ko.observable();
+          
+      }
       function imageViewModel(){
         this.isAddISO = ko.observable(false);
         this.isEditISO = ko.observable(false);
         var self = this;
         
-        var CurrentVO = function(){
-            return ko.validatedObservable({
-                imageName: ko.observable().extend({required:true}),
-                defineFile: ko.observable(),
-                uploadUrl:ko.observable(),
-                diskFormat:ko.observable(),
-                minDisk:ko.observable(),
-                minRam:ko.observable()
-            });
-          };
-          this.currentVO = new CurrentVO();
-            
+        this.currentVO = ko.validatedObservable(new ImageView());
+
           this.table = new DataTable([], {path: 'api/v5.0.0/images?azUuid=' + azUuid});
           
           /****************************查询开始********************************/
@@ -2093,13 +2114,10 @@
               defineFile:'',
               uploadType:'file',
               diskFormat:'',
-              minDisk:'',
-              minRam:'',
               azUuid:azUuid
             });
-          //显示文件上传输入框
-                self.isAddISO(true);        
-            $("#imageSourceDiv_URL").hide();
+            //显示文件上传输入框
+            self.isAddISO(true);        
            };
            
            this.setFile = function(value){
@@ -2149,20 +2167,7 @@
               return path.substring(pos + 1);
           }
         
-        //镜像上传类型变更事件
-        this.changUploadType = function(){
-          var currentUploadType = self.currentVO().uploadType;
-          //console.log(currentUploadType);
-          if(currentUploadType == "url"){
-            //显示URL地址输入框
-            $("#imageSourceDiv_FILE").hide();
-            $("#imageSourceDiv_URL").show();
-          }else{
-            //显示文件上传输入框
-            $("#imageSourceDiv_URL").hide();
-            $("#imageSourceDiv_FILE").show();
-          }
-        }
+        
           
           /****************************新增结束********************************/
           
@@ -2203,18 +2208,19 @@
            this.saveImage = function(){
              ko.validation.group(self.currentVO).showAllMessages();
              var imageUuid = self.currentVO.toJSON().uuid;
+             debugger
              if(self.currentVO.isValid()){
                if(!imageUuid){
                  
-                var currentUploadType = self.currentVO().uploadType;
+                var currentUploadType = self.currentVO().uploadType();
                 if(currentUploadType == "url"){
                   csc.rest.post('api/v5.0.0/images', self.currentVO.toJSON(), function(){
                         self.isAddISO(false);
                         self.table.refreshData();
-                });
+                  });
                 }else{
                   $("#saveImageButtonDiv").attr("disabled", true);
-                  // TODO 镜像新增
+                  // 镜像新增
                   csc.rest.post('api/v5.0.0/images',self.currentVO.toJSON(),function(data){
                     if(data.imageId){
 		                systemMsg.alert('镜像已创建,开始文件上传...');
@@ -2224,12 +2230,12 @@
                     }
                     self.isAddISO(false);
                     //$("#saveImageButtonDiv").removeAttr("disabled");
-              });
+              	  });
                 }
                }else{
                 csc.rest.put('api/v5.0.0/images/'+imageUuid, this.currentVO.toJSON(), function(){
-                        self.isEditISO(false);
-                        self.table.refreshData();
+                    self.isEditISO(false);
+                    self.table.refreshData();
                 });
                }
                }
@@ -2255,8 +2261,8 @@
           /****************************收集开始********************************/
           this.collectISO = function(){
             csc.rest.get('api/v5.0.0/images/collect?azUuid='+azUuid, function(data){
-              alert("镜像收集成功");
-          self.table.refreshData();
+              alert("镜像收集任务ID：["+data.taskId+"]!");
+          	  self.table.refreshData();
           });
           }
           /****************************收集结束********************************/

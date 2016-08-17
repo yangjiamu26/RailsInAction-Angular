@@ -31,7 +31,9 @@
     }
     this.getUrl = function(url, hash, manual_trigger) {
       if(working) {
-        return;
+    	  if(hash!="pages/welcome/index"){
+    		  return;
+    	  }
       }
     
       var event

@@ -413,18 +413,18 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             <div id="titleBar5" class='panel-heading text-base'>快捷入口</div>
             <div class='panel-body'>
               <div class='row row-sm text-center'>
-                <div class='col-xs-4'>
+                <div class='col-xs-4' data-bind="visible:$root.isView_sevice">
                   <a class='block panel padder-v bg-primary m-t' href='#pages/vdcs/businesses/index' >
                     <span class='text-white font-thin h4 block'>创建业务系统</span>
                   </a>
                 </div>
-                <div class='col-xs-4'>
-                  <a class='block panel padder-v bg-info m-t' href='#pages/services/service_applies/index'>
+                <div class='col-xs-4' data-bind="visible:$root.isView_serviceApply">
+                  <a class='block panel padder-v bg-info m-t' href='#pages/services/service_applies/index' >
                     <span class='text-white font-thin h4 block'>申请服务</span>
                   </a>
                 </div>
-                <div class='col-xs-4'>
-                  <a class='block panel padder-v bg-success m-t' href='#pages/services/service_definitions/index' data-bind="visible: resourceVO().role()=='系统管理员' || resourceVO().role()=='运营管理员'">
+                <div class='col-xs-4' data-bind="visible:$root.isView_busiSystem">
+                  <a class='block panel padder-v bg-success m-t' href='#pages/services/service_definitions/index' >
                     <span class='text-white font-thin h4 block'>创建服务</span>
                   </a>
                 </div>
@@ -554,21 +554,55 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
 	
   	// 如果是 系统管理员、运维管理员、运营管理员，并且系统还没有创建数据中心，则跳转到向导页预览
-	csc.rest.get('api/v5.0.0/homepage/user',function(data){
+ 	csc.rest.get('api/v5.0.0/homepage/user',function(data){
 		if(data == null || data == "" ){
 			return ;
 		}
 		if(data.roleName == '系统管理员' || data.roleName == '运维管理员' || data.roleName == '运营管理员'){
-			csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){
-				if(data2 == null || data2 == "" || data2.results == null){
+			csc.rest.get('api/v5.0.0/service?maxResult=1&firstResult=0&state=1',function(data1){//判断是否已完成运营向导
+				if(data1 == null || data1 == ""){
 					return ;
 				}
-				if(data2.results.length == 0){
+				if(data1.results.length > 0){//如果还未创建产品，则进入向导页面
+					csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){//判断是否完成入云向导
+						if(data2 == null || data2 == "" || data2.results == null){
+							return ;
+						}
+						if(data2.results.length == 0){//如果还未创建数据中心，则进入向导页面
+							window.location.href='#pages/guide/index';
+						}else{
+							csc.rest.get('api/v5.0.0/azs?cloudPlatform=CNware&maxResult=1&firstResult=0',function(data3){
+								if(data3 == null || data3 == ""){
+									return ;
+								}
+								if(data3.results.length == 0){//如果还未创建CNWARE可用分区，则判断是否有openstack可用分区
+									csc.rest.get('api/v5.0.0/azs?cloudPlatform=OpenStack&maxResult=1&firstResult=0',function(data4){
+										if(data4 == null || data4 == ""){
+											return ;
+										}
+										if(data4.results.length == 0){//如果还未创建openstack可用分区，则进入向导页面
+											window.location.href='#pages/guide/index';
+										}else{
+											csc.rest.get('api/v5.0.0/images/counts',function(data5){
+												if(data5 == null || data5 == ""){
+													return ;
+												}
+												if(data5.imageCount == 0){//如果已创建openstack可用分区，则判断有没镜像存在，没则进入向导页面
+													window.location.href='#pages/guide/index';
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+					});
+				}else{
 					window.location.href='#pages/guide/index';
 				}
 			});
-		}
-    });	
+		} 
+    });	 
   	
     function doHighchartsVDC(data){
       // cpu占比图
@@ -1335,7 +1369,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	 
    	// 获取用户板块信息
     function getPanelConfig(){
-    	csc.rest.get('api/v5.0.0/homeConfigs?state=1&orderBy=displayOrder:asc',function(data){
+    	csc.rest.get('api/v5.0.0/homeConfigs?state=1&orderBy=displayOrder:asc&forWhat=forIndexDispayConfig',function(data){
 	     	if(data == null || data == "" || data.results == null || data.results.length==0){
 				return ;
 	     	}
@@ -1580,9 +1614,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       this.sshUri = ko.observable();//ssh密钥
       this.objStorageUri = ko.observable();//对象存储
       
-      //订单更多URI
-      this.orderUri = ko.observable();
-      
       //加载资源管理统计信息
       this.loadResourceStat = function(){
     	  csc.rest.get("api/v5.0.0/homepage/resource", function(data){
@@ -1606,7 +1637,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     			  self.loadBalanceUri("#pages/resources/instances/index?type=3");
     			  self.sshUri("#pages/resources/instances/index?type=4");
     			  self.objStorageUri("#pages/resources/instances/index?type=5");
-    			  self.orderUri("#pages/orders/service_orders");
     		  } else{
     			  self.vmUri("#pages/resources/instances/index?showTab=vmsTab");
     			  self.volumeUri("#pages/resources/instances/index?showTab=storagesTab");
@@ -1614,7 +1644,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     			  self.loadBalanceUri("#pages/resources/instances/index?showTab=balancerTab");
     		      self.sshUri("#pages/resources/instances/index?showTab=sshkeysTab");
     		      self.objStorageUri("#pages/resources/instances/index?showTab=objectStoragesTab");
-    		      self.orderUri("#pages/orders/service_orders?type=order");
     		  }
    	      });
       }
@@ -1662,7 +1691,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 	  self.dcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/datacenter", function(data){
      	 self.dcList(data);
-      });
+      },function(){},null,true);
       
       //默认没有选中
       this.selectedDc = ko.observable("");
@@ -1724,13 +1753,13 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  csc.rest.get(url, function(data){
     		  self.dcStatistics(data);
     		  self.storageSize((data.storageSize?data.storageSize:0)+"GB");
-    		  self.memorySize((data.memorySize?data.memorySize:0)+"TB");
+    		  self.memorySize((data.memorySize?(data.memorySize/1024).toFixed(2):0)+"GB");
     		  if(data){
     			  self.dcStatResult("");
     		  }else{
     			  self.dcStatResult("统计错误！");
     		  }
-    	  });
+    	  },function(){},null,true);
       }
       this.loadDCStatistics();
       //--------------------数据中心资源模块end--------------//
@@ -1811,7 +1840,37 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
    	  
    	  //--------------------我的任务模块end--------------//
    	  
-    //--------------------VDC配额模块start------------//
+      //--------------------VDC配额模块start------------//
+      this.loadVdcStat = function(){
+    	  var url = "api/v5.0.0/homepage/vdcQuota?vdcUuid="+self.selectedVdc();
+    	  csc.rest.get(url, function(data){
+    		  self.doHighchartsVDC(data);
+    		  self.vdcQuotaVO().cpu(parseFloat(data.cpuTotal)+""+data.cpuUnit);
+    		  self.vdcQuotaVO().mem(parseFloat(data.memTotal)+""+data.memUnit);
+    		  self.vdcQuotaVO().sto(parseFloat(data.stoTotal)+""+data.stoUnit);
+    		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
+    		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
+    		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
+    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
+    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
+    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
+    		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
+    		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
+    		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().blaA(parseFloat(data.blaTotal)+""+data.blaUnit);
+    		  self.vdcQuotaVO().blaB(parseFloat(data.blaUsed)+"/"+(parseFloat(data.blaTotal)-parseFloat(data.blaUsed))+"("+data.blaUnit+")");
+    		  self.vdcQuotaVO().blaRate(parseFloat(data.blaTotal)==0?'0%':Math.round(parseFloat(data.blaUsed)/parseFloat(data.blaTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().ipA(parseFloat(data.ipTotal)+""+data.ipUnit);
+    		  self.vdcQuotaVO().ipB(parseFloat(data.ipUsed)+"/"+(parseFloat(data.ipTotal)-parseFloat(data.ipUsed))+"("+data.ipUnit+")");
+    		  self.vdcQuotaVO().ipRate(parseFloat(data.ipTotal)==0?'0%':Math.round(parseFloat(data.ipUsed)/parseFloat(data.ipTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
+    		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
+    		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
+    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
+    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
+    	  });
+      }
    	  //加载VDC列表
 	  this.vdcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/vdcs", function(data){
@@ -1847,37 +1906,44 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     	  vpnRate: ko.observable()
       });
       this.doHighchartsVDC = doHighchartsVDC;
-      this.loadVdcStat = function(){
-    	  var url = "api/v5.0.0/homepage/vdcQuota?vdcUuid="+self.selectedVdc();
-    	  csc.rest.get(url, function(data){
-    		  self.doHighchartsVDC(data);
-    		  self.vdcQuotaVO().cpu(parseFloat(data.cpuTotal)+""+data.cpuUnit);
-    		  self.vdcQuotaVO().mem(parseFloat(data.memTotal)+""+data.memUnit);
-    		  self.vdcQuotaVO().sto(parseFloat(data.stoTotal)+""+data.stoUnit);
-    		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
-    		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
-    		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
-    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
-    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
-    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
-    		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
-    		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
-    		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().blaA(parseFloat(data.blaTotal)+""+data.blaUnit);
-    		  self.vdcQuotaVO().blaB(parseFloat(data.blaUsed)+"/"+(parseFloat(data.blaTotal)-parseFloat(data.blaUsed))+"("+data.blaUnit+")");
-    		  self.vdcQuotaVO().blaRate(parseFloat(data.blaTotal)==0?'0%':Math.round(parseFloat(data.blaUsed)/parseFloat(data.blaTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().ipA(parseFloat(data.ipTotal)+""+data.ipUnit);
-    		  self.vdcQuotaVO().ipB(parseFloat(data.ipUsed)+"/"+(parseFloat(data.ipTotal)-parseFloat(data.ipUsed))+"("+data.ipUnit+")");
-    		  self.vdcQuotaVO().ipRate(parseFloat(data.ipTotal)==0?'0%':Math.round(parseFloat(data.ipUsed)/parseFloat(data.ipTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
-    		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
-    		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
-    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
-    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
-    	  });
-      }
    	  //--------------------VDC配额模块end--------------//
+   	  
+   	  //--------------------当前用户角色所有权限 start--------------//
+   	  this.isView_sevice=ko.observable(false);
+   	  this.isView_serviceApply=ko.observable(false);
+   	  this.isView_busiSystem=ko.observable(false);
+   	  csc.rest.get("api/v5.0.0/roles/currentRole/getCurrUserPrivMenuToList", function(data){
+   		  if(data.currentPriv!=null){
+   			data.currentPriv.forEach(function(e){
+   	   			if("servManage"==e){
+   	   				self.isView_sevice(true);
+   	   			}
+   	   			if("serviceAppl"==e){
+   	   				self.isView_serviceApply(true);
+   	   			}
+   	   			if("busiSystem"==e){
+   	   				self.isView_busiSystem(true);
+   	   			}
+   	   		});
+   		  }
+   		
+   	  });
+   	//--------------------当前用户角色所有权限 start--------------//
+   	
+   	//--------------------获取当前用户角色start---------------//
+   	      
+    //订单更多URI
+    this.orderUri = ko.observable();
+   	csc.rest.get("api/v5.0.0/homepage/user", function(data){
+   		if(data.roleName && ("普通用户" == data.roleName)){
+			self.orderUri("#pages/orders/service_orders");
+	  	} else if(data.roleName && ("普通用户" != data.roleName)){
+			self.orderUri("#pages/orders/service_orders?type=order");
+	  	} else{
+	  		console.log("用户角色为空！");
+	  	}
+   	})
+   	//--------------------获取当前用户角色end-----------------//
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel,$('#page-content')[0]);

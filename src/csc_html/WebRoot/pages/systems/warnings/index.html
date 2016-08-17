@@ -7,15 +7,15 @@
 </div>
 <div class='wrapper-md'>
   <div class="nav-tabs-alt bg-white-only b b-blue">
-    <ul class="nav nav-tabs" role="tablist">
+    <ul id="headTab" class="nav nav-tabs" role="tablist">
       <li class="active" role="presentation">
-        <a aria-controls="csc" data-toggle="tab" href="#csc" role="tab">系统告警</a>
+        <a id="sysTab" aria-controls="csc" data-toggle="tab" href="#csc" role="tab">系统告警</a>
       </li>
       <li role="presentation">
-        <a aria-controls="vm" data-toggle="tab" href="#vm" role="tab">云主机告警</a>
+        <a id="vmTab" aria-controls="vm" data-toggle="tab" href="#vm" role="tab">云主机告警</a>
       </li>
       <li role="presentation">
-        <a aria-controls="vdc" data-toggle="tab" href="#vdc" role="tab">VDC配额告警</a>
+        <a id="vdcTab" aria-controls="vdc" data-toggle="tab" href="#vdc" role="tab">VDC配额告警</a>
       </li>
     </ul>
 
@@ -555,6 +555,33 @@
       ko.applyBindings(new ViewModel(index+1), item);    
     });
 
-
+  	//获取URL参数对象
+	function UrlSearch() {
+		var name,value; 
+		var str=location.href; //取得整个地址栏
+		var num=str.indexOf("?") 
+		str=str.substr(num+1); //取得所有参数   stringvar.substr(start [, length ]
+	
+		var arr=str.split("&"); //各个参数放到数组里
+		for(var i=0;i < arr.length;i++){ 
+			num=arr[i].indexOf("="); 
+			if(num>0){ 
+				name=arr[i].substring(0,num);
+				value=arr[i].substr(num+1);
+				this[name]=value;
+			}
+		}
+	}
+  	
+	var requestParam = new UrlSearch();
+	if(requestParam.showTab == 'sysTab' || requestParam.showTab == 'vmTab'
+		 || requestParam.showTab == 'vdcTab' ){
+		if(requestParam.type == 'vm'){
+			$("#vmTab").tab("show");
+			$("#headTab").hide();
+		}else{
+			$("#"+requestParam.showTab).tab("show");
+		}
+	}
   });
 </script>

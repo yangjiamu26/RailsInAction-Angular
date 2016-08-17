@@ -1,29 +1,28 @@
-<div class="simple_form form-horizontal">
+<div class="simple_form form-horizontal" data-bind="modal:{show:isEdit}">
   <div class='modal-dialog modal-lg' style="width:600px;">
-    <div class='modal-content'>
+    <div class='modal-content'  id= "someElementId" >
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>角色配置</h3>
       </div>
-      <div class='modal-body row' data-bind="with: configVO">
+      <div class='modal-body row'>
         <div class="form-group">
           <label class="col-xs-2 control-label">角色选择：</label>
           <div class="col-xs-10 form-inline row" style="top:-5px;">
             <div class="col-xs-12">
               <div class="checkbox">
                 <label class="i-checks">
-                  <input type="checkbox" data-bind="checked: fields_all">
+                  <input type="checkbox" data-bind="checked:fields_all">
                   <i></i>
                 </label>
                 <span class="control-label">全选</span>
               </div>
             </div>
             
-              <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <div data-bind="foreach: fields">
 			  <div class="col-xs-4">
 				 <div class="checkbox">
 					  <label class="i-checks">
-					      <input type="checkbox"  data-bind="checkedValue: $data.id, checked: $parent.conditions_selected_ids">
+					      <input type="checkbox"  data-bind="checkedValue: $data.name, checked: $parent.fields_selected_ids">
 					           <i></i><a data-bind="text: name"></a>
 					  </label>
 				 </div>
@@ -34,7 +33,7 @@
 
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info">确定</a>
+        <a class="btn btn-default btn-info" data-dismiss="modal" data-bind="click: function(data, event){ $root.configSave()}">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
@@ -43,69 +42,70 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = ["assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
-  $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-	
-    function ViewModel(fields){
-    	var self = this;
-    	var perPage = 5;
-    	
-      	//报表自定义界面操作
-      	this.configVO = ko.observable({
-      		fields: fields,
-      	  	fields_selected_ids: ko.observableArray([]),
-      	  	fields_all: ko.pureComputed({
-		        read: function () {
-		            return this.configVO().fields_selected_ids().length === this.configVO().fields.length;
-		        },
-		        write: function (value) {
-		            this.configVO().fields_selected_ids(value ? _.pluck(this.configVO().fields, 'id') : []);
-		        },
-		        owner: this
-		    }),
-      	});
-    	this.fields_selected_ids = ko.observableArray([]);
-      	//整合选中的展示字段
-      	this.makeup_fields_selected_ids = function(){
-      		self.fields_selected_ids([]);
-      		
-      		var fields = _.filter(self.configVO().fields, function(field){
-          		return _.contains(self.configVO().fields_selected_ids(), field.id)
-          	}, self);
-      		_.each(fields, function(field){
-      			self.fields_selected_ids.push(field);
-      		}, self)
-      	}
-      	
-      	//vdc报表定义页面操作
-    	this.isAdd = ko.observable(false);
-      	this.configAdd = function(report){
-        	this.isAdd(true);
-        	this.addOpen(report);  
-      	}
-      	this.configSave = function(report){
-      		var putBody = {
-      			fields: ""+self.configVO().fields_selected_ids()+"",
-      		}
-      		csc.rest.get('/api/v5.0.0/roles',function(data){
-      			if(data == 0){
-      				csc.rest.post('api/v5.0.0/reports/define/'+report, putBody,function(data){
-      			 		systemMsg.alert('报表定义创建成功！');
-      			 		self.makeup_fields_selected_ids();
-      			    }); 
-      			}else{
-      				csc.rest.put('api/v5.0.0/reports/define/'+report, putBody,function(data){
-      			 		systemMsg.alert('报表定义修改成功！');
-      			 		self.makeup_fields_selected_ids();
-      			    });
-      			}
-      			self.table.perPage(self.configVO().pageSize());
-      		});
-      		
-  		}
-    	
-    }
-    
-    ko.applyBindings(new ViewModel(), $('#page-content')[0]);
-  });
+	var scripts = [ "assets/lib/moment/moment.js",
+			"assets/lib/bootstrap-daterangepicker/daterangepicker.js" ]
+	$('.page-content-area').ace_ajax(
+			'loadScripts',
+			scripts,
+			function(args) {
+				function ViewModel() {
+					this.isEdit = ko.observable(true);
+					var self = this;
+					var perPage = 5;
+					//报表自定义界面操作
+					csc.rest.get('api/v5.0.0/roles', function(data) {
+                          self.fields(data.results);
+					})
+					this.fields = ko.observableArray([]);
+					this.fields_selected_ids = ko.observableArray([]);
+					this.fields_all = ko.pureComputed({
+						read : function() {
+							return this.fields_selected_ids().length === this
+									.fields().length;
+						},
+						write : function(value) {
+							console.log(value);
+							this.fields_selected_ids(value ? _.pluck(this
+									.fields(), 'name') : []);
+							console.log(this.fields_selected_ids());
+						},
+						owner : this
+					});
+
+					//整合选中的展示字段
+					this.makeup_fields_selected_ids = function() {
+						self.fields_selected_ids([]);
+
+						var fields = _.filter(self.fields, function(field) {
+							return _.contains(self.fields_selected_ids(),
+									field.roleId)
+						}, self);
+						_.each(fields, function(field) {
+							self.fields_selected_ids.push(field);
+						}, self)
+					}
+
+					//vdc报表定义页面操作
+					this.isAdd = ko.observable(false);
+					this.configAdd = function() {
+						this.isAdd(true);
+						this.addOpen();
+					}
+					this.configSave = function() {
+						var params = {
+							configRoles : "" + self.fields_selected_ids() + "",
+						}
+						var uuid = "2434";
+						console.log(params);
+						csc.rest.put('api/v5.0.0/homeConfigs/'+uuid,params,
+								function(data) {
+							    self.isEdit(false);
+							    alert("角色配置修改成功！");
+								});
+					}
+				}
+
+				ko.applyBindings(new ViewModel(), document
+						.getElementById('someElementId'));
+			});
 </script>

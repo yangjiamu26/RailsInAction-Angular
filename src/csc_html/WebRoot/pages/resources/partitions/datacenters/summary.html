@@ -3,7 +3,7 @@
 		<li>当前位置：</li>
 		<li>资源</li>
 		<li><a href="#pages/resources/partitions/datacenters/index">数据中心</a></li>
-		<li class="active">云宏信息数据中心</li>
+		<li class="active"><span id="datacenterInfoDIV"></span></li>
 	</ol>
 </div>
 <div class='wrapper-md'>
@@ -50,33 +50,33 @@
 						<div class='row wrapper text-center bg-success'>
 							<div class='col-xs-4'>
 								<div>CPU逻辑单元数</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().cpuNum">1</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().cpuNum"></div>
 							</div>
 							<div class='col-xs-4'>
 								<div>内存(GB)</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().memorySize">719.58</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().memorySize"></div>
 							</div>
 							<div class='col-xs-4'>
-								<div>存储(TB)</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().storageSize">30.75</div>
+								<div>存储(GB)</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().storageSize"></div>
 							</div>
 							<!-- <div class='col-xs-3'>
 	              <div>资源池数</div>
 	              <div class='h2 m-b-sm' data-bind="text:summaryVO().resourcePoolNum">9</div></div> -->
 							<div class='col-xs-4'>
 								<div>物理机数</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().hostNum">21</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().hostNum"></div>
 							</div>
 							<!-- <div class='col-xs-3'>
 	              <div>存储数</div>
 	              <div class='h2 m-b-sm' data-bind="text:summaryVO().storageNum">83</div></div> -->
 							<div class='col-xs-4'>
 								<div>网络数</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().networkNum">30</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().networkNum"></div>
 							</div>
 							<div class='col-xs-4'>
 								<div>镜像数</div>
-								<div class='h2 m-b-sm' data-bind="text:summaryVO().imageNum">10</div>
+								<div class='h2 m-b-sm' data-bind="text:summaryVO().imageNum"></div>
 							</div>
 						</div>
 
@@ -227,7 +227,7 @@
 				<h3 class='modal-title' data-bind="ifnot: currentVO().id">接入云管理平台</h3>
 				<h3 class='modal-title' data-bind="if: currentVO().id">修改</h3>
 			</div>
-			<div class='modal-body form-horizontal row'
+			<div class='modal-body form-horizontal'
 				data-bind="with:currentVO">
 				<div class="form-group">
 					<label class="col-xs-3 control-label">名称</label>
@@ -355,18 +355,24 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-var scripts = [null,"assets/lib/highcharts/highstock.js"];
+var scripts = [null,"assets/lib/highcharts/highstock.js","api/resource/cloudPlatform/cloudPlatform.js"];
 $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	//console.log(args);
 
-
+ 
+ $('#datacenterInfoDIV').html(args.datacenterName); 
+ 
  function ViewModel(){
     this.isEdit = ko.observable(false);
     this.isEditDataCenter = ko.observable(false);
     this.currentVO = ko.validatedObservable({});
     
     //数据中心基础信息VO
-    this.dataCenterInfoVO = ko.observable({});
+    this.dataCenterInfoVO = ko.validatedObservable({
+    	name: ko.observable(),
+    	createTime: ko.observable(),
+    	description: ko.observable()
+    });
     //数据中心摘要统计信息VO
     this.summaryVO = ko.observable({});
 
@@ -382,7 +388,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     }
     
     this.saveDataCenter = function(){
-    	csc.rest.put('api/v5.0.0/datacenters/'+self.dataCenterUUID, this.dataCenterInfoVO(), function(data){
+    	csc.rest.put('api/v5.0.0/datacenters/'+self.dataCenterUUID, this.dataCenterInfoVO.toJSON(), function(data){
             self.isEditDataCenter(false);
     		systemMsg.alert("修改成功");
             //location.href = "#pages/resources/partitions/datacenters/index";
@@ -405,7 +411,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
     this.loadDataCenterInfo = function(){
     	$.ajax("api/v5.0.0/datacenters/"+self.dataCenterUUID).done(function(data){
-      	  self.dataCenterInfoVO(data);
+    		self.dataCenterInfoVO.fromJSON(data);
       	  //console.log(self.summaryVO().azNum);
   	    });
     }
@@ -413,6 +419,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     this.loadSummary = function(){
     	//加载数据中心摘要
     	$.ajax("api/v5.0.0/datacenters/"+self.dataCenterUUID+"/summary").done(function(data){
+    	  data.memorySize = (data.memorySize/1024).toFixed(2);
     	  self.summaryVO(data);
     	  //console.log(self.summaryVO().azNum);
     	  
@@ -422,7 +429,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     		  var obj = {};
     		  obj.name=data.virTualHypervisor;
     		  obj.y=data.azNum;
-    		  if(data.virTualHypervisor == "Kvm"){
+    		  if(data.virTualHypervisor == "KVM"){
     			  obj.color="#5bd544";
     		  }else{
     			  obj.color="#ffd800"
@@ -580,7 +587,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	        ip	:	ko.observable(object.ip).extend({ required: true }),
 	        port	:	ko.observable(object.port).extend({ required: true}),
 	        username	:	ko.observable(object.username).extend({ required: true }),
-	        password	:	ko.observable(object.password).extend({ required: true }),
+	        password	:	ko.observable('cscTempPasswordXXYY').extend({ required: true }),
 	        domain:{},
 	        description	:	object.description
       });
@@ -588,20 +595,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     };
     
     this.delete = function(object, event){
-        confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){        		
-	         api.cloudPlatform.set({"id":object.uuid}).destroy({
-		            success: function(data){
-		            	//console.log(data);
-		            	if(data.result == 'success'){
-		    				  alert('删除成功');
-		            		  self.table.refreshData();
-		    			  }else if(data.result == 'hasAz'){
-		    				  alert('云管理平台存在可用分区，请先删除云管理平台下的可用分区！');
-		    			  }else{
-		    				  alert('删除失败');
-		    			  }  
-		          	}
-		     });
+        confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){ 
+        	
+        	$.CLOUD_PLATFORM.deleteCloudPlatform(object.uuid,function(data){
+        		alert('删除云管理平台成功');
+      		  	self.table.refreshData();
+        	});
+        	
         });//end confirm    	  
       };
 
@@ -611,16 +611,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {
       			//保存
-            	api.cloudPlatforms.create(this.currentVO.toJSON(),{
-              		success: function(data){
-                		self.isEdit(false);//关闭modal
-                		if(data.attributes.uuid){
-              				alert("接入成功！")               	  
-    	            		self.table.refreshData();//刷新列表                	
-                		}
-             		}
-           		});
-      	  
+      			$.CLOUD_PLATFORM.createCloudPlatform(self.currentVO.toJSON(),function(data){
+      				self.isEdit(false);//关闭modal
+            		if(data.uuid){
+          				alert("接入云管理平台成功！")               	  
+	            		self.table.refreshData();//刷新列表                	
+            		}
+      			});
 	        }else{
 	      	  //显示错误提示
 	      	  this.currentVO.errors.showAllMessages();
@@ -629,16 +626,14 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       //修改
       }else{
         	//验证通过
-     	  	if(this.currentVO.errors().length === 0) {     	  		
-     	  		api.cloudPlatform.save(this.currentVO.toJSON(),{
-     		      	success: function(){
-     		        	alert("修改成功")
-     		        	self.table.refreshData();//刷新列表    	        	
-     	        		self.isEdit(false);//关闭modal
-     		      	},
-     		      	error: function(){
-     		      	}
-     	    	});
+     	  	if(this.currentVO.errors().length === 0) {   
+     	  		console.log(this.currentVO.toJSON());
+     	  		$.CLOUD_PLATFORM.modifyCloudPlatform(self.currentVO().uuid,this.currentVO.toJSON(),function(data){
+     	  			alert("修改云管理平台成功")
+ 		        	self.table.refreshData();//刷新列表    	        	
+ 	        		self.isEdit(false);//关闭modal
+     	  		});
+     	  		
      	  	}else{
      	  	 //显示错误提示
   	      	  this.currentVO.errors.showAllMessages();    	  		

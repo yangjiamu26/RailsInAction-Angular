@@ -1,0 +1,144 @@
+    <div class="panel panel-info">
+        <div class="panel-heading">申请信息</div>
+        <div id="orderDetailedList" class="wrapper">
+
+          <div class="row">
+            <div class="col-xs-4"><p>资源名称：<span data-bind="text: currentVO().resourceName"></span><a>查看</a></p></div>
+            <div class="col-xs-4"><p>所属VDC：<span data-bind="text: currentVO().vdcName"></span></p></div>
+          </div>
+          <div class="row">
+            <div class="col-xs-4"><p>所属业务系统：<span data-bind="text: currentVO().busSysName"></span></p></div>
+            <div class="col-xs-4"><p>资源类型：
+            	<span>云硬盘</span></p>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>调整前</th>
+                <th>调整后</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>存储(G)</td>
+                <td><span data-bind="text: currentVO().storage"></span></td>
+                <td><input class="form-control w-xxs input-sm" data-bind="value: currentVO().targetStorage" disabled/></td>
+              </tr>
+            </tbody>
+          </table> 
+        </div>
+    </div>
+
+<script type="text/javascript">
+    var scripts = [null,null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+  	  function ViewModel(){
+  		  var self = this;
+  		  this.currentVO = ko.observable({
+  			orderId: ko.observable(),
+  			itemId: ko.observable(),
+  			
+  	        taskId: ko.observable(),
+  	        processType: ko.observable(),
+  	        processState: ko.observable(),
+  	        processNode: ko.observable(),
+  	        
+  	        user: ko.observable(),
+  	        time: ko.observable(),
+  	        resourceName: ko.observable(),
+  	        vdcName: ko.observable(),
+  	        busSysName: ko.observable(),
+  	      	type: ko.observable(),
+  	      	
+  	        vmUuid: ko.observable(),
+  	        
+  	        storage: ko.observable(),
+  	        
+  	        targetStorage: ko.observable()
+  	        
+  	      });
+  		  
+  		  if(args.state == 'UNSUBMIT'){
+  			  $(".input-sm").attr("disabled", false);
+  		  }
+  		  
+  		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(taskData){
+  	   	     var processInstanceId = taskData.taskInfo[0].processInstanceId;
+  	   		 
+  			 //获取订单数据
+  	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(processData){
+  	      		 console.log(processData)
+  	      		var orderData = processData;
+  	      	    self.currentVO().orderId(orderData.uuid);
+  	      		var itemListData = processData.orderItems;
+  	      		var metaData = JSON.parse(itemListData[0].metaData);
+  	      		self.currentVO().itemId(itemListData[0].uuid);
+  	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
+  	      		
+  	      		self.currentVO().taskId(args.taskId);
+  	      		self.currentVO().user(orderData.userName);
+  	      		self.currentVO().time(orderData.createTime);
+  	      		
+	  	      	self.currentVO().resourceName(itemListData[0].instanceName);
+	  	      	self.currentVO().type(itemListData[0].resourceType);
+	  	      	
+  	      		self.currentVO().vdcName(itemListData[0].vdcName);
+  	      		if(resBaseInfo.busSysName != 'null'){  	      			
+	  	      		self.currentVO().busSysName(resBaseInfo.busSysName);
+  	      		}
+  	      		self.currentVO().vmUuid(resBaseInfo.vmUuid);
+  	      		self.currentVO().storage(resBaseInfo.metaSize);
+  	      		
+  	      		self.currentVO().targetStorage(resBaseInfo.volumeSize);
+  	      		
+  	      	 });
+  		});
+  		
+  		this.save = function(obj,event,callback){
+        	if(args.state=='UNSUBMIT'){
+		        var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.currentVO().vmUuid() + "\",\"volumeSize\":\""+self.currentVO().targetStorage()
+		      	 	+ "\",\"metaSize\":\""+self.currentVO().storage()+"\"}}";
+		      	var orderItem = {};
+		      	orderItem.metaData = metaData;
+		      	  
+				csc.rest.put('api/v5.0.0/orders/'+self.currentVO().orderId()+'/modifyItem/'+self.currentVO().itemId(),orderItem,function(data){
+					if(typeof(callback) != 'undefined'){
+						callback();
+						return;
+					}
+					alert('保存成功！');
+  		    	});
+        	}else{
+        		saveComment(args.taskId,function(){
+        			alert("保存成功！");
+        		});
+        	}
+        }
+  		
+  		this.next = function(){
+  		  if(state == 'UNSUBMIT'){
+  			  self.save("","",function(){
+  				var databody = {"action":"reSubmit"};
+  				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+  				  alert("提交成功！");
+  				  location.href = "#pages/workflows/tasks?type=work";
+  				},function(){alert("操作失败！")});
+  		  	  })
+  		  }else if(isLast){
+  			  saveComment(taskId,function(){
+  				var databody = {"userId":"","action":"designated"};
+  				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+  				  alert("审核成功！");
+  				  location.href = "#pages/workflows/tasks?type=work";
+  				},function(){alert("操作失败！")});
+  			  });
+  		  }else{		  
+  			  showModal("pages/workflows/next.html");
+  		  }
+  	  }
+  	  }
+  	 ko.applyBindings(new ViewModel(), $('#approveContent')[0]);
+    });
+</script>

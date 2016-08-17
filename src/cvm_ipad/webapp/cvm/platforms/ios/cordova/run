@@ -19,6 +19,7 @@
        under the License.
 */
 
+<<<<<<< HEAD
 var args = process.argv,
     run   = require('./lib/run');
 
@@ -27,10 +28,51 @@ if (['--help', '/?', '-h', 'help', '-help', '/help'].indexOf(args[2]) > -1) {
     run.help();
 } else {
     run.run(args).done(function() {
+=======
+
+var args = process.argv;
+var Api = require('./Api');
+var nopt = require('nopt');
+
+// Handle help flag
+if(['--help', '/?', '-h', 'help', '-help', '/help'].indexOf(process.argv[2]) >= 0) {
+    require('./lib/run').help();
+    process.exit(0);
+}
+
+// Parse arguments (includes build params as well)
+var opts = nopt({
+    'verbose' : Boolean,
+    'silent' : Boolean,
+    'debug': Boolean,
+    'release': Boolean,
+    'nobuild': Boolean,
+    'archs': String,
+    'list': Boolean,
+    'device': Boolean,
+    'emulator': Boolean,
+    'target' : String,
+    'codeSignIdentity': String,
+    'codeSignResourceRules': String,
+    'provisioningProfile': String,
+    'buildConfig' : String,
+    'noSign' : Boolean
+}, { 'd' : '--verbose' }, args);
+
+// Make options compatible with PlatformApi build method spec
+opts.argv = opts.argv.remain;
+
+require('./loggingHelper').adjustLoggerLevel(opts);
+
+new Api().run(opts).done(function() {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         console.log('** RUN SUCCEEDED **');
     }, function (err) {
         var errorMessage = (err && err.stack) ? err.stack : err;
         console.error(errorMessage);
         process.exit(2);
     });
+<<<<<<< HEAD
 }
+=======
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6

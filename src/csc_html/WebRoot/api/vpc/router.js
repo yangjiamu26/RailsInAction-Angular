@@ -54,6 +54,15 @@
 				csc.rest.del('api/v5.0.0/routers/'+routerUuid+'/subinterfaces/'+netUuid,function(data){
 					 callback(data)
    		        })
+			},
+			/**
+			 * 获取router下的网络
+			 * @param routerUuid
+			 */
+			getNetworkByRouterUuid:function(routerUuid, callback){
+				 csc.rest.get('api/v5.0.0/routers/' + routerUuid + '/subinterfaces?type=INNER',function(data){
+					     callback(data);
+	    		    }); 
 			}
 	};
 }(window.jQuery);

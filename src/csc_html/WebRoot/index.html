@@ -14,7 +14,12 @@
     <link href='assets/css/angulr.css' rel='stylesheet' type='text/css'>
     <link href='assets/css/knockout-datatable.css' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" media="all" href="assets/css/app.css" />
-  
+  	<!-- 解决接口跨域的问题 -->
+	<script src="api/v5.0.0/uap/register"></script>
+	<!-- 解决js跨域的问题 -->
+	<script src="api/register.js"></script>  
+	<!-- 解决调用servlet跨域问题 -->
+	<script src="api/file/uploadServlet"></script>
     </head>
     
   
@@ -68,20 +73,32 @@
                     <span>告警</span> <span class='badge badge-sm up bg-danger' data-bind="text: alarmStatVO().totalAlarm()"></span> <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu" role="menu" id="warnings-tabs">
-                    <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
-                    <li ><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
-                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
+                    <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/systems/warnings/index?showTab=sysTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>系统告警：<span class="text-danger" data-bind="text: alarmStatVO().systemAlarm()"></span>个</a></li>
+                    <!-- ko if: roleVO().platForm()=='operate' -->
+                    <li ><a href="#pages/systems/warnings/index?showTab=vmTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+                    <!-- /ko -->
+        			<!-- ko if: roleVO().platForm()=='self' -->
+                    <li ><a href="#pages/systems/warnings/index?type=vm&showTab=vmTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>云主机告警：<span class="text-danger" data-bind="text: alarmStatVO().vmAlarm()"></span>个</a></li>
+        			<!-- /ko -->
+                    <li data-bind="visible: roleVO().roleFlag()!='COMMON'"><a href="#pages/systems/warnings/index?showTab=vdcTab"><i class="fa fa-fw fa-angle-right text-muted m-r-xs"></i>VDC配额告警：<span class="text-danger" data-bind="text: alarmStatVO().vdcQuotaAlarm()"></span>个</a></li>
                 </ul>                
             </li>
             <li class='dropdown' data-bind="visible: (roleVO().roleFlag()!='AG' && roleVO().roleFlag()!='AS')">
+              <!-- ko if: roleVO().platForm()=='operate' -->
               <a  href='#pages/systems/notices/index'>
                 <i class='fa fa-bell'></i> 通知
                 <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
+              <!-- /ko -->
+        	  <!-- ko if: roleVO().platForm()=='self' -->
+        	  <a  href='#pages/systems/notices/index?showTab=sysTab'>
+                <i class='fa fa-bell'></i> 通知
+                <span class='badge badge-sm up bg-info' data-bind="text: noticeStatVO()"></span></a>
+        	  <!-- /ko -->
             </li>
             <li data-bind="visible: roleVO().roleFlag()=='COMMON'"><a href="#pages/services/shopping_carts/index"><i class="fa fa-shopping-cart"></i> 购物车 <span class='badge badge-sm up bg-danger' data-bind="text:cartNum"></span></a></li>
             <li >
               <a  data-bind="attr:{href: uapUrl}">
-                <i class='fa fa-desktop'></i> 认证平台
+                <i class='fa fa-desktop'></i> 统一认证平台
                 <span class=' up bg-info'></span></a>
             </li>
             <li class='dropdown'>
@@ -95,7 +112,7 @@
                 <li>
                     <table class="table text-xs">
                         <tbody data-bind="with:user">
-                            <tr>
+                            <tr data-bind="visible: userType()=='0'">
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_profile.html')" class="btn btn-info btn-xs">修改信息</a></td>
                                 <td><a href="#" onclick="showModal('pages/systems/users/edit_password.html')" class="btn btn-primary btn-xs">修改密码</a></td>
                             </tr>
@@ -113,7 +130,7 @@
                             </tr>
                             <tr>
                                 <td>组织：</td>
-                                <td data-bind="text:organizationName"></td>
+                                <td data-bind="text:organizationName()==''?'本地组织':organizationName()"></td>
                             </tr>
                             <tr>
                                 <td>手机：</td>
@@ -147,12 +164,12 @@
           <div class='navi-wrap'>
             <nav class='navi clearfix' ui-nav=''>
               <ul class='nav navbox'>
-                <li>
+                <li data-bind="check_action:'firstPage'">
                   <a data-url="pages/welcome/index" data-url-params="role" href="#pages/welcome/index">
                   <i class="icon home"></i>
                     <span class='text-base'>首页</span></a>
                 </li>
-                <li>
+                <li data-bind="check_action:'service'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -165,17 +182,17 @@
                       <a>
                         <span class='text-base'>服务</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'proDef'">
                       <a data-url="pages/services/product_definitions/index" href="#pages/services/product_definitions/index">
                         <span>产品定义</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'servManage'">
                       <a data-url="pages/services/service_definitions/index" href="#pages/services/service_definitions/index">
                         <span>服务管理</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'resource'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -189,52 +206,52 @@
                         <a>
                           <span class='text-base'>资源</span></a>
                       </li>
-                      <li>
+                      <li data-bind="check_action:'dataCenter'">
                         <a data-url="pages/resources/partitions/datacenters/index" href="#pages/resources/partitions/datacenters/index">
                           <span>数据中心</span></a>
                       </li>
-                      <li>
+                      <li data-bind="check_action:'diskAcce'">
                         <a data-url="pages/resources/partitions/index" href="#pages/resources/partitions/index">
                           <span>可用分区</span></a>
                       </li>
-                      <li>
+                      <li data-bind="check_action:'resoInstance'">
                         <a data-url="pages/resources/instances/index" data-url-params="showTab" href="#pages/resources/instances/index">
                           <span>资源实例</span></a>
                       </li>
-                      <li>
+                      <li data-bind="check_action:'bussiCut'">
                         <a data-url="pages/resources/partitions/business_cutover/index" href="#pages/resources/partitions/business_cutover/index">
                           <span>业务割接</span></a>
                       </li>
-                      <li>
+                      <li data-bind="check_action:'resourceBack'">
                         <a data-url="pages/resources/partitions/recovery/index" href="#pages/resources/partitions/recovery/index">
                           <span>资源回收</span></a>
                       </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'orderForm'">
                   <a data-url="pages/orders/service_orders?type=order" href="#pages/orders/service_orders?type=order">
                     <i class="icon order"></i>
                     <span class='text-base'>订单</span></a>
                 </li>
-                <li>
+                <li data-bind="check_action:'vdcManger'">
                   <a data-url="pages/vdcs/vdcs/index" href="#pages/vdcs/vdcs/index">
                     <i class="icon task"></i>
                     <span class='text-base'>VDC管理</span>
                   </a>
                 </li>
-                <li>
+                <li data-bind="check_action:'vpcManger'">
                   <a data-url="pages/vdcs/vpcs/index" data-url-params="type,showTab" href="#pages/vdcs/vpcs/index?type=0">
                     <i class="icon resource"></i>
                     <span class='text-base'>VPC管理</span>
                   </a>
                 </li>
-                <li>
+                <li data-bind="check_action:'busiSystem'">
                   <a data-url="pages/vdcs/businesses/index" href="#pages/vdcs/businesses/index">
                     <i class="icon app"></i>
                     <span class='text-base'>业务系统</span>
                   </a>
                 </li>                 
-                 <li>
+                 <li data-bind="check_action:'appli'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -248,29 +265,29 @@
                       <a>
                         <span class='text-base'>应用</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'softWare'">
                       <a data-url="pages/softwares/softwares" href="#pages/softwares/softwares">
                         <span>软件</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'script'">
                       <a data-url="pages/softwares/scripts" href="#pages/softwares/scripts">
                         <span>脚本</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'softInstall'">
                       <a data-url="pages/softwares/installs" href="#pages/softwares/installs">
                         <span>软件安装</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'softUpdate'">
                       <a data-url="pages/softwares/upgrades" href="#pages/softwares/upgrades">
                         <span>软件升级</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'installLog'">
                       <a data-url="pages/softwares/logs" href="#pages/softwares/logs">
                         <span>安装日志</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'work'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -283,17 +300,17 @@
                       <a>
                         <span class='text-base'>工作</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'newWork'">
                       <a data-url="pages/workflows/apply" href="#pages/workflows/apply">
                         <span>新建工作</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'myWork'">
                       <a data-url="pages/workflows/tasks" data-url-params="type,showTab" href="#pages/workflows/tasks?type=work">
                         <span>我的工作</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'billing'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -306,17 +323,17 @@
                       <a>
                         <span class='text-base'>计费</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'bilRule'">
                       <a data-url="pages/charges/factors" href="#pages/charges/factors">
                         <span>计费规则</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'bilCount'">
                       <a data-url="pages/charges/reports" href="#pages/charges/reports">
                         <span>计费清单统计</span></a>
                     </li>
                   </ul>
                 </li>                   
-                <li>
+                <li data-bind="check_action:'report'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -329,17 +346,17 @@
                       <a>
                         <span class='text-base'>报表</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'systemDesign'">
                       <a data-url="pages/reports/stats" href="#pages/reports/stats">
                         <span>报表统计</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'repoDef'">
                       <a data-url="pages/reports/definitions" href="#pages/reports/definitions">
                         <span>自定义报表</span></a>
                     </li>
                   </ul>
                 </li>                                
-                <li>
+                <li data-bind="check_action:'system'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -352,55 +369,55 @@
                       <a>
                         <span class='text-base'>系统</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'sysUserManage'">
                       <a data-url="pages/systems/users/index" href="#pages/systems/users/index">
                         <span>用户管理</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'sysRoleManage'">
                       <a data-url="pages/systems/roles/index" href="#pages/systems/roles/index">
                         <span>角色管理</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'flowManage'">
                       <a data-url="pages/systems/workflows/index" href="#pages/systems/workflows/index">
                         <span>流程管理</span></a>
                     </li>   
-                    <li>
+                    <li data-bind="check_action:'serverConf'">
                       <a data-url="pages/systems/servers/index" href="#pages/systems/servers/index">
                         <span>服务器配置</span></a>
                     </li>      
-                    <li>
+                    <li data-bind="check_action:'warnConf'">
                       <a data-url="pages/systems/warning_configs/index" href="#pages/systems/warning_configs/index">
                         <span>告警配置</span></a>
                     </li>                    
-                    <li>
+                    <li data-bind="check_action:'firstPgConf'">
                       <a data-url="pages/systems/dashboards/index" href="#pages/systems/dashboards/index">
                         <span>首页配置</span></a>
                     </li>       
-                    <li>
+                    <li data-bind="check_action:'license'">
                       <a data-url="pages/systems/licenses/index" href="#pages/systems/licenses/index">
                         <span>License</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'wordConf'">
                       <a data-url="pages/systems/dictionaries/index" href="#pages/systems/dictionaries/index">
                         <span>字典管理</span></a>
                     </li>  
-                    <li>
+                    <li data-bind="check_action:'resoProperty'">
                       <a data-url="pages/systems/properties/index" href="#pages/systems/properties/index">
                         <span>资源属性</span></a>
                     </li>                                                                                  
-                    <li>
-                      <a data-url="pages/systems/warnings/index" href="#pages/systems/warnings/index">
+                    <li data-bind="check_action:'warn'">
+                      <a data-url="pages/systems/warnings/index" data-url-params="showTab" href="#pages/systems/warnings/index">
                         <span>告警</span></a>
                     </li>                    
-                    <li>
+                    <li data-bind="check_action:'notify'">
                       <a data-url="pages/systems/notices/index" href="#pages/systems/notices/index">
                         <span>通知</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'operaLog'">
                       <a data-url="pages/systems/operLog/index" href="#pages/systems/operLog/index">
                         <span>操作日志</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'loginLog'">
                       <a data-url="pages/systems/loginLog/index" href="#pages/systems/loginLog/index">
                         <span>登录日志</span></a>
                     </li>
@@ -417,12 +434,12 @@
           <div class='navi-wrap'>
             <nav class='navi clearfix' ui-nav=''>
               <ul class='nav navbox'>
-                <li>
+                <li data-bind="check_action:'firstPage'">
                   <a data-url="pages/welcome/index" data-url-params="role" href="#pages/welcome/index">
                   <i class="icon home"></i>
                     <span class='text-base'>首页</span></a>
                 </li>
-                <li>
+                <li data-bind="check_action:'myResource'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -435,33 +452,33 @@
                       <a>
                         <span class="text-base">我的资源</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'cloudServer'">
                       <a data-url="pages/resources/instances/index?type=0" href="#pages/resources/instances/index?type=0">
                         <span>云主机</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'cloudDisk'">
                       <a data-url="pages/resources/instances/index?type=1" href="#pages/resources/instances/index?type=1">
                         <span>云硬盘</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'publicIp'">
                       <a data-url="pages/resources/instances/index?type=2" href="#pages/resources/instances/index?type=2">
                         <span>公网IP</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'loadBalan'">
                       <a data-url="pages/resources/instances/index?type=3" href="#pages/resources/instances/index?type=3">
                         <span>负载均衡器</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'sshKey'">
                       <a data-url="pages/resources/instances/index?type=4" href="#pages/resources/instances/index?type=4">
                         <span>SSH密钥</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'instanStore'">
                       <a data-url="pages/resources/instances/index?type=5" href="#pages/resources/instances/index?type=5">
                         <span>对象存储</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'serviceAppl'">
                     <a class='auto'>
                       <span class='pull-right text-muted'>
                         <i class='fa fa-fw fa-angle-right text'></i>
@@ -510,33 +527,33 @@
                           <span>SSH密钥</span>
                         </a>
                       </li>
-                      <li>
+<!--                       <li>
                         <a data-url="pages/services/service_applies/index?type=7" href="#pages/services/service_applies/index?type=7">
                           <span>自定义产品</span>
                         </a>
-                      </li>
+                      </li> -->
                       
                     </ul>
                 </li>  
-                <li>
+                <li data-bind="check_action:'shopCart'">
                   <a data-url="pages/services/shopping_carts/index" href="#pages/services/shopping_carts/index">
                     <i class="icon order"></i>
                     <span class='text-base'>购物车</span>
                   </a>
                 </li>          
-                <li>
+                <li data-bind="check_action:'myOrder'">
                   <a data-url="pages/orders/service_orders" href="#pages/orders/service_orders">
                     <i class="icon order"></i>
                     <span class='text-base'>我的订单</span>
                   </a>
                 </li> 
-                <li>
+                <li data-bind="check_action:'busiSystem'">
                   <a data-url="pages/vdcs/businesses/index" href="#pages/vdcs/businesses/index">
                     <i class="icon app"></i>
                     <span class='text-base'>业务系统</span>
                   </a>
                 </li>
-                <li>
+                <li data-bind="check_action:'appli'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -549,21 +566,21 @@
                       <a>
                         <span class='text-base'>应用</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'softInstall'">
                       <a data-url="pages/softwares/installs" href="#pages/softwares/installs">
                         <span>软件安装</span></a> 
                     </li>
-                    <li>
+                    <li data-bind="check_action:'softUpdate1'">
                       <a data-url="pages/softwares/upgrades" href="#pages/softwares/upgrades">
                         <span>软件升级</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'installLog'">
                       <a data-url="pages/softwares/logs" href="#pages/softwares/logs">
                         <span>安装日志</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'work'">
                   <a class='auto'>
                     <span class='pull-right text-muted'>
                       <i class='fa fa-fw fa-angle-right text'></i>
@@ -576,56 +593,38 @@
                       <a>
                         <span class='text-base'>工作</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'newWork'">
                       <a data-url="pages/workflows/apply_user" href="#pages/workflows/apply_user">
                         <span>新建工作</span></a>
                     </li>
-                    <li>
+                    <li data-bind="check_action:'myWork'">
                       <a data-url="pages/workflows/tasks" data-url-params="type,showTab"  href="#pages/workflows/tasks">
                         <span>我的工作</span></a>
                     </li>
                   </ul>
                 </li>
-                <li>
+                <li data-bind="check_action:'billingCount'">
                   <a data-url="pages/charges/reports" href="#pages/charges/reports">
                     <i class="icon charge"></i>
                     <span class='text-base'>计费清单统计</span>
                   </a>
                 </li>
-                <li>
-                  <a data-url="pages/systems/warnings/index_user" href="#pages/systems/warnings/index_user">
+                <li data-bind="check_action:'warn'">
+                  <a data-url="pages/systems/warnings/index?type=vm&showTab=vmTab" data-url-params="type,showTab" href="#pages/systems/warnings/index?type=vm&showTab=vmTab">
                     <i class="icon system"></i>
-                    <span class='text-base'>告警</span>
+                    <span class='text-base'>云主机告警</span>
                   </a>
                 </li> 
-                <li>
-                  <a data-url="pages/systems/notices/index" href="#pages/systems/notices/index">
+                <li data-bind="check_action:'notify'">
+                  <a data-url="pages/systems/notices/index?showTab=sysTab" data-url-params="showTab" href="#pages/systems/notices/index?showTab=sysTab">
                     <i class="icon system"></i>
                     <span class='text-base'>通知</span>
                   </a>
                 </li>
-                <li>
-                  <a class='auto'>
-                    <span class='pull-right text-muted'>
-                      <i class='fa fa-fw fa-angle-right text'></i>
-                      <i class='fa fa-fw fa-angle-down text-active'></i>
-                    </span>
+                <li data-bind="check_action:'report'">
+                  <a data-url="pages/reports/stats" href="#pages/reports/stats">
                     <i class="icon report"></i>
-                    <span class='text-base'>报表</span></a>
-                  <ul class='nav nav-sub dk'>
-                    <li class='nav-sub-header'>
-                      <a>
-                        <span class='text-base'>报表</span></a>
-                    </li>
-                    <li>
-                      <a data-url="pages/reports/stats" href="#pages/reports/stats">
-                        <span>报表统计</span></a>
-                    </li>
-                    <li>
-                      <a data-url="pages/reports/definitions" href="#pages/reports/definitions">
-                        <span>自定义报表</span></a>
-                    </li>
-                  </ul>
+                    <span class='text-base'>报表统计</span></a>
                 </li>                                                      
               </ul>
             </nav>
@@ -655,12 +654,6 @@
     <div class="modal fade modal-draggable" id="ajax_modal_0" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_1" tabindex="-1" role="dialog"></div>
     <div class="modal fade modal-draggable" id="ajax_modal_2" tabindex="-1" role="dialog"></div>
-	<!-- 解决接口跨域的问题 -->
-	<script src="api/v5.0.0/uap/register"></script>
-	<!-- 解决js跨域的问题 -->
-	<script src="api/register.js"></script>  
-	<!-- 解决调用servlet跨域问题 -->
-	<script src="api/file/uploadServlet"></script>
 	
     <script src='assets/js/jquery.min.js'></script>
 
@@ -737,6 +730,14 @@
 	    	}
 	    	this.getUapUrl();
 	    	
+	    	this.fetchActionsForCheck = function(role){
+	    		csc.rest.get("api/v5.0.0/roles/currentRole/getCurrUserPrivMenuToList?role="+role, function(data){
+	    			ko.actionsMap(data.currentPriv);
+	    			/* setTimeout(function(){
+	    		  	  ko.actionsMap = ["action1", "action2"]
+	    		    }, 2000) */
+	    		});
+	    	}
 	    	this.roleVO = ko.observable({
 		    	roleName: ko.observableArray([]),
 		    	currentRole: ko.observable(),
@@ -762,6 +763,7 @@
 			    			if(window.location.hash=="#pages/welcome/home"){
 			    				window.location.hash = '#pages/welcome/index';
 			    			}
+				    		self.fetchActionsForCheck(currentRole);//加载角色权限
 			    		});
 		    		});
 		    		if((data[0].name == "系统管理员") || (data[0].name == "运营管理员") || (data[0].name == "运维管理员")){
@@ -776,6 +778,7 @@
 		    			self.roleVO().roleFlag("COMMON");
 		    		}
 		   	    });
+		    	
 		    }
 		    self.roleVO().roleFlag("ALL");
 		    this.loadRoles();
@@ -792,7 +795,6 @@
 			    		self.loadNoticeStat();
 			    	}); 
 	    		});
-		    	
 		    	self.roleVO().currentRole(role);
 		    	if(role == "系统管理员"){
 	    			self.roleVO().roleFlag("ALL")
@@ -816,6 +818,7 @@
 	    			self.roleVO().roleFlag("COMMON");
 	    			window.location.hash = '#pages/welcome/index?role=com';
 	    		}
+		    	self.fetchActionsForCheck(role);//加载角色权限
 		    }
 		    
 		    this.alarmStatVO = ko.observable({
@@ -849,6 +852,7 @@
 				this.status = ko.observable("");
 				this.roleName = ko.observable("");
 				this.organizationName = ko.observable("");
+				this.userType = ko.observable("");
 			}
 				
 			this.user = ko.validatedObservable(new cscUser());
@@ -977,9 +981,14 @@
 		    this.loadCartNum();
 		    /* ------------------ 购物车 -------------------------end */
 	    }
-	    var frameViewModel = new ViewModel();
-	    ko.applyBindings(frameViewModel,$('.app-header')[0]);
-	    ko.applyBindings(frameViewModel,$('.app-aside')[0]);
+	    
+	    //其他模块需使用viewModel变量，声明为全局变量
+	    var frameViewModel;
+	    $(function(){
+	    	frameViewModel = new ViewModel();
+	    	ko.applyBindings(frameViewModel,$('.app-header')[0]);
+	    	ko.applyBindings(frameViewModel,$('.app-aside')[0]);
+	    })
     </script>
   </body>
 

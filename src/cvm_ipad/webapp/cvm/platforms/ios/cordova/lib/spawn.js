@@ -43,7 +43,10 @@ module.exports = function(cmd, args, opt_cwd) {
             }
         });
     } catch(e) {
+<<<<<<< HEAD
         console.error('error caught: ' + e);
+=======
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         d.reject(e);
     }
     return d.promise;

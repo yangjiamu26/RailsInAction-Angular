@@ -97,10 +97,10 @@
 											<div class="col-xs-3">
 												<span  data-bind="text:ip"></span>
 											</div>
-											<div class="col-xs-1 font-bold">主机账号：</div>
+										<!-- 	<div class="col-xs-1 font-bold">主机账号：</div>
 											<div class="col-xs-3">
 												<span data-bind="text:account"></span>
-											</div>
+											</div> -->
 										</div>
 										<div class="row m-b">
 											<div class="col-xs-1 font-bold">选择密钥：</div>
@@ -292,10 +292,10 @@
 					              </div>
 					            </div>
 					            <div class="form-group">
-					              <label class="col-xs-1 control-label no-padder-h">主机账号</label>
+					              <!-- <label class="col-xs-1 control-label no-padder-h">主机账号</label>
 					              <div class="col-xs-2">
 					                <input type="text" class="form-control" data-bind="value: account">
-					              </div>
+					              </div> -->
 					              <label class="col-xs-1 control-label no-padder-h">密码</label>
 					              <div class="col-xs-2">
 					                <input type="password" class="form-control" data-bind="value: password">
@@ -330,7 +330,7 @@
 					                  </select>  
 					                </label>
 					                <label class="radio-inline">
-					                  <input type="radio" value="3"  data-bind="checked:expireType,attr:{'name':uuid}"  style="margin-top:10px"> 有效期至<input type="text" value="" class="form-control inline applyDateFormat"  data-bind="value:expireType()==3?expireValue:''">
+					                  <input type="radio" value="3"  data-bind="checked:expireType,attr:{'name':uuid}"  style="margin-top:10px;"> 有效期至<input type="text" value="" style="margin-left:10px;width:150px;" class="form-control inline applyDateFormat"  data-bind="value:expireType()==3?expireValue:''">
 					                </label>                                    
 					              </div>
 					              <div class="col-xs-1">
@@ -373,7 +373,7 @@
 				                                  <td><span data-bind="text: ($index()+1)"></span></td>
 				                                  <td><input type="text" class="form-control" data-bind="value:instanceName"/></td>
 				                                  <td><input type="text" class="form-control" data-bind="value:volumeSize"/></td>
-				                                  <td><span data-bind="text:serviceName"></span><a class="btn btn-xs btn-default" data-bind="click:$root.selectVdiskService_VM">选择</a></td>
+				                                  <td><span data-bind="text:serviceName"></span><a class="btn btn-xs btn-default" data-bind="click:function(data,event){ $root.selectVdiskService_VM($parent,data,event)}">选择</a></td>
 				                                  <td><span data-bind="text:expireText"></span></td>
 				                                  <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billCycle,event:{change:$root.chargeChangeCart},valueAllowUnset:true,optionsCaption:'请选择'"></select></td>
 				                                  <td><span data-bind="text:fee"></span></td>
@@ -631,7 +631,6 @@
 	   	     //获取订单数据
 	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(orderData){
 	      		         console.log("orderDataorderDataorderData",orderData)
-	      		         
 	      		          var vmOrderItems = [];
 			      		  var diskOrderItems= [];
 			      		  for(var i=0;i<orderData.orderItems.length;i++){
@@ -657,6 +656,7 @@
 				      	      this.currentVO = ko.validatedObservable({
 				      	    	     vmApplyList : ko.observableArray([]),
 				      	             diskApplyList : ko.observableArray([]),
+				      	             softApplyList : ko.observableArray([]),
 				      	             orderData: ko.observable(orderData)
 				      	      });
 				      	    
@@ -707,7 +707,7 @@
 	 	                        	    	 }
 	 	                        	     }
 	 	                        	     vmInfo.availableIpList(ipList);
- 	                                },function(){},vmInfo); 
+ 	                                },function(){},vmInfo,true); 
 				 	                
 				 	                
 				 	                vmInfo.uuid(orderItem.uuid);
@@ -734,56 +734,6 @@
 				      				vmInfo.expireValue(orderItem.expireValue);
 				      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 				      				vmInfo.relateUuid(orderItem.relateUuid);
-				      				/**************加载云软件数据**************************/
-				      				var softwareList = vmInParamData.softwareList;
-				      				if(softwareList){
-				      				  vmInfo.softwareTempList = softwareList;
-				      				  csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,vmInfo) {
-				      					    var softwareTempList = vmInfo.softwareTempList;
-					      					for(var i=0;i<softwareTempList.length;i++){
-					      						var tempSoft = softwareTempList[i];
-					      						var software = new Software();
-					      						software.uuid(tempSoft.softwareUuid);
-					      						software.scriptUuid(tempSoft.scriptUuid);
-					      						for(var j=0;j<softList.results.length;j++){
-					      							var querySoftVO = softList.results[j];
-					      							if(software.uuid() == querySoftVO.uuid){
-					      								software.name(querySoftVO.name);
-					      								software.softType(querySoftVO.softType);
-					      								software.softTypeName(querySoftVO.softTypeName);
-					      								software.version(querySoftVO.version);
-					      							}
-					      						}
-					      						
-					      						software.softwareParamsTemp = tempSoft.softwareParamsList;
-					      		                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
-					      		                	var attrArray = attrList.results;
-					      		                	var softwareParamsTemp = software.softwareParamsTemp;
-					      		                    for(var i=0;i<attrArray.length;i++){
-					      		                    	var attrVO = attrArray[i];
-						      		                  	var param = new SoftwareParam();
-						      		                    param.softwareUuid(software.softwareUuid);
-									      		        param.scriptUuid(software.scriptUuid);
-									      		        param.uuid(attrVO.uuid);
-									      		        param.code(attrVO.code);
-									      		        param.defaultValue(attrVO.value);
-									      		        param.name(attrVO.name);
-					      		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
-					      		                    		 var softwareParamsVO = softwareParamsTemp[j];
-					      		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
-					      		                    			param.value(softwareParamsVO.paramsValue);
-					      		                    			break;
-					      		                    		 }
-					      		                    	 }
-					      		               		    software.softwareParams.push(param);
-					      		                    } 
-					      		                	
-					      		                },function(){},software);
-					      		               vmInfo.softwareList.push(software);  
-					      					}
-				      				  },function(){},vmInfo);
-				      				}
-				      				/**************加载云软件数据**************************/
 				      				self.currentVO().vmApplyList.push(vmInfo);
 				      			  }else if(orderItem.resourceType == "DISK"){
 				      				  var serviceUuid=orderItem.serviceUuid;
@@ -802,7 +752,8 @@
 				      				  diskInfo.fee(orderItem.fee);
 				      				  var callbackCustParam = diskInfo;
 				      			 	  csc.rest.get("api/v5.0.0/service/getServiceInfo/"+serviceUuid, function(serviceVO,textStatus,callbackCustParam){
-			                    	  csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+serviceUuid, function(res,textStatus,callbackCustParam){
+				      			 		     var diskInfo = callbackCustParam;
+			                    	  csc.rest.get("api/v5.0.0/cart/getCartSelectList?serviceUuid="+diskInfo.serviceUuid(), function(res,textStatus,callbackCustParam){
 			                    		      var diskInfo = callbackCustParam;
 			                    		     diskInfo.serviceName(serviceVO.name);
 			                    		     diskInfo.billRuleList(setArrayCharge(res.chargeList));
@@ -813,75 +764,133 @@
 				      				  //diskInfo.expireValue(diskInParamData.expireValue);
 				      				  diskInfo.relateUuid(orderItem.relateUuid);
 				      				  self.currentVO().diskApplyList.push(diskInfo);
-				      			  }
+				      			  }else if(orderItem.resourceType == "SOFTWARE"){
+						      			/**************加载云软件数据**************************/
+					      				var relateUuid=orderItem.relateUuid;
+					 	      		    var metaData = JSON.parse(orderItem.metaData);
+					 	      		    var softInParamData = JSON.parse(metaData.resBaseInfo);
+					 	      		    var software = new Software();
+					 	      		    software.relateUuid(relateUuid);
+					 	      		    software.uuid(orderItem.uuid);
+					 	      		    software.softwareUuid(softInParamData.softwareUuid);
+									    software.scriptUuid(softInParamData.scriptUuid);
+									    csc.rest.get("api/v5.0.0/soft/softwares",function(softList,textStatus,software) {
+									    	for(var j=0;j<softList.results.length;j++){
+				      							var querySoftVO = softList.results[j];
+				      							if(software.softwareUuid() == querySoftVO.uuid){
+				      								software.name(querySoftVO.name);
+				      								software.softType(querySoftVO.softType);
+				      								software.softTypeName(querySoftVO.softTypeName);
+				      								software.version(querySoftVO.version);
+				      							}
+				      						}
+									    },function(){},software);
+										software.softwareParamsTemp = softInParamData.softwareParamsList;
+									    csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+software.scriptUuid(), function(attrList,textStatus,software) {
+				  		                	var attrArray = attrList.results;
+				  		                	var softwareParamsTemp = software.softwareParamsTemp;
+				  		                    for(var i=0;i<attrArray.length;i++){
+				  		                    	var attrVO = attrArray[i];
+				      		                  	var param = new SoftwareParam();
+				      		                    param.softwareUuid(software.softwareUuid);
+							      		        param.scriptUuid(software.scriptUuid);
+							      		        param.uuid(attrVO.uuid);
+							      		        param.code(attrVO.code);
+							      		        param.defaultValue(attrVO.value);
+							      		        param.name(attrVO.name);
+				  		                    	 for(var j=0;j<softwareParamsTemp.length;j++){
+				  		                    		 var softwareParamsVO = softwareParamsTemp[j];
+				  		                    		 if(softwareParamsVO.paramsUuid == attrVO.uuid){
+				  		                    			param.value(softwareParamsVO.paramsValue);
+				  		                    			break;
+				  		                    		 }
+				  		                    	 }
+				  		               		    software.softwareParams.push(param);
+				  		                    } 
+				  		                	
+				  		                },function(){},software);
+					 	      		    self.currentVO().softApplyList.push(software);
+					      				/*****************加载云软件数据**************************/
+					      			  }
 				      		  }
 				      		  
-				      		 
+				      		 /***************云主机关联磁盘和软件***********/
 				      		  var vmList = self.currentVO().vmApplyList();
 				      		  var diskList = self.currentVO().diskApplyList();
-				      	 
+				      		  var softList = self.currentVO().softApplyList();
 				      		  for(var j=0;j<vmList.length;j++){
 				      			  var vmVO = vmList[j];
 				          		  for(var i=0;i<diskList.length;i++){
 				          			  var diskVo = diskList[i];
 				          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == diskVo.relateUuid()){
-			          				      diskVo.vdcName(vmVO.vdcName());//把虚拟机的值给磁盘 然后监听虚拟机的值
-				          				  vmVO.vdcName.subscribe(function(val){
-				          					   this.vdcName(val);
-						    			   },diskVo);
-				          				  diskVo.azName(vmVO.azName())
-				          				  vmVO.azName.subscribe(function(val){
-				          					    this.azName(val);
-						    			   },diskVo);
-				          				  
-				          				  diskVo.expireType(vmVO.expireType())
-				          				  vmVO.expireType.subscribe(function(val){
-				          					    this.expireType(val);
-						    			   },diskVo);
-				          				   
-				          				  diskVo.expireValue(vmVO.expireValue())
-				          				  vmVO.expireValue.subscribe(function(val){
-				          					    this.expireValue(val);
-						    			   },diskVo);
-				          				  
-				          				  diskVo.vmName(vmVO.instanceName());
-				          				  vmVO.mountDiskList.push(diskVo);
+				          				 diskSubScribeVm(diskVo,vmVO);
+				          				 vmVO.mountDiskList.push(diskVo);
+				          			  }
+				          		  }
+				          		  
+				          		  for(var i=0;i<softList.length;i++){
+				          			  var softVo = softList[i];
+				          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == softVo.relateUuid()){
+				          				  vmVO.softwareList.push(softVo);
 				          			  }
 				          		  }
 				      		  }
-				      		
 				      		  
-				      	  //选择云硬盘服务
-		      	          this.selectVdiskService = ko.observable(false);
-		      	          this.table_Vdisk_VM = null;
-		      	          var  diskEditObject;//用于临时存储磁盘对象
-		      	          this.selectVdiskService_VM = function(object){
-		      	        	  diskEditObject  = null;
-		      	              self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK',perPage:6});
-		      	              self.selectVdiskService(true);
-		      	              diskEditObject = object;
-		      	          } 
-		      	          
-		      	          this.submitVdiskService = function(){
-		      	        	  diskEditObject.uuid(csc.util.getUuid());
-		      	        	  diskEditObject.serviceName(self.table_Vdisk_VM.chosenItems().serviceName);
-		      	        	  diskEditObject.serviceUuid(self.table_Vdisk_VM.chosenItems().serviceUuid);
-		      	        	  diskEditObject.isBill(self.table_Vdisk_VM.chosenItems().isFee == "是" ?true:false);//其他地方时用的中文 
-		      	              var attr;
-		      	              if(self.table_Vdisk_VM.chosenItems().feeType !=null && self.table_Vdisk_VM.chosenItems().feeType!=""){
-		      	              	attr=self.table_Vdisk_VM.chosenItems().feeType.split(",")
-		      	              }
-		      	              diskEditObject.billRuleList(setArrayCharge(attr)); 
-		      	              self.selectVdiskService(false);
-		      	          }  
+				      		  function diskSubScribeVm(diskVo,vmVO){
+				      			     diskVo.vdcName(vmVO.vdcName());//把虚拟机的值给磁盘 然后监听虚拟机的值
+			          				  vmVO.vdcName.subscribe(function(val){
+			          					   this.vdcName(val);
+					    			   },diskVo);
+			          				  diskVo.azName(vmVO.azName())
+			          				  vmVO.azName.subscribe(function(val){
+			          					    this.azName(val);
+					    			   },diskVo);
+			          				  
+			          				  diskVo.expireType(vmVO.expireType())
+			          				  vmVO.expireType.subscribe(function(val){
+			          					    this.expireType(val);
+					    			   },diskVo);
+			          				   
+			          				  diskVo.expireValue(vmVO.expireValue())
+			          				  vmVO.expireValue.subscribe(function(val){
+			          					    this.expireValue(val);
+					    			   },diskVo);
+			          				  
+			          				  diskVo.vmName(vmVO.instanceName());
+				      		  }
 				      		  
+				      		 /***************云主机关联磁盘和软件***********/
 				      		  
-				      		this.addMountDisks = function(data){
+				      	  /************磁盘管理********************/
+			      	          this.selectVdiskService = ko.observable(false);
+			      	          this.table_Vdisk_VM = null;
+			      	          var  diskEditObject;//用于临时存储磁盘对象
+			      	          this.selectVdiskService_VM = function(parent,object){
+			      	        	  diskEditObject  = null;
+			      	              self.table_Vdisk_VM = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/DISK?vdcUuid='+parent.vdcUuid()+"&azUuid="+parent.azUuid(),perPage:6});
+			      	              self.selectVdiskService(true);
+			      	              diskEditObject = object;
+			      	          } 
+			      	          
+			      	          this.submitVdiskService = function(){
+			      	        	  diskEditObject.serviceName(self.table_Vdisk_VM.chosenItems().serviceName);
+			      	        	  diskEditObject.serviceUuid(self.table_Vdisk_VM.chosenItems().serviceUuid);
+			      	        	  diskEditObject.isBill(self.table_Vdisk_VM.chosenItems().isFee == "是" ?true:false);//其他地方时用的中文 
+			      	              var attr;
+			      	              if(self.table_Vdisk_VM.chosenItems().feeType !=null && self.table_Vdisk_VM.chosenItems().feeType!=""){
+			      	              	 attr=self.table_Vdisk_VM.chosenItems().feeType.split(",")
+			      	              }
+			      	              diskEditObject.billRuleList(setArrayCharge(attr)); 
+			      	              self.selectVdiskService(false);
+			      	          }  
+				      		  
+				      	    this.addMountDisks = function(vminfo){
 				      			  var diskInfo =  new DiskInfo();
-				      			  diskInfo.relateUuid(data.relateUuid());
-				      			  diskInfo.expireType(data.expireType());
-				      			  diskInfo.expireValue(data.expireValue());
-				      			  data.mountDiskList.push(diskInfo);
+				      			  diskInfo.relateUuid(vminfo.relateUuid());
+				      			  diskInfo.expireType(vminfo.expireType());
+				      			  diskInfo.expireValue(vminfo.expireValue());
+				      			  diskSubScribeVm(diskInfo,vminfo);
+				      			  vminfo.mountDiskList.push(diskInfo);
 			      	              self.currentVO().diskApplyList.push(diskInfo);
 			      	        }
 				      		
@@ -895,7 +904,9 @@
 					      		  }
 			      	             self.currentVO().diskApplyList.remove(data);
 			      	        }
+				      		/************磁盘管理********************/
 				      		
+				      	   
 				      		 this.removeVm = function(data){
 				      			  if(self.currentVO().vmApplyList().length == 1){
 				      				  systemMsg.alert('删除失败，订单中至少存在一个订单项！');	
@@ -914,11 +925,25 @@
 				    			 });
 				      		 }
 				      		
+				      		 /************事件处理******************/
 				      	     this.vdcChange = function(data, event) { //根据变化的vdc及服务ID查找其下的可用分区
 				      	    	  data.azList([]);data.azUuid("");
 				      	    	  data.vpcList([]);data.vpcUuid("");
 				      	    	  data.privateNetworkList([]);data.networkUuid("");
 				      	    	  data.availableIpList([]);data.ip("");
+				      	    	  var diskList = self.currentVO().diskApplyList();
+				      	    	  var vmDiskList = data.mountDiskList();
+				      	    	  for(var i=0;i<diskList.length;i++){
+				      	    		  var diskVO = diskList[i];
+				      	    		  for(var j=0;j<vmDiskList.length;j++){
+				      	    			  var vmDiskVO = vmDiskList[j];
+				      	    			  if(diskVO.uuid() ==  vmDiskVO.uuid()){
+				      	    				self.currentVO().diskApplyList.remove(diskVO);//移除磁盘
+				      	    				 break;
+				      	    			  }
+				      	    		  }
+				      	    	  }
+				      	    	  data.mountDiskList([]);//清空云主机关联的磁盘
 			                      csc.rest.get("api/v5.0.0/cart/getAzList/"+data.serviceUuid()+"/" + data.vdcUuid(), function(result) { //需修改为服务UUID作为参数传递
 			                    	  data.azList(result);
 			                      });  
@@ -1022,8 +1047,9 @@
 				      	  	    	}
 				      	  	    	return arrayCharge;
 				      	  	 }
-			                 
+			                /************事件处理******************/ 
 				      		
+			                
 			            	/***************云软件详情和编辑页面***********************/  
 			                var editSoftwareObject = null;
 				      	    self.showSoftwareAttr = ko.observable(false);
@@ -1076,14 +1102,15 @@
 						    }
 					        self.submitSoftwareService = function(){
 						    	self.table_Software_VM.chosenItems().forEach(function(e){
-						    		var vo=new Software();
-							    	vo.uuid(e.uuid);
-							    	vo.scriptUuid(e.scriptUuid);
-							    	vo.name(e.name);
-							    	vo.softType(e.softType);
-							    	vo.softTypeName(e.softTypeName);
-							    	vo.version(e.version);
-					                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+e.scriptUuid, function(attrList) {
+						    		var software=new Software();
+						    		software.relateUuid(editSoftwareObject.relateUuid());
+						    		software.scriptUuid(e.scriptUuid);
+						    		software.softwareUuid(e.uuid);
+						    		software.name(e.name);
+						    		software.softType(e.softType);
+						    		software.softTypeName(e.softTypeName);
+						    		software.version(e.version);
+					                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+e.scriptUuid, function(attrList,textStatus,software) {
 					                	var attrArray = attrList.results;
 					                	attrArray.forEach(function (f){
 			      		                  	var param = new SoftwareParam();
@@ -1092,17 +1119,26 @@
 						      		        param.uuid(f.uuid);
 						      		        param.code(f.code);
 						      		        param.defaultValue(f.value);
+						      		        param.value("");
 						      		        param.name(f.name);
-						      		        vo.softwareParams.push(param);
+						      		        software.softwareParams.push(param);
 					                	})
-					                });
-					                editSoftwareObject.softwareList.push(vo);
+					                },function(){},software);
+					                editSoftwareObject.softwareList.push(software);
+					                self.currentVO().softApplyList.push(software);
 						    	});
 					            self.selectSoftware(false);
 						    }
 						    
 					        self.delSoftwart_VM = function(obj,data,event){
-						    	obj.softwareList.remove(data);
+					        	  var vmList = self.currentVO().vmApplyList();
+					      		  for(var j=0;j<vmList.length;j++){
+					      			  var vmVO = vmList[j];
+					      			  if(vmVO.relateUuid() == data.relateUuid()){
+					      				 vmVO.softwareList.remove(data);
+					      			  }
+					      		  }
+					        	  self.currentVO().softApplyList.remove(data);
 						    }
 					        /************************************ 云主机 软件添加  ************************************/
 				          	
@@ -1110,7 +1146,9 @@
 				      		  
 				      		/******************实体对象定义**********************/  
 				      		function Software(){
+				      			this.relateUuid =ko.observable();
 				      		    this.uuid = ko.observable();
+				      		    this.softwareUuid =  ko.observable();
 						    	this.scriptUuid = ko.observable();
 						    	this.name = ko.observable();
 						    	this.softType = ko.observable();
@@ -1264,8 +1302,9 @@
 				      			this.billRuleList = ko.observableArray([]),
 				      			this.availableIpList = ko.observableArray([])
 				      		  }
+				      		/******************实体对象定义**********************/  
 				      		  
-				      		  
+				      		/************保存数据方法*************/
 				      		 self.save = function(obj,event,callback){
 				      	    
 					      		    var orderUuid = self.currentVO.toJSON().orderData.uuid;
@@ -1275,23 +1314,26 @@
 					      		    
 					      		    var vmOrderItems = [];
 				        		    var diskOrderItems= [];
+				        		    var softOrderItems= [];
 				        		    for(var i=0;i<orderData.orderItems.length;i++){
 				        			  var orderItem = orderData.orderItems[i];
 				        			  if(orderItem.resourceType == "VM"){
 				        				  vmOrderItems.push(orderItem);
 				        			  }else if(orderItem.resourceType == "DISK"){
 				        				  diskOrderItems.push(orderItem);
+				        			  }else if(softOrderItems.resourceType == "SOFT"){
+				        				  softOrderItems.push(orderItem);
 				        			  }
 				        		    }
 				        		    
 				      	            var vmOrderItemVONew = [];
 				        			var vmList = self.currentVO().vmApplyList();
-				      		        var diskList = self.currentVO().diskApplyList();
 				      		        for(var j=0;j<vmList.length;j++){
 					      			    var vmVO = vmList[j];
 					      			    var vmOrderItemVO = {};
 					      			    vmOrderItemVO.resourceType ="VM"; 
 					      			 	vmOrderItemVO.orderUuid = orderUuid;
+					      			 	vmOrderItemVO.uuid = vmVO.uuid();
 					      			 	vmOrderItemVO.serviceUuid = vmVO.serviceUuid();
 					      				vmOrderItemVO.vdcUuid = vmVO.vdcUuid();
 					      	 	    	vmOrderItemVO.relateUuid = vmVO.relateUuid();
@@ -1318,25 +1360,6 @@
 					        		 	metaDataResBaseInfo.ip = vmVO.ip();
 					        		 	metaDataResBaseInfo.busSysUuid = vmVO.busSysUuid();
 					        		   	metaDataResBaseInfo.sshUuid = vmVO.sshKeyUuid();
-					        		   	
-					        		   	metaDataResBaseInfo.softwareList = []
-					        		   	var softwareList = vmVO.softwareList();
-					        		   	for(var k=0;k<softwareList.length;k++){
-					        		   		var softwareVo = softwareList[k];
-					        		   		var software = {};
-					        		   		software.softwareUuid = softwareVo.uuid();
-					        		   		software.scriptUuid =softwareVo.scriptUuid();
-					        		   		software.softwareParamsList = [];
-					        		   		var softwareParamList = softwareVo.softwareParams();
-					        		   		for(var p=0;p<softwareParamList.length;p++){
-					        		   			var param = softwareParamList[p];
-					        		   			var softwareParam = {};
-					        		   			softwareParam.paramsUuid = param.uuid();
-					        		   			softwareParam.paramsValue = param.value();
-					        		   			software.softwareParamsList.push(softwareParam);
-					        		   		}
-					        		   		metaDataResBaseInfo.softwareList.push(software);
-					        		   	}
 					        			metaData.resBaseInfo =  metaDataResBaseInfo;
 			    		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
 			    		  		    	vmOrderItemVONew.push(vmOrderItemVO);
@@ -1369,18 +1392,48 @@
 			       		    	    	newDiskOrderItem.uuid =diskVO.uuid();
 			       		    	    	diskOrderItemsNew.push(newDiskOrderItem);
 			       		    	    }
+			       		     
+			       		    	     var softOrderItemsNew = [];
+			       		            var softApplyList = self.currentVO().softApplyList();
+			       		    	    for(var k=0;k<softApplyList.length;k++){
+						        		   		var softwareVo = softApplyList[k];
+						        		   		var newSoftOrderItem = {};
+						        		   		newSoftOrderItem.relateUuid = softwareVo.relateUuid();
+						        		   		newSoftOrderItem.orderUuid = orderUuid;
+						        		   		newSoftOrderItem.resourceType = "SOFTWARE";
+						        		   		newSoftOrderItem.uuid = softwareVo.uuid();
+						        		   		var software = {};
+						        		   		software.softwareUuid = softwareVo.softwareUuid();
+						        		   		software.scriptUuid =softwareVo.scriptUuid();
+						        		   		software.softwareParamsList = [];
+						        		   		var softwareParamList = softwareVo.softwareParams();
+						        		   		for(var p=0;p<softwareParamList.length;p++){
+						        		   			var param = softwareParamList[p];
+						        		   			var softwareParam = {};
+						        		   			softwareParam.paramsUuid = param.uuid();
+						        		   			softwareParam.paramsValue = param.value();
+						        		   			software.softwareParamsList.push(softwareParam);
+						        		   		}
+						        		   		var metaData = {resBaseInfo:{}};
+						        		   		metaData.resBaseInfo = software;
+						        		   		newSoftOrderItem.metaData = JSON.stringify(metaData)
+						        		   		softOrderItemsNew.push(newSoftOrderItem);
+				        		    } 
 			       		    	    
-			       		    	    orderData.orderItems = vmOrderItemVONew.concat(diskOrderItemsNew)
-			       		    	    console.log("after----------",orderData)
-				               	    csc.rest.put("api/v5.0.0/orders/"+orderUuid,orderData, function(data){
+			       		    	 
+			       		    	      var orderItems = vmOrderItemVONew.concat(diskOrderItemsNew).concat(softOrderItemsNew)
+			       		    	      console.log("after----------",orderItems)
+			       		    	      orderData.orderItems = orderItems
+				               	       csc.rest.put("api/v5.0.0/orders/"+orderUuid,orderData, function(data){
 				               	    	if(typeof(callback) != 'undefined'){
 											callback();
 											return;
 										} 
 				               	    	alert("保存成功！");
-				               	   });  
+				               	   });    
 					     	   }
-				      		 
+				      		   /************保存数据方法*************/
+				      		   
 				      		   this.next = function(){
 				    			self.save("","",function(){
 				    				var databody = {"action":"reSubmit"};

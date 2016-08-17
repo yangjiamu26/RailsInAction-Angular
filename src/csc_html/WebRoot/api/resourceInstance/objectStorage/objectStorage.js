@@ -7,8 +7,6 @@
 			createObjectStorage:function(param,callback,errorCallback){
 				 csc.rest.post('api/v5.0.0/objectStorages',param,function(data){
 					     callback(data);
-	    		    },function(data){
-	    		    	errorCallback(data);
 	    		    }); 
 			},
 			/**

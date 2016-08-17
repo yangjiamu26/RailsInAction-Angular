@@ -5892,6 +5892,54 @@ ko.bindingHandlers.translate = {
 	    }
 	  };
 
+
+ko.actionsMap = ko.observableArray([]);
+//< data-bind="check_action: 'action1'"  />
+ko.bindingHandlers.check_action = {
+	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        // This will be called when the binding is first applied to an element
+	        // Set up any initial state, event handlers, etc. here
+	    	var self = $(element);
+	        var value = valueAccessor();
+
+	        var flag = false;
+	        if(ko.actionsMap()){
+	        	if(ko.actionsMap().indexOf(value)!=-1){
+	        		flag = true;
+	        	}
+	        }
+	        if(flag){
+	        	$(element).show();
+	        }else{
+	        	$(element).hide();
+	        }
+	    }
+	  };
+
+ko.bindingHandlers.check_click = {
+	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        // This will be called when the binding is first applied to an element
+	        // Set up any initial state, event handlers, etc. here
+	    	var self = $(element);
+	        var value = valueAccessor();
+
+	        var flag = false;
+	        if(ko.actionsMap()){
+	        	if(ko.actionsMap().indexOf(allBindings()["action"])!=-1){
+	        		flag = true;
+	        	}
+	        }
+	        if(flag){
+	        	ko.bindingHandlers.click.init(element, valueAccessor, allBindings, viewModel, bindingContext);
+	        }else{
+	        	element.style.color = "#58666e";
+	        	element.style.cursor = "text";
+	        }
+	    }
+	  };
+	
+
+
 ko.bindingHandlers.ui = {
     init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
         // This will be called when the binding is first applied to an element

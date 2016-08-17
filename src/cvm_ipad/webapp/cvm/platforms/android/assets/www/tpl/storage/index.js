@@ -1,5 +1,6 @@
 myApp.onPageInit("storage-index", function(page) {
 
+<<<<<<< HEAD
   function ViewModel(){
     this.dataList = ko.observableArray([]);
     this.infos = ko.observable({
@@ -59,6 +60,10 @@ myApp.onPageInit("storage-index", function(page) {
 
 // 存储池-是否共享占比图
 function initStorage_share_chart(share, local) {
+=======
+// 存储池-是否共享占比图
+function initStorage_share_chart(share, total) {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     $('#storage_share_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -92,7 +97,11 @@ function initStorage_share_chart(share, local) {
           
           fontWeight: 'normal'
         },
+<<<<<<< HEAD
         labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+=======
+        labelFormat: '{name}：<b>{y:.2f}</b>TB',
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       },
       plotOptions: {
           pie: {
@@ -123,7 +132,11 @@ function initStorage_share_chart(share, local) {
               },
               {
                   name: '本地',
+<<<<<<< HEAD
                   y: local,
+=======
+                  y: total-share,
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
                   color:"#f87b38"
               }
           ]
@@ -133,7 +146,11 @@ function initStorage_share_chart(share, local) {
 
 
 // 存储池-使用率占比图
+<<<<<<< HEAD
 function initStorage_use_chart(used, total) {
+=======
+function initStorage_use_chart(free, total) {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     $('#storage_use_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -167,7 +184,11 @@ function initStorage_use_chart(used, total) {
           
           fontWeight: 'normal'
         },
+<<<<<<< HEAD
         labelFormat: '{name}：<b>{y:.2f}</b>GHz',
+=======
+        labelFormat: '{name}：<b>{y:.2f}</b>TB',
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       },
       plotOptions: {
           pie: {
@@ -193,12 +214,20 @@ function initStorage_use_chart(used, total) {
           name: '存储',
           data: [{
                   name: '未用',
+<<<<<<< HEAD
                   y: total-used,
+=======
+                  y: free,
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
                   color:"#fadf4f"
               },
               {
                   name: '已用',
+<<<<<<< HEAD
                   y: used,
+=======
+                  y: total-free,
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
                   color:"#f87b38"
               }
           ]
@@ -206,6 +235,7 @@ function initStorage_use_chart(used, total) {
     });   
 }
 
+<<<<<<< HEAD
 // 单个存储池-使用率占比图
 function initsingleStorage_use_chart() {
     $('#singleStorage_use_chart').highcharts({
@@ -347,3 +377,83 @@ function initsingleStorage_assigned_chart() {
       }]
     });   
 }
+=======
+  function ViewModel(){
+    this.hypervisor = ko.observable("");
+    this.resPoolId = ko.observable("");
+    this.dataList = ko.observableArray([]);
+    this.infos = ko.observable({
+      "totalSize":'',
+      "sharedSize":'',
+      "local":'',
+      "used":'',
+      "availSize":'',
+      "svc":'',
+      "nfs":'',
+      "storage":''
+    });
+
+    this.loading = false;
+    this.page = 1;
+    this.loadData = function(is_loadMore, hypervisor, resPoolId){
+      if(hypervisor){
+        this.hypervisor(hypervisor);
+      }else{
+        this.hypervisor("");
+      }
+      if(resPoolId){
+        this.resPoolId(resPoolId);
+      }else{
+        this.resPoolId("");
+      }
+      var self = this;
+      if (self.loading) return;
+      self.loading = true;
+      if(!is_loadMore) self.page = 1;
+
+      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      //$$.getJSON("tpl/storage/index.json?id="+page.query.id+"&page="+self.page,function(data){
+        data.totalSize = Number((Number(data.totalSize)/1024).toFixed(2));
+        data.sharedSize = Number(data.sharedSize/1024);
+        data.availSize = Number(data.availSize/1024);
+        self.infos(data);
+        self.loading = false;
+        if(!is_loadMore){
+          myApp.pullToRefreshDone();
+          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          self.dataList.removeAll();
+
+          initStorage_share_chart(data.sharedSize,data.totalSize);
+          initStorage_use_chart(data.availSize,data.totalSize);
+        }
+        for(var i=0; i<data.data.length; i++){       
+          self.dataList.push(data.data[i]);
+        }
+        self.page++;
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          $$(page.container).find('.infinite-scroll-preloader').remove();
+        }
+      })
+    }
+  }
+  var viewModel = new ViewModel();
+  ko.applyBindings(viewModel, $$(page.container)[0]);
+  window.storage_index_viewModel = viewModel;
+  
+  viewModel.loadData();
+
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
+  $$(page.container).find('.infinite-scroll').on('infinite', function () {
+    viewModel.loadData(true);
+  });  
+  
+});
+
+
+
+
+
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
