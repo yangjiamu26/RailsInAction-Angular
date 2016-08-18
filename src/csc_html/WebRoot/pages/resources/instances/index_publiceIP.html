@@ -73,7 +73,7 @@
 	            <span class="label label-danger" data-bind="if: $row.isValidate == false">已过期</span>
             </td>
             <!-- <td data-bind="text: $row.createTime"></td> --><!-- 创建时间 -->
-            <td data-bind="text: $row.expiredDate"></td><!-- 有效期 -->
+            <td data-bind="text: $row.expiryDate"></td><!-- 有效期 -->
             <td data-bind="text: $row.account"></td><!-- 创建人 -->
             <td><!-- 操作 -->
             	<span data-bind="check_action:'pubIp_TimeModify'"><a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |</span>
@@ -451,6 +451,7 @@
 <script type="text/javascript">
   var scripts = ["api/vpc/vpc.js", 
                  "api/vdc/vdc.js",
+                 "api/resource/az/az.js",
                  "api/resource/network/port.js",
                  "api/resourceInstance/instance.js",
                  "api/resourceInstance/publicIp/publicIp.js", 
@@ -509,7 +510,7 @@
     	  "createTime":"",
     	  "valiTime":"",
     	  "account":"",
-    	  "expiredDate":"",
+    	  "expiryDate":"",
     	  "systemReserve": ""
 	  });
       
@@ -656,7 +657,7 @@
       	  	  }
         	  p.timeType = "0";
         	  p.timeValue = "0";
-        	  p.expiredDate = expiryTime;
+        	  p.expiryDate = expiryTime;
    	    	  $.PUBLIC_IP.createPublicIp(p, function(data){
    	    		  self.isShowCreatePage(false);
    	    		  self.publicIpTable.refreshData();
@@ -820,7 +821,7 @@
 	    	  //设置修改对象的uuid
 	    	  self.validateTimeVO().uuid(object.uuid);
 	    	  self.validateTimeVO().name(object.name);
-	    	  self.validateTimeVO().time(object.expiredDate);
+	    	  self.validateTimeVO().time(object.expiryDate);
      	  }
       }
       
@@ -903,8 +904,6 @@
 			    }
     	    	
     	    });
-    	  
-    	  
       }();
       
       //重置
@@ -931,7 +930,7 @@
               path: 'api/v5.0.0/publicIps',
               loader: function(result){
                   //result.account_ = "超级管理员"; 
-                  result.expiredDate = result.expiredDate && result.expiredDate.length >10?result.expiredDate.substring(0, 10):result.expiredDate;
+                  result.expiryDate = result.expiryDate && result.expiryDate.length >10?result.expiryDate.substring(0, 10):result.expiryDate;
                   return result;
               }
       });
@@ -1004,7 +1003,7 @@
 		  self.validateProcessVO().time(myDate.toLocaleString());
 		  self.validateProcessVO().user("");
 		  
-		  self.validateProcessVO().validateTime(object.expiredDate);
+		  self.validateProcessVO().validateTime(object.expiryDate);
 		  self.validateProcessVO().targetValidateTime("");
 		  
 		  $('#resource_instance_ip_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(

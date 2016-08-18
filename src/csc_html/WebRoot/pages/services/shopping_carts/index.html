@@ -403,6 +403,13 @@
 	        /************************************ 购物车页面定义  ************************************/
            
 			/************************************ 购物车提交订单数据格式转换  ************************************/
+			
+			this.ordersVo = ko.validatedObservable({
+				resourceType : ko.observable(),
+				vdcUuid : ko.observable(),
+				orderItems : ko.observableArray([])
+			});
+			
 			this.orders_vdisk=ko.validatedObservable({
 				resourceType : ko.observable(),
 				orderItems : ko.observableArray([])
@@ -700,7 +707,7 @@
 		                    });
 		                    key[productKey]=e;
 		                }
-	                	
+	                	outerloop:
 	                    for(var j = 0; j < dest.length; j++){
 	                        var dj = dest[j];
 	                        if(dj.vdcUuid == e.vdcUuid()){//vdc uuid相同
@@ -711,7 +718,7 @@
 	                        			var v=value[m];
 	                        			if(val.productKey == v.productKey ){// productKey 相同
 	                        				val.product.push(e);
-	                        				 break;
+	                        				 break outerloop;
 		                        		}else{//不同 则新增 productKey
 		                        			bool=true;
 		                        		    break;
@@ -752,40 +759,40 @@
                 if(self.vmList_chosens() !=null && result==""){
                 	self.vmList_chosens().forEach(function(e){
                 		result = validatedOrders(e);
-                		if(result!=""){msg+="云主机  "+e.vmName()+" ："}
+                		if(result!=""){msg+="云主机："+e.vmName()+","}
                 	});
                 }
                 if(self.vdiskList_chosens() !=null && result==""){
                 	self.vdiskList_chosens().forEach(function(e){
                			result = validatedOrders(e);
-               			if(result!=""){msg+="云硬盘  "+e.name()+" ："}
+               			if(result!=""){msg+="云硬盘："+e.name()+","}
                 	});
                 }
                 if(self.objectStorageList_chosens() !=null && result==""){
                 	self.objectStorageList_chosens().forEach(function(e){
                			result = validatedOrders(e);
-               			if(result!=""){msg+="对象存储  "+e.name()+" ："}
+               			if(result!=""){msg+="对象存储："+e.name()+","}
                 		
                 	});
                 }
                 if(self.publicNetworkList_chosens() !=null && result==""){
                 	self.publicNetworkList_chosens().forEach(function(e){
                			result = validatedOrders(e);
-               			if(result!=""){msg+="公网IP  "+e.name()+" ："}
+               			if(result!=""){msg+="公网IP："+e.name()+","}
                 		
                 	});
                 }
                 if(self.loadbalancerList_chosens() !=null && result==""){
                 	self.loadbalancerList_chosens().forEach(function(e){
                			result = validatedOrders(e);
-               			if(result!=""){msg+="负载均衡  "+e.name()+" ："}
+               			if(result!=""){msg+="负载均衡： "+e.name()+","}
                 		
                 	});
                 }
                 if(self.sshKeytList_chosens() !=null && result==""){
                 	self.sshKeytList_chosens().forEach(function(e){
                			result = validatedOrders(e);
-               			if(result!=""){msg+="SSH密钥  "+e.name()+" ："}
+               			if(result!=""){msg+="SSH密钥："+e.name()+","}
                 		
                 	});
                 }
@@ -807,7 +814,7 @@
                     	msg+="服务发布范围不存在";
                     }
                     
-                	systemMsg.alert(msg+'！');
+                	systemMsg.alert(msg+'!');
                 	return;
                 }
                 //################服务验证######################
@@ -846,204 +853,258 @@
                 	systemMsg.alert(message);
                 	return;
                 }
-                //################vdc 配额验证######################
                 $.ajaxSetup({   
                     async : true   
                 });
+                //################vdc 配额验证######################
                 csc.rest.get('api/v5.0.0/cart', function(data) {
-                	systemMsg.alert('成功提交订单！');//后续优化，需改为提交后弹出
-                    if (self.vdiskList_chosens().length > 0) {
-                    	self.orders_vdisk().orderItems([]);
-                    	self.orders_vdisk().resourceType("DISK");
-                    	self.vdiskList_chosens().forEach(function (e){
-                            data['vdiskCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var item =new items(f);
-                     	    	   var meta=new metaData();
-                    	    	   var baseInfo =new DISK_baseInfo();
-                    	    	   item.resourceType("DISK");
-                    	    	   baseInfo.volumeSize(f.size);
-                    	    	   baseInfo.vmUuid(f.mountVmUuid);
-                    	    	   meta.resBaseInfo(baseInfo);
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_vdisk().orderItems.push(item);
-                            	}
-                            });
-                    	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vdisk.toJSON(),function(result1){
-						 		self.vdiskList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/vdiskCartInfo/'+e.id(),function(result2){
-						 				self.vdiskList.remove(function (item) { return item.id() == result2.id; });
-						 				self.vdiskNum(self.vdiskNum()-1);
-				                         /* 
-				                          *   提交购物车时，重新加载顶部购物车统计； 
-				                          *   方法定义位置：WebRoot\index.html 
-				                          */ 
-				                         frameViewModel.loadCartNum();
-						 			});
-						 		});
-						 		self.vdiskList_chosens.removeAll();
-						    }); 
-                    }
-                    if(self.objectStorageList_chosens().length > 0){
-                    	self.orders_objectStorage().orderItems([]);
-                    	self.orders_objectStorage().resourceType("OBJECT_STORAGE");
-                    	self.objectStorageList_chosens().forEach(function (e){
-                            data['objectStorageCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var item =new items(f);
-                     	    	   var meta=new metaData();
-                    	    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
-                    	    	   item.resourceType("OBJECT_STORAGE");
-                    	    	   baseInfo.applySize(f.size);
-                    	    	   meta.resBaseInfo(baseInfo);
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_objectStorage().orderItems.push(item);
-                            	}
-                            });
-                    	});
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_objectStorage.toJSON(),function(result1){
-						 		self.objectStorageList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/objectStorageCartInfo/'+e.id(),function(result2){
-						 				self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
-						 				self.objectStorageNum(self.objectStorageNum()-1);
-				                         /* 
-				                          *   提交购物车时，重新加载顶部购物车统计； 
-				                          *   方法定义位置：WebRoot\index.html 
-				                          */ 
-				                         frameViewModel.loadCartNum();
-						 			});
-						 		});
-						 		self.objectStorageList_chosens.removeAll();
-						    }); 
-                    }
-                    
-                    if(self.publicNetworkList_chosens().length > 0){
-                    	self.orders_publicNetwork().orderItems([]);
-                    	self.orders_publicNetwork().resourceType("PUBLICIP");
-                    	self.publicNetworkList_chosens().forEach(function (e){
-                            data['publicNetworkCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var item =new items(f);
-                     	    	   var meta=new metaData();
-                    	    	   var baseInfo =new PUBLICIP_baseInfo();
-                    	    	   item.resourceType("PUBLICIP");
-                    	    	   baseInfo.vpcUuid(f.vpcUuid);
-                    	    	   baseInfo.networkUuid(f.netWorkId);
-                    	    	   meta.resBaseInfo(baseInfo);
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_publicNetwork().orderItems.push(item);
-                            	}
-                            });
-                    	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_publicNetwork.toJSON(),function(result1){
-						 		self.publicNetworkList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/publicNetworkCartInfo/'+e.id(),function(result2){
+	                $.ajaxSetup({   
+		                    async : false   
+		                });
+                	dest.forEach(function (vdcList){
+                		self.ordersVo().vdcUuid(vdcList.vdcUuid);
+                		vdcList.data.forEach(function (typeList){
+                			var delInfo = "";
+							self.ordersVo().orderItems([]);
+							self.ordersVo().resourceType(typeList.productKey);
+                			typeList.product.forEach(function (e){
+      							 if(typeList.productKey=="DISK"){
+      								 delInfo = "vdiskCartInfo";
+      								 data['vdiskCartInfo'].forEach(function(f) {
+      									 if(e.uuid()==f.uuid){
+      	                            	   var item =new items(f);
+      	                     	    	   var meta=new metaData();
+      	                    	    	   var baseInfo =new DISK_baseInfo();
+      	                    	    	   item.resourceType("DISK");
+      	                    	    	   baseInfo.volumeSize(f.size);
+      	                    	    	   baseInfo.vmUuid(f.mountVmUuid);
+      	                    	    	   meta.resBaseInfo(baseInfo);
+      	                    	    	   item.metaData(ko.toJSON(meta));
+      	                    	    	   self.ordersVo().orderItems.push(item);
+      									 }
+      								 });
+      							 }else if(typeList.productKey=="OBJECT_STORAGE"){
+      								delInfo = "objectStorageCartInfo";
+      	                            data['objectStorageCartInfo'].forEach(function(f) {
+      	                            	if(e.uuid()==f.uuid){
+      	                            	   var item =new items(f);
+      	                     	    	   var meta=new metaData();
+      	                    	    	   var baseInfo =new OBJECT_STORAGE_baseInfo();
+      	                    	    	   item.resourceType("OBJECT_STORAGE");
+      	                    	    	   baseInfo.applySize(f.size);
+      	                    	    	   meta.resBaseInfo(baseInfo);
+      	                    	    	   item.metaData(ko.toJSON(meta));
+      	                    	    	   self.ordersVo().orderItems.push(item);
+      	                            	}
+      	                            });
+      							 }else if(typeList.productKey=="PUBLICIP"){
+      								delInfo = "publicNetworkCartInfo";
+      	                            data['publicNetworkCartInfo'].forEach(function(f) {
+      	                            	if(e.uuid()==f.uuid){
+      	                            	   var item =new items(f);
+      	                     	    	   var meta=new metaData();
+      	                    	    	   var baseInfo =new PUBLICIP_baseInfo();
+      	                    	    	   item.resourceType("PUBLICIP");
+      	                    	    	   baseInfo.vpcUuid(f.vpcUuid);
+      	                    	    	   baseInfo.networkUuid(f.netWorkId);
+      	                    	    	   meta.resBaseInfo(baseInfo);
+      	                    	    	   item.metaData(ko.toJSON(meta));
+      	                    	    	   self.ordersVo().orderItems.push(item);
+      	                            	}
+      	                            });
+      							 }else if(typeList.productKey=="LOAD_BALANCING"){
+      								delInfo = "loadbalancerCartInfo";
+      	                            data['loadbalancerCartInfo'].forEach(function(f) {
+      	                            	if(e.uuid()==f.uuid){
+      	                            	   var item =new items(f);
+      	                     	    	   var meta=new metaData();
+      	                    	    	   var baseInfo =new LOAD_BALANCING_baseInfo();
+      	                    	    	   item.resourceType("LOAD_BALANCING");
+      	                    	    	   baseInfo.vpcUuid(e.vpcUuid());
+      	                    	    	   baseInfo.networkUuid(e.vpcNetworkUuid());
+      	                    	    	   baseInfo.lbMethod(e.loadBalanceWay());
+      	                    	    	   baseInfo.protocol(e.agreement());
+      	                    	    	   meta.resBaseInfo(baseInfo);
+      	                    	    	   item.metaData(ko.toJSON(meta));
+      	                    	    	   self.ordersVo().orderItems.push(item);
+      	                            	}
+      	                            });
+      							 }else if(typeList.productKey=="SECRET_KEY"){
+      								delInfo = "sshKeytCartInfo";
+      	                            data['sshKeytCartInfo'].forEach(function(f) {
+      	                            	if(e.uuid()==f.uuid){
+      	                            	   var item =new items(f);
+      	                     	    	   var meta=new metaData();
+      	                    	    	   item.resourceType("SECRET_KEY");
+      	                    	    	   meta.resBaseInfo("");
+      	                    	    	   item.metaData(ko.toJSON(meta));
+      	                    	    	   self.ordersVo().orderItems.push(item);
+      	                            	}
+      	                            });
+      							 }else if(typeList.productKey=="VM"){
+      								delInfo = "vmCartInfo";
+      								orderItems = null;
+      								getOrdersVm(e);
+      								var item = orderItems;
+      								self.ordersVo().orderItems.push(item);
+      							 }
+      						 })
+      						 
+						    csc.rest.post('api/v5.0.0/orders',self.ordersVo.toJSON(),function(result1){
+						    });
+      						 
+                			typeList.product.forEach(function (d){
+                				var delId;
+                				if(delInfo=="vmCartInfo"){
+                					delId = d.uuid();
+                				}else{
+                					delId = d.id();
+                				}
+    				 			csc.rest.del('api/v5.0.0/cart/delete/'+delInfo+'/'+delId,function(result2){
+    				 				if(result2.type=="vdiskCartInfo"){
+    				 					self.vdiskList.remove(function (item) { return item.id() == result2.id; });
+    				 					self.vdiskNum(self.vdiskNum()-1);
+    				 					self.vdiskList_chosens.removeAll();
+    				 				}else if(result2.type=="objectStorageCartInfo"){
+    				 					self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
+    				 					self.objectStorageNum(self.objectStorageNum()-1);
+    				 					self.objectStorageList_chosens.removeAll();
+    				 				}else if(result2.type=="publicNetworkCartInfo"){
 						 				self.publicNetworkList.remove(function (item) { return item.id() == result2.id; });
 						 				self.publicNetworkNum(self.publicNetworkNum()-1);
-				                         /* 
-				                          *   提交购物车时，重新加载顶部购物车统计； 
-				                          *   方法定义位置：WebRoot\index.html 
-				                          */ 
-				                         frameViewModel.loadCartNum();
-						 			});
-						 		});
-						 		self.publicNetworkList_chosens.removeAll();
-						    }); 
-                    }
-                    if(self.loadbalancerList_chosens().length > 0){
-                    	self.orders_loadbalancer().orderItems([]);
-                    	self.orders_loadbalancer().resourceType("LOAD_BALANCING");
-                    	self.loadbalancerList_chosens().forEach(function (e){
-                            data['loadbalancerCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var item =new items(f);
-                     	    	   var meta=new metaData();
-                    	    	   var baseInfo =new LOAD_BALANCING_baseInfo();
-                    	    	   item.resourceType("LOAD_BALANCING");
-                    	    	   baseInfo.vpcUuid(e.vpcUuid());
-                    	    	   baseInfo.networkUuid(e.vpcNetworkUuid());
-                    	    	   baseInfo.lbMethod(e.loadBalanceWay());
-                    	    	   baseInfo.protocol(e.agreement());
-                    	    	   meta.resBaseInfo(baseInfo);
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_loadbalancer().orderItems.push(item);
-                            	}
-                            });
-                            
-                    	})
-                    	
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_loadbalancer.toJSON(),function(result1){
-						 		self.loadbalancerList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/loadbalancerCartInfo/'+e.id(),function(result2){
+										self.publicNetworkList_chosens.removeAll();
+    				 				}else if(result2.type=="loadbalancerCartInfo"){
 						 				self.loadbalancerList.remove(function (item) { return item.id() == result2.id; });
 						 				self.lbNum(self.lbNum()-1);
-				                         /* 
-				                          *   提交购物车时，重新加载顶部购物车统计； 
-				                          *   方法定义位置：WebRoot\index.html 
-				                          */ 
-				                         frameViewModel.loadCartNum();
-						 			});
-						 		});
-						 		self.loadbalancerList_chosens.removeAll();
-						    }); 
-                     }
-                    if(self.sshKeytList_chosens().length > 0){
-                    	self.orders_ssh().orderItems([]);
-                    	self.orders_ssh().resourceType("SECRET_KEY");
-                    	self.sshKeytList_chosens().forEach(function (e){
-                            data['sshKeytCartInfo'].forEach(function(f) {
-                            	if(e.uuid()==f.uuid){
-                            	   var item =new items(f);
-                     	    	   var meta=new metaData();
-                    	    	   item.resourceType("SECRET_KEY");
-                    	    	   meta.resBaseInfo("");
-                    	    	   item.metaData(ko.toJSON(meta));
-                    	    	   self.orders_ssh().orderItems.push(item);
-                            	}
-                            });
-                    	})
-					 	 csc.rest.post('api/v5.0.0/orders',self.orders_ssh.toJSON(),function(result1){
-						 		self.sshKeytList_chosens().forEach(function (e){
-						 			csc.rest.del('api/v5.0.0/cart/delete/sshKeytCartInfo/'+e.id(),function(result2){
+										self.loadbalancerList_chosens.removeAll();
+    				 				}else if(result2.type=="sshKeytCartInfo"){
 						 				self.sshKeytList.remove(function (item) { return item.id() == result2.id; });
 						 				self.sshNum(self.sshNum()-1);
-				                         /* 
-				                          *   提交购物车时，重新加载顶部购物车统计； 
-				                          *   方法定义位置：WebRoot\index.html 
-				                          */ 
-				                         frameViewModel.loadCartNum();
-						 			});
-						 		});
-						 		self.sshKeytList_chosens.removeAll();
-						    }); 
-                     }
-                    if(self.vmList_chosens().length > 0){
-                    	self.orders_vm().orderItems([]);
-                    	self.orders_vm().resourceType("VM");
-                    	
-                    	getOrderVm(function(isOk){
-                    		if(isOk){
-	       					 	 csc.rest.post('api/v5.0.0/orders',self.orders_vm.toJSON(),function(result1){
-	 						 		self.vmList_chosens().forEach(function (e){
-	 						 			csc.rest.del('api/v5.0.0/cart/delete/vmCartInfo/'+e.uuid(),function(result2){
-	 						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
-	 						 				self.vmNum(self.vmNum()-1);
-	 				                         /* 
-	 				                          *   提交购物车时，重新加载顶部购物车统计； 
-	 				                          *   方法定义位置：WebRoot\index.html 
-	 				                          */ 
-	 				                         frameViewModel.loadCartNum();
-	 						 			});
-	 						 		});
-	 						 		self.vmList_chosens.removeAll();
-	 						    }); 
-                    		}
-                    	})
+										self.sshKeytList_chosens.removeAll();
+    				 				}else if(result2.type=="vmCartInfo"){
+ 						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
+ 						 				self.vmNum(self.vmNum()-1);
+										self.vmList_chosens.removeAll();
+    				 				}
+					 			});
+                			})
+                		})
 
-                     }
+                	})
+       				/* 
+                    *   提交购物车时，重新加载顶部购物车统计； 
+                    *   方法定义位置：WebRoot\index.html 
+                    */ 
+                	frameViewModel.loadCartNum();
+                	systemMsg.alert('成功提交订单！');
+	                $.ajaxSetup({   
+		                    async : true   
+		                });
                 });
             };
+            
+            var items;
+            function getOrdersVm(e){
+            	csc.rest.get('api/v5.0.0/cart/query/vmCartInfo/'+e.uuid(),function(f){
+	    			//云主机需要获取到挂载的云硬盘及软件的信息，所以需要调查询单个云主机的接口再去查询下该云主机的详细信息
+	         	   var relateUuid=csc.util.getUuid();
+	         	   var item =new items(f);
+	         	   item.resourceType("VM");
+	 	    	   item.relateUuid(relateUuid);
+	 	    	   
+	 	    	   var meta=new metaData();
+	 	    	   var baseInfo =new VM_baseInfo();
+	 	    	   
+	 	    	   baseInfo.azUuid(f.azUuid);
+	 	    	   baseInfo.osType(f.osType);
+	 	    	   baseInfo.osVersion(f.osVersion);
+	 	    	   baseInfo.memory(f.memory);
+	 	    	   baseInfo.name(f.vmName);
+	 	    	   baseInfo.storage(f.storage);
+	 	    	   baseInfo.vcpu(f.cpu);
+	 	    	   baseInfo.vdcUuid(f.vdcUuid);
+	 	    	   baseInfo.vpcUuid(f.vpcUuid);
+	 	    	   baseInfo.ip(f.ip);
+	 	    	   baseInfo.account(f.account);
+	 	    	   baseInfo.password(f.password);
+	 	    	   baseInfo.repeatPassword(f.repeatPassword);
+	 	    	   baseInfo.sshIsMount(f.sshIsMount);
+	 	    	   baseInfo.sshUuid(f.sshUuid);
+	 	    	   baseInfo.busSysUuid(f.projectUuid);
+	 	    	   if(f.partitions!=null){
+	 	    		   f.partitions.forEach(function(p){
+	        	    		   var p=new VM_partition()
+	        	    		   p.name(p.name());
+	        	    		   p.size(p.size());
+	        	    		   baseInfo.partitionList.push(p)
+	        	    	   });
+	 	    	   }
+	 	    	   
+	 	    	   var n = new VM_network;
+	 	    	   n.networkId(f.vpcNetworkUuid);
+	 	    	   n.ip(f.ip);
+	 	    	   baseInfo.networkList.push(n);
+	 	    	   //安装软件
+	 	    	   if(f.softwares!=null){
+	 	    		   f.softwares.forEach(function(soft){
+	        	    		   var i =new items(soft);
+					    	   i.resourceType("SOFTWARE");
+					    	   i.relateUuid(relateUuid);
+					    	   i.azUuid(e.azUuid);
+					    	   i.vdcUuid(e.vdcUuid);
+					    	   var md=new metaData();
+					    	   var bi =new SOFT_baseInfo();
+					    	   bi.softwareUuid(soft.softwareUuid);
+					    	   bi.scriptUuid(soft.scriptUuid);
+					    	   soft.softwareParams.forEach(function(p){
+					    		   var softwareParam = new VM_softwareParamsVO(p);
+					    		   bi.softwareParamsList.push(softwareParam);
+					    	   });
+					    	   md.resBaseInfo(bi);
+					    	   i.metaData(ko.toJSON(md));
+					    	   self.orders_vm().orderItems.push(i);
+	        	       });
+	 	    	   }         	    	   
+	 	    	   
+	 	    	   meta.resBaseInfo(baseInfo);
+	 	    	   //云硬盘服务
+	 	    	   if(f.mountDisks!=null){
+	 	    		   f.mountDisks.forEach(function(m){
+	        	    		   var i =new items(m);
+	        		    	   i.resourceType("DISK");
+	        		    	   i.relateUuid(relateUuid);
+	        		    	   i.azUuid(e.azUuid);
+					    	   i.vdcUuid(e.vdcUuid);
+					    	   i.expireType(e.applyType);
+	   						   var expireValue="";
+	   				    	    if(e.applyType == "2"){
+	   				    		   expireValue = e.applyNum;
+	   				    	    }else if(e.applyType == "3"){
+	   				    		   expireValue = e.applyTime;
+	   				    	    }
+	   				    		i.expireValue(expireValue);
+					    	   
+	        		    	   var md=new metaData();
+	        		    	   var bi =new DISK_baseInfo();
+	        		    	   
+	        		    	   bi.volumeSize(m.size);
+	        		    	   md.resBaseInfo(bi);
+	        		    	   i.metaData(ko.toJSON(md));
+	        		    	   self.orders_vm().orderItems.push(i);
+	        	    	   }); 
+	 	    	   }
+	 	    	   
+	 	    	   item.metaData(ko.toJSON(meta));
+
+	 	    	   orderItems = item;
+/* 	 	    	   self.orders_vm().orderItems.push(item);
+	 	    	   count = count+1;
+	 	    	   if(count == self.vmList_chosens().length){
+	 	    		   callback(true);
+	 	    	   } */
+	    		})
+            }
+            
             
             function getOrderVm(callback){
             	var count = 0;
@@ -1373,6 +1434,12 @@
             	if(arg=="vmCartInfo"){
             		data[arg]().mountDisks.removeAll();
             	}
+		    	if(data[arg]().osVersionList != null){
+		    		data[arg]().osVersionList.removeAll();
+		    	}
+		    	if(data[arg]().ipList !=null){
+		    		data[arg]().ipList.removeAll();
+		    	}
             };
 
             this.azChangeGetVm = function(arg, data, event) {
@@ -1380,7 +1447,16 @@
                     data[arg]().vmList(result.results);
                 });
             }
-
+            
+            this.osTypeChangeGetOsVersion = function(arg, data, event) {
+                csc.rest.get("api/v5.0.0/cart/getOsVersionList/" +data[arg]().serviceUuid()+ "/"+ data[arg]().azUuid() + "/" + data[arg]().osType(), function(result) {
+                    data[arg]().osVersionList(result);
+                });
+                if(data[arg]().softwares!=null){
+                	data[arg]().softwares.removeAll();
+		    	}
+            }
+            
             this.azChangeGetVpc = function(arg, data, event) {
                 csc.rest.get("api/v5.0.0/cart/getVpcList/" + data[arg]().vdcUuid() + "/" + data[arg]().azUuid(), function(result) {
                     data[arg]().vpcList(result);
@@ -1393,12 +1469,24 @@
             	if(arg=="vmCartInfo"){
             		data[arg]().mountDisks.removeAll();
             	}
+            	if(data[arg]().osVersionList != null){
+		    		data[arg]().osVersionList.removeAll();
+		    	}
+		    	if(data[arg]().ipList !=null){
+		    		data[arg]().ipList.removeAll();
+		    	}
+		    	if(data[arg]().serviceUuid!=null && data[arg]().serviceUuid()!="" && data[arg]().azUuid!=null && data[arg]().azUuid()!="" && data[arg]().osType!=null && data[arg]().osType()!=""){
+		    		self.osTypeChangeGetOsVersion(arg, data, event);
+		    	}
             }
 
             this.vpcChange = function(arg, data, event) {
                 csc.rest.get("api/v5.0.0/cart/getNetworkList/"+data[arg]().serviceUuid()+"/" + data[arg]().vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
                     data[arg]().networkList(result);
                 });
+                if(data[arg]().ipList !=null){
+                	data[arg]().ipList.removeAll();
+		    	}
             }
             
             this.vpcChangeByPublic = function(data, event) {
@@ -1407,14 +1495,7 @@
                 });
             }
 
-            this.osTypeChangeGetOsVersion = function(arg, data, event) {
-                csc.rest.get("api/v5.0.0/cart/getOsVersionList/" +data[arg]().serviceUuid()+ "/"+ data[arg]().azUuid() + "/" + data[arg]().osType(), function(result) {
-                    data[arg]().osVersionList(result);
-                });
-                if(data[arg]().softwares!=null){
-                	data[arg]().softwares.removeAll();
-		    	}
-            }
+            
             this.networkChangeGetIp = function(arg, data, event) {
             	if(data[arg]().vpcNetworkUuid()!=null){
             		csc.rest.get("api/v5.0.0/vpcNetworks/" + data[arg]().vpcNetworkUuid() + "/availableIp", function(result) {
@@ -1633,11 +1714,18 @@
               //镜像大小
                 imageSize : ko.pureComputed(function(){
 	            	var item = _.findWhere(self.vmCartInfo().osVersionList(), {uuid: self.vmCartInfo().osVersion()});
+	            	var iSize =0;
 	            	if(item!=null){
-	            		return csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
-	            	}else{
-	            		return 0;
-	            	} 
+	            		iSize= csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
+	            	}
+	            	
+	            	var pSize=0;
+	            	self.vmCartInfo().partitions().forEach(function(e){
+					    pSize+=  parseInt( e().size!=null? e().size():0);
+	            	});
+					return iSize+pSize;
+	            	
+	            	
 	            }, this),
 	          //openstack or cnware
 	            cloudPlatform : ko.pureComputed(function(){
@@ -2001,7 +2089,11 @@
                             self.vmList.remove(object);
                             self.vmNum(self.vmNum()-1);
                         }
-                        
+           				/* 
+                         *   提交购物车时，重新加载顶部购物车统计； 
+                         *   方法定义位置：WebRoot\index.html 
+                         */ 
+                     	frameViewModel.loadCartNum();
                     }); 
                 });
             }
@@ -2019,20 +2111,20 @@
                editObject.applyText(v);
             }
             /************************************ 名称重复验证  ************************************/
-            function nameCheck(name,type,uuid,callback){
-			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name+'&uuid='+uuid,function(result){
+            function nameCheck(name,type,vdcUuid,uuid,callback){
+			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name+'&uuid='+uuid+'&vdcUuid='+vdcUuid,function(result){
 			 		 if(result.isExist==true){
-			 			  systemMsg.alert("已存在名称为"+result.name+"的购物车申请");
+			 			  systemMsg.alert("该VDC下已存在名称为"+result.name+"的购物车申请");
 						  callback(false);
 					  }else{
-						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+name,function(result1){	
+						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+name+'&vdcUuid='+vdcUuid,function(result1){	
 						 		 if(result1.isExist==true){
-						 			  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
+						 			  systemMsg.alert("该VDC下已存在名称为"+result1.instanceName+"的订单申请");
 									  callback(false);
 								  }else{
-									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+name,function(result1){	
+									 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+name+'&vdcUuid='+vdcUuid,function(result2){	
 									 		 if(result1.isExist=="true"){
-												  systemMsg.alert("已存在名称为"+result1.name+"的资源实例");
+												  systemMsg.alert("该VDC下已存在名称为"+result2.name+"的资源实例");
 												  callback(false);
 											  }else{
 												  callback(true);
@@ -2103,7 +2195,7 @@
                     json = self.vmCartInfo.toJSON();
                     type= "VM";
                 }
-                nameCheck(json.name,type,json.uuid,function(pass){
+                nameCheck(json.name,type,json.vdcUuid,json.uuid,function(pass){
 						if(pass){
 							csc.rest.put('api/v5.0.0/cart/update/'+arg,json,function(data){
 			                	systemMsg.alert('修改成功！');

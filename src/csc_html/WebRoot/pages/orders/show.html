@@ -3,11 +3,13 @@
     <li>当前位置：</li>
     <li>订单</li>
     <li><a href="#pages/orders/service_orders">订单管理</a></li>
-    <li class="active">15137订单详情</li>
+    <li class="active">订单详情</li>
   </ol>
 </div>
 
 <div class="wrapper-md" id="resourceDetail">
+    <a class="btn btn-sm btn-default" href="#pages/orders/service_orders"><i class="fa fa-arrow-left"></i> 返回</a>
+    <p>&nbsp;</p>
 	<div class="panel panel-info">
 		<div class="panel-heading">基本信息</div>
 		<div class="panel-body" data-bind="with:$root.orderList">
@@ -33,7 +35,7 @@
 						<span class="label label-warning" data-bind="visible: state=='UNSUBMIT'">未提交</span>
 						<span class="label label-info" data-bind="visible: state=='DOING'">审批中</span>
 						<span class="label label-success" data-bind="visible: state=='FINISHED'">审批完成</span>
-						<a>查看</a>
+						<a hidden="true">查看</a>
 					</p>
 				</div>
 				<div class="col-xs-4">
@@ -55,8 +57,8 @@
 			</div>
 		</div>
 	</div>
-
-	<div class="panel panel-info" >
+    
+	<div id="orderMessage_" class="panel panel-info" >
 		<div class="panel-heading">订单信息</div>
 		<div id="orderDetailedList">
 			<div item="orderdetailed-VDC">
@@ -497,6 +499,8 @@
 		</div>
 	</div>
 </div>
+	<!-- 显示回收和删除的信息  -->
+<div id="orderDetailContent_"></div>
 <script type="text/javascript">
 	function expandForResourceDetailed(obj){
 		$(obj).find('i').toggleClass("fa-arrow-down");
@@ -506,6 +510,13 @@
 	var scripts = [null, null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 		function ViewModel(){
+		    
+		    var type_ = args.type;
+		    if(type_=="RESOURCE_DELETE"||type_=="RESOURCE_RECYCLE"){
+		        $("#orderMessage_").css('display', 'none');//隐藏信息
+		        url = "pages/workflows/resource_recovery_delete2order.html";
+		        $("#orderDetailContent_").load(url);
+		    }
 			
 			this.detailFail = function(data){
 				alert(data.workFailedMessage);

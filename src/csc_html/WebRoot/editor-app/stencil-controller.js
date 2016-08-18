@@ -233,11 +233,11 @@ angular.module('activitiModeler')
             	   
                 }).error(function (data, status, headers, config) {
                     console.log('Error loading model with id ' + modelId + ' ' + data);
-            });
+            });*/
             
             
         	$scope.users = [{id : "null" ,name : "--请选择--"}];
-        	$scope.users1 = [];*/
+        	$scope.users1 = [];
             //modified by zhouheng 2016-1-6 start
             
             /************modified by wujie 2016-8-9 start**************************/
@@ -249,10 +249,10 @@ angular.module('activitiModeler')
     		var userUrl = KISBPM.URL.getUsers();
     	    $http({method: 'GET', url: userUrl}).
     	       success(function (data, status, headers, config) {     	    	   
-    	    	   angular.forEach(data.users,function(v,k){
+    	    	   angular.forEach(data.results,function(v,k){
     	    		   this.push(v);
     	    	   },$scope.users);
-    	    	   angular.forEach(data.users,function(v,k){
+    	    	   angular.forEach(data.results,function(v,k){
     	    		   this.push(v);
     	    	   },$scope.users1);
     	        }).error(function (data, status, headers, config) {

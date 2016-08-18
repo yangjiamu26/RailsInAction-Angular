@@ -24,7 +24,7 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 				nodeId = node.id;
 				usersArr = [];
 				userType = node.userType;
-				var param ="orgId="+node.code+"&userType="+userType;//暂时拿本地用户
+				var param ="orgId="+node.code+"&userType="+userType;
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
 			       success(function (data, status, headers, config) {	
@@ -34,9 +34,15 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 						for(var i=0; i<users.length; i++){
 							users[i].nodeName = node.name;					
 							if(users[i].id != $scope.assignment.assignee){
+								var userId = '';
+								if(userType == 0){
+									userId = users[i].id;
+								}else{
+									userId = users[i].account;
+								}
 								//result += zy_tmpl_s(listTmpl,users[i],null);
-								result += "<tr><td><input type='checkbox' name='orgUserId' value='"+users[i].id+"'"
-									+"sname='"+users[i].name+"' /></td>"
+								result += "<tr><td><input type='checkbox' name='orgUserId' value='"+userId+"'"
+									+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
 									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 							}							
 						}
@@ -47,7 +53,8 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 					    	table_body.html("");
 					    	for(var i=0;i<selUserArr.length;i++){			
 					    		var user = selUserArr[i];
-					    		var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+user.id+"' sname='"+user.userName+"'/>" +
+					    		var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+user.id
+					    			+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 					    				"</td><td><label>"+user.userName+"</label></td></tr>";
 					    		table_body.append(newRow);
 					    	}
@@ -88,6 +95,7 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			var user ={};
 			user.id = jQuery(this).val();
 			user.userName = jQuery(this).attr("sname");
+			user.userType = jQuery(this).attr("userType");
 			usersArr.push(user);
 		});
 		
@@ -123,7 +131,14 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			table_body.html("");
 			for(var i=0;i<selUserArr.length;i++){				
 				var user = selUserArr[i];
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+user.id+"' sname='"+user.userName+"'/>" +
+				var userId = '';
+				if(userType == 0){
+					userId = user.id;
+				}else{
+					userId = user.account;
+				}
+				var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+userId
+					+"' sname='"+user.userName+"' userType='"+user.userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);
 			}
@@ -141,6 +156,7 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			var user ={};
 			user.id = jQuery(this).val();
 			user.userName = jQuery(this).attr("sname");
+			user.userType = jQuery(this).attr("userType");
 			delUserArr.push(user);
 		});		
 		if(delUserArr!=null&&delUserArr.length>0){
@@ -160,7 +176,14 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			table_body.html("");
 			for(var i=0;i<selUserArr.length;i++){				
 				var user = selUserArr[i];
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+user.id+"' sname='"+user.userName+"'/>" +
+				var userId = '';
+				if(userType == 0){
+					userId = user.id;
+				}else{
+					userId = user.account;
+				}
+				var newRow = "<tr id='del_"+user.id+"'><td><input type='checkBox' name='delInput' value='"+userId
+					+"' sname='"+user.userName+"' userType='"+user.userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);
 			}
@@ -183,9 +206,9 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 		for(var i = 0;i<selUserArr.length;i++){
 			var user = selUserArr[i];
 			selectedMember.push(user.userName);
-			selectedMemberId.push(user.id);
+			selectedMemberId.push(user.userType+":"+user.id);
 			var aa = {value:""};
-			aa.value = user.id;
+			aa.value = user.userType+":"+user.id;
 			users.push(aa);
 		}
 		$scope.assignment.candidateUsers = users;

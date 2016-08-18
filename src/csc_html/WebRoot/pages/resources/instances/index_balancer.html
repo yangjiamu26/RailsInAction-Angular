@@ -83,7 +83,7 @@
             	<span class="label label-success" data-bind="if: $row.isValidate == true">正常</span>
 	            <span class="label label-danger" data-bind="if: $row.isValidate == false">已过期</span>
             </td><!-- 服务状态 -->
-            <td data-bind="text: $row.expiredDate">20160605</td><!-- 有效期 -->
+            <td data-bind="text: $row.expiryDate">20160605</td><!-- 有效期 -->
             <td data-bind="text: $row.account">admin</td><!-- 创建人 -->
             <td>
             	<span data-bind="check_action:'lb_Creat'"><a href="#" data-bind="click: $root.showChangeValiTimePage">有效时间变更</a> |</span>
@@ -241,7 +241,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">备注</label>
                 <div class="col-sm-8">
-                  <textarea class="form-control" data-bind="text: desc"></textarea>
+                  <textarea class="form-control" data-bind="text: remark"></textarea>
                 </div>
               </div>
             </div>
@@ -490,11 +490,10 @@
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">备注：</div>
-              <div class="col-xs-11" data-bind="text: desc"></div>
+              <div class="col-xs-11" data-bind="text: remark"></div>
             </div>
           </div>
         </div>
-
         
         <div class="row wrapper detail-others">
           <div class="col-xs-4">
@@ -506,8 +505,8 @@
 	            	<span class="label" data-bind="if: isValidate == false">已过期</span>
                 </p>
                 <p>创建时间：<span data-bind="text: createTime">2016-08-04 14:28:50</span></p>
-                <p>生效时间：<span data-bind="text: expiredDate">2016-08-04 14:28:54</span></p>
-                <p>失效时间：<span data-bind="text: expiredDate">2016-08-04 14:28:54</span></p>
+                <p>生效时间：<span data-bind="text: createTime">2016-08-04 14:28:54</span></p>
+                <p>失效时间：<span data-bind="text: expiryDate">2016-08-04 14:28:54</span></p>
               </div> 
             </div>             
           </div>
@@ -994,7 +993,7 @@
                 loader: function(result){
                     //result.account_ = "超级管理员"; 
                     result.lbMethod_ = $.LOAD_BALANCER.lbMethodView[result.lbMethod];
-                    result.expiredDate = result.expiredDate && result.expiredDate.length >10?result.expiredDate.substring(0, 10):result.expiredDate;
+                    result.expiryDate = result.expiryDate && result.expiryDate.length >10?result.expiryDate.substring(0, 10):result.expiryDate;
                     return result;
                 }
         });
@@ -1034,7 +1033,7 @@
     		lbMethod: 	ko.observable("").extend({required: true}),
     		timeType: 	ko.observable("").extend({required: true}),
     		timeValue: 	ko.observable(""),
-    		desc: 		ko.observable("")
+    		remark: 		ko.observable("")
     	});
     	
     	this.vdcList = ko.observableArray();
@@ -1060,7 +1059,7 @@
         		lbMethod: 	"",
         		timeType: 	"",
         		timeValue: 	"",
-        		desc: 		""
+        		remark: 		""
         	});
         	
         	self.lbMethodList($.LOAD_BALANCER.lbMethods);
@@ -1173,7 +1172,7 @@
     	  	}
       		p.timeType = "0";
       		p.timeValue = "0";
-      		p.expiredDate = expiryTime;
+      		p.expiryDate = expiryTime;
       		$.LOAD_BALANCER.createLoadBalancer(p, function(data){
       			self.showCreatePage(false);
  	    		self.loadBalancerTable.refreshData();
@@ -1884,7 +1883,7 @@
   		  self.validateProcessVO().time(myDate.toLocaleString());
   		  self.validateProcessVO().user("");
   		  
-  		  self.validateProcessVO().validateTime(object.expiredDate);
+  		  self.validateProcessVO().validateTime(object.expiryDate);
   		  self.validateProcessVO().targetValidateTime("");
   		  
   		  $('#resource_instance_balancer_validate_process').val(moment().format('YYYY/MM/DD')).daterangepicker(

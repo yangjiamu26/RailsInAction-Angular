@@ -456,8 +456,7 @@
                  "api/resourceInstance/objectStorage/objectStorage.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_ObjectStorage(){
-      //系统当前登录用户标识
-      var account = "";
+
       //当前用户所辖VDC列表（包括VDC对应的可用分区信息）
       var vdcList = [];
       //当前用户所辖可用分区列表
@@ -466,8 +465,6 @@
       var self = this;
       this.isCreateDisk = ko.observable(false);
 
-      
-      
       //初始化vo
       this.currentVO = ko.validatedObservable({});
       
@@ -489,24 +486,22 @@
         //可用分区
           this.add_partitions = ko.observableArray([]);
           this.add_vdcs_load = function(){
-        	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
-        		  if(data.results){
-        			  vdcListForAdd = data.results;
-    		    	  self.add_vdcs(vdcListForAdd);
-        		  }
-        	  });
+        	  $.VDC.getVDCs({},function(data){
+         			if(data && data.results){
+         			 self.add_vdcs(data.results);
+         			}
+         		});
           }
           this.add_vdcs_load();
           
           //VDC->可用分区
           this.onchange_add_vdcs = function(){
         	  var vdcUuid = self.currentVO().vdcUuid();
-        	  for(var i=0;i<vdcListForAdd.length;i++){
-        		  if(vdcListForAdd[i].uuid == vdcUuid){
-        			  self.add_partitions(vdcListForAdd[i].azs);
-        			  break;
-        		  }
-        	  }
+  	       	  $.VDC.getVdcAzs(vdcUuid,{},function(data){
+  				 if(data && data.results){
+  					 self.add_partitions(data.results);
+  				 }
+  			  });
           }
         //初始化创建的弹窗       
         self.isCreateDisk(true);
@@ -577,8 +572,6 @@
 	    	  postBody.azUuid = self.currentVO().azUuid();
 	    	  postBody.applySize = self.currentVO().applySize();
 	    	  postBody.remark = self.currentVO().remark;
-	    	  postBody.userName = "admin";//暂时默认，需要获取当前操作的用户，可以在后台添加
-	    	  postBody.userUuid = "1";//
 	    	  
 	    	  var expiryTime = "";
 	    	  var temp = document.getElementsByName("inlineRadioOptions");
@@ -917,7 +910,7 @@
           this.table.params(p);
       }
       
-      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/objectStorages?account='+account,loader:function(result){
+      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/objectStorages/list/byAccount',loader:function(result){
     	  //将时间转换一下
     	  if(result.expiryDate){
     		  var expiryDate = result.expiryDate;    	  
@@ -934,7 +927,7 @@
       this.vdcs = ko.observableArray([]);
       this.partitions = ko.observableArray([]);
       this.loadVdcs = function(){
-    	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
+    	  csc.rest.get('api/v5.0.0/vdcs',function(data){
     		  if(data.results){
     			  vdcList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
@@ -954,7 +947,7 @@
     	  });
       }
       this.loadPartitions = function(){
-    	  csc.rest.get('api/v5.0.0/azs?account='+account,function(data){
+    	  csc.rest.get('api/v5.0.0/azs',function(data){
     		  if(data.results){
     			  azList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
@@ -1071,6 +1064,7 @@
     		  $.OBJECT_STORAGE.deleteObject(object.objectStorageUuid,object.name,function(data){
         		  alert('删除成功');
         		  self.fileTable.refreshData();
+        		  self.table.refreshData();
         	  });
     	  });
       }
@@ -1148,6 +1142,8 @@
 		  self.validateProcessVO().uuid(object.uuid);
 		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
+		  self.validateProcessVO().azUuid(object.azUuid);
+		  self.validateProcessVO().azName(object.azName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
 		  self.validateProcessVO().time(myDate.toLocaleString());
@@ -1177,6 +1173,8 @@
     	  uuid: ko.observable(),
     	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
+    	  azUuid: ko.observable(),
+    	  azName: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
@@ -1195,6 +1193,8 @@
     	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
     	  orderItem.resourceType = "OBJECT_STORAGE";
     	  orderItem.resourceUuid = self.validateProcessVO().uuid();
+    	  orderItem.vdcUuid = self.validateProcessVO().vdcUuid();
+    	  orderItem.azUuid = self.validateProcessVO().azUuid();
     	  orderItem.metaData = metaData;
     	  
     	  var orderItems = [];
@@ -1204,6 +1204,7 @@
     	  postBody.resourceType = "OBJECT_STORAGE";
     	  postBody.type = "VALIDTIME_CHANGE";
     	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
+    	  postBody.azUuid = self.validateProcessVO().azUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
@@ -1255,6 +1256,9 @@ function renderSizeToGB(value){
     return "0";
   }
   var gb = roundFun((value/(1024*1024*1024)),2);
+  if(value>0 && gb==0){//很小的大小
+	  return 0.01;
+  }
   return gb;
 }
 </script>

@@ -73,25 +73,41 @@
 						<td data-bind="text: $row.supportOs"></td>
 						<td data-bind="text: $row.softwareNames"></td>
 						<td data-bind="text: $row.createTime"></td>
-						<td><a data-bind="click: $root.update">修改</a></td>
+						<td>
+							<a data-bind="click: $root.update">修改 | </a>
+							<a data-bind="click: $root.removeSingle">删除</a>
+						</td>
 					</tr>
 					<!-- /ko -->
 				</tbody>
 			</table>
 		</div>
-		<footer class="panel-footer"
-			data-bind="with: table, visible: table.pages() > 1">
+		
+		<footer class="panel-footer" data-bind="with: table, visible: table.pages() > 1">
 			<ul class="pagination">
+				<li data-bind="css: leftPagerClass, click: gotoPage(1)">
+					<a href="#">首页</a>
+				</li>
 				<li data-bind="css: leftPagerClass, click: prevPage"><a
 					href="#">&laquo;</a></li>
-				<!-- ko foreach: {data: (new Array(pages()))} -->
-				<li data-bind="css: $parent.pageClass($index() + 1)"><a
-					href="#"
-					data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-				</li>
-				<!-- /ko -->
+				<li><a href="#" data-bind="text: currentPage"></a></li>
 				<li data-bind="css: rightPagerClass, click: nextPage"><a
 					href="#">&raquo;</a></li>
+				<li
+					data-bind="css: rightPagerClass, click: gotoPage(pages())">
+					<a href="#">末页</a>
+				</li>
+				<li class="page-control-li">
+					<div class="input-group form-group-sm">
+						<input type="text" class="form-control"
+							data-bind="value: targetPage" />
+						<div class="input-group-btn">
+							<a href="#" class="btn btn-sm btn-default"
+								data-bind="click: gotoTargetPage()">跳转</a>
+						</div>
+					</div>
+					<div class="page-info-div" data-bind="text: recordsText"></div>
+				</li>
 			</ul>
 		</footer>
 	</div>
@@ -335,7 +351,7 @@
 				<button type="button" class="close" data-dismiss="modal">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h3 class='modal-title'>关联软件</h3>
+				<h3 class='modal-title'>软件选择器</h3>
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-group string required">
@@ -346,7 +362,7 @@
 						</select>
 						软件名称：
 						<input type="text" class="form-control" data-bind="value: searchSoftwareParams().softwareNm" />
-						<button class="btn btn-default" data-bind="click: searchSoftware">查询</button>
+						<button class="btn btn-default" data-bind="click: searchSoftware">搜索</button>
 					</div>
 				</div>
 				
@@ -393,24 +409,29 @@
 			</div>
 
 			<div class='modal-footer'>
-				<div data-bind="with: chooseSoftwareTable, visible: chooseSoftwareTable.pages() > 1">
-					<ul class="pagination">
-						<li data-bind="css: leftPagerClass, click: prevPage"><a
-							href="#">&laquo;</a></li>
-						<!-- ko foreach: {data: (new Array(pages()))} -->
-						<li data-bind="css: $parent.pageClass($index() + 1)"><a
-							href="#"
-							data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
-						</li>
-						<!-- /ko -->
-						<li data-bind="css: rightPagerClass, click: nextPage"><a
-							href="#">&raquo;</a></li>
-					</ul>
+				<div style="margin-bottom: 23px;">
+					<div data-bind="with: chooseSoftwareTable">
+						<ul class="pagination">
+							<li data-bind="css: leftPagerClass, click: prevPage"><a
+								href="#">&laquo;</a></li>
+							<!-- ko foreach: {data: (new Array(pages()))} -->
+							<li data-bind="css: $parent.pageClass($index() + 1)"><a
+								href="#"
+								data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							</li>
+							<!-- /ko -->
+							<li data-bind="css: rightPagerClass, click: nextPage"><a
+								href="#">&raquo;</a></li>
+						</ul>
+					</div>
 				</div>
-				<!-- <div>
+				<div style="text-align: left;">
+					<input type="button" name="commit" value="确定"
+						class="btn btn-default btn-info"
+						data-bind="click: submitBindSoftware" />
 					<button name="button" type="submit"
 						class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button>
-				</div> -->
+				</div>
 			</div>
 		</div>
 	</div>
@@ -571,8 +592,7 @@
 					
 					/** 选择软件列表数据 **/
 					this.chooseSoftwareTable = new DataTable([], {
-						path : 'api/v5.0.0/soft/bind/softwares?softTypeName='
-								+ self.currentVO().softTypeName()
+						path : 'api/v5.0.0/soft/bind/softwares'
 					});
 
 					/** 下载脚本文件 **/
@@ -679,6 +699,10 @@
 					/** 更新默认安装属性 **/
 					this.saveAttr = function() {
 						
+						if (!self.defaultAttrVO.isValid()) {
+							return;
+						}
+						
 						if (self.defaultAttrVO().attrTableRow) {
 							self.defaultAttrVO().attrTableRow.name(self.defaultAttrVO().name());
 							self.defaultAttrVO().attrTableRow.code(self.defaultAttrVO().code());
@@ -776,6 +800,17 @@
 						}
 						
 						self.softwareTable.remove(object);
+					};
+					
+					/** 确定选择绑定的软件 **/
+					this.submitBindSoftware = function() {
+						var chosenSoft = self.chooseSoftwareTable.chosenItems();
+						
+						$.each(chosenSoft, function(i, val) {
+							self.softwareTable.push(val);
+						});
+						
+						self.isBindSoft(false);
 					};
 					
 					/** 查询软件 **/
@@ -914,9 +949,13 @@
 							}
 						});
 						
-						if (self.currentVO().uuid && self.currentVO().uuid != 'N/A') {
+						var params = self.currentVO.toJSON();
+						
+						csc.util.trimRequestParams(params);
+						
+						if (params.uuid && params.uuid != 'N/A') {
 							
-							$.SOFT_SCRIPT.updateScript(self.currentVO.toJSON().uuid, self.currentVO.toJSON(), function(data) {
+							$.SOFT_SCRIPT.updateScript(params.uuid, params, function(data) {
 								
 								var msg = data.message;
 								
@@ -929,7 +968,7 @@
 								}
 							});
 						} else {
-							$.SOFT_SCRIPT.addScript(self.currentVO.toJSON(), function(data) {
+							$.SOFT_SCRIPT.addScript(params, function(data) {
 								if (data.Id) {
 									self.isAdd(false);
 									systemMsg.alert('添加脚本成功！');
@@ -939,7 +978,29 @@
 						}
 					};
 					
+					/** 删除单个脚本 **/
+					this.removeSingle = function(object, event) {
+						var params = {uuids: object.uuid};
+						
+						systemMsg.confirm("确定要删除所选脚本?", function(){
+							$.SOFT_SCRIPT.deleteScript(params, function(data) {
+								if (data.message.indexOf('success') != -1) {
+									systemMsg.alert('删除脚本成功！');
+									self.table.refreshData();
+								} else {
+									systemMsg.alert(data.message);
+								}
+							})
+			      		});
+					};
+					
+					/** 删除脚本 **/
 					this.remove = function() {
+						if (self.table.chosenItems().length == 0) {
+							systemMsg.alert('没有选择操作对象');
+							return;
+						}
+						
 						var uuids = '';
 						
 						$.each(self.table.chosenItems(), function(i,val){      
@@ -959,7 +1020,6 @@
 								}
 							})
 			      		});
-						
 					};
 
 					this.searchParam = ko.observable({
@@ -1015,16 +1075,6 @@
 								});
 							}
 						}
-					});
-					
-					/** 软件甄选弹窗关闭回调 **/
-					$('#showSoftwareModal').on('hidden.bs.modal', function() {
-						
-						var chosenSoft = viewModel.chooseSoftwareTable.chosenItems();
-						
-						$.each(chosenSoft, function(i, val) {
-							viewModel.softwareTable.push(val);
-						});
 					});
 				});
 			});

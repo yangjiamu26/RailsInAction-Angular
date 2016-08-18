@@ -51,7 +51,7 @@
 			               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().code">
 			            </div>        
 			        </div>	
-			        <div class="col-xs-3">
+			        <div class="col-xs-2">
 			          <div class="input-group">
 			            <span class="input-group-addon">产品类型</span>
 			            <select class="form-control input-sm" data-bind="value: searchParam().resourceType">
@@ -64,6 +64,13 @@
 			               <option value="SECRET_KEY">SSH密钥对</option>
 			               <option value="OBJECT_STORAGE">对象存储</option>
 			               <option value="VDC">VDC</option>
+			            </select>
+			          </div>      
+			        </div>
+			        <div class="col-xs-2">
+			          <div class="input-group">
+			            <span class="input-group-addon">所属VDC</span>
+			            <select class="form-control input-sm" data-bind="options:vdcParamList,optionsText:'name',optionsValue:'uuid',value: searchParam().vdcUuid">
 			            </select>
 			          </div>      
 			        </div>
@@ -104,7 +111,7 @@
 					<tbody>
 					<tr data-bind="visible: showNoData">
 	                    <td colspan="12" class="aligncenter">
-	                        This table has no data.
+	                        暂无数据
 	                    </td>
 	                 </tr>
 	          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -143,7 +150,7 @@
 							<td ><a data-bind="click: $root.review">查看</a></td>
 							<td>
 								<span data-bind="if:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/vdc_change?flowInstanceId='+flowInstanceId}">查看</a></span>
-								<span data-bind="ifnot:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/show?items=' + resourceType+'&flowInstanceId='+flowInstanceId}">查看</a></span>
+								<span data-bind="ifnot:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/show?items=' + resourceType+'&flowInstanceId='+flowInstanceId+'&type='+type}">查看</a></span>
 								<span data-bind="visible: state=='UNSUBMIT'">| <a data-url="pages/orders/tasks" href="#pages/orders/modal1">办理</a> | <a onclick="systemMsg.alert('确定删除吗？')">删除</a></span>
 							</td>
 						</tr>
@@ -188,16 +195,24 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var getOrdersUrl = "api/v5.0.0/orders?orderBy=createTime:desc";
 
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-  	var daterangepicker = $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
-      {
-        format:'YYYY/MM/DD',
-        startDate: moment().subtract('days', 29),
-        endDate: moment(),
-      });
+      var getOrdersUrl = "api/v5.0.0/orders?orderBy=createTime:desc";
+      //根据订单权限类型
+      var orderType = args.type;
+      if(!orderType){
+          getOrdersUrl +="&&showSelf=YES";//显示我的订单
+      }else{
+          getOrdersUrl +="&&showSelf=NO";//显示全部数据
+      }
+      
+     $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+          {
+            format:'YYYY/MM/DD',
+            startDate: moment().subtract('days', 29),
+            endDate: moment(),
+          });
   	
   	
     function ViewModel(){
@@ -210,25 +225,40 @@
 	        code: "",
 	        likeUserName: "",
 	        resourceType:"",
+	        vdcUuid:null,
 	        
       })
       
       this.reset = function(){
-	      	this.searchParam({
-	      		type: "",
-		      	state: "",
-		        instanceName: "",
-		        code: "",
-		        likeUserName: "",
-		        resourceType:"",
-		      })	
+            self.loadVdcs();
+            this.searchParam({
+              type: "",
+              state: "",
+              instanceName: "",
+              code: "",
+              likeUserName: "",
+              resourceType:"",
+            })
+         //重置时间
+         $('#timerange').val(moment().subtract('days', 29).format('YYYY/MM/DD') + ' 至 ' + moment().format('YYYY/MM/DD')).daterangepicker(
+              {
+                format:'YYYY/MM/DD',
+                startDate: moment().subtract('days', 29),
+                endDate: moment(),
+              });
         this.table.params({});
       }
       this.search = function(){
+          var param = {};
+          if(!orderType){
+              param.showSelf="YES"
+          }else{
+              param.showSelf="NO"
+          }
     	  if($("#advancedSearch").css("display") == "block"){
-    		  var param = {};
     		  param.instanceName = this.searchParam().instanceName;
     		  param.state = this.searchParam().state;
+    		  param.vdcUuid = this.searchParam().vdcUuid;
     		  param.type = this.searchParam().type;
     		  param.instanceName = this.searchParam().instanceName;
     		  param.code = this.searchParam().code;
@@ -244,7 +274,6 @@
     		  }
     	      this.table.params(param);
     	  }else{
-    		  var param = {};
     		  param.instanceName = this.searchParam().instanceName;
     		  param.state = this.searchParam().state;
     		  param.type = this.searchParam().type;
@@ -253,19 +282,30 @@
     	
       }
 
+      //vdc下拉列表(选择业务系统管理人界面)
+      this.vdcList = ko.observableArray([]);
+      csc.rest.get("api/v5.0.0/vdcs", function(data){
+          self.vdcList.removeAll();
+          self.vdcList(data.results);
+      });
+      
       //this.table = new DataTable([], {path: 'pages/orders/service_orders.json'});
       this.table = new DataTable([], {path: getOrdersUrl});
 
-      this.catelogs = ko.observableArray([]);
-      this.vdcs = ko.observableArray([]);
-
-      //vdc下拉选择
+      //vdc下拉列表(搜索参数加载)
+      this.vdcParamList = ko.observableArray([]);
       this.loadVdcs = function(){
-        $.ajax("pages/vdcs/vdcs/index.json").done(function(data){
-          self.vdcs(data.results);
+        $.ajax("api/v5.0.0/vdcs").done(function(data){
+            var vdcList_ = data.results;
+            var vdcDef = {};
+            vdcDef.name = "全部";
+            vdcDef.vdcUuid = "";
+            vdcList_.unshift(vdcDef);
+            self.vdcParamList(vdcList_);
         });
       }
       
+      this.catelogs = ko.observableArray([]);
       this.loadCatelogs = function(){
         $.ajax("pages/workflows/workflows_catelogs.json").done(function(data){
           self.catelogs(data.results);

@@ -622,7 +622,7 @@
                   </a>
                 </li>
                 <li data-bind="check_action:'report'">
-                  <a data-url="pages/reports/stats" href="#pages/reports/stats">
+                  <a data-url="pages/reports/stats?showTab=selfTab" data-url-params="showTab" href="#pages/reports/stats?showTab=selfTab">
                     <i class="icon report"></i>
                     <span class='text-base'>报表统计</span></a>
                 </li>                                                      
@@ -746,8 +746,8 @@
 		    });
 		    this.loadRoles = function(){
 		    	csc.rest.get("api/v5.0.0/homepage/roles", function(data){
-		    		self.roleVO().roleName(data);
-		    		var currentRole = data[0].name;
+		    		self.roleVO().roleName(data.roles);
+		    		var currentRole = data.currentRole==''?data.roles[0].name:data.currentRole;
 		    		self.roleVO().currentRole(currentRole);
 		    		//查看当前角色是否具有自助门户权限
 		    		csc.rest.get("api/v5.0.0/homepage/gateway/"+currentRole, function(data){
@@ -763,7 +763,6 @@
 			    			if(window.location.hash=="#pages/welcome/home"){
 			    				window.location.hash = '#pages/welcome/index';
 			    			}
-				    		self.fetchActionsForCheck(currentRole);//加载角色权限
 			    		});
 		    		});
 		    		if((data[0].name == "系统管理员") || (data[0].name == "运营管理员") || (data[0].name == "运维管理员")){
@@ -777,6 +776,7 @@
 		    		}else{
 		    			self.roleVO().roleFlag("COMMON");
 		    		}
+		    		self.fetchActionsForCheck(currentRole);//加载角色权限,在后台判断运营门户还是自助门户
 		   	    });
 		    	
 		    }
@@ -838,9 +838,13 @@
 		    
 		    this.noticeStatVO = ko.observable();
 		    this.loadNoticeStat = function(){
-		    	 csc.rest.get("api/v5.0.0/homepage/notice?noticeType=SysNotice&noticeState=NoRealize", function(data){
-		       	 	 self.noticeStatVO(data.results.length);
-		         });
+				csc.rest.get("api/v5.0.0/homepage/notice?noticeType=SysNotice&noticeState=NoRealize", function(data){
+					var num = 0;
+					if(data.results && !isNaN(data.results.length)){
+						num = data.results.length;
+					}
+					self.noticeStatVO(num);
+				});
 		    }
 		    
 		    /* ------------------ 用户信息模块  ---------------start */

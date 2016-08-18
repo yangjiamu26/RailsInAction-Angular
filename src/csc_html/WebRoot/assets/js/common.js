@@ -445,8 +445,17 @@ csc.util = {
     	}else{
     		return false
     	}
+	},
+	
+	trimRequestParams: function (params) {/*去除请求参数中，字符串类型字段的前后空格*/
+		for (var key in params) {
+			if (typeof params[key] === 'string' ) {
+				params[key] = params[key].replace(/(^\s*)|(\s*$)/g, "");
+			} else if (typeof params[key] === 'object' ) {
+				csc.util.trimRequestParams(params[key]);
+			}
+		}
 	}
-	  
 }
 
 // 全局上传

@@ -1,3 +1,4 @@
+<div class="wrapper-md">
 <div class="panel panel-info resouce-recovery">
     <div style="display:none" id="resource_delete_" class="panel-heading" >基本信息</div>
     <div style="display:none" id="resource_recycle_" class="panel-heading" >基本信息</div>
@@ -11,12 +12,11 @@
       <div class="row">
           <div class="col-xs-4" style="display:none" id="subsys">所属业务系统：<span data-bind="text:resourceInfoVo().busSysName"></span></div>
           <div id="resource_expiryDate_" class="col-xs-4">失效时间：<span data-bind="text:resourceInfoVo().expiryDate"></span></div>
-          <div class="col-xs-6">施工状态：
+          <div class="col-xs-4">施工状态：
              <span class="label label-warning" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_READY'">待施工</span>
              <span class="label label-info" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_DOING'">施工中</span>
              <span class="label label-success" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_SUCCESS'">施工成功</span>
              <span class="label label-danger" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_FAILED'">施工失败</span>
-             <a style="display:none" id="repConstruct_" data-bind="click:repConstruct">重施工</a>
           </div>
       </div>
     </div>
@@ -370,6 +370,7 @@
        </div>
     </div>
     <!-- ssh详情 end -->
+</div>
     
 </div>
 
@@ -379,6 +380,7 @@
     var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         function ViewModel(){
+            
             var self = this;
             this.resourceInfoVo = ko.validatedObservable({
                 name:ko.observable(""),
@@ -391,12 +393,9 @@
                 resourceUuid:ko.observable()
             });
             var repConstructOrderItem=null;//重施工需要的orderItems值
-            var instanceName_="";//重施工需要的orderItems值
            
             this.loadData = function(){
-                csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data_){
-                    var processInstanceId = data_.taskInfo[0].processInstanceId;
-                    csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+                    csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+args.flowInstanceId,function(data){
                         var operationType = data.type;
                         if (operationType=="RESOURCE_DELETE"){
                             $("#resource_delete_").css('display', 'block');//显示类型信息
@@ -414,14 +413,13 @@
                         var itemState = orderItem.itemState;  //施工状态，用于判断当为CONSTRUCTION_SUCCESS时，隐藏除了名称和类型的其他信息
                         repConstructOrderItem=orderItem;
                         var instanceName = orderItem.instanceName;
-                        instanceName_ = instanceName;
-                        if(orderItems.length==0) return;
                         self.resourceInfoVo.fromJSON({
                             name:instanceName,
                             resourceType:resourceType,
                             itemState:itemState,
                             resourceUuid:resourceUuid
                         });
+                        if(orderItems.length==0) return;
                         if(resourceType=="VM"){
                             $("#subsys").css('display', 'block');//显示业务系统
                             self.resourceInfoVo.fromJSON({
@@ -449,17 +447,15 @@
                                 
                             })
                         }else if(resourceType=="DISK"){
-                            self.resourceInfoVo.fromJSON({
-                                typeText:"云硬盘"
-                            });
-                            
                             var metaData = orderItem.metaData;
                             if(!csc.util.isNotNull(metaData)) return;
                             var metaDataJson = JSON.parse(metaData);
                             var resBaseInfo = metaDataJson.resBaseInfo;
                             var resBaseInfoJson = JSON.parse(resBaseInfo);
                             var vmUuid = resBaseInfoJson.vmUuid;
-                            
+                            self.resourceInfoVo.fromJSON({
+                                typeText:"云硬盘"
+                            });
                             if(!csc.util.isNotNull(vmUuid)) return;
                             csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(vmData){
                                self.resourceInfoVo.fromJSON({
@@ -490,7 +486,7 @@
                            });
                         } else if(resourceType=="SECRET_KEY"){
                             self.resourceInfoVo.fromJSON({
-                                typeText:"负载均衡器"
+                                typeText:"SSH密钥"
                             });
                             csc.rest.get('api/v5.0.0/sshKeys/'+resourceUuid,function(data){
                                 self.resourceInfoVo.fromJSON({
@@ -504,32 +500,10 @@
                             $("#resource_vdc_").css('display', 'none');
                             $("#resource_expiryDate_").css('display', 'none');
                             $("#showDetail").css('display', 'none');
-                            $("#repConstruct_").css('display', 'none');
-                        }else if(itemState=="CONSTRUCTION_FAILED"){
-                            $("#repConstruct_").css('display', 'block');
                         }
                     });
-                })
             }
             self.loadData();
-            
-            this.repConstruct = function(){
-                if(repConstructOrderItem!=null){
-                    confirm("确定["+repConstructOrderItem.instanceName+"]进入重施工?",function(arg){
-                      self.toConstruct(repConstructOrderItem);
-                    });
-                }
-            }
-
-            //执行重施工操作
-            self.toConstruct = function(orderItem){
-                var orderUuid = orderItem.orderUuid;
-                var uuid = orderItem.uuid;
-                csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,orderItem){
-                   self.loadData();
-               	 alert("提交重施工成功！");
-                },function(){alert("施工失败,未知异常!")},false,orderItem);
-            }
             
             /***********************以下是查询详情*************************/
              this.resourceDetailVo = ko.validatedObservable({
@@ -580,13 +554,18 @@
                 var resourceType = data.resourceInfoVo().resourceType();
                 if(!csc.util.isNotNull(resourceType)) return;
                 var resourceUuid = data.resourceInfoVo().resourceUuid();
+                var resourceUuid = data.resourceInfoVo().resourceUuid();
+                var instanceName = data.resourceInfoVo().name();
                 if(!csc.util.isNotNull(resourceUuid)) return;
                 self.resourceDetailVo.fromJSON({
-                    name:instanceName_
-                })
+                    name:instanceName
+                });
                 if (resourceType=="VM"){//云主机详情
                     self.showVmDetailModel(true);
                     csc.rest.get('api/v5.0.0/vms/'+resourceUuid,function(data){
+
+                        if(!data.uuid){return;}
+                        
                         var state_ = data.state;
                         switch(state_)
                         {
@@ -649,6 +628,9 @@
                 }else if (resourceType=="LOAD_BALANCING"){//负载均衡器详情
                     self.showLoadBalancersDetailModel(true);
                     csc.rest.get('api/v5.0.0/loadBalancers/'+resourceUuid,function(data){
+
+                        if(!data.uuid){return;}
+                        
                         var state_ = data.state;
                         if(state_=='ACTIVE'){
                             state_ = "运行中";
@@ -666,6 +648,7 @@
                             isValidate_ = "过期";
                         }
                         self.resourceDetailVo.fromJSON({
+                            name:instanceName,
                             expiryDate:data.expiredDate,
                             vdcName:data.vdcName,
                             runState:state_,
@@ -682,6 +665,9 @@
                 }else if(resourceType=="OBJECT_STORAGE"){//对象存储
                     self.showObjectStorageDetailModel(true);
                     csc.rest.get('api/v5.0.0/objectStorages/'+resourceUuid,function(data){
+                        
+                        if(!data.uuid){return;}
+                        
                         var isValidate_ = data.isValidate;
                         if(isValidate_){
                             isValidate_ = "正常";
@@ -692,6 +678,7 @@
                         var availableSize = data.availableSize;
                         var usedSize = parseInt(applySize)-parseInt(availableSize);
                         self.resourceDetailVo.fromJSON({
+                            name:instanceName,
                             expiryDate:data.expiryDate,
                             vdcName:data.vdcName,
                             serviceState:isValidate_,
@@ -704,6 +691,9 @@
                 }else if(resourceType=="PUBLICIP"){//公网IP
                     self.showPublicIpDetailModel(true);
                     csc.rest.get('api/v5.0.0/publicIps/'+resourceUuid,function(data){
+
+                        if(!data.uuid){return;}
+                        
                         var isValidate_ = data.isValidate;
                         if(isValidate_){
                             isValidate_ = "正常";
@@ -711,6 +701,7 @@
                             isValidate_ = "过期";
                         }
                         self.resourceDetailVo.fromJSON({
+                            name:instanceName,
                             expiryDate:data.expiryDate,
                             vdcName:data.vdcName,
                             serviceState:isValidate_,
@@ -724,6 +715,9 @@
                 }else if(resourceType=="DISK"){//云硬盘
                     self.showDiskDetailModel(true);
                     csc.rest.get('api/v5.0.0/volumes/'+resourceUuid,function(data){
+
+                        if(!data.uuid){return;}
+                        
                         /*****硬盘状态需要转换中文说明****/
                         var volumeStatus_ = data.volumeStatus;
                         /*****硬盘状态需要转换中文说明****/
@@ -734,6 +728,7 @@
                             isValidate_ = "过期";
                         }
                         self.resourceDetailVo.fromJSON({
+                            name:instanceName,
                             expiryDate:data.expiryDate,
                             vdcName:data.vdcName,
                             runState:volumeStatus_,
@@ -749,7 +744,9 @@
                 }else if(resourceType=="SECRET_KEY"){//ssh密钥
                     self.showSshDetailModel(true);
                     csc.rest.get('api/v5.0.0/sshKeys/'+resourceUuid,function(data){
-                        debugger;
+
+                        if(!data.uuid){return;}
+                        
                         /*****硬盘状态需要转换中文说明****/
                         var volumeStatus_ = data.volumeStatus;
                         /*****硬盘状态需要转换中文说明****/
@@ -764,6 +761,7 @@
                             publicKeyString_ = data.publicKey.substring(0,25)+'....';
                         }
                         self.resourceDetailVo.fromJSON({
+                            name:instanceName,
                             vdcName:data.vdcName,
                             azName:data.azName,
                             fingerprint:data.fingerprint,
@@ -775,28 +773,8 @@
                    });
                 }
             }
-            
-            this.save = function(){
-	       		saveComment(args.taskId,function(){
-	       			alert("保存成功！");
-	       		});
-			  }
-			  
-			  this.next = function(){
-				if(isLast){
-				  saveComment(args.taskId,function(){
-					var databody = {"userId":"","action":"designated"};
-					csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
-					  alert("审核成功！");
-					  location.href = "#pages/workflows/tasks?type=work";
-					},function(){alert("操作失败！")});
-				  });
-			  	}else{		  
-				  showModal("pages/workflows/next.html");
-			  	}
-			  }
         }
+    	ko.applyBindings(new ViewModel(), $('#orderDetailContent_')[0]);  
         
-        ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
     });
 </script>
