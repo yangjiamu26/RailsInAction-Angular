@@ -14,6 +14,18 @@
 :: KIND, either express or implied.  See the License for the
 :: specific language governing permissions and limitations
 :: under the License
+<<<<<<< HEAD
+@ECHO OFF
+SET script_path="%~dp0run"
+IF EXIST %script_path% (
+        node %script_path% %*
+) ELSE (
+    ECHO.
+    ECHO ERROR: Could not find 'run' script in 'cordova' folder, aborting...>&2
+    EXIT /B 1
+)
+=======
 
 @ECHO OFF
 ECHO WARN: The `run` is not available for cordova-ios on windows machines.>&2
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6

@@ -287,16 +287,18 @@ function initTotal_storage_chart(data) {
   function ViewModel(){
     this.datacenters = ko.observableArray([]);
     this.infos = ko.observable({
+      "dcNum":0,
+      "resPoolNumber":0,
+      "busDomainNum":0,
+      "hostNubmer":0,
+      "projectNum":0,
+      "vmNumber":0 
+    });
+    this.infos2 = ko.observable({
       "storageTotal":0,
       "x86TotalCpu":0,
       "pvmTotalCpu":0,
       "memoryTotal":0,
-      "dcNum":0,
-      "resPoolNum":0,
-      "busdomainNum":0,
-      "hostNum":0,
-      "projectNum":0,
-      "vmNum":0 
     });
 
     this.loading = false;
@@ -305,17 +307,9 @@ function initTotal_storage_chart(data) {
       //在这里实现总览数据的加载
       if(this.loading) return;
       this.loading = true;
-      RestServiceJs(BASE_URL+"/overallDetails").query({},function(data){
-        self.loading = false;
-        data.x86TotalCpu = parseFloat((data.x86TotalCpu/1024).toFixed(2));
-        data.x86UsedCpu = parseFloat((data.x86UsedCpu/1024).toFixed(2));
-        data.memoryTotal = parseFloat((data.memoryTotal/1024).toFixed(2));
-        data.memoryUsed = parseFloat((data.memoryUsed/1024).toFixed(2));
+      RestServiceJs(BASE_URL+"/overallDetails/resourceSummary").query({},function(data){
         self.infos(data);
-        initTotal_cpu_chart(data);
-        initTotal_cpu_chart2(data);
-        initTotal_memory_chart(data);
-        initTotal_storage_chart(data);
+        self.loading = false;
         if(data.isDemo){
             myApp.closeModal('.popup.modal-in');
             $$('#backToDasboard').show();
@@ -323,6 +317,22 @@ function initTotal_storage_chart(data) {
               popoverClose();
             },0)
         }
+      })
+      
+      RestServiceJs(BASE_URL+"/overallDetails/resourceStat").query({},function(data){
+        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1024).toFixed(2));
+        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1024).toFixed(2));
+        data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
+        data.memoryUsed = Number((Number(data.memoryUsed)/1024).toFixed(2));
+        data.storageTotal = Number(Number(data.storageTotal).toFixed(2));
+        data.storageUsed = Number(Number(data.storageUsed).toFixed(2));
+        data.pvmTotalCpu = Number(Number(data.pvmTotalCpu).toFixed(2));
+        data.pvmUsedCpu = Number(Number(data.pvmUsedCpu).toFixed(2));
+        self.infos2(data);
+        initTotal_cpu_chart(data);
+        initTotal_cpu_chart2(data);
+        initTotal_memory_chart(data);
+        initTotal_storage_chart(data);
       });
     };
     this.loadDatacenters = function(){

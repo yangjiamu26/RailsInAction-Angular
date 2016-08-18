@@ -1,4 +1,21 @@
 myApp.onPageInit("vm-performance", function(page) {
+<<<<<<< HEAD
+  function ViewModel(){
+    this.name = ko.observable(page.query.name);
+
+    this.loadData = function(){
+      var calendarRange = myApp.calendar({
+          input: '#vmPerformanceDate',
+          dateFormat: 'yyyy.mm.dd',
+          rangePicker: true,
+          monthNames: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+          dayNames: ['周日','周一','周二','周三','周四','周五','周六'],
+          dayNamesShort: ['周日','周一','周二','周三','周四','周五','周六']
+      });     
+      initMemoryUse_chart();
+      initcpuUse_chart1();
+      initcpuUse_chart2();    
+=======
 
 // 单个虚拟机内存使用率曲线
 function initMemoryUse_chart(data, xAxis) {
@@ -240,10 +257,16 @@ function initcpuUse_chart2(data,xAxis) {
         initcpuUse_chart1(cpu,xAxis);
         initcpuUse_chart2(cpus,xAxis);
       }); 
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     };
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
+<<<<<<< HEAD
+  
+  viewModel.loadData();
+});
+=======
   window.vm_performance_viewModel = viewModel;
 
   if(page.query.hypervisor == 'PowerVM'){
@@ -270,3 +293,4 @@ function getDates(s, isDay){
   }
   return hour+':'+minutes+':'+seconds;
 }
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6

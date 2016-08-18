@@ -1,9 +1,10 @@
 myApp.onPageInit("host-summary", function(page) {
   // 单个资源池-cpu占比图
 function initSingleHost_cpu_chart(data) {
+  console.log(data)
   var unit = "GHz";
   if(data.hypervisor=="PowerVM") unit = "核";
-    $('#singleHost_cpu_chart').highcharts({
+  $('#singleHost_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -229,13 +230,13 @@ function initSingleHost_storage_chart(data) {
     });
     this.loadData = function(data){
       var self = this;
-      data.cpuSpeed = Number((parseFloat(data.cpuSpeed)/1024).toFixed(2));
-      data.totalCpu = Number((parseFloat(data.totalCpu)/1024).toFixed(2));
-      data.memory = Number((parseFloat(data.memory)/1024).toFixed(2));
-      data.storage = Number((parseFloat(data.storage)/1024).toFixed(2));
-      data.availCpu = Number((parseFloat(data.availCpu)/1024).toFixed(2));
-      data.availMemory = Number((parseFloat(data.availMemory)/1024).toFixed(2));
-      data.availStorage = Number((parseFloat(data.availStorage)/1024).toFixed(2));
+      data.cpuSpeed = Number((Number(data.cpuSpeed)/1024).toFixed(2));
+      data.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.totalCpu)).toFixed(2)) : Number((Number(data.totalCpu)/1024).toFixed(2));
+      data.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.availCpu)).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
+      data.memory = Number((Number(data.memory)/1024).toFixed(2));
+      data.storage = Number((Number(data.storage)/1024).toFixed(2));
+      data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
+      data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
       self.summary(data);
       initSingleHost_cpu_chart(data);
       initSingleHost_memory_chart(data);

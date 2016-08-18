@@ -1,4 +1,13 @@
 myApp.onPageInit("vm-show", function(page) {
+<<<<<<< HEAD
+  function ViewModel(){
+    this.name = ko.observable(page.query.name);
+
+    this.loadData = function(){
+      myApp.addView('#view_vm_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/summary.html',animatePages: false});
+      myApp.addView('#view_vm_performance',      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html',animatePages: false});
+      myApp.addView('#view_vm_volumn', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html',animatePages: false});
+=======
   var url;
   if(page.query.hypervisor=="PowerVM"){
     url = 'tpl/vm/summary.html';
@@ -36,6 +45,7 @@ myApp.onPageInit("vm-show", function(page) {
         }
       });
       
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     };
   }
   var viewModel = new ViewModel();

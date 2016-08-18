@@ -3,7 +3,10 @@ myApp.onPageInit("vm-list", function(page) {
   function ViewModel(){
     this.dataList = ko.observableArray([]);
     this.fromPage = ko.observable();
+<<<<<<< HEAD
+=======
     this.hypervisor = ko.observable(page.query.hypervisor);
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
     this.loading = false;
     this.page = 1;
@@ -28,15 +31,24 @@ myApp.onPageInit("vm-list", function(page) {
         case "host":
           this.fromPage("host");
           url=BASE_URL+"/host/"+page.query.id+"/vm";
+<<<<<<< HEAD
+          break;
+      }
+      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
+=======
           resourcePoolId=page.query.resourcePoolId
           break;
       }
       RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor || '',"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       //$.ajax("tpl/vm/list.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+<<<<<<< HEAD
+=======
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           self.dataList.removeAll();
         }
         for(var i=0; i<data.data.length; i++){

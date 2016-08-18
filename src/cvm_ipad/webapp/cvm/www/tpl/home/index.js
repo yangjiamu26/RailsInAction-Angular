@@ -10,25 +10,45 @@ myApp.onPageInit("home-index", function(page) {
         "name": CVM_PAD.dcName
       });
     }
+    this.infos = ko.observable({
+      "vmNumber": "",
+      "cpuCoreNumber":"",
+      "x86TotalCpu": "",
+      "pvmTotalCpu": "",
+      "memorySize": "",
+      "storageSize": "",
+      "busDomainNum": "",
+      "projectNum": "",
+      "resPoolNumber": "",
+      "hostNubmer": ""
+    });
     this.stat = ko.observable({
-      "vmNum": "",
+      "vmNumber": "",
       "x86TotalCpu": "",
       "pvmTotalCpu": "",
       "memoryTotal": "",
       "storageTotal": "",
-      "busdomainNum": "",
+      "busDomainNum": "",
       "projectNum": "",
-      "resPoolNum": "",
-      "hostNum": ""
+      "resPoolNumber": "",
+      "hostNubmer": ""
     });
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/overallDetails").get(CVM_PAD.dcId,{},function(data){
+      RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceSummary").query({},function(data){
         myApp.pullToRefreshDone();
-        data.x86TotalCpu = parseFloat((data.x86TotalCpu/1024).toFixed(2));
-        data.x86UsedCpu = parseFloat((data.x86UsedCpu/1024).toFixed(2));
-        data.memoryTotal = parseFloat((data.memoryTotal/1024).toFixed(2));
-        data.memoryUsed = parseFloat((data.memoryUsed/1024).toFixed(2));
+        data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
+        self.infos(data);
+      });
+      RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat").query({},function(data){
+        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1024).toFixed(2));
+        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1024).toFixed(2));
+        data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
+        data.memoryUsed = Number((Number(data.memoryUsed)/1024).toFixed(2));
+        data.storageTotal = Number(Number(data.storageTotal).toFixed(2));
+        data.storageUsed = Number(Number(data.storageUsed).toFixed(2));
+        data.pvmTotalCpu = Number(Number(data.pvmTotalCpu).toFixed(2));
+        data.pvmUsedCpu = Number(Number(data.pvmUsedCpu).toFixed(2));
         self.stat(data);
         initTotal_cpu_chart_home(data);
         initTotal_cpu_chart_home2(data);

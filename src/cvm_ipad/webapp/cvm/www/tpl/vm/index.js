@@ -134,7 +134,7 @@ myApp.onPageInit("vm-index", function(page) {
               data.data[i].stateCss='orange';
               break;
           }
-          
+          data.data[i].memory = Number((Number(data.data[i].memory)/1024).toFixed(2));
           self.dataList.push(data.data[i]);
         }
         self.page++;

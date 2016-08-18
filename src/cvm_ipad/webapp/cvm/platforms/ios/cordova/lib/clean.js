@@ -22,7 +22,12 @@
 var Q     = require('q'),
     path  = require('path'),
     shell = require('shelljs'),
+<<<<<<< HEAD
+    spawn = require('./spawn'),
+    check_reqs = require('./check_reqs');
+=======
     spawn = require('./spawn');
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
 var projectPath = path.join(__dirname, '..', '..');
 
@@ -35,8 +40,14 @@ module.exports.run = function() {
         return Q.reject('No Xcode project found in ' + projectPath);
     }
 
+<<<<<<< HEAD
+    return check_reqs.run().then(function() {
+        return spawn('xcodebuild', ['-project', projectName, '-configuration', 'Debug', '-alltargets', 'clean'], projectPath);
+    }).then(function () {
+=======
     return spawn('xcodebuild', ['-project', projectName, '-configuration', 'Debug', '-alltargets', 'clean'], projectPath)
     .then(function () {
+>>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         return spawn('xcodebuild', ['-project', projectName, '-configuration', 'Release', '-alltargets', 'clean'], projectPath);
     }).then(function () {
         return shell.rm('-rf', path.join(projectPath, 'build'));

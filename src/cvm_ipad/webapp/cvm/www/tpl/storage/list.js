@@ -63,6 +63,10 @@ myApp.onPageInit("storage-list", function(page) {
               data.data[i].state='挂载中';
               data.data[i].stateCss='orange';
               break;
+            default:
+              data.data[i].state='异常';
+              data.data[i].stateCss='orange';
+              break;
           }   
           self.dataList.push(data.data[i]);
         }
