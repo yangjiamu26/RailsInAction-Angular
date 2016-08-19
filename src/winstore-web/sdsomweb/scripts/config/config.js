@@ -188,3 +188,11 @@ urlConfig.put("setNodeTime", "api/v1/sds/node/time/set");
 urlConfig.put("getNodeListTime", "api/v1/sds/nodelist/time/get");
 //集群节点时间同步
 urlConfig.put("syncClusterNodeTime", "api/v1/sds/cluster/time/sync");
+
+
+//添加文件系统z
+urlConfig.put("addCephFS", "api/v1/sds/cephfS/addcephfs");
+//删除文件系统z
+urlConfig.put("deleteCephFS", "api/v1/sds/cephfS/deletecephfs");
+//查询ceph文件系统和客户端
+urlConfig.put("checkShowflagAndClients", "api/v1/sds/cephfS/checkShowflagAndClients");
