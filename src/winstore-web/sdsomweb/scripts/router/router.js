@@ -107,13 +107,24 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
         .state("mainManager.nodeManager", {
         	url: "/node/manager",
         	views: {
+				"top_view": {
+					templateUrl: "views/node/nodeManager.html",
+					controller: "nodeManager"
+				},
+				"bot_view": {
+					templateUrl: "views/storageManage/mainPageBot.html",
+					controller: "mainPageBotCtrl"
+				}
+			  }
+        	})
+
+		//用来关联html和js文件
+		.state("mainManager.cephFSView", {
+        	url: "/cephFS/view",
+        	views: {
         		"top_view": {
-        			templateUrl: "views/node/nodeManager.html",
-        			controller: "nodeManager"
-        		},
-        		"bot_view": {
-        			templateUrl: "views/storageManage/mainPageBot.html",
-        			controller: "mainPageBotCtrl"
+        			templateUrl: "views/cephFS/cephFSView.html",
+        			controller: "cephFSCtrl"
         		}
         	}
         })
@@ -147,8 +158,7 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
         			controller: 'nodeAddCtrl'
         		}
         	}
-        })
-        ;
+        });
 
     //默认跳转
     $urlRouterProvider.otherwise("/login");
