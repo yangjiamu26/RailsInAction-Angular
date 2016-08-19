@@ -1,25 +1,10 @@
 myApp.onPageInit("host-summary", function(page) {
-<<<<<<< HEAD
-  function ViewModel(){
-    this.summary = ko.observable({
-
-    });
-    this.loadData = function(){
-      var self = this;
-      $.ajax("tpl/host/summary.json?id="+page.query.id).done(function(data){
-        myApp.pullToRefreshDone();
-        self.summary(data);
-
-        initSingleHost_cpu_chart();
-        initSingleHost_memory_chart();
-        initSingleHost_storage_chart();
-      });      
-=======
   // 单个资源池-cpu占比图
 function initSingleHost_cpu_chart(data) {
+  console.log(data)
   var unit = "GHz";
   if(data.hypervisor=="PowerVM") unit = "核";
-    $('#singleHost_cpu_chart').highcharts({
+  $('#singleHost_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -245,28 +230,22 @@ function initSingleHost_storage_chart(data) {
     });
     this.loadData = function(data){
       var self = this;
-      data.cpuSpeed = Number((parseFloat(data.cpuSpeed)/1024).toFixed(2));
-      data.totalCpu = Number((parseFloat(data.totalCpu)/1024).toFixed(2));
-      data.memory = Number((parseFloat(data.memory)/1024).toFixed(2));
-      data.storage = Number((parseFloat(data.storage)/1024).toFixed(2));
-      data.availCpu = Number((parseFloat(data.availCpu)/1024).toFixed(2));
-      data.availMemory = Number((parseFloat(data.availMemory)/1024).toFixed(2));
-      data.availStorage = Number((parseFloat(data.availStorage)/1024).toFixed(2));
+      data.cpuSpeed = Number((Number(data.cpuSpeed)/1024).toFixed(2));
+      data.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.totalCpu)).toFixed(2)) : Number((Number(data.totalCpu)/1024).toFixed(2));
+      data.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.availCpu)).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
+      data.memory = Number((Number(data.memory)/1024).toFixed(2));
+      data.storage = Number((Number(data.storage)/1024).toFixed(2));
+      data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
+      data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
       self.summary(data);
       initSingleHost_cpu_chart(data);
       initSingleHost_memory_chart(data);
       initSingleHost_storage_chart(data);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     };
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-<<<<<<< HEAD
-  
-  viewModel.loadData();
-=======
   window.HostIndex_Summary_details_viewModel = viewModel;
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();

@@ -1,6 +1,4 @@
 myApp.onPageInit("settings-profile", function(page) {
-<<<<<<< HEAD
-=======
 	function ViewModel(){
 		var self = this;
 		this.info = ko.observable({
@@ -19,6 +17,5 @@ myApp.onPageInit("settings-profile", function(page) {
 	var viewModel = new ViewModel();
 	ko.applyBindings(viewModel, $$(page.container)[0]);
   	viewModel.loadInfo();
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
 });

@@ -12,13 +12,8 @@ myApp.onPageInit("login", function(page) {
     var userInfo = JSON.parse(Storage.getItem("userInfo"));
     var Required = false;
     this.network = baseNet ? ko.observable(baseNet) : ko.observable("http://10.10.111.204:8095");
-<<<<<<< HEAD
-    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("admin");
-    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("passw0rd");
-=======
     this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("demo");
     this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("demo");
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     this.dashboard = null;
     this.login = function(){
       if(this.network()==""){
@@ -33,23 +28,11 @@ myApp.onPageInit("login", function(page) {
         myApp.alert('密码不能为空！');
         return;
       }
-<<<<<<< HEAD
-      Storage.setItem("baseNet",this.network());
-      BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
-
-      var self = this;
-      RestServiceJs(BASE_URL+"/user/login").post({
-        "account": this.username(),
-        "password": this.password()
-      },function(data){
-        data.password = self.password();
-=======
       var self = this;
 
       function goLogin(data){
         data.password = self.password();
         USER_INFO = data;
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         Storage.setItem("userInfo",JSON.stringify(data));
         Storage.setItem("cacheTime",new Date().getTime());
 
@@ -63,9 +46,6 @@ myApp.onPageInit("login", function(page) {
         setTimeout(function(){
           $$("#assistive").show();
         },2000);
-<<<<<<< HEAD
-
-=======
       }
 
       if(this.username().toLowerCase()=="demo"&&this.password().toLowerCase()=="demo"){
@@ -81,13 +61,8 @@ myApp.onPageInit("login", function(page) {
         "password": this.password()
       },function(data){
         goLogin(data);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       });
     }
   }
   ko.applyBindings(new ViewModel(), $$(page.container)[0]);
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6

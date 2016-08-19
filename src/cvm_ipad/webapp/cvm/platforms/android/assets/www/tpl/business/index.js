@@ -33,11 +33,7 @@ function init_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-<<<<<<< HEAD
-        labelFormat: '{name}：<b>{y}</b>GHz',
-=======
         labelFormat: '{name}：<b>{y}</b>个',
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       },
       plotOptions: {
           pie: {
@@ -241,17 +237,10 @@ function init_storage_chart(data) {
         this.busdomainName(name);
       }else{
         this.isShowAll(true);
-<<<<<<< HEAD
-        this.busdomainNum(window.indexFilter_viewModel.busdomain.busdomainNum);
-      }
-      
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
-=======
         this.busdomainNum(window.indexFilter_busdomain_viewModel.busdomain.busdomainNum);
       }
       
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"dcId":CVM_PAD.dcId,"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
 
         self.projectNum(data.size);
         if(id&&name){
@@ -263,10 +252,7 @@ function init_storage_chart(data) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-<<<<<<< HEAD
-=======
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           self.dataList.removeAll();
         }
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
@@ -294,11 +280,7 @@ function init_storage_chart(data) {
     viewModel.loadData(true);
   });
 
-<<<<<<< HEAD
-  window.indexFilter_viewModel.getBusinessDomains();
-=======
   window.indexFilter_busdomain_viewModel.getBusinessDomains();
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 });
 
 

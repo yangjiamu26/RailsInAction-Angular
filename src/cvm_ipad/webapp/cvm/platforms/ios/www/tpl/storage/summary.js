@@ -1,19 +1,4 @@
 myApp.onPageInit("storage-summary", function(page) {
-<<<<<<< HEAD
-  
-  function ViewModel(){
-    this.summary = ko.observable({
-
-    });
-    this.loadData = function(){
-      var self = this;
-      $.ajax("tpl/storage/summary.json?id="+page.query.id).done(function(data){
-        myApp.pullToRefreshDone();
-        self.summary(data);
-
-        initsingleStorage_use_chart();
-        initsingleStorage_assigned_chart();
-=======
 
 // 单个存储池-使用率占比图
 function initsingleStorage_use_chart(data) {
@@ -176,7 +161,6 @@ function initsingleStorage_assigned_chart() {
 
         initsingleStorage_use_chart(data);
         initsingleStorage_assigned_chart(data);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       });      
     };
   }

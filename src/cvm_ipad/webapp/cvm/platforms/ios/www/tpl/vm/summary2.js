@@ -2,19 +2,6 @@ myApp.onPageInit("vm-summary2", function(page) {
   
   function ViewModel(){
     this.summary = ko.observable({
-<<<<<<< HEAD
-
-    });
-    this.loadData = function(){
-      var self = this;
-      $.ajax("tpl/vm/summary2.json?id="+page.query.id).done(function(data){
-        myApp.pullToRefreshDone();
-        self.summary(data);
-
-        initsingleStorage_use_chart();
-        initsingleStorage_assigned_chart();
-      });      
-=======
       "vcpu":'',
       "memoryType":'',
       "memory":'',
@@ -43,17 +30,11 @@ myApp.onPageInit("vm-summary2", function(page) {
       }
       myApp.pullToRefreshDone();
       self.summary(data);  
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     };
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-<<<<<<< HEAD
-  
-  viewModel.loadData();
-=======
   window.vm_summary2_viewModal = viewModel;
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();
