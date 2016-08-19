@@ -120,12 +120,82 @@ function initPool_cpu_chart(data) {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: (data.cpuTotal-data.availCpu)/1024,
+                  y: (data.X86CpuTotal-data.X86AvailCpu)/1024,
                   color:"#ffd800"
               },
               {
                   name: '可用',
-                  y: (data.availCpu)/1024,
+                  y: (data.X86AvailCpu)/1024,
+                  color:"#59cb5c"
+              }
+          ]
+      }]
+    });   
+}
+function initPool_cpu_chart2(data) {
+    $('#pool_cpu_chart2').highcharts({
+      chart: {
+          marginTop: 0,
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: "none"
+      },
+      exporting:{
+          enabled: false
+      },
+      credits:{
+          enabled: false,
+          text : ""
+      },
+
+      title: {
+          floating:true,
+          text: ''
+      },
+      legend:{
+        enabled:true,
+        margin: 0,
+        layout: 'vertical',
+        backgroundColor:"none",
+        borderColor:"none",
+        itemStyle: {
+          
+          fontWeight: 'normal',
+          fontSize:'12px'
+        },
+        labelFormat: '{name}：<b>{y:.2f}</b>核',
+      },
+      plotOptions: {
+          pie: {
+              innerSize: '70%',
+              borderWidth:1,
+              allowPointSelect: false,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: true,
+                  color:'#6d6d72',
+                  distance: -25,
+                  style:{
+                    fontSize:'12px',
+                    fontWeight:'normal'
+                  },
+                  format: '{point.percentage:.1f}%'
+              },
+              showInLegend: true
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: 'CPU',
+          data: [{
+                  name: '已用',
+                  y: data.pvmCpuTotal-data.pvmAvailCpu,
+                  color:"#ffd800"
+              },
+              {
+                  name: '可用',
+                  y: data.pvmAvailCpu,
                   color:"#59cb5c"
               }
           ]
@@ -303,8 +373,15 @@ function initPool_storage_chart(data) {
           self.dataList.removeAll();
 
           self.pools_count(data.data.length);
-          initPool_vtype_chart(data);
-          initPool_cpu_chart(data);
+          if(self.hypervisor()==''){
+            initPool_vtype_chart(data);
+            initPool_cpu_chart2(data);
+            initPool_cpu_chart(data);
+          }else if(self.hypervisor()=='PowerVM'){
+            initPool_cpu_chart2(data);
+          }else{
+            initPool_cpu_chart(data);
+          }
           initPool_memory_chart(data);
           initPool_storage_chart(data);
         }

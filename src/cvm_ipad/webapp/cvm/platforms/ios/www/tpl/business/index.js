@@ -221,8 +221,10 @@ function init_storage_chart(data) {
     this.projectNum = ko.observable("");
     this.dataList = ko.observableArray([]);
     this.busdomainName = ko.observable("");
+    this.busdomainId = ko.observable("");
     this.isShowAll = ko.observable(true);
     this.projectNum2 = ko.observable("");
+    this.dcName = ko.observable(CVM_PAD.dcName);
 
     this.loading = false;
     this.page = 1;
@@ -234,15 +236,15 @@ function init_storage_chart(data) {
 
       if(id&&name){
         this.isShowAll(false);
+        this.busdomainId(id);
         this.busdomainName(name);
       }else{
         this.isShowAll(true);
+        this.busdomainId("");
         this.busdomainNum(window.indexFilter_busdomain_viewModel.busdomain.busdomainNum);
       }
       
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"dcId":CVM_PAD.dcId,"vdcId":id?id:"", "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
-
-        self.projectNum(data.size);
+      RestServiceJs(BASE_URL+"/busdomain/projects").query({"dcId":CVM_PAD.dcId,"vdcId":this.busdomainId(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
         if(id&&name){
           init_cpu_chart(data.busdomain);
           init_memory_chart(data.busdomain);
@@ -260,6 +262,7 @@ function init_storage_chart(data) {
           $$(page.container).find('.infinite-scroll-preloader').remove();
           return;
         }
+        self.projectNum(data.size);
         for(var i=0; i<data.data.length; i++){       
           self.dataList.push(data.data[i]);
         }
@@ -274,10 +277,10 @@ function init_storage_chart(data) {
   window.business_index_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false,viewModel.busdomainId(),viewModel.busdomainName());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
+    viewModel.loadData(true,viewModel.busdomainId(),viewModel.busdomainName());
   });
 
   window.indexFilter_busdomain_viewModel.getBusinessDomains();
