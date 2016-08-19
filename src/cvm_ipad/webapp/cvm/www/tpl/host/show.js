@@ -14,7 +14,7 @@ myApp.onPageInit("host-show", function(page) {
       RestServiceJs(BASE_URL+"/host/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"resPoolId":page.query.resourcePoolId,"hypervisor":page.query.hypervisor},function(data){
         //$.ajax("tpl/host/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
-        data.runTime = getTheTime(data.runTime);
+        data.runTime = getTheTime(new Date() - new Date(data.runTime*1000));
         self.summary(data);
         window.HostIndex_Summary_details_viewModel.loadData(data);
       });
