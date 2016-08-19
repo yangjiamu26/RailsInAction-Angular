@@ -1,7 +1,6 @@
 myApp.onPageInit("business-index", function(page) {
   // 业务域-cpu占比图
 function init_cpu_chart(data) {
-  console.log(data)
     $('#business_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -105,7 +104,7 @@ function init_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>G',
+        labelFormat: '{name}：<b>{y}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -177,7 +176,7 @@ function init_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>G',
+        labelFormat: '{name}：<b>{y}</b>GB',
       },
       plotOptions: {
           pie: {

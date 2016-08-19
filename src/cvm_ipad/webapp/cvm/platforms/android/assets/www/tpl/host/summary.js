@@ -1,9 +1,8 @@
 myApp.onPageInit("host-summary", function(page) {
   // 单个资源池-cpu占比图
 function initSingleHost_cpu_chart(data) {
-  console.log(data)
   var unit = "GHz";
-  if(data.hypervisor=="PowerVM") unit = "核";
+  if(viewModel.summary().hypervisor=="PowerVM") unit = "核";
   $('#singleHost_cpu_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -224,23 +223,30 @@ function initSingleHost_storage_chart(data) {
       "cpuSlots":'',
       "cpuSpeed":'',
       "model":'',
-      "vendor":'',
+      "vendor":''
+    });
+    this.summary2 = ko.observable({
+      "totalCpu":'',
       "memory":'',
       "storage":''
     });
     this.loadData = function(data){
       var self = this;
       data.cpuSpeed = Number((Number(data.cpuSpeed)/1024).toFixed(2));
-      data.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.totalCpu)).toFixed(2)) : Number((Number(data.totalCpu)/1024).toFixed(2));
-      data.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(data.availCpu)).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
-      data.memory = Number((Number(data.memory)/1024).toFixed(2));
-      data.storage = Number((Number(data.storage)/1024).toFixed(2));
-      data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
-      data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
       self.summary(data);
-      initSingleHost_cpu_chart(data);
-      initSingleHost_memory_chart(data);
-      initSingleHost_storage_chart(data);
+      RestServiceJs(BASE_URL+"/host/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":data.hypervisor},function(res){
+        res.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.totalCpu)).toFixed(2)) : Number((Number(res.totalCpu)/1024).toFixed(2));
+        res.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.availCpu)).toFixed(2)) : Number((Number(res.availCpu)/1024).toFixed(2));
+        res.memory = Number((Number(res.memory)/1024).toFixed(2));
+        res.availMemory = Number((Number(res.availMemory)/1024).toFixed(2));
+        res.storage = Number((Number(res.storage)/1024).toFixed(2));
+        res.availStorage = Number((Number(res.availStorage)/1024).toFixed(2));
+        self.summary2(res);
+        initSingleHost_cpu_chart(res);
+        initSingleHost_memory_chart(res);
+        initSingleHost_storage_chart(res);
+      });
+      
     };
   }
   var viewModel = new ViewModel();
@@ -248,6 +254,6 @@ function initSingleHost_storage_chart(data) {
   window.HostIndex_Summary_details_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(self.summary());
   });
 });

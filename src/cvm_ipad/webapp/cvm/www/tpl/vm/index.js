@@ -6,6 +6,7 @@ myApp.onPageInit("vm-index", function(page) {
     this.hostId = ko.observable("");
     this.dataList = ko.observableArray([]);
     this.vmNum = ko.observable("");
+    this.dcName = ko.observable(CVM_PAD.dcName);
 
     this.loading = false;
     this.page = 1;

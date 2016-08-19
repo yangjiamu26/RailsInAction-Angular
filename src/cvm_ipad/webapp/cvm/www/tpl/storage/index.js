@@ -153,6 +153,7 @@ function initStorage_use_chart(free, total) {
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
     this.dataList = ko.observableArray([]);
+    this.dcName = ko.observable(CVM_PAD.dcName);
     this.infos = ko.observable({
       "totalSize":'',
       "sharedSize":'',
