@@ -74,6 +74,14 @@
 				csc.rest.get('api/v5.0.0/vpcNetworks/' + uuid + "/availableIp",function(data){
 					 callback(data)
    		        })
+			},
+			/**
+			 * 获取vpc 拓扑图
+			 */
+			getTopology:function(uuid,callback){
+				csc.rest.get('api/v5.0.0/vpcs/' + uuid + "/topology",function(data){
+					 callback(data)
+   		        })
 			}
 	};
 }(window.jQuery);

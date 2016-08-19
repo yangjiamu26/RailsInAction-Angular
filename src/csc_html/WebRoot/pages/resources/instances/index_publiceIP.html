@@ -809,7 +809,8 @@
       this.validateTimeVO = ko.validatedObservable({
     	  uuid: ko.observable(),
     	  name: ko.observable(),
-    	  time: ko.observable()
+    	  time: ko.observable(),
+    	  metaTime: ko.observable()
       });
       this.showChangeValiTimePage = function(object, event){
     	  if(csc.util.isNotNull(object.serviceInstanceUuid)){
@@ -822,10 +823,16 @@
 	    	  self.validateTimeVO().uuid(object.uuid);
 	    	  self.validateTimeVO().name(object.name);
 	    	  self.validateTimeVO().time(object.expiryDate);
+	    	  self.validateTimeVO().metaTime(object.expiredDate);
      	  }
       }
       
       this.changeExpiredTime = function(){
+    	//检查日期相同的，不发送请求直接关闭页面
+    	  if(self.validateTimeVO().time() == self.validateTimeVO().metaTime()){
+    		  self.isValidateTime(false);
+    		  return;
+    	  }
     	  var uuid = self.validateTimeVO().uuid();
     	  var name = self.validateTimeVO().name();
     	  var p = {
@@ -1037,6 +1044,11 @@
       
       //申请
       this.validateProcessPost = function(){
+    	  //检查日期相同的，不发送请求直接关闭页面
+    	  if(self.validateProcessVO().validateTime() == self.validateProcessVO().targetValidateTime()){
+    		  self.isValidateProcess(false);
+    		  return;
+    	  }
     	  var metaData =  "{\"resBaseInfo\": {\"vdcName\": \"" + self.validateProcessVO().vdcName() 
             + "\",\"metaExpireTime\": \"" + self.validateProcessVO().validateTime() + "\"}}";
     	  var orderItem = {};

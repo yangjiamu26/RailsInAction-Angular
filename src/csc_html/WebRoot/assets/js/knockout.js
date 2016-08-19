@@ -5908,6 +5908,7 @@ ko.bindingHandlers.check_action = {
 	        		flag = true;
 	        	}
 	        }
+	        flag = true;
 	        if(flag){
 	        	$(element).show();
 	        }else{
@@ -5929,6 +5930,7 @@ ko.bindingHandlers.check_click = {
 	        		flag = true;
 	        	}
 	        }
+	        flag = true;
 	        if(flag){
 	        	ko.bindingHandlers.click.init(element, valueAccessor, allBindings, viewModel, bindingContext);
 	        }else{

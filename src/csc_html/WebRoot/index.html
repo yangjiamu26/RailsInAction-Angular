@@ -53,7 +53,7 @@
           <!-- / buttons -->
           <!-- nabar right -->
           <ul class='nav navbar-nav navbar-right'>
-            <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/guide/index">向导页预览</a></li>
+<!--             <li data-bind="visible: roleVO().roleFlag()=='ALL'"><a href="#pages/guide/index">向导页预览</a></li> -->
             <li class="dropdown">
                 <a data-toggle="dropdown" class="dropdown-toggle" aria-expanded="true">
                     <i class="fa fa-fw fa-plus visible-xs-inline-block"></i>
@@ -736,6 +736,9 @@
 	    			/* setTimeout(function(){
 	    		  	  ko.actionsMap = ["action1", "action2"]
 	    		    }, 2000) */
+	    			var hash = window.location.hash;
+	    			hash = hash.replace(/^(\#\!)?\#/, '');
+	    			refreshMenuActive(hash);
 	    		});
 	    	}
 	    	this.roleVO = ko.observable({
@@ -749,6 +752,7 @@
 		    		self.roleVO().roleName(data.roles);
 		    		var currentRole = data.currentRole==''?data.roles[0].name:data.currentRole;
 		    		self.roleVO().currentRole(currentRole);
+		    		
 		    		//查看当前角色是否具有自助门户权限
 		    		csc.rest.get("api/v5.0.0/homepage/gateway/"+currentRole, function(data){
 		    			self.roleVO().platForm(data);
@@ -763,15 +767,16 @@
 			    			if(window.location.hash=="#pages/welcome/home"){
 			    				window.location.hash = '#pages/welcome/index';
 			    			}
+			    			
 			    		});
 		    		});
-		    		if((data[0].name == "系统管理员") || (data[0].name == "运营管理员") || (data[0].name == "运维管理员")){
+		    		if((currentRole == "系统管理员") || (currentRole == "运营管理员") || (currentRole == "运维管理员")){
 		    			self.roleVO().roleFlag("ALL")
-		    		}else if(data[0].name == "VDC管理员"){
+		    		}else if(currentRole == "VDC管理员"){
 		    			self.roleVO().roleFlag("VDC");
-		    		}else if(data[0].name == "安全管理员"){
+		    		}else if(currentRole == "安全管理员"){
 		    			self.roleVO().roleFlag("AG");
-		    		}else if(data[0].name == "安全审计员"){
+		    		}else if(currentRole == "安全审计员"){
 		    			self.roleVO().roleFlag("AS");
 		    		}else{
 		    			self.roleVO().roleFlag("COMMON");

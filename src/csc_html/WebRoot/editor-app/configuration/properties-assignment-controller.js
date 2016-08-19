@@ -52,20 +52,23 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     $scope.assignment.candidateUsers1 = [];
     $scope.assignment.assignment1 = "";
     var allUsers = $scope.users1;
+    var allAdUsers = $scope.adUsers;
     var assignUser = $scope.assignment.candidateUsers;
     var selectMember = [];
     var selectMemberId = [];
     var usersArr = new Array();
     //给候选人赋值
     console.log(allUsers)
-    console.log("ssssooooo")
     console.log($scope.assignment)
     if(allUsers !== undefined){    	
-    	for(var i = 0;i < allUsers.length;i++){
-    		for(var j = 0;j < assignUser.length;j++){
-    			if(assignUser[j].value == allUsers[i].id){
+    	for(var j = 0;j < assignUser.length;j++){
+    		for(var i = 0;i < allUsers.length;i++){
+    			var userType = assignUser[j].value.split(":")[0];
+    			var value = assignUser[j].value.split(":")[1];
+    			if(userType == "0" && value == allUsers[i].id){
     				var user ={};
     				user.id = allUsers[i].id ;
+    				user.userType = "0";
     				user.userName = allUsers[i].name;
     				usersArr.push(user);
     				selectMember.push(allUsers[i].name);
@@ -74,17 +77,54 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     		}
     	}
     }
+    if(allAdUsers !== undefined){    	
+    	for(var j = 0;j < assignUser.length;j++){
+    		for(var i = 0;i < allAdUsers.length;i++){
+    			var userType = assignUser[j].value.split(":")[0];
+    			var value = assignUser[j].value.split(":")[1];
+    			if(userType == "1" && value == allAdUsers[i].account){
+    				var user ={};
+    				user.id = allAdUsers[i].account ;
+    				user.userType = "1";
+    				user.userName = allAdUsers[i].name;
+    				usersArr.push(user);
+    				selectMember.push(allAdUsers[i].name);
+    				selectMemberId.push(allAdUsers[i].account);
+    			}
+    		}
+    	}
+    }
     //默认办理人赋值    
     var selectuser = $scope.assignment.assignee;
     var selectUserArr = new Array();
     if(allUsers !== undefined){
-	    for(var i = 0;i < allUsers.length;i++){    	
-			if(selectuser == allUsers[i].id){
-				var user ={};
-				user.id = allUsers[i].id ;
-				user.userName = allUsers[i].name;
-				selectUserArr.push(user);
-			}
+	    for(var i = 0;i < allUsers.length;i++){
+	    	if(selectuser!=undefined && selectuser.split(":") > 1){	    		
+	    		var userType = selectuser.split(":")[0];
+	    		var value = selectuser.split(":")[1];
+	    		if(userType == "0" && value == allUsers[i].id){
+	    			var user ={};
+	    			user.id = allUsers[i].id ;
+	    			user.userType = "0";
+	    			user.userName = allUsers[i].name;
+	    			selectUserArr.push(user);
+	    		}
+	    	}
+	    }
+    }
+    if(allAdUsers !== undefined){
+	    for(var i = 0;i < allAdUsers.length;i++){ 
+	    	if(selectuser!=undefined && selectuser.split(":") > 1){	    		
+	    		var userType = selectuser.split(":")[0];
+	    		var value = selectuser.split(":")[1];
+	    		if(userType == "1" && value == allAdUsers[i].account){
+	    			var user ={};
+	    			user.id = allAdUsers[i].account ;
+	    			user.userType = "1";
+	    			user.userName = allAdUsers[i].name;
+	    			selectUserArr.push(user);
+	    		}
+	    	}
 	    }
     }
     $scope.assignment.candidateUsers1.value = selectMemberId.join(",");

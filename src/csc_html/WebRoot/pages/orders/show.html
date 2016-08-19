@@ -2,13 +2,16 @@
   <ol class="breadcrumb">
     <li>当前位置：</li>
     <li>订单</li>
-    <li><a href="#pages/orders/service_orders">订单管理</a></li>
+    <li id="order_manager_"><a href="#pages/orders/service_orders?type=order">订单管理</a></li>
+    <li id="my_order_"><a href="#pages/orders/service_orders">我的订单</a></li>
     <li class="active">订单详情</li>
   </ol>
 </div>
 
 <div class="wrapper-md" id="resourceDetail">
-    <a class="btn btn-sm btn-default" href="#pages/orders/service_orders"><i class="fa fa-arrow-left"></i> 返回</a>
+    <a  id="a_order_manager_" class="btn btn-sm btn-default" href="#pages/orders/service_orders?type=order"><i class="fa fa-arrow-left"></i> 返回</a>
+    <a  id="a_my_order_" class="btn btn-sm btn-default" href="#pages/orders/service_orders"><i class="fa fa-arrow-left"></i> 返回</a>
+    
     <p>&nbsp;</p>
 	<div class="panel panel-info">
 		<div class="panel-heading">基本信息</div>
@@ -20,12 +23,14 @@
 				<div class="col-xs-4">
 					<p><strong>流程类型：</strong>
 						<span data-bind="visible: type=='RESOURCE_APPLY'">资源申请</span>
-						<span data-bind="visible: type=='RESOURCEC_HANGE'">资源变更</span>
-						<span data-bind="visible: type=='RESOURCER_ECYCLE'">资源删除</span>
+						<span data-bind="visible: type=='RESOURCE_CHANGE'">资源变更</span>
+						<span data-bind="visible: type=='RESOURCE_RECYCLE'">资源回收</span>
 						<span data-bind="visible: type=='RESOURCE_DELETE'">资源删除</span>
 						<span data-bind="visible: type=='VALIDTIME_CHANGE'">有效时间变更</span>
 						<span data-bind="visible: type=='VDC_APPLY'">VDC申请</span>
 						<span data-bind="visible: type=='VDC_CHANGE'">VDC变更</span>
+						<span data-bind="visible: type=='VDC_DELETE'">VDC删除</span>
+						<span data-bind="visible: type=='VDC_RECYCLE'">VDC回收</span>
 					</p>
 				</div>
 			</div>
@@ -225,21 +230,6 @@
 		                            </tbody>
 		                          </table>            
 		                        </div>
-								<!-- <h5><strong>系统盘分区</strong></h5>
-								<table class="table table-striped table-bordered" style="width:250px">
-									<thead>
-										<tr>
-											<th>分区名称</th>
-											<th>分区大小</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td data-bind="text:azName"></td>
-											<td>接口缺少</td>
-										</tr>
-									</tbody> 
-								</table> -->
 							</td>
 						</tr>
 						
@@ -509,8 +499,16 @@
 	
 	var scripts = [null, null];
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+	    var orderType = args.orderType;
+        if(orderType!="undefined"){
+              $("#my_order_").css('display', 'none');//显示全部数据
+              $("#a_my_order_").css('display', 'none');
+        }else{
+              $("#order_manager_").css('display', 'none');//显示订单
+              $("#a_order_manager_").css('display', 'none');//显示订单
+        }
+	      
 		function ViewModel(){
-		    
 		    var type_ = args.type;
 		    if(type_=="RESOURCE_DELETE"||type_=="RESOURCE_RECYCLE"){
 		        $("#orderMessage_").css('display', 'none');//隐藏信息
@@ -656,7 +654,7 @@
 								}
 							}
 						}
-						
+				  		
 						if(softwareItems!=null && softwareItems!=undefined && softwareItems.length>0){
 							for(var s=0;s<softwareItems.length;s++){
 								if(vmVo.relateUuid == softwareItems[s].relateUuid){
@@ -682,6 +680,7 @@
 								}
 							}
 						}
+				
 						self.vmOrderItems.push(vmInfo);
 					}
 				}else{

@@ -2,6 +2,61 @@
  <b>Load content via Ajax </b>. For more information please refer to documentation #basics/ajax
 */
 
+function refreshMenuActive(hash){
+     var close_active = false;
+     var link_element = [];
+    /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单--------------以下是修改的地方--start--------------*/
+      var params = hash.substring(hash.indexOf("?")+1);
+      var paramsList = new Array();
+      if(params){
+          var paramsArray = params.split("&");
+          if(paramsArray && paramsArray.length > 0){
+              for(var _i=0; _i<paramsArray.length; _i++){
+                  paramsList.push(paramsArray[_i].substring(0,paramsArray[_i].indexOf("=")));
+              }
+          }
+      }
+      var paramsStr = paramsList.join(",");
+      link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]'),$('a[data-url="'+hash.substring(0,hash.indexOf("?"))+'"][data-url-params*="'+paramsStr+'"]')],function(res){
+        if(res.length > 0) return res;
+        return [''];
+      });
+      //link_element = link_element[0];
+      
+      for(var _j=0;_j<link_element.length;_j++){
+          if(link_element[_j]){
+              link_element = link_element[_j];
+              break;
+          }
+      }
+      /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单------------以上是修改的地方--end--------------*/
+      if(link_element.length > 0 && link_element.length<2) {
+        var nav = link_element.closest('.navbox');
+        if(nav.length > 0) {
+          nav.find('.highlight').each(function(){
+            var $class = 'highlight';
+            //$(this).removeClass($class);
+            if( $(this).hasClass('hover') || close_active ) $class += ' open';
+            
+            $(this).removeClass($class);              
+            if(close_active) {
+              $(this).find(' > .submenu').css('display', '');
+            }
+          })
+          
+          var active_li = link_element.closest('li').addClass('highlight').parents('.nav li').addClass('active open');
+          nav.closest('.sidebar[data-sidebar-scroll=true]').each(function() {
+            var $this = $(this);
+            $this.ace_sidebar_scroll('reset');
+            if(manual_trigger) $this.ace_sidebar_scroll('scroll_to_active');//first time only
+          })
+        }
+      }else{
+          link_element = link_element[0];
+      }
+    
+}
+
 (function($ , undefined) {
   var ajax_loaded_scripts = {}
 
@@ -31,16 +86,17 @@
     }
     this.getUrl = function(url, hash, manual_trigger) {
       if(working) {
-    	  if(hash!="pages/welcome/index"){
-    		  return;
-    	  }
+    	  //if(hash!="pages/welcome/index"){
+    		  //return;
+    	  //}
       }
     
       var event
       $contentArea.trigger(event = $.Event('ajaxloadstart'), {url: url, hash: hash})
       if (event.isDefaultPrevented()) return;
       
-      self.startLoading();
+      //self.startLoading();
+      showLoading();
 
       $.ajax({
         'url': url
@@ -48,7 +104,9 @@
       .error(function() {
         $contentArea.trigger('ajaxloaderror', {url: url, hash: hash});
 
-        self.stopLoading(true);
+        //self.stopLoading(true);
+        hideLoading();
+        
         window.location.hash = default_url;//匹配不到文件时跳回首页
       })
       .done(function(result) {
@@ -59,58 +117,7 @@
           link_element = update_active.call(null, hash, url);
         }
         else if(update_active === true) {
-        /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单--------------以下是修改的地方--start--------------*/
-          var params = hash.substring(hash.indexOf("?")+1);
-          var paramsList = new Array();
-          if(params){
-        	  var paramsArray = params.split("&");
-        	  if(paramsArray && paramsArray.length > 0){
-        		  for(var _i=0; _i<paramsArray.length; _i++){
-        			  paramsList.push(paramsArray[_i].substring(0,paramsArray[_i].indexOf("=")));
-        		  }
-        	  }
-          }
-          var paramsStr = paramsList.join(",");
-          
-          link_element = $.map([$('a[data-url="'+hash+'"]'),$('a[data-url-sec="'+hash+'"]'),$('a[data-url-thr="'+hash+'"]'),$('a[data-url="'+hash.substring(0,hash.indexOf("?"))+'"][data-url-params*="'+paramsStr+'"]')],function(res){
-            if(res.length > 0) return res;
-            return [''];
-          });
-          
-          //link_element = link_element[0];
-          
-          for(var _j=0;_j<link_element.length;_j++){
-        	  if(link_element[_j]){
-        		  link_element = link_element[_j];
-        		  break;
-        	  }
-          }
-          /*-------------增加data-url-params属性，当uri带有参数，使用data-url和data-url-params能使左边菜单栏能高亮显示当前菜单------------以上是修改的地方--end--------------*/
-          
-          if(link_element.length > 0 && link_element.length<2) {
-            var nav = link_element.closest('.navbox');
-            if(nav.length > 0) {
-              nav.find('.highlight').each(function(){
-                var $class = 'highlight';
-                //$(this).removeClass($class);
-                if( $(this).hasClass('hover') || close_active ) $class += ' open';
-                
-                $(this).removeClass($class);              
-                if(close_active) {
-                  $(this).find(' > .submenu').css('display', '');
-                }
-              })
-              
-              var active_li = link_element.closest('li').addClass('highlight').parents('.nav li').addClass('active open');
-              nav.closest('.sidebar[data-sidebar-scroll=true]').each(function() {
-                var $this = $(this);
-                $this.ace_sidebar_scroll('reset');
-                if(manual_trigger) $this.ace_sidebar_scroll('scroll_to_active');//first time only
-              })
-            }
-          }else{
-        	  link_element = link_element[0];
-          }
+            refreshMenuActive(hash);
         }
 
         /////////
@@ -171,7 +178,8 @@
         $contentArea.trigger('ajaxloadcomplete', {url: url, hash: hash});
         //////////////////////
         
-        self.stopLoading(true);
+        //self.stopLoading(true);
+        hideLoading();
       })
     }
     

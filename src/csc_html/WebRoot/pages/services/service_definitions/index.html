@@ -1,5 +1,5 @@
-<link href="assets/lib/zTree/css/ibos/ibos.css" rel="stylesheet"
-	type="text/css" />
+<link href="assets/lib/zTree/css/ibos/ibos.css" rel="stylesheet" type="text/css"/>
+<link href="assets/lib/webuploader/webuploader.css" rel="stylesheet" type="text/css"/>
 
 <style>
   .service-img-box{position:relative;width:60px;height:60px;}
@@ -218,7 +218,7 @@
 <script type="text/javascript">
 var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTree/js/jquery.ztree.excheck.js', 
                "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js",
-               "assets/lib/bootstrap-daterangepicker/date.js", null];               
+               "assets/lib/bootstrap-daterangepicker/date.js", "assets/lib/webuploader/webuploader.js",null];               
 	//弹窗服务目录下拉框树start	
 	function selectDirClick(){ 	
 		var cityObj = $("#selectDir");
@@ -244,9 +244,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	}
 	//弹窗服务目录下拉框树end
 	
- 	function preViewImage() {
+ 	/* function preViewImage() {
 		$("#up").uploadPreview({ Img: "ImgPr", Width: 120, Height: 120, ImgType: ["gif", "jpg", "bmp", "png"] });
-	} 
+	} */ 
 
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //inline scripts related to this page
@@ -417,11 +417,92 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
          });
     }
     
+  	function loadInit(){
+  		var $ = jQuery,
+        $list = $('#fileList'),
+         // 优化retina, 在retina下这个值是2
+        ratio = window.devicePixelRatio || 1,
+
+         // 缩略图大小
+        thumbnailWidth = 100 * ratio,
+        thumbnailHeight = 100 * ratio,
+         // Web Uploader实例
+ 	    // 初始化Web Uploader
+ 	    uploader = new WebUploader.create({
+ 	        // 自动上传。
+ 	        auto: true,
+ 	        // swf文件路径
+ 	        swf: '/assets/lib/webuploader/Uploader.swf',
+ 	        // 文件接收服务端。
+ 	        server: '/csc/api/file/uploadServlet?handler=cscPicture&actionKey=&dataKey=',
+ 	        // 选择文件的按钮。可选。
+ 	        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+ 	        pick: '#filePicker',
+ 	        fileSingleSizeLimit: 2*1024*1024,   //设定单个文件大小
+ 	        // 只允许选择文件，可选。
+ 	        accept: {
+ 	            title: 'Images',
+ 	            extensions: 'gif,jpg,bmp,png',
+ 	            mimeTypes: 'image/*'
+ 	        }
+ 	    });
+ 		uploader.on('beforeFileQueued', function(file) {
+ 			//重置上传队列
+ 			uploader.reset();
+ 		}); 
+ 		uploader.on("error",function (type){
+ 	        if (type=="Q_TYPE_DENIED"){
+ 	            alert("请上传gif、jpg、bmp、png格式文件！");
+ 	        }else if(type=="F_EXCEED_SIZE"){
+ 	            alert("文件大小不能超过2M！");
+ 	        }
+ 	    });
+ 	    
+ 	 // 当有文件添加进来的时候
+ 	    uploader.on( 'fileQueued', function( file ) {
+ 	    	
+   	        var $li = $(
+ 	                '<div id="' + file.id + '" class="file-item thumbnail">' +
+ 	                    '<img>' +
+ 	                    '<div class="info">' + file.name + '</div>' +
+ 	                '</div>'
+ 	                ), 
+ 	            $img = $("#ImgPr");
+ 	    	//	        $img = $li.find('img');
+
+// 	        $list.append( $li ); 
+
+ 	        // 创建缩略图
+ 	        uploader.makeThumb( file, function( error, src ) {
+ 	            if ( error ) {
+ 	                $img.replaceWith('<span>不能预览</span>');
+ 	                return;
+ 	            }
+ 	            $img.attr( 'src', src );
+ 	        }, 100, 100 );
+ 	    });
+
+ 	    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+ 	    uploader.on( 'uploadSuccess', function( file, result) {
+ 	    	viewModel.serviceVO().imageUrl("/csc/api/img/imgServlet?path="+result.path);
+ 	        $( '#'+file.id ).addClass('upload-state-done');
+ 	    });
+
+ 	    // 文件上传失败，现实上传出错。
+ 	    uploader.on( 'uploadError', function( file ) {
+ 	        alert('上传失败');
+ 	    });
+ 	   uploader.addButton({
+		    id: '#filePicker',
+		    innerHTML: '选择图片'
+		});
+ 	     
+  	}
+  	
     $(document).ready(function(){
     	loadTree();		    //服务目录树
         loadProduct();	   //获取产品下拉框数据
         
-        //loadServiceTree();//加载弹窗的服务目录树
     });         	
   	
     function ViewModel(){
@@ -829,7 +910,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         		  }else{
         			  self.osTypeList.push(vdcOsType);
         		  }
-    			  if(limit == "yes"){
+    			  //if(limit == "yes"){
     				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
     				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
     				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
@@ -844,7 +925,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
     				  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
     				  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
-    			  }
+    			 // }
     		  }else{
     			  //初始化AZ数据
     			  getAzsByUser(viewModel,false);
@@ -950,7 +1031,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 //    		        startDate: moment().subtract( 29, 'days'),
 //    		        endDate: Date.today().addDays(1),
     		        minDate: Date.today(),
-    		        separator:'至'
+    		        separator:'至',
+    		        timePicker:true,
+    		        timePicker24Hour: true
     		  });
     		  $("#selectServiceName").attr("disabled",true);//修改时产品不让修改
     		  if(startDate != "" && endDate != ""){
@@ -963,7 +1046,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       <!-- 创建服务弹窗 -->
       //创建服务弹窗
       this.isCreateService = ko.observable(false);
-      this.createService = function(){ 	  
+      this.createService = function(){ 	
     	  var vo = new entityVO();
 	  	  this.serviceVO = new ko.validatedObservable(vo);
 	  	  this.isCreateService(true);
@@ -978,7 +1061,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 			  self.packages_chosen.removeAll();
 		  }
     	  
-    	  this.showItems("no");
+/*     	  this.showItems("no");
     	  this.showItems.subscribe(function(value){
     	         if(value=='yes'){
     	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: true, onlyIf:function(){return true}}});
@@ -1011,7 +1094,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	       		self.serviceVO().serviceVDC.maxSecurityGroupNum.extend({required: {params: false, onlyIf:function(){return true}}});
     	       		self.serviceVO().serviceVDC.maxVpnNum.extend({required: {params: false, onlyIf:function(){return true}}});
     	       	  }
-    	  })
+    	  }) */
     	  this.isFee("1");
     	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
@@ -1021,7 +1104,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        startDate: moment().subtract( 29, 'days'),
 	        endDate: Date.today().addDays(1),
 	        minDate: Date.today(),
-	        separator:'至'
+	        separator:'至',
+	        timePicker:true,
+	        timePicker24Hour: true
 	      });
     	  
       }      
@@ -1090,7 +1175,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     		  }
    			  
     	  }else if(this.step() == 2 && this.selected_product()=='VDC'){
-    		  var isLimit = this.showItems();
+    		  if(this.osTypeList().length <= 0){
+    			  alert("请至少选择一个支持操作系统！");
+    			  return;
+    		  }
+    		 /*  var isLimit = this.showItems();
     		  if(isLimit == "yes"){
     			  ko.validation.group(this.serviceVO).showAllMessages();
     			  var isMandatory = true;
@@ -1183,7 +1272,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           			  alert("请输入限制的配额的值！");
           			  return;
           		  }
-    		  }
+    		  } */
     	  }
 
     	  this.step(this.step()+1);
@@ -1196,7 +1285,11 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		//修改图标start
         this.isChangeImg = ko.observable(false);
         this.changeImg = function(){
-          this.isChangeImg(true);
+	        this.isChangeImg(true);
+	        $("#picModal").on("shown.bs.modal",function(){
+					$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+					loadInit();
+			});
         }
         this.setImg = function(){
           this.isChangeImg(false);
@@ -1758,8 +1851,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <label class="col-xs-3 control-label">服务图标：</label>
                 <div class="col-xs-7">
                   <div class="service-img-box" data-bind="click: changeImg">
-                    <img src="" alt="" width="60" height="60" >
-                    <a data-bind="value: serviceVO().imageUrl">更改图标</a>
+                  <!-- <div class="service-img-box"  onclick="showModal('pages/services/service_definitions/addService.html')"> -->
+                    <img src="" alt="" width="60" height="60" data-bind="attr: {src: serviceVO().imageUrl}">
+                    <a >更改图标</a>
                   </div>
                 </div>
               </div>              
@@ -2021,7 +2115,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 					<span class="text-danger inline m-l-n m-t-sm">*</span>
 				</div>
               </div>
-              <div class="form-group">
+             <!--  <div class="form-group">
                 <label class="col-xs-2 control-label">是否限制配额：</label>
                 <div class="col-xs-9 form-inline">
                   <div class="form-inline">
@@ -2040,13 +2134,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-1">
 					<span class="text-danger inline m-l-n m-t-sm">*</span>
 				</div>
-              </div>
-              <div style="padding-right:50px;" class="form-group row" data-bind="visible: showItems()=='yes'">
+              </div> -->
+              <div style="padding-right:50px;" class="form-group row" >
                 <div class="col-xs-6">
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大CPU(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxCpu" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxCpu" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2054,7 +2148,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大云主机数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVmNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVmNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2062,7 +2156,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大内存(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxMemory" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxMemory" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2070,7 +2164,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大云硬盘数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxDiskNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxDiskNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2078,7 +2172,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大存储(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxStorager" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxStorager" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2086,7 +2180,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大公网IP数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxIpNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxIpNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2094,7 +2188,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大VPC(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVPC" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVPC" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2102,7 +2196,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大路由器数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxRouterNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxRouterNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2110,7 +2204,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大对象存储(GB)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxObjStorageNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxObjStorageNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2118,7 +2212,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大防火墙数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxFireWallNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxFireWallNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2126,7 +2220,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大SSH密钥数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSSHNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSSHNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2134,7 +2228,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大负载均衡数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxLoadBalanceNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2142,7 +2236,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大安全组数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSecurityGroupNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxSecurityGroupNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2150,7 +2244,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   <div class="form-group">
                     <label class="col-xs-6 control-label">最大VPN数(个)：</label>
                     <div class="col-xs-6">
-                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVpnNum" maxlength="8">
+                      <input class="form-control" data-bind="value: serviceVO().serviceVDC.maxVpnNum" maxlength="8" placeholder="不限配额">
                     </div>
                   </div>
                 </div>
@@ -2535,14 +2629,14 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     </div>
   </div>
   <!-- 上传图片 -->
-  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isChangeImg }">
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isChangeImg }" id="picModal">
     <div class='modal-dialog'>
       <div class='modal-content'>
         <div class='modal-header'>
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传图片</h3>
         </div>
-        <form action="/api/v5.0.0/file/upload/rest" enctype="multipart/form-data">
-	        <div class='modal-body row'>
+        <!-- <form action="/api/v5.0.0/file/upload/rest" enctype="multipart/form-data"> -->
+	        <!-- <div class='modal-body row'>
 	          <div class="col-xs-6">
 	            <img src="" alt="" width="100%" height="150" id="ImgPr">
 	          </div>
@@ -2552,8 +2646,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 					 data-bind="" onclick="preViewImage()"/>上传图片</a></p>
 	        	   <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
 	          </div>
+	        </div> -->
+	        
+	        <div class='modal-body row'>
+	          <div class="col-xs-6">
+	            <div id="fileList" class="uploader-list"><div class="file-item thumbnail" style="height: 120px"><img src="" alt="" id="ImgPr" height="100" width="100" data-bind="attr: {src: serviceVO().imageUrl}"></div></div>
+	          </div>
+	          <div class="col-xs-6">
+	            <div id="filePicker">选择图片</div>
+	        	   <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
+	          </div>
 	        </div>
-        </form>
+        <!-- </form> -->
         <div class='modal-footer' style="text-align:center;">
           <a class="btn btn-default btn-info" data-bind="click: setImg">确定</a>
           <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>

@@ -30,6 +30,10 @@
           options = {};
         }
       }
+      var enabled = true;
+      if(options.hasOwnProperty("enabled")){
+    	  enabled = options.enabled;
+      }
       this.options = {
         recordWord: options.recordWord || 'record',
         recordWordPlural: options.recordWordPlural,
@@ -41,7 +45,7 @@
         ascSortClass:  "glyphicon glyphicon-sort-by-attributes", 
         descSortClass: "glyphicon glyphicon-sort-by-attributes-alt",
         serverSidePagination: {
-          enabled: true,
+          enabled: enabled,
           path: options.path,
           loader: options.loader || function(row){
             return row;
@@ -388,6 +392,7 @@
           req.setRequestHeader('Content-Type', 'application/json');
           //req.setRequestHeader('If-Modified-Since', '0'); 
           req.onload = function() {
+            hideLoading();
             if (req.status >= 200 && req.status < 400) {
               return cb(null, JSON.parse(req.responseText));
             } else {
@@ -395,8 +400,10 @@
             }
           };
           req.onerror = function() {
+            hideLoading();
             return cb(new Error("Error communicating with server"));
           };
+          showLoading();
           return req.send();
         };
       })(this);

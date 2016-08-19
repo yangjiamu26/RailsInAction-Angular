@@ -10,7 +10,7 @@
                   <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: linux"/> Linux</label></div>&nbsp;&nbsp;
                   <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: aix"/> Aix</label></div>
                 </div>
-                <div class="table-responsive no-height">
+                <div class="table-responsive no-height" data-bind="visible: limitQuota()">
                   <table class="table table-striped">
                     <thead>
                       <tr>
@@ -104,6 +104,7 @@
 	  	  this.vdcQuotaList = ko.observable("");
 	  	  this.expireType = ko.observable("");
 	  	  this.expireValue = ko.observable("");
+	  	  this.limitQuota = ko.observable("");
 	  	
 	  	  this.windows = ko.observable("");
 	  	  this.linux = ko.observable("");
@@ -156,36 +157,75 @@
 	      		self.order(orderData);
 	      		self.vdc(itemListData[0]);
 	      		self.metaData(metaData);
-	      		for(var i=0;i<vdcQuotaList.length;i++){
-	      			if(vdcQuotaList[i].type=='CPU'){
-	      				self.changeVdc().cpu(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='MEMORY'){
-	      				self.changeVdc().memory(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='STORAGE'){
-	      				self.changeVdc().storage(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='VPC'){
-	      				self.changeVdc().vpc(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='VM'){
-	      				self.changeVdc().vm(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='DISK'){
-	      				self.changeVdc().disk(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
-	      				self.changeVdc().publicIp(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='ROUTER'){
-	      				self.changeVdc().router(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
-	      				self.changeVdc().firewall(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
-	      				self.changeVdc().secretKey(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
-	      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
-	      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
-	      				self.changeVdc().securityGroup(vdcQuotaList[i].value);
-	      			}else if(vdcQuotaList[i].type=='VPN'){
-	      				self.changeVdc().vpn(vdcQuotaList[i].value);
-	      			}
+	      		self.limitQuota(resBaseInfo.limitQuota);
+	      		
+	      		if(self.limitQuota()){
+		      		for(var i=0;i<vdcQuotaList.length;i++){
+		      			if(vdcQuotaList[i].type=='CPU'){
+		      				self.changeVdc().cpu(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='MEMORY'){
+		      				self.changeVdc().memory(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='STORAGE'){
+		      				self.changeVdc().storage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPC'){
+		      				self.changeVdc().vpc(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VM'){
+		      				self.changeVdc().vm(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='DISK'){
+		      				self.changeVdc().disk(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+		      				self.changeVdc().publicIp(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='ROUTER'){
+		      				self.changeVdc().router(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+		      				self.changeVdc().firewall(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+		      				self.changeVdc().secretKey(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+		      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+		      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+		      				self.changeVdc().securityGroup(vdcQuotaList[i].value);
+		      			}else if(vdcQuotaList[i].type=='VPN'){
+		      				self.changeVdc().vpn(vdcQuotaList[i].value);
+		      			}
+		      		}
+		      		self.vdcQuotaList(vdcQuotaList);
+		      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
+			    		var vdcQuotaList = data.results;
+			    		for(var i=0;i<vdcQuotaList.length;i++){
+			    			if(vdcQuotaList[i].type=='CPU'){
+			      				self.metaVdc().cpu(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='MEMORY'){
+			      				self.metaVdc().memory(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='STORAGE'){
+			      				self.metaVdc().storage(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='VPC'){
+			      				self.metaVdc().vpc(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='VM'){
+			      				self.metaVdc().vm(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='DISK'){
+			      				self.metaVdc().disk(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+			      				self.metaVdc().publicIp(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='ROUTER'){
+			      				self.metaVdc().router(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+			      				self.metaVdc().firewall(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+			      				self.metaVdc().secretKey(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+			      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+			      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+			      				self.metaVdc().securityGroup(vdcQuotaList[i].value);
+			      			}else if(vdcQuotaList[i].type=='VPN'){
+			      				self.metaVdc().vpn(vdcQuotaList[i].value);
+			      			}
+			    		}
+			    	})
 	      		}
 	      		for(var i=0;i<osType.length;i++){
 	      			if(osType[i]=='windows'){
@@ -196,42 +236,7 @@
 	      				self.aix(true);
 	      			}
 	      		}
-	      		self.vdcQuotaList(vdcQuotaList);
 	      		
-	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
-		    		var vdcQuotaList = data.results;
-		    		for(var i=0;i<vdcQuotaList.length;i++){
-		    			if(vdcQuotaList[i].type=='CPU'){
-		      				self.metaVdc().cpu(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='MEMORY'){
-		      				self.metaVdc().memory(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='STORAGE'){
-		      				self.metaVdc().storage(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='VPC'){
-		      				self.metaVdc().vpc(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='VM'){
-		      				self.metaVdc().vm(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='DISK'){
-		      				self.metaVdc().disk(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
-		      				self.metaVdc().publicIp(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='ROUTER'){
-		      				self.metaVdc().router(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
-		      				self.metaVdc().firewall(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
-		      				self.metaVdc().secretKey(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
-		      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
-		      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
-		      				self.metaVdc().securityGroup(vdcQuotaList[i].value);
-		      			}else if(vdcQuotaList[i].type=='VPN'){
-		      				self.metaVdc().vpn(vdcQuotaList[i].value);
-		      			}
-		    		}
-		    	})
 	      	 })
 		  })
 		  
@@ -241,23 +246,25 @@
 			 var resBaseInfo = {};
 			 var vdcQuotaList = [];
 			 
-			 resBaseInfo.limitQuota="true";
-			 vdcQuotaList.push({type:"CPU",value:self.changeVdc().cpu()});
-			 vdcQuotaList.push({type:"MEMORY",value:self.changeVdc().memory()});
-			 vdcQuotaList.push({type:"STORAGE",value:self.changeVdc().storage()});
-			 vdcQuotaList.push({type:"VPC",value:self.changeVdc().vpc()});
-			 vdcQuotaList.push({type:"VM",value:self.changeVdc().vm()});
-			 vdcQuotaList.push({type:"DISK",value:self.changeVdc().disk()});
-			 vdcQuotaList.push({type:"PUBLICIP",value:self.changeVdc().publicIp()});
-			 vdcQuotaList.push({type:"ROUTER",value:self.changeVdc().router()});
-			 vdcQuotaList.push({type:"FIREWALL",value:self.changeVdc().firewall()});
-			 vdcQuotaList.push({type:"SECRET_KEY",value:self.changeVdc().secretKey()});
-			 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.changeVdc().objectStorage()});
-			 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.changeVdc().loadBalance()});
-			 vdcQuotaList.push({type:"SECURITY_GROUP",value:self.changeVdc().securityGroup()});
-			 vdcQuotaList.push({type:"VPN",value:self.changeVdc().vpn()});
-				 
-			 resBaseInfo.vdcQuotaList=vdcQuotaList;
+			 resBaseInfo.limitQuota=self.limitQuota();
+			 if(self.limitQuota()){				 
+				 vdcQuotaList.push({type:"CPU",value:self.changeVdc().cpu()});
+				 vdcQuotaList.push({type:"MEMORY",value:self.changeVdc().memory()});
+				 vdcQuotaList.push({type:"STORAGE",value:self.changeVdc().storage()});
+				 vdcQuotaList.push({type:"VPC",value:self.changeVdc().vpc()});
+				 vdcQuotaList.push({type:"VM",value:self.changeVdc().vm()});
+				 vdcQuotaList.push({type:"DISK",value:self.changeVdc().disk()});
+				 vdcQuotaList.push({type:"PUBLICIP",value:self.changeVdc().publicIp()});
+				 vdcQuotaList.push({type:"ROUTER",value:self.changeVdc().router()});
+				 vdcQuotaList.push({type:"FIREWALL",value:self.changeVdc().firewall()});
+				 vdcQuotaList.push({type:"SECRET_KEY",value:self.changeVdc().secretKey()});
+				 vdcQuotaList.push({type:"OBJECT_STORAGE",value:self.changeVdc().objectStorage()});
+				 vdcQuotaList.push({type:"LOAD_BALANCING",value:self.changeVdc().loadBalance()});
+				 vdcQuotaList.push({type:"SECURITY_GROUP",value:self.changeVdc().securityGroup()});
+				 vdcQuotaList.push({type:"VPN",value:self.changeVdc().vpn()});
+				 resBaseInfo.vdcQuotaList=vdcQuotaList;
+			 }
+			 
 			 var osType = [];
 			 if(self.windows()){
 				 osType.push('windows');

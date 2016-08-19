@@ -20,7 +20,7 @@
                         <tbody data-bind="foreach: users">
                             <tr>
                                 <td>
-                                    <input type="radio" data-bind="text: user" name="userId"/>
+                                    <input type="radio" data-bind="value: user, attr: {'userType':type}" name="userId"/>
                                 </td>
                                 <td data-bind="text: userName"></td>
                                 <td data-bind="text: user"></td>
@@ -51,19 +51,19 @@
 				alert("没有可以转发的用户！");
 				return;
 			}
-			console.log(data)
   			self.users(data);
 	  	},function(){alert('获取用户失败！')});
 		
 		this.submit = function(object, event){
-			var userId = $("input[name='userId']:checked").text();
+			var userId = $("input[name='userId']:checked").val();
+			var userType = $("input[name='userId']:checked").attr("userType");
 			if(userId==''){
 				alert("请选择转发用户！");
 				return;
 			}
 			
 			saveComment(taskId,function(){
-				var databody = {"userId":userId,"action":"transfer"};
+				var databody = {"userId":userType+":"+userId,"action":"transfer"};
 				csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
 				  alert("转发成功！");
 				  hideModal();

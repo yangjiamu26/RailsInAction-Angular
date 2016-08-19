@@ -1308,6 +1308,7 @@
 
       })
       this.validateTimeVO = ko.validatedObservable({
+    	  metaTime: ko.observable(),
     	  time: ko.observable(),
     	  uuid: ko.observable()
       });
@@ -1320,6 +1321,7 @@
     		  //不走流程
 	    	  self.isValidateTime(true);
 	    	  self.validateTimeVO().uuid(object.uuid);
+	    	  self.validateTimeVO().metaTime(object.expiryTime);
 	    	  self.validateTimeVO().time(object.expiryTime);
     	  }
       }
@@ -1328,6 +1330,11 @@
       this.validateTime = function(){
     	  var putBody = {};
     	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
+    	  //检查日期相同不发送请求，直接关闭页面
+    	  if(self.validateTimeVO().metaTime() == self.validateTimeVO().time()){
+    		  self.isValidateTime(false);
+    		  return;
+    	  }
     	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
 		 		systemMsg.alert('云主机修改有效期成功！');
 		 		self.isValidateTime(false);
@@ -1536,6 +1543,11 @@
       
       //申请
       this.validateProcessPost = function(){
+    	  //检查日期相同的，不发送请求直接关闭页面
+    	  if(self.validateProcessVO().metaTime() == self.validateProcessVO().targetValidateTime()){
+    		  self.isValidateProcess(false);
+    		  return;
+    	  }
     	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\""+self.validateProcessVO().metaTime() +"\",\"vdcName\": \""+self.validateProcessVO().vdcName()+"\",\"busSysName\":\""+self.validateProcessVO().busSysName()+"\"}}";
     	  var orderItem = {};
     	  orderItem.instanceName = self.validateProcessVO().name();

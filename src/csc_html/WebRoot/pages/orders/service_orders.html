@@ -2,7 +2,8 @@
   <ol class="breadcrumb">
     <li>当前位置：</li>
     <li>订单</li>
-    <li class="active">订单管理</li>
+    <li id="order_manager_" >订单管理</li>
+    <li id="my_order_" >我的订单</li>
   </ol>
 </div>
 
@@ -18,7 +19,7 @@
 		            <select class="form-control input-sm" data-bind="value: searchParam().type, options: $root.catelogs, optionsText: 'name', optionsValue: 'id'"></select>
 		          </div>      
 		        </div>
-		        <div class="col-xs-2">
+		        <div class="col-xs-3">
 		          <div class="input-group">
 		            <span class="input-group-addon">订单状态</span>
 		            <select class="form-control input-sm" data-bind="value: searchParam().state">
@@ -38,10 +39,9 @@
 		        <div class="col-xs-2">
 		            <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
 		            <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
+		            &nbsp;&nbsp;&nbsp;
+		            <a class="inline senior-search-btn" onclick="$('#advancedSearch').slideToggle()">高级搜索 <i class="fa fa-angle-down"></i></a>
 		        </div>				
-    				<div class="col-xs-2">
-    					<a class="inline senior-search-btn" onclick="$('#advancedSearch').slideToggle()"   >高级搜索 <i class="fa fa-angle-down"></i></a>
-    				</div>
 			</div>
 			<div class="senior-search m-t" id="advancedSearch" style="display:none">
 				<div class="row">
@@ -51,7 +51,7 @@
 			               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().code">
 			            </div>        
 			        </div>	
-			        <div class="col-xs-2">
+			        <div class="col-xs-3">
 			          <div class="input-group">
 			            <span class="input-group-addon">产品类型</span>
 			            <select class="form-control input-sm" data-bind="value: searchParam().resourceType">
@@ -67,7 +67,7 @@
 			            </select>
 			          </div>      
 			        </div>
-			        <div class="col-xs-2">
+			        <div class="col-xs-3">
 			          <div class="input-group">
 			            <span class="input-group-addon">所属VDC</span>
 			            <select class="form-control input-sm" data-bind="options:vdcParamList,optionsText:'name',optionsValue:'uuid',value: searchParam().vdcUuid">
@@ -85,7 +85,7 @@
 			        <div class="col-xs-3">
 			            <div class="input-group">
 			               <span class="input-group-addon">申请日期</span>
-			               <input type="text" class="form-control" id="timerange" style="width:250px;display:inline-block;"  />
+			               <input type="text" class="form-control" id="timerange" style="width:240px;display:inline-block;"  />
 			            </div>        
 			        </div>	        		
 				</div>
@@ -150,7 +150,7 @@
 							<td ><a data-bind="click: $root.review">查看</a></td>
 							<td>
 								<span data-bind="if:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/vdc_change?flowInstanceId='+flowInstanceId}">查看</a></span>
-								<span data-bind="ifnot:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/show?items=' + resourceType+'&flowInstanceId='+flowInstanceId+'&type='+type}">查看</a></span>
+								<span data-bind="ifnot:type=='VDC_CHANGE'"><a data-bind="attr:{href:'#pages/orders/show?items=' + resourceType+'&flowInstanceId='+flowInstanceId+'&type='+type+'&orderType='+$root.orderType_()}">查看</a></span>
 								<span data-bind="visible: state=='UNSUBMIT'">| <a data-url="pages/orders/tasks" href="#pages/orders/modal1">办理</a> | <a onclick="systemMsg.alert('确定删除吗？')">删除</a></span>
 							</td>
 						</tr>
@@ -201,9 +201,12 @@
       var getOrdersUrl = "api/v5.0.0/orders?orderBy=createTime:desc";
       //根据订单权限类型
       var orderType = args.type;
+          
       if(!orderType){
+          $("#order_manager_").css('display', 'none');
           getOrdersUrl +="&&showSelf=YES";//显示我的订单
       }else{
+          $("#my_order_").css('display', 'none');
           getOrdersUrl +="&&showSelf=NO";//显示全部数据
       }
       
@@ -217,6 +220,8 @@
   	
     function ViewModel(){
       var self = this;
+      
+      this.orderType_ = ko.observable(args.type);
       
       this.searchParam = ko.observable({
     		type: "",
@@ -321,7 +326,7 @@
 	  }
     }
     var viewModel = new ViewModel();
-    ko.applyBindings(viewModel, $('#page-content')[0]);  
+    ko.applyBindings(viewModel, $('#workflow_content')[0]);  
     
     function showModelView(processDefinitionId,processinstanceId,type){
     	console.log(processDefinitionId)

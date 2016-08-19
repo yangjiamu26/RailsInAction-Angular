@@ -104,7 +104,7 @@
 													<td data-bind="text: $row.softTypeName"></td>
 													<td data-bind="text: $row.cpuArchName"></td>
 													<td data-bind="text: $row.osType"></td>
-													<td data-bind="text: $row.osName"></td>
+													<td data-bind="text: $row.osNameView, attr: {title: $row.osName}"></td>
 													<td data-bind="text: $row.scriptName"></td>
 													<td><span
 														data-bind="text: $row.statusName, attr: {class: $root.statusCss($row)}"></span>
@@ -526,828 +526,621 @@
 </div>
 
 <script type="text/javascript">
-	var uploader;
-	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js',
-			'api/software/software.js',
-			'assets/lib/webuploader/webuploader.js', null ]
-	$('.page-content-area')
-			.ace_ajax(
-					'loadScripts',
-					scripts,
-					function(args) {
-
-						function ViewModel() {
-
-							this.isAdd = ko.observable(false);
-
-							this.isManageType = ko.observable(false);
-
-							this.isTypeAdd = ko.observable(false);
-
-							this.isBindScript = ko.observable(false);
-
-							this.searchSoftTypeNm = ko.observable("");
-
-							this.types = ko.observableArray([]);
-
-							this.typeNames = ko.observableArray([]);
-
-							this.editTypeNames = ko.observableArray([]);
-
-							this.osNames = ko.observableArray([]);
-
-							this.submitBtnStatus = ko.observable(true);
-
-							this.sofyTypeVO = ko.validatedObservable({
-								type : ko.observable().extend({
-									required : true
-								}),
-								name : ko.observable().extend({
-									required : true
-								})
-							});
-
-							this.osNameOptions = ko.observableArray([]);
-
-							this.cpuArchArr = ko.observableArray([]);
-
-							this.currentVO = ko.validatedObservable({
-								Id : null,
-								uuid : null,
-								name : ko.observable().extend({
-									required : true
-								}),
-								version : ko.observable().extend({
-									required : true
-								}),
-								softType : ko.observable().extend({
-									required : true
-								}),
-								softTypeName : ko.observable().extend({
-									required : true
-								}),
-								cpuArch : ko.observable().extend({
-									required : true
-								}),
-								spaceSize : ko.observable().extend({
-									number : {
-										params : true
-									},
-									required : true
-								}),
-								osType : ko.observable().extend({
-									required : true
-								}),
-								osName : ko.observable().extend({
-									required : true
-								}),
-								installType : ko.observable().extend({
-									required : true
-								}),
-								installFilePath : '',
-								installFileName : ko.observable().extend({
-									required : true
-								}),
-								scriptUuid : null,
-								scriptName : ko.observable()
-							});
-
-							var self = this;
-
-							this.treeSetting = {
-								view : {
-									showIcon : false,
-									showLine : false
-								},
-
-								callback : {
-									onClick : function(event, treeId, treeNode) {
-
-										var params = {
-											softTypeName : "",
-											softType : ""
-										}
-
-										if (treeNode.level == 1) {
-											params.softType = treeNode.name;
-										} else if (treeNode.level == 2) {
-											params.softTypeName = treeNode.name;
-										}
-
-										self.table.params(params);
-									}
-								}
-							};
-
-							/** 软件状态属性 css样式 **/
-							this.statusCss = function(item) {
-								if (item.status == 1) {
-									return 'label label-success';
-								} else {
-									return 'label label-danger';
-								}
-							};
-
-							/**新增软件**/
-							this.add = function() {
-								self.currentVO.fromJSON({
-									Id : null,
-									uuid : null,
-									name : '',
-									version : '',
-									softType : '',
-									softTypeName : '',
-									cpuArch : '',
-									spaceSize : '',
-									osType : '',
-									osName : '',
-									installType : '',
-									installFilePath : '',
-									installFileName : '',
-									scriptUuid : null,
-									scriptName : ''
-								});
-
-								self.loadTypes();
-								self.osNames([]);
-								self.cpuArchArr([]);
-								self.isAdd(true);
-							};
-
-							/**修改软件**/
-							this.edit = function(object, event) {
-								self.osNameOptions().splice(0,
-										self.osNameOptions().length);
-
-								self.cpuArchArr(object.cpuArch.split(','));
-
-								self.loadOsNames(object.osType);
-
-								self.loadTypes(function(data) {
-									self.loadTypeNames({
-										softType : object.softType,
-										fromModel : 'Y'
-									}, function(data) {
-										self.currentVO.fromJSON(object);
-
-										var osNames = object.osName.split(',');
-
-										$.each(osNames, function(i, val) {
-											self.osNameOptions.push(val);
-										});
-
-										self.isAdd(true);
-									});
-								});
-							};
-
-							/** 删除单个软件 **/
-							this.removeSingle = function(object, event) {
-								var params = {
-									uuids : object.uuid
-								};
-
-								systemMsg
-										.confirm(
-												"确定要删除所选软件?",
-												function() {
-													$.SOFTWARE
-															.deleteSoftware(
-																	params,
-																	function(
-																			data) {
-																		if (data.message
-																				.indexOf('success') != -1) {
-																			systemMsg
-																					.alert('删除软件成功！');
-																			self.table
-																					.refreshData();
-																		} else {
-																			systemMsg
-																					.alert(data.message);
-																		}
-																	})
-												});
-							};
-
-							/**删除软件**/
-							this.remove = function() {
-								if (self.table.chosenItems().length == 0) {
-									systemMsg.alert('没有选择操作对象');
-									return;
-								}
-
-								var uuids = '';
-
-								$.each(self.table.chosenItems(), function(i,
-										val) {
-									uuids += (val.uuid + ',');
-								});
-
-								var params = {
-									uuids : uuids
-											.substring(0, uuids.length - 1)
-								};
-
-								systemMsg
-										.confirm(
-												"确定要删除所选软件?",
-												function() {
-													$.SOFTWARE
-															.deleteSoftware(
-																	params,
-																	function(
-																			data) {
-
-																		if (data.message
-																				.indexOf('success') != -1) {
-																			systemMsg
-																					.alert('删除软件成功！');
-																			self.table
-																					.refreshData();
-																		} else {
-																			systemMsg
-																					.alert(data.message);
-																		}
-																	})
-												});
-							};
-
-							/**选择绑定脚本**/
-							this.bindScript = function(object, event) {
-
-								self.currentVO().scriptUuid = object.uuid;
-								self.currentVO().scriptName(object.name);
-
-								self.isBindScript(false);
-							};
-
-							/**软件搜索参数**/
-							this.searchParam = ko.observable({
-								softTypeName : "",
-								softwareName : ""
-							});
-
-							/**软件搜索**/
-							this.search = function() {
-								this.table.params(this.searchParam());
-							};
-
-							/**软件列表数据**/
-							this.table = new DataTable([], {
-								path : 'api/v5.0.0/soft/softwares'
-							});
-
-							//软件类型下拉选择
-							this.loadTypeNames = function(params, callback) {
-								$.SOFT_TYPE.loadSoftTypeList(params, function(
-										data) {
-									if (params.fromModel) {
-										self.editTypeNames(data);
-									} else {
-										self.typeNames(data);
-									}
-
-									if (callback) {
-										callback(data);
-									}
-								});
-							};
-
-							//软件分类下拉选择
-							this.loadTypes = function(callback) {
-								$.SOFT_TYPE.loadSoftTypeList({
-									type : 'Y'
-								}, function(data) {
-									self.types(data);
-
-									if (callback) {
-										callback(data);
-									}
-								});
-							};
-
-							// 适用操作系统多选下拉
-							this.loadOsNames = function(osType) {
-								$
-										.ajax("pages/softwares/os_names.json")
-										.done(
-												function(data) {
-													self.osNames([]);
-
-													$
-															.each(
-																	data.vmTemplates,
-																	function(i,
-																			val) {
-																		if (val.osType
-																				.toLowerCase()
-																				.indexOf(
-																						osType) != -1) {
-																			self.osNames
-																					.push({
-																						name : val.osVersion
-																					});
-																		}
-																	});
-												});
-							};
-
-							/** 脚本列表数据 **/
-							this.scriptTable = new DataTable([], {
-								path : 'api/v5.0.0/script/bind/scripts',
-								perPage : 5
-							});
-
-							/** 选择脚本  **/
-							this.chooseScript = function() {
-								this.scriptTable.refreshData();
-
-								self.isBindScript(true);
-							}
-
-							/** 构建文件上传器 **/
-							this.initUploader = function() {
-								self.uploader = WebUploader.create({
-									// 文件接收服务端。
-									threads : 1,
-									fileNumLimit : 1,
-									chunked : true,
-									chunkSize : 1310720,
-									resize : false
-								});
-
-								self.uploader.on('beforeFileQueued', function(
-										file) {
-									//重置上传队列
-									self.uploader.reset();
-								});
-							}
-
-							/** 上传安装包文件 **/
-							this.uploadFile = function(uuid) {
-								if (!uuid) {
-									systemMsg.alert('上传安装包失败！');
-									return;
-								}
-
-								self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscSoft&actionKey='
-										+ WebUploader.guid('csc_upload_')
-										+ '&dataKey=' + uuid;
-
-								self.uploader
-										.on(
-												'startUpload',
-												function() {
-													var intervalId = setInterval(
-															function() {
-
-																$.SOFTWARE
-																		.getProgress(
-																				uuid,
-																				function(
-																						data) {
-																					$(
-																							'#'
-																									+ uuid)
-																							.html(
-																									'');
-
-																					if (data.progress
-																							.indexOf('%') != -1) {
-																						$(
-																								'#'
-																										+ uuid)
-																								.html(
-																										data.progress);
-																					}
-
-																					//clearInterval(intervalId);
-																					if (data.progress == 'success'
-																							|| data.progress == 'N/A') {
-																						clearInterval(intervalId);
-																						self.table
-																								.refreshData();
-																					}
-																				});
-															}, 3500);
-												});
-
-								/* self.uploader.on('uploadProgress', function(file, percentage) {
-									console.log(percentage);
-									$('#'+uuid).html(percentage);
-								}); */
-
-								self.uploader.on('uploadFinished', function() {
-									csc.uploader.unbind(uuid);
-								});
-
-								self.uploader.on('uploadSuccess', function(
-										file, response) {
-									if (response.message) {
-										systemMsg.alert(response.message);
-									}
-								});
-
-								self.uploader.upload();
-
-								csc.uploader.bind(uuid, self.uploader);
-							}
-
-							/** 软件信息提交 **/
-							this.submitSoftware = function() {
-
-								self.submitBtnStatus(false);
-
-								ko.validation.group(self.currentVO)
-										.showAllMessages();
-
-								self.currentVO().cpuArch(
-										self.cpuArchArr().join(','));
-
-								if (self.currentVO.isValid()) {
-
-									var params = self.currentVO.toJSON();
-
-									csc.util.trimRequestParams(params);
-
-									if (self.currentVO().uuid) {
-
-										$.SOFTWARE
-												.updateSoftware(
-														params,
-														function(data) {
-
-															var msg = data.message;
-
-															if (msg
-																	.indexOf("success") != -1) {
-																systemMsg
-																		.alert('修改软件成功！');
-
-																if (msg
-																		.indexOf("_upload") != -1) {
-																	// 保存完数据再上传文件
-
-																	self
-																			.uploadFile(params.uuid);
-																}
-
-																self.table
-																		.refreshData();
-
-															} else {
-																systemMsg
-																		.alert(msg);
-															}
-
-															self.isAdd(false);
-															self
-																	.submitBtnStatus(true);
-														});
-									} else {
-										$.SOFTWARE
-												.createSoftware(
-														params,
-														function(data) {
-
-															if (data.uuid) {
-																systemMsg
-																		.alert('添加软件成功！');
-
-																// 保存完数据再上传文件
-																self
-																		.uploadFile(data.uuid);
-
-																self.table
-																		.refreshData();
-																self
-																		.isAdd(false);
-															} else if (data.message) {
-																systemMsg
-																		.alert(data.message);
-															}
-
-															self
-																	.submitBtnStatus(true);
-														});
-									}
-								} else {
-									self.submitBtnStatus(true);
-								}
-							}
-
-							/**软件类型维护**/
-							this.manageType = function() {
-								this.isManageType(true);
-							};
-
-							/** 软件类型列表数据 **/
-							this.typeTable = new DataTable([], {
-								path : 'api/v5.0.0/soft/softTypes',
-								perPage : 5
-							});
-
-							/** 软件类型搜索 **/
-							this.searchType = function() {
-								var params = {
-									softTypeName : self.searchSoftTypeNm()
-								};
-								self.typeTable.params(params);
-							}
-
-							/**软件类型新增**/
-							this.addType = function() {
-								self.sofyTypeVO.fromJSON({
-									"type" : '',
-									"name" : '',
-									"uuid" : null,
-									"id" : null
-								});
-
-								self.isTypeAdd(true);
-							};
-
-							/**软件类型修改**/
-							this.editType = function(rowObj, event) {
-								self.sofyTypeVO.fromJSON(rowObj);
-								self.isTypeAdd(true);
-							};
-
-							/**软件类型删除单个**/
-							this.removeTypeSingle = function(object, event) {
-								var params = {
-									entityIds : object.Id
-								};
-
-								systemMsg
-										.confirm(
-												"确定要删除所选软件类型?",
-												function() {
-													$.SOFT_TYPE
-															.deleteSoftType(
-																	params,
-																	function() {
-																		self.typeTable
-																				.refreshData();
-																		self
-																				.loadTypeNames({});
-
-																		$.SOFT_TYPE
-																				.loadSoftTypeTree(function(
-																						data) {
-																					$.fn.zTree
-																							.init(
-																									$("#serverDefinitionsTree"),
-																									self.treeSetting,
-																									data);
-																				});
-																	})
-												});
-							};
-
-							/**软件类型删除**/
-							this.removeType = function() {
-								if (self.typeTable.chosenItems().length == 0) {
-									systemMsg.alert('没有选择操作对象');
-									return;
-								}
-
-								var entityIds = '';
-
-								$.each(self.typeTable.chosenItems(), function(
-										i, val) {
-									entityIds += (val.Id + ',');
-								});
-
-								var params = {
-									entityIds : entityIds.substring(0,
-											entityIds.length - 1)
-								};
-
-								systemMsg
-										.confirm(
-												"确定要删除所选软件类型?",
-												function() {
-													$.SOFT_TYPE
-															.deleteSoftType(
-																	params,
-																	function() {
-																		self.typeTable
-																				.refreshData();
-																		self
-																				.loadTypeNames({});
-
-																		$.SOFT_TYPE
-																				.loadSoftTypeTree(function(
-																						data) {
-																					$.fn.zTree
-																							.init(
-																									$("#serverDefinitionsTree"),
-																									self.treeSetting,
-																									data);
-																				});
-																	})
-												});
-							};
-
-							/** 软件类型提交 **/
-							this.submitSoftType = function() {
-								ko.validation.group(self.sofyTypeVO)
-										.showAllMessages();
-
-								if (self.sofyTypeVO.isValid()) {
-									var params = self.sofyTypeVO.toJSON();
-
-									csc.util.trimRequestParams(params);
-
-									if (self.sofyTypeVO().uuid) {
-
-										$.SOFT_TYPE
-												.updateSoftType(
-														self.sofyTypeVO().uuid,
-														params,
-														function(data) {
-															systemMsg
-																	.alert('修改软件类型成功！');
-															self.typeTable
-																	.refreshData();
-
-															self
-																	.loadTypeNames({});
-
-															$.SOFT_TYPE
-																	.loadSoftTypeTree(function(
-																			data) {
-																		$.fn.zTree
-																				.init(
-																						$("#serverDefinitionsTree"),
-																						self.treeSetting,
-																						data);
-																	});
-
-															self
-																	.isTypeAdd(false);
-														});
-									} else {
-										$.SOFT_TYPE
-												.createSoftType(
-														params,
-														function(data) {
-															systemMsg
-																	.alert('添加软件类型成功！');
-															self
-																	.isTypeAdd(false);
-															self.typeTable
-																	.refreshData();
-
-															self
-																	.loadTypeNames({});
-
-															$.SOFT_TYPE
-																	.loadSoftTypeTree(function(
-																			data) {
-																		$.fn.zTree
-																				.init(
-																						$("#serverDefinitionsTree"),
-																						self.treeSetting,
-																						data);
-																	});
-														});
-									}
-								}
-							}
-
-							this.loadTypeNames({});
+var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'api/software/software.js', 'assets/lib/webuploader/webuploader.js', null];
+$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+
+	function ViewModel() {
+
+		this.isAdd = ko.observable(false);
+
+		this.isManageType = ko.observable(false);
+
+		this.isTypeAdd = ko.observable(false);
+
+		this.isBindScript = ko.observable(false);
+
+		this.searchSoftTypeNm = ko.observable("");
+
+		this.types = ko.observableArray([]);
+
+		this.typeNames = ko.observableArray([]);
+
+		this.editTypeNames = ko.observableArray([]);
+
+		this.osNames = ko.observableArray([]);
+
+		this.submitBtnStatus = ko.observable(true);
+
+		this.sofyTypeVO = ko.validatedObservable({
+			type : ko.observable().extend({
+				required : true
+			}),
+			name : ko.observable().extend({
+				required : true
+			})
+		});
+
+		this.osNameOptions = ko.observableArray([]);
+
+		this.cpuArchArr = ko.observableArray([]);
+
+		this.currentVO = ko.validatedObservable({
+			Id : null,
+			uuid : null,
+			name : ko.observable().extend({
+				required : true
+			}),
+			version : ko.observable().extend({
+				required : true
+			}),
+			softType : ko.observable().extend({
+				required : true
+			}),
+			softTypeName : ko.observable().extend({
+				required : true
+			}),
+			cpuArch : ko.observable().extend({
+				required : true
+			}),
+			spaceSize : ko.observable().extend({
+				number : {
+					params : true
+				},
+				required : true
+			}),
+			osType : ko.observable().extend({
+				required : true
+			}),
+			osName : ko.observable().extend({
+				required : true
+			}),
+			installType : ko.observable().extend({
+				required : true
+			}),
+			installFilePath : '',
+			installFileName : ko.observable().extend({
+				required : true
+			}),
+			scriptUuid : null,
+			scriptName : ko.observable()
+		});
+
+		var self = this;
+
+		this.treeSetting = {
+			view : {
+				showIcon : false,
+				showLine : false
+			},
+
+			callback : {
+				onClick : function(event, treeId, treeNode) {
+
+					var params = {
+						softTypeName : "",
+						softType : ""
+					};
+
+					if (treeNode.level == 1) {
+						params.softType = treeNode.name;
+					} else if (treeNode.level == 2) {
+						params.softTypeName = treeNode.name;
+					}
+
+					self.table.params(params);
+				}
+			}
+		};
+
+		/** 软件状态属性 css样式 **/
+		this.statusCss = function(item) {
+			if (item.status == 1) {
+				return 'label label-success';
+			} else {
+				return 'label label-danger';
+			}
+		};
+
+		/**新增软件**/
+		this.add = function() {
+			self.currentVO.fromJSON({
+				Id : null,
+				uuid : null,
+				name : '',
+				version : '',
+				softType : '',
+				softTypeName : '',
+				cpuArch : '',
+				spaceSize : '',
+				osType : '',
+				osName : '',
+				installType : '',
+				installFilePath : '',
+				installFileName : '',
+				scriptUuid : null,
+				scriptName : ''
+			});
+
+			self.loadTypes();
+			self.osNames([]);
+			self.cpuArchArr([]);
+			self.isAdd(true);
+		};
+
+		/**修改软件**/
+		this.edit = function(object, event) {
+			self.osNameOptions().splice(0, self.osNameOptions().length);
+
+			self.cpuArchArr(object.cpuArch.split(','));
+
+			self.loadOsNames(object.osType);
+
+			self.loadTypes(function(data) {
+				self.loadTypeNames({
+					softType : object.softType,
+					fromModel : 'Y'
+				}, function(data) {
+					self.currentVO.fromJSON(object);
+
+					var osNames = object.osName.split(',');
+
+					$.each(osNames, function(i, val) {
+						self.osNameOptions.push(val);
+					});
+
+					self.isAdd(true);
+				});
+			});
+		};
+
+		/** 删除单个软件 **/
+		this.removeSingle = function(object, event) {
+			var params = {
+				uuids : object.uuid
+			};
+
+			systemMsg.confirm("确定要删除所选软件?", function() {
+				$.SOFTWARE.deleteSoftware(params, function(data) {
+					if (data.message.indexOf('success') != -1) {
+						systemMsg.alert('删除软件成功！');
+						self.table.refreshData();
+					} else {
+						systemMsg.alert(data.message);
+					}
+				});
+			});
+		};
+
+		/**删除软件**/
+		this.remove = function() {
+			if (self.table.chosenItems().length == 0) {
+				systemMsg.alert('没有选择操作对象');
+				return;
+			}
+
+			var uuids = '';
+
+			$.each(self.table.chosenItems(), function(i, val) {
+				uuids += (val.uuid + ',');
+			});
+
+			var params = {
+				uuids : uuids.substring(0, uuids.length - 1)
+			};
+
+			systemMsg.confirm("确定要删除所选软件?", function() {
+				$.SOFTWARE.deleteSoftware(params, function(data) {
+					if (data.message.indexOf('success') != -1) {
+						systemMsg.alert('删除软件成功！');
+						self.table.refreshData();
+					} else {
+						systemMsg.alert(data.message);
+					}
+				});
+			});
+		};
+
+		/**选择绑定脚本**/
+		this.bindScript = function(object, event) {
+
+			self.currentVO().scriptUuid = object.uuid;
+			self.currentVO().scriptName(object.name);
+
+			self.isBindScript(false);
+		};
+
+		/**软件搜索参数**/
+		this.searchParam = ko.observable({
+			softTypeName : "",
+			softwareName : ""
+		});
+
+		/**软件搜索**/
+		this.search = function() {
+			this.table.params(this.searchParam());
+		};
+
+		/**软件列表数据**/
+		this.table = new DataTable([], {
+			path : 'api/v5.0.0/soft/softwares'
+		});
+
+		//软件类型下拉选择
+		this.loadTypeNames = function(params, callback) {
+			$.SOFT_TYPE.loadSoftTypeList(params, function(data) {
+				if (params.fromModel) {
+					self.editTypeNames(data);
+				} else {
+					self.typeNames(data);
+				}
+
+				if (callback) {
+					callback(data);
+				}
+			});
+		};
+
+		//软件分类下拉选择
+		this.loadTypes = function(callback) {
+			$.SOFT_TYPE.loadSoftTypeList({
+				type : 'Y'
+			}, function(data) {
+				self.types(data);
+
+				if (callback) {
+					callback(data);
+				}
+			});
+		};
+
+		// 适用操作系统多选下拉
+		this.loadOsNames = function(osType) {
+			$.ajax("pages/softwares/os_names.json").done(function(data) {
+				self.osNames([]);
+
+				$.each(data.vmTemplates, function(i, val) {
+					if (val.osType.toLowerCase().indexOf(osType) != -1) {
+						self.osNames.push({
+							name : val.osVersion
+						});
+					}
+				});
+			});
+		};
+
+		/** 脚本列表数据 **/
+		this.scriptTable = new DataTable([], {
+			path : 'api/v5.0.0/script/bind/scripts',
+			perPage : 5
+		});
+
+		/** 选择脚本  **/
+		this.chooseScript = function() {
+			this.scriptTable.refreshData();
+
+			self.isBindScript(true);
+		};
+		/** 构建文件上传器 **/
+		this.initUploader = function() {
+			self.uploader = WebUploader.create({
+				// 文件接收服务端。
+				threads : 1,
+				fileNumLimit : 1,
+				chunked : true,
+				chunkSize : 1310720,
+				resize : false
+			});
+
+			self.uploader.on('beforeFileQueued', function(file) {
+				//重置上传队列
+				self.uploader.reset();
+			});
+		};
+		/** 上传安装包文件 **/
+		this.uploadFile = function(uuid) {
+			if (!uuid) {
+				systemMsg.alert('上传安装包失败！');
+				return;
+			}
+
+			self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscSoft&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + uuid;
+
+			self.uploader.on('startUpload', function() {
+				var intervalId = setInterval(function() {
+
+					$.SOFTWARE.getProgress(uuid, function(data) {
+						$('#' + uuid).html('');
+
+						if (data.progress.indexOf('%') != -1) {
+							$('#' + uuid).html(data.progress);
 						}
 
-						$(document)
-								.ready(
-										function() {
-
-											var viewModel = new ViewModel();
-
-											ko.applyBindings(viewModel,
-													$('#page-content')[0]);
-
-											$.SOFT_TYPE
-													.loadSoftTypeTree(function(
-															data) {
-														$.fn.zTree
-																.init(
-																		$("#serverDefinitionsTree"),
-																		viewModel.treeSetting,
-																		data);
-													});
-
-											$("#softwareModal")
-													.on(
-															"shown.bs.modal",
-															function() {
-
-																$("#sel")
-																		.on(
-																				"change",
-																				function() {
-																					var val = [];
-
-																					$(
-																							"#sel option:selected")
-																							.each(
-																									function() {
-																										val
-																												.push($(
-																														this)
-																														.val());
-																									});
-
-																					var valStr = val
-																							.join(',');
-																					viewModel
-																							.currentVO()
-																							.osName(
-																									valStr);
-																				});
-
-																$(
-																		'#softTypeSel')
-																		.on(
-																				'change',
-																				function() {
-																					viewModel
-																							.loadTypeNames({
-																								softType : viewModel
-																										.currentVO()
-																										.softType(),
-																								fromModel : 'Y'
-																							});
-																				});
-
-																$('#osTypeSel')
-																		.on(
-																				'change',
-																				function() {
-																					viewModel
-																							.loadOsNames(viewModel
-																									.currentVO()
-																									.osType());
-																				});
-
-																viewModel
-																		.initUploader();
-
-																viewModel.uploader
-																		.addButton({
-																			id : '#picker',
-																			multiple : false
-																		});
-
-																viewModel.uploader
-																		.on(
-																				'fileQueued',
-																				function(
-																						file) {
-
-																					viewModel
-																							.currentVO()
-																							.installFileName(
-																									file.name);
-																				});
-
-																/* uploader.on('uploadSuccess', function(file, response) {
-																	console.log(response);
-																	
-																	if (response.code != '200') {
-																		uploader.stop(true);
-																		uploader.reset();
-																		alert(response.message);
-																	}
-																}); */
-															});
-
-											$('#software_search_input').keyup(
-													function(evt) {
-														if (evt.keyCode == 13) {
-															viewModel.search();
-														}
-													});
-
-											$("#softTypeModal")
-													.on(
-															"shown.bs.modal",
-															function() {
-																$(
-																		'#soft_type_search_input')
-																		.keyup(
-																				function(
-																						evt) {
-																					if (evt.keyCode == 13) {
-																						viewModel
-																								.searchType();
-																					}
-																				});
-															});
-
-										});
+						//clearInterval(intervalId);
+						if (data.progress == 'success' || data.progress == 'N/A') {
+							clearInterval(intervalId);
+							self.table.refreshData();
+						}
 					});
+				}, 3500);
+			});
+
+			/* self.uploader.on('uploadProgress', function(file, percentage) {
+			 console.log(percentage);
+			 $('#'+uuid).html(percentage);
+			 }); */
+
+			self.uploader.on('uploadFinished', function() {
+				csc.uploader.unbind(uuid);
+			});
+
+			self.uploader.on('uploadSuccess', function(file, response) {
+				if (response.message) {
+					systemMsg.alert(response.message);
+				}
+				self.table.refreshData();
+			});
+
+			self.uploader.upload();
+
+			csc.uploader.bind(uuid, self.uploader);
+		};
+		/** 软件信息提交 **/
+		this.submitSoftware = function() {
+
+			self.submitBtnStatus(false);
+
+			ko.validation.group(self.currentVO).showAllMessages();
+
+			self.currentVO().cpuArch(self.cpuArchArr().join(','));
+
+			if (self.currentVO.isValid()) {
+
+				var params = self.currentVO.toJSON();
+
+				csc.util.trimRequestParams(params);
+
+				if (self.currentVO().uuid) {
+
+					$.SOFTWARE.updateSoftware(params, function(data) {
+
+						var msg = data.message;
+
+						if (msg.indexOf("success") != -1) {
+							systemMsg.alert('修改软件成功！');
+
+							if (msg.indexOf("_upload") != -1) {
+								// 保存完数据再上传文件
+								self.uploadFile(params.uuid);
+							}
+
+							self.table.refreshData();
+
+						} else {
+							systemMsg.alert(msg);
+						}
+
+						self.isAdd(false);
+						self.submitBtnStatus(true);
+					});
+				} else {
+					$.SOFTWARE.createSoftware(params, function(data) {
+
+						if (data.uuid) {
+							systemMsg.alert('添加软件成功！');
+
+							// 保存完数据再上传文件
+							self.uploadFile(data.uuid);
+
+							self.table.refreshData();
+							self.isAdd(false);
+						} else if (data.message) {
+							systemMsg.alert(data.message);
+						}
+
+						self.submitBtnStatus(true);
+					});
+				}
+			} else {
+				self.submitBtnStatus(true);
+			}
+		};
+		/**软件类型维护**/
+		this.manageType = function() {
+			this.isManageType(true);
+		};
+
+		/** 软件类型列表数据 **/
+		this.typeTable = new DataTable([], {
+			path : 'api/v5.0.0/soft/softTypes',
+			perPage : 5
+		});
+
+		/** 软件类型搜索 **/
+		this.searchType = function() {
+			var params = {
+				softTypeName : self.searchSoftTypeNm()
+			};
+			self.typeTable.params(params);
+		};
+		/**软件类型新增**/
+		this.addType = function() {
+			self.sofyTypeVO.fromJSON({
+				"type" : '',
+				"name" : '',
+				"uuid" : null,
+				"id" : null
+			});
+
+			self.isTypeAdd(true);
+		};
+
+		/**软件类型修改**/
+		this.editType = function(rowObj, event) {
+			self.sofyTypeVO.fromJSON(rowObj);
+			self.isTypeAdd(true);
+		};
+
+		/**软件类型删除单个**/
+		this.removeTypeSingle = function(object, event) {
+			var params = {
+				entityIds : object.Id
+			};
+
+			systemMsg.confirm("确定要删除所选软件类型?", function() {
+				$.SOFT_TYPE.deleteSoftType(params, function() {
+					self.typeTable.refreshData();
+					self.loadTypeNames({});
+
+					$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+						$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+					});
+				});
+			});
+		};
+
+		/**软件类型删除**/
+		this.removeType = function() {
+			if (self.typeTable.chosenItems().length == 0) {
+				systemMsg.alert('没有选择操作对象');
+				return;
+			}
+
+			var entityIds = '';
+
+			$.each(self.typeTable.chosenItems(), function(i, val) {
+				entityIds += (val.Id + ',');
+			});
+
+			var params = {
+				entityIds : entityIds.substring(0, entityIds.length - 1)
+			};
+
+			systemMsg.confirm("确定要删除所选软件类型?", function() {
+				$.SOFT_TYPE.deleteSoftType(params, function() {
+					self.typeTable.refreshData();
+					self.loadTypeNames({});
+
+					$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+						$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+					});
+				});
+			});
+		};
+
+		/** 软件类型提交 **/
+		this.submitSoftType = function() {
+			ko.validation.group(self.sofyTypeVO).showAllMessages();
+
+			if (self.sofyTypeVO.isValid()) {
+				var params = self.sofyTypeVO.toJSON();
+
+				csc.util.trimRequestParams(params);
+
+				if (self.sofyTypeVO().uuid) {
+
+					$.SOFT_TYPE.updateSoftType(self.sofyTypeVO().uuid, params, function(data) {
+						systemMsg.alert('修改软件类型成功！');
+						self.typeTable.refreshData();
+
+						self.loadTypeNames({});
+
+						$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+							$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+						});
+
+						self.isTypeAdd(false);
+					});
+				} else {
+					$.SOFT_TYPE.createSoftType(params, function(data) {
+						systemMsg.alert('添加软件类型成功！');
+						self.isTypeAdd(false);
+						self.typeTable.refreshData();
+
+						self.loadTypeNames({});
+
+						$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+							$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+						});
+					});
+				}
+			}
+		};
+
+		this.loadTypeNames({});
+	}
+
+
+	$(document).ready(function() {
+
+		var viewModel = new ViewModel();
+
+		ko.applyBindings(viewModel, $('#page-content')[0]);
+
+		$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+			$.fn.zTree.init($("#serverDefinitionsTree"), viewModel.treeSetting, data);
+		});
+
+		$("#softwareModal").on("shown.bs.modal", function() {
+
+			$("#sel").on("change", function() {
+				var val = [];
+
+				$("#sel option:selected").each(function() {
+					val.push($(this).val());
+				});
+
+				var valStr = val.join(',');
+				viewModel.currentVO().osName(valStr);
+			});
+
+			$('#softTypeSel').on('change', function() {
+				viewModel.loadTypeNames({
+					softType : viewModel.currentVO().softType(),
+					fromModel : 'Y'
+				});
+			});
+
+			$('#osTypeSel').on('change', function() {
+				viewModel.loadOsNames(viewModel.currentVO().osType());
+			});
+
+			viewModel.initUploader();
+
+			viewModel.uploader.addButton({
+				id : '#picker',
+				multiple : false
+			});
+
+			viewModel.uploader.on('fileQueued', function(file) {
+
+				viewModel.currentVO().installFileName(file.name);
+			});
+
+			/* uploader.on('uploadSuccess', function(file, response) {
+			 console.log(response);
+
+			 if (response.code != '200') {
+			 uploader.stop(true);
+			 uploader.reset();
+			 alert(response.message);
+			 }
+			 }); */
+		});
+
+		$('#software_search_input').keyup(function(evt) {
+			if (evt.keyCode == 13) {
+				viewModel.search();
+			}
+		});
+
+		$("#softTypeModal").on("shown.bs.modal", function() {
+			$('#soft_type_search_input').keyup(function(evt) {
+				if (evt.keyCode == 13) {
+					viewModel.searchType();
+				}
+			});
+		});
+
+	});
+}); 
 </script>

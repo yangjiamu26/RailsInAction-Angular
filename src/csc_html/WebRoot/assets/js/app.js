@@ -78,7 +78,12 @@ if ($(".modal").length > 0) {
 
 function systemMessage(){
 	this.alert = function(msg){
-		$("body").append('<div class="modal fade" id="systemMessageAlertModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
+		var id_prefix = new Date().getTime();
+		// 同时显示多个alert消息窗口
+		// 欧航
+		var msgId = id_prefix+'_systemMessageAlertModal';
+		
+		$("body").append('<div class="modal fade" id="'+msgId+'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
   							'<div class="modal-dialog modal-sm" role="document">' +
 							    '<div class="modal-content">' +
 							      '<div class="modal-header">' +
@@ -94,7 +99,7 @@ function systemMessage(){
 							    '</div>' +
 							'</div>' +
 						'</div>');
-		var modal = $("#systemMessageAlertModal");
+		var modal = $("#"+msgId);
 		modal.modal('show');
 		modal.on("hidden.bs.modal",function(){
 			modal.remove();

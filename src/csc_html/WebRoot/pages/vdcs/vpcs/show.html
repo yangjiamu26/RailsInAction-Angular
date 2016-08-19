@@ -12,9 +12,9 @@
 			<li class="active" role="presentation">
 				<a aria-controls="VPC" data-toggle="tab" href="#baseInfo" role="tab">基本信息</a>
 			</li>
-			<!-- <li role="presentation" id="topoBox">
-				<a aria-controls="router" data-toggle="tab" href="#topo" role="tab">网络拓扑图</a>
-			</li> -->
+			 <li role="presentation" id="topoBox">
+				<a aria-controls="router" data-toggle="tab" href="#topo"  role="tab">网络拓扑图</a>
+			</li>
 		</ul>
 		<div class="tab-content">
 			<!-- 基本信息 -->
@@ -214,7 +214,7 @@
 		   </div>
 			
 			
-			<!-- 网络拓扑图
+			<!-- 网络拓扑图-->
 			<div class="tab-pane" id="topo" role="tabpanel">
 				<div class="row">
 					<div class="col-xs-9" style="padding-top:15px;">
@@ -454,172 +454,296 @@
 					</div>
 				</div>
 			</div>
-
 		</div>
-
+</div></div>
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js", "api/vdc/vdc.js"]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		var vpcUuid = args.vpcUuid;
 		
-		
-		
-      /***		
-		//创建topo
+       /**********************拓扑图*************************/	
+       
+		    //创建topo
 			var isData=true;
 			var canvas = document.getElementById('canvas1');			
 			var stage = new JTopo.Stage(canvas);
 			var scene = new JTopo.Scene(stage);
 			scene.backgroundColor='255,255,255';
 			stage.add(scene);
-
-		//创建固定节点
 			
-			addNode("Internet",false,10,200)
-
-		//创建固定分隔线
-			function circlenode(a1,a2){
-				 circleNode = new JTopo.CircleNode("");
-			            circleNode.radius = 10; // 半径
-			            circleNode.alpha = 0;
-			            circleNode.fillColor = '255, 255, 255'; // 填充颜色
-			            circleNode.setLocation(a1, a2);
-			            circleNode.textPosition = 'Middle_Center'; // 文本位置
-			            circleNode.dragable=false;
-						circleNode.visible=false;
-			            scene.add(circleNode);
-			            return circleNode;
-			}
-
-			var circ1=circlenode(60,60);
-			var circ2=circlenode(60,440);
+			scene.clear();
 			
-			var linkcustom = new JTopo.Link(circ1, circ2, "");
-			linkcustom.strokeColor = '165,165,165';
-			linkcustom.dashedPattern = 3;
-			linkcustom.lineWidth = 2; // 线宽
-			linkcustom.dragable=false;
-			linkcustom.editAble=false;
-			scene.add(linkcustom);
+			refreshTopolopy();
+			
+			function refreshTopolopy(){
+				//创建固定节点
+			    function addInternetNode(){
+					var node = new JTopo.Node("Internet");							
+					node.setLocation(10,200);
+					node.setImage( "assets/img/topo/images/Internet.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=false;
+					node.editAble=false;
+					node.uuid="internet";
+					node.type="internet";
+					scene.add(node);
+			    }
+			    addInternetNode();
 
-		//模拟数据  network Router  ICF cloudHost loadBalance
-		data=["network", "Router","ICF","cloudHost","loadBalance","network","network","network","network"];
+			    //创建固定分隔线
+				function circlenode(a1,a2){
+					 circleNode = new JTopo.CircleNode("");
+				            circleNode.radius = 10; // 半径
+				            circleNode.alpha = 0;
+				            circleNode.fillColor = '255, 255, 255'; // 填充颜色
+				            circleNode.setLocation(a1, a2);
+				            circleNode.textPosition = 'Middle_Center'; // 文本位置
+				            circleNode.dragable=false;
+							circleNode.visible=false;
+				            scene.add(circleNode);
+				            return circleNode;
+				}
 
-		//根据数据生成topo
-		function addNode(str,dragable,x,y){
-			var node = new JTopo.Node(str);							
-			node.setLocation(x, y);
-			node.setImage( "assets/img/topo/images/"+str+".png", false);
-			node.width=48;
-			node.height=48;
-			node.fontColor="0,0,0";
-			node.dragable=dragable;
-			node.editAble=false;
-			scene.add(node);
-		}
-		if(isData){
-			var ICFNum=0,routerNum=0,networkNum=0,loadBalanceNum=0,cloudHostNum=0;
-			for (var i = 0; i <data.length; i++) {
+				var circ1=circlenode(60,60);
+				var circ2=circlenode(60,440);
 				
-				switch(data[i]){
-						case "ICF":
-							var x=175
-							if(ICFNum==0){
-								var y=15;
-							}else{
-								var y=15+ICFNum*60
-							}
-							addNode(data[i],true,x,y);
-							ICFNum++;
-							break;
-						case "Router":
-						    var x=305
-						    if(routerNum==0){
-								var y=15;
-							}else{
-								var y=15+routerNum*60
-							}
-							addNode(data[i],true,x,y);
-						    routerNum++;
-						    break;
-						case "network":
-							var x=435
-							if(networkNum==0){
-								var y=15;
-							}else{
-								var y=15+networkNum*60;
-							}
-							addNode(data[i],true,x,y);
-							networkNum++;
-							break;
-						case "loadBalance":
-							var x=565
-							if(loadBalanceNum==0){
-								var y=15;
-							}else{
-								var y=15+loadBalanceNum*60
-							}
-							addNode(data[i],true,x,y);
-							loadBalanceNum++;
-							break;
-						case "cloudHost":
-							var x=690;
-							if(cloudHostNum==0){
-								var y=15;
-							}else{
-								var y=15+cloudHostNum*60
-							}
-							addNode(data[i],true,x,y);
-							cloudHostNum++;
-							break;
+				var linkcustom = new JTopo.Link(circ1, circ2, "");
+				linkcustom.strokeColor = '165,165,165';
+				linkcustom.dashedPattern = 3;
+				linkcustom.lineWidth = 2; // 线宽
+				linkcustom.dragable=false;
+				linkcustom.editAble=false;
+				scene.add(linkcustom);
+				
+				var routerNum = 0;
+				var networkNum = 0;
+				var fwNum = 0;
+				var loadBalanceNum = 0;
+				var vmNum = 0;
+				$.VPC.getTopology(vpcUuid,function(data){
+		    	     var firewallList =  data.firewalls
+			    	  for(var i=0;i<firewallList.length;i++){
+			    		  var fwVo = firewallList[i];
+			    		  addFirewallNode(fwVo);
+			    	  }
+			    	   
+			    	  var routerList =  data.routers
+			    	  for(var i=0;i<routerList.length;i++){
+			    		  var routerVo = routerList[i];
+			    		   addRouterNode(routerVo);
+			    	  }
+			    	  var networkList =  data.networks
+			    	  var splitSize = parseInt(550/networkList.length)
+			    	  for(var i=0;i<networkList.length;i++){
+			    		  var networkVo = networkList[i];
+			    		  addNetworkNode(networkVo,splitSize);
+			    	  }
+			    	  
+			    	  var lbs =  data.lbs
+			    	  for(var i=0;i<lbs.length;i++){
+			    		  var lbVo = lbs[i];
+			    		  addLoadBalanceNode(lbVo);
+			    	  }
+			    	  
+			    	  var vmList = data.vms;
+			    	  if(vmList){
+			    		  for(var i=0;i<vmList.length;i++){
+				    		  var vmVo = vmList[i];
+				    		  addVmNode(vmVo);
+				    	  }
+				    	  
+			    	  }
+			    	 
+			    	  var relationList =  data.relations
+			    	  for(var i=0;i<relationList.length;i++){
+			    		  var relationVo = relationList[i];
+			    		  addLink(relationVo);
+			    	  }
+			    	  
+			    	 /*  $.VPC.getTopologyDeep(vpcUuid,function(data){
+			    		 
+				    	  
+				    	  var relationList =  data.relations
+				    	  for(var i=0;i<relationList.length;i++){
+				    		  var relationVo = relationList[i];
+				    		  addLink(relationVo);
+				    	  }
+			    	  }); */
+			    	  
+			    });	
+				var  selectLink;
+				function addLink(relationVo){
+					var snode =getSourceNode(relationVo);
+					if(relationVo.destinationType == "EXT_NETWORK"){//等于外部网络时直接连接internent
+						relationVo.destinationId="internet";
+						relationVo.destinationType="internet";
 					}
-			};
-
-
-		}
-		//画线
-		
-		var getDisp=scene.getDisplayedElements(),router=[],network=[],loadBalance=[];
-		for (var i = 0; i < getDisp.length; i++) {
-			if(getDisp[i].elementType=="node" && getDisp[i].alpha!=0){
-			//	var image=$(getDisp[i].image).attr("src");
-				var imageName=getDisp[i].text;
-				if(imageName=="Router"){
-					router.push(getDisp[i])
-				}else if(imageName=="network"){
-					network.push(getDisp[i])
-				}else if(imageName=="loadBalance"){
-					loadBalance.push(getDisp[i])
+					var tnode = getTargetNode(relationVo);
+					if(snode && tnode){
+						var link = new JTopo.Link(snode,tnode);
+		                link.lineWidth = 2; // 线宽
+		                link.bundleGap = 30; // 线条之间的间隔
+		                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
+		                 if(relationVo.desc){
+		                	  link.desc = relationVo.desc; 
+		                 }
+		                link.fontColor = "black"
+		                link.strokeColor = "90,90,90"; // 线条颜色随机
+		                link.type = 'loop'; // 自定义属性
+		                
+		                link.addEventListener('mouseover', function(event){ 
+		                	selectLink = this; 
+	                        selectLink.text = this.desc;
+	                    }); 
+		                link.addEventListener('mouseout', function(event){ 
+		                	if(selectLink){
+		                		selectLink.text = null;
+		                		selectLink = null;
+		                	}
+	                    }); 
+		                scene.add(link);
+					}
+				}
+				
+				function getSourceNode(relationVo){
+					var sourcelist = scene.findElements(function(e){
+	                    if(e.type == relationVo.sourceType && e.uuid == relationVo.sourceId){
+	                  	  return true;
+	                    }
+	                    return false;
+					});
+					return sourcelist[0];
+				}
+				
+				function getTargetNode(relationVo){
+					var destinationlist = scene.findElements(function(e){
+	                    if(e.type == relationVo.destinationType && e.uuid == relationVo.destinationId){
+	                  	  return true;
+	                    }
+	                    return false;
+					});
+					return destinationlist[0];
+				}
+				
+				
+				
+				function addFirewallNode(firewallVo){
+					var x=175
+					if(fwNum==0){
+						var y=200;
+					}else{
+						var y=15+fwNum*60
+					}
+					fwNum++;
+					var node = new JTopo.Node(firewallVo.name);							
+					node.setLocation(x, y);
+					node.setImage( "assets/img/topo/images/ICF.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=true;
+					node.editAble=false;
+					node.uuid=firewallVo.uuid;
+					node.type="FIREWALL";
+					scene.add(node);
+					fwNum++;
+				}
+				
+				
+				function addRouterNode(routerVo){
+				    var x=305
+				    if(routerNum==0){
+						var y=200;
+					}else{
+						var y=15+routerNum*60
+					}
+					var node = new JTopo.Node(routerVo.name);							
+					node.setLocation(x, y);
+					node.setImage( "assets/img/topo/images/Router.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=true;
+					node.editAble=false;
+					node.uuid=routerVo.uuid;
+					node.type="ROUTER";
+					scene.add(node);
+				    routerNum++;
+				}
+				
+				
+				function addNetworkNode(networkVo,splitSize){
+					var x=435
+					if(networkNum==0){
+						var y=20;
+					}else{
+						var y=20+networkNum*splitSize;
+					}
+					var node = new JTopo.Node(networkVo.name);							
+					node.setLocation(x, y);
+					node.setImage( "assets/img/topo/images/network.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=true;
+					node.editAble=false;
+					node.uuid=networkVo.uuid;
+					node.type="INNER_NETWORK";
+					scene.add(node);
+					networkNum++;
+				}
+				
+				function addLoadBalanceNode(lbVo){
+					var x=565
+					if(loadBalanceNum==0){
+						var y=20;
+					}else{
+						var y=20+loadBalanceNum*90
+					}
+					var node = new JTopo.Node(lbVo.name);							
+					node.setLocation(x, y);
+					node.setImage( "assets/img/topo/images/loadBalance.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=true;
+					node.editAble=false;
+					node.uuid=lbVo.uuid;
+					node.type="LOAD_BALANCING";
+					scene.add(node);
+					loadBalanceNum++;
+				}
+				
+				function addVmNode(vmVo){
+					var x=690;
+					if(vmNum==0){
+						var y=25;
+					}else{
+						var y=25+vmNum*90
+					}
+					var node = new JTopo.Node(vmVo.name);							
+					node.setLocation(x, y);
+					node.setImage( "assets/img/topo/images/cloudHost.png", false);
+					node.width=48;
+					node.height=48;
+					node.fontColor="0,0,0";
+					node.dragable=true;
+					node.editAble=false;
+					node.uuid=vmVo.uuid;
+					node.type="VM";
+					scene.add(node);
+					vmNum++;
 				}
 			}
+			
+			
+		   
+			
 
-		};
-		for (var j =0; j < router.length; j++) {
-			for(var k=0; k<network.length; k++){
-	                var link = new JTopo.Link(router[j], network[k]);
-	               // link.text = 'L'+i;
-	                link.lineWidth = 3; // 线宽
-	                link.bundleGap = 30; // 线条之间的间隔
-	                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
-	                link.strokeColor = JTopo.util.randomColor(); // 线条颜色随机
-	                link.type = 'loop'; // 自定义属性
-	                scene.add(link);
-	            }
-        };
-        for (var j =0; j < loadBalance.length; j++) {
-			for(var k=0; k<network.length; k++){
-	                var link = new JTopo.Link(loadBalance[j], network[k]);
-	               // link.text = 'L'+k;
-	                link.lineWidth = 3; // 线宽
-	                link.bundleGap = 30; // 线条之间的间隔
-	                link.textOffsetY = 3; // 文本偏移量（向下3个像素）
-	                link.strokeColor = JTopo.util.randomColor(); // 线条颜色随机
-	                link.type = 'loop'; // 自定义属性
-	                scene.add(link);
-	            }
-        };
 		//拖拽生成画布节点
-
 		var isDrag = false;
 		function isIE(){
 		  if(navigator.userAgent.indexOf("MSIE")>0){return true;}
@@ -723,9 +847,13 @@
 		})
 		//选中节点显示属性
 		scene.click(function(){
-			if(scene.selectedElements.length>0){console.log(scene.selectedElements[0])
+			if(scene.selectedElements.length>0){ 
 				var image=$(scene.selectedElements[0].image).attr("src");
 				var imageName=image.slice(image.lastIndexOf('/')+1,image.lastIndexOf('.'));
+				
+				console.log(scene.selectedElements[0].type)
+				
+				
 				switch(imageName){
 							case "ICF":
 								$(".ICFInfo").show();
@@ -752,9 +880,13 @@
 			}
 			
 		})
-		**/
 
-		var vpcUuid = args.vpcUuid;
+      /**********************拓扑图*************************/	
+	
+      
+      
+      
+      
 		$.VPC.getVpcs({uuid:vpcUuid},function(data){console.log(data);
 			  if(data.results && data.results.length > 0){
 				    var vpcObj = data.results[0];
