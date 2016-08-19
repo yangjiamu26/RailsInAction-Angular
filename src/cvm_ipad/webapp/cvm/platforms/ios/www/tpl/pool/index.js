@@ -293,20 +293,13 @@ function initPool_storage_chart(data) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-<<<<<<< HEAD
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
-=======
       RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         //$.ajax("tpl/pool/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
 
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-<<<<<<< HEAD
-=======
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           self.dataList.removeAll();
 
           self.pools_count(data.data.length);

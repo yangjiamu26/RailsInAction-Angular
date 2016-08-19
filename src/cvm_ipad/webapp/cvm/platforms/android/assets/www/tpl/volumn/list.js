@@ -2,10 +2,7 @@ myApp.onPageInit("volumn-list", function(page) {
 
   function ViewModel(){
     this.dataList = ko.observableArray([]);
-<<<<<<< HEAD
-=======
     this.fromPage = ko.observable('');
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
     this.loading = false;
     this.page = 1;
@@ -15,19 +12,6 @@ myApp.onPageInit("volumn-list", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-<<<<<<< HEAD
-      $.ajax("tpl/volumn/list.json?id="+page.query.id+"&page="+self.page).done(function(data){
-        self.loading = false;
-        if(!is_loadMore){
-          myApp.pullToRefreshDone();
-          self.dataList.removeAll();
-        }
-        for(var i=0; i<data.dataList.length; i++){       
-          self.dataList.push(data.dataList[i]);
-        }
-        self.page++;
-        if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
-=======
       var url;
       switch(page.query.fromPage){
         case "vm":
@@ -53,7 +37,6 @@ myApp.onPageInit("volumn-list", function(page) {
         }
         self.page++;
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }

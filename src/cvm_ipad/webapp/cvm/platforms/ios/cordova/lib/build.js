@@ -20,45 +20,6 @@
 /*jshint node: true*/
 
 var Q     = require('q'),
-<<<<<<< HEAD
-    nopt  = require('nopt'),
-    path  = require('path'),
-    shell = require('shelljs'),
-    spawn = require('./spawn'),
-    check_reqs = require('./check_reqs');
-
-var projectPath = path.join(__dirname, '..', '..');
-
-module.exports.run = function (argv) {
-
-    var args = nopt({
-        // "archs": String,     // TODO: add support for building different archs
-        'debug': Boolean,
-        'release': Boolean,
-        'device': Boolean,
-        'emulator': Boolean,
-    }, {'-r': '--release'}, argv);
-
-    if (args.debug && args.release) {
-        return Q.reject('Only one of "debug"/"release" options should be specified');
-    }
-
-    if (args.device && args.emulator) {
-        return Q.reject('Only one of "device"/"emulator" options should be specified');
-    }
-    
-    return check_reqs.run().then(function () {
-        return findXCodeProjectIn(projectPath);
-    }).then(function (projectName) {
-        var configuration = args.release ? 'Release' : 'Debug';
-
-        console.log('Building project  : ' + path.join(projectPath, projectName + '.xcodeproj'));
-        console.log('\tConfiguration : ' + configuration);
-        console.log('\tPlatform      : ' + (args.device ? 'device' : 'emulator'));
-
-        var xcodebuildArgs = getXcodeArgs(projectName, projectPath, configuration, args.device);
-        return spawn('xcodebuild', xcodebuildArgs, projectPath);
-=======
     path  = require('path'),
     shell = require('shelljs'),
     spawn = require('./spawn'),
@@ -142,7 +103,6 @@ module.exports.run = function (buildOpts) {
             xcRunArgs.concat('--embed', buildOpts.provisioningProfile);
         }
         return spawn('xcrun', xcRunArgs, projectPath);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     });
 };
 
@@ -156,20 +116,12 @@ function findXCodeProjectIn(projectPath) {
     var xcodeProjFiles = shell.ls(projectPath).filter(function (name) {
         return path.extname(name) === '.xcodeproj';
     });
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     if (xcodeProjFiles.length === 0) {
         return Q.reject('No Xcode project found in ' + projectPath);
     }
     if (xcodeProjFiles.length > 1) {
-<<<<<<< HEAD
-        console.warn('Found multiple .xcodeproj directories in \n' +
-=======
         events.emit('warn','Found multiple .xcodeproj directories in \n' +
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
             projectPath + '\nUsing first one');
     }
 
@@ -193,20 +145,12 @@ function getXcodeArgs(projectName, projectPath, configuration, isDevice) {
         xcodebuildArgs = [
             '-xcconfig', path.join(__dirname, '..', 'build-' + configuration.toLowerCase() + '.xcconfig'),
             '-project', projectName + '.xcodeproj',
-<<<<<<< HEAD
-            'ARCHS=armv7 armv7s arm64',
-=======
             'ARCHS=armv7 arm64',
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
             '-target', projectName,
             '-configuration', configuration,
             '-sdk', 'iphoneos',
             'build',
-<<<<<<< HEAD
-            'VALID_ARCHS=armv7 armv7s arm64',
-=======
             'VALID_ARCHS=armv7 arm64',
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
             'CONFIGURATION_BUILD_DIR=' + path.join(projectPath, 'build', 'device'),
             'SHARED_PRECOMPS_DIR=' + path.join(projectPath, 'build', 'sharedpch')
         ];
@@ -230,17 +174,6 @@ function getXcodeArgs(projectName, projectPath, configuration, isDevice) {
 // help/usage function
 module.exports.help = function help() {
     console.log('');
-<<<<<<< HEAD
-    console.log('Usage: build [ --debug | --release ] [--archs=\"<list of architectures...>\"] [--device | --simulator]');
-    console.log('    --help    : Displays this dialog.');
-    console.log('    --debug   : Builds project in debug mode. (Default)');
-    console.log('    --release : Builds project in release mode.');
-    console.log('    -r        : Shortcut :: builds project in release mode.');
-    // TODO: add support for building different archs
-    // console.log("    --archs   : Builds project binaries for specific chip architectures (`anycpu`, `arm`, `x86`, `x64`).");
-    console.log('    --device, --simulator');
-    console.log('              : Specifies, what type of project to build');
-=======
     console.log('Usage: build [--debug | --release] [--archs=\"<list of architectures...>\"]');
     console.log('             [--device | --simulator] [--codeSignIdentity=\"<identity>\"]');
     console.log('             [--codeSignResourceRules=\"<resourcerules path>\"]');
@@ -258,15 +191,11 @@ module.exports.help = function help() {
     console.log('    --provisioningProfile   : UUID of the profile.');
     console.log('    --device --noSign       : Builds project without application signing.');
     console.log('');
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     console.log('examples:');
     console.log('    build ');
     console.log('    build --debug');
     console.log('    build --release');
-<<<<<<< HEAD
-=======
     console.log('    build --codeSignIdentity="iPhone Distribution" --provisioningProfile="926c2bd6-8de9-4c2f-8407-1016d2d12954"');
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
     // TODO: add support for building different archs
     // console.log("    build --release --archs=\"armv7\"");
     console.log('');

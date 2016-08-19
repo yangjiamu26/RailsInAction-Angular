@@ -1,9 +1,4 @@
 myApp.onPageInit("settings-password", function(page) {
-<<<<<<< HEAD
-  $$('.save-password').on('click', function () {
-      myApp.alert('恭喜，密码修改成功!');
-  });
-=======
   function ViewModel(){
 	var self = this;
 	this.save = function(){
@@ -43,5 +38,4 @@ myApp.onPageInit("settings-password", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 });

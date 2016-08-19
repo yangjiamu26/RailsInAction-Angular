@@ -19,20 +19,6 @@
                             </tr>
                         </thead>
                         <tbody id="userList">
-                            <!-- <tr>
-                                <td>
-                                    <input type="radio" checked="checked" value="kermit" name="userId"/>
-                                </td>
-                                <td>系统管理员</td>
-                                <td>admin</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <input type="radio" value="wujie" name="userId"/>
-                                </td>
-                                <td>张三</td>
-                                <td>shangsan</td>
-                            </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -70,7 +56,7 @@
 	csc.rest.get('api/v5.0.0/workflows/tasks/'+taskId+'/activity/outgings/'+activityId+'/identitylinks',function(data){
   		if(data.length>0){
   			for(var i=0;i<data.length;i++){
-  				$("#userList").append("<tr><td><input type='radio' value='"+data[i].user+"' name='userId'/>"
+  				$("#userList").append("<tr><td><input type='radio' value='"+data[i].user+"' name='userId' userType='"+data[i].type+"'/>"
   						+"</td><td>"+data[i].userName+"</td><td>"+data[i].user+"</td></tr>");
   			}
   			$("input[name='userId']:first").attr("checked",true);
@@ -82,13 +68,13 @@
   
   function submitNext(){
 	  var userId = $("input[name='userId']:checked").val();
+	  var userType = $("input[name='userId']:checked").attr("userType");
 	  if(typeof(userId) == 'undefined'){
 		  alert("请选择用户！");
 		  return;
 	  }
-	  //var userId="yunwei";
 	  saveComment(taskId,function(){
-		var databody = {"userId":userId,"action":"designated"};
+		var databody = {"userId":userType+":"+userId,"action":"designated"};
 		csc.rest.put('api/v5.0.0/workflows/tasks/'+taskId,databody,function(data){
 		  alert("审核成功！");
 		  location.href = "#pages/workflows/tasks?type=work";

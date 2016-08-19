@@ -3,10 +3,7 @@ myApp.onPageInit("storage-list", function(page) {
   function ViewModel(){
     this.dataList = ko.observableArray([]);
     this.fromPage=ko.observable("");
-<<<<<<< HEAD
-=======
     this.hypervisor = ko.observable(page.query.hypervisor);
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
     this.loading = false;
     this.page = 1;
@@ -28,19 +25,12 @@ myApp.onPageInit("storage-list", function(page) {
           break;
       }
       
-<<<<<<< HEAD
-      RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":self.page*PAGE_SIZE-1},function(data){
-=======
       RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         //$.ajax("tpl/storage/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-<<<<<<< HEAD
-=======
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           self.dataList.removeAll();
         }
         for(var i=0; i<data.data.length; i++){
@@ -71,6 +61,10 @@ myApp.onPageInit("storage-list", function(page) {
               break;
             case 'Pluging':
               data.data[i].state='挂载中';
+              data.data[i].stateCss='orange';
+              break;
+            default:
+              data.data[i].state='异常';
               data.data[i].stateCss='orange';
               break;
           }   

@@ -781,7 +781,7 @@
                     <th>类型</th>
                     <th>状态</th>
                     <th>镜像格式</th>
-                    <th>大小</th>
+                    <th>大小(MB)</th>
                     <th>操作系统版本</th>
                     <th>操作系统类型</th>
                     <th>最小磁盘</th>
@@ -804,7 +804,7 @@
                     </td>
                     <td data-bind="text:status"></td>
                     <td data-bind="text:diskFormat"><span class="label label-success"></span></td>
-                    <td data-bind="text:imageSize"></td>
+                    <td data-bind="text:(imageSize/(1024*1024)).toFixed(2)"></td>
                     <td data-bind="text:opSysType"></td>
                     <td data-bind="text:opSysVersion"></td>
                     <td data-bind="text:minDisk"></td>
@@ -2091,7 +2091,7 @@
         
         this.currentVO = ko.validatedObservable(new ImageView());
 
-          this.table = new DataTable([], {path: 'api/v5.0.0/images?azUuid=' + azUuid});
+        this.table = new DataTable([], {path: 'api/v5.0.0/images?azUuid=' + azUuid});
           
           /****************************查询开始********************************/
           this.searchParam = ko.observable({
@@ -2208,37 +2208,35 @@
            this.saveImage = function(){
              ko.validation.group(self.currentVO).showAllMessages();
              var imageUuid = self.currentVO.toJSON().uuid;
-             debugger
-             if(self.currentVO.isValid()){
-               if(!imageUuid){
-                 
-                var currentUploadType = self.currentVO().uploadType();
-                if(currentUploadType == "url"){
-                  csc.rest.post('api/v5.0.0/images', self.currentVO.toJSON(), function(){
-                        self.isAddISO(false);
-                        self.table.refreshData();
-                  });
-                }else{
-                  $("#saveImageButtonDiv").attr("disabled", true);
-                  // 镜像新增
-                  csc.rest.post('api/v5.0.0/images',self.currentVO.toJSON(),function(data){
-                    if(data.imageId){
-		                systemMsg.alert('镜像已创建,开始文件上传...');
-		                self.uploadDfile(data.imageId,function(){
-		                  alert("文件上传中...");
-		                });
-                    }
-                    self.isAddISO(false);
-                    //$("#saveImageButtonDiv").removeAttr("disabled");
-              	  });
-                }
-               }else{
-                csc.rest.put('api/v5.0.0/images/'+imageUuid, this.currentVO.toJSON(), function(){
-                    self.isEditISO(false);
-                    self.table.refreshData();
-                });
-               }
-               }
+             if(!imageUuid){
+            	 if(self.currentVO.isValid()){
+            		 var currentUploadType = self.currentVO().uploadType();
+                     if(currentUploadType == "url"){
+                       csc.rest.post('api/v5.0.0/images', self.currentVO.toJSON(), function(){
+                             self.isAddISO(false);
+                             self.table.refreshData();
+                       });
+                     }else{
+                       $("#saveImageButtonDiv").attr("disabled", true);
+                       // 镜像新增
+                       csc.rest.post('api/v5.0.0/images',self.currentVO.toJSON(),function(data){
+                         if(data.imageId){
+     		                systemMsg.alert('镜像已创建,开始文件上传...');
+     		                self.uploadDfile(data.imageId,function(){
+     		                  alert("文件上传中...");
+     		                });
+                         }
+                         self.isAddISO(false);
+                         //$("#saveImageButtonDiv").removeAttr("disabled");
+                   	  });
+                     }
+                 }
+             }else{
+                 csc.rest.put('api/v5.0.0/images/'+imageUuid, this.currentVO.toJSON(), function(){
+                     self.isEditISO(false);
+                     self.table.refreshData();
+                 });
+             }
            }
           /****************************编辑结束********************************/
           

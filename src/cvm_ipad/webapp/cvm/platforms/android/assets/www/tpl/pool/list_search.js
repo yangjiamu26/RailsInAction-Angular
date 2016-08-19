@@ -1,8 +1,5 @@
 myApp.onPageInit("pool-list-search", function(page) {
   function ViewModel(){
-<<<<<<< HEAD
-    this.dataList = ko.observableArray([]);
-=======
     var self = this;
     this.dataList = ko.observableArray([]);
     this.forPage = ko.observable(page.query.forPage);
@@ -22,43 +19,26 @@ myApp.onPageInit("pool-list-search", function(page) {
         window.storage_index_viewModel.loadData(false, self.hypervisor(), id);
       }
     }
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
 
     this.loading = false;
     this.page = 1;
     this.loadData = function(is_loadMore){
-<<<<<<< HEAD
-      var self = this;
-=======
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-<<<<<<< HEAD
-      $.ajax("tpl/pool/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
-=======
       RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":self.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
         //$.ajax("tpl/pool/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
           self.dataList.removeAll();
         }
-<<<<<<< HEAD
-        for(var i=0; i<data.dataList.length; i++){       
-          self.dataList.push(data.dataList[i]);
-        }
-        self.page++;
-        if(is_loadMore && (data.dataList.length < PAGE_SIZE)){
-=======
         for(var i=0; i<data.data.length; i++){
           self.dataList.push(data.data[i]);
         }
         self.page++;
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
         }
@@ -70,15 +50,9 @@ myApp.onPageInit("pool-list-search", function(page) {
 
   viewModel.loadData();
 
-<<<<<<< HEAD
-  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
-  });
-=======
   // $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
   //   viewModel.loadData();
   // });
->>>>>>> 410cbf4f02d60d813dc036b1bd603eacd2f499a6
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true);
   });  

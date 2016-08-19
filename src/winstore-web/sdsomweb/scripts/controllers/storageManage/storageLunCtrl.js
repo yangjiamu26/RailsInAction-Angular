@@ -126,7 +126,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             $scope.initiatorShow = true;
         }
         var _this = angular.element("#poolTr"+num);
-        var content = "<tr id='ShowInitiatorTr' ng-show='snapshotShow'><td colspan=6 style='height:113px;background-color:#253143;'></td></tr>"
+        var content = "<tr id='ShowInitiatorTr' ng-show='snapshotShow'><td colspan=6 class='subtdbg' style='height:113px;'></td></tr>"
         _this.after(content);
         $("#initiatorTabDiv").show().css({left: _this.offset().left+20, top: _this.offset().top +40, width: _this.width()-40});
         // use acl interface for temp and add initiator interface later
@@ -166,7 +166,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
         };
         $scope.NoSnapErrMsg = "正在加载中...";
         var _this = angular.element('#lunTr'+num);
-        var content = "<tr id='ShowSnapshotTr' ng-show='snapshotShow'><td colspan=5 style='height:113px;background-color:#253143;'></td></tr>";
+        var content = "<tr id='ShowSnapshotTr' ng-show='snapshotShow'><td colspan=5 class='subtdbg' style='height:113px;'></td></tr>";
         _this.after(content);
         $("#snapTableDiv").show().css({left: _this.offset().left+20, top: _this.offset().top +40, width: _this.width()-40});
         NProgress.start();
@@ -1357,7 +1357,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             }
             _that.remove();
         }
-        var content = "<tr class=rrr><td colspan=9 style='height:430px;background-color:#253143;'></td></tr>";
+        var content = "<tr class=rrr><td colspan=9 class='subtdbg' style='height:430px;'></td></tr>";
         _this.after(content);
         $("#chartDiv").show().css({left: _this.offset().left, top: _this.offset().top + 37, width: _this.width()});
         $scope.poolOrLun = pool;
@@ -1379,7 +1379,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             }
             _that.remove();
         }
-        var content = "<tr class=lrrr><td colspan=9 style='height:180px;background-color:#253143;'></td></tr>";
+        var content = "<tr class=lrrr><td colspan=9 class='subtdbg' style='height:180px;'></td></tr>";
         _this.after(content);
         $("#chartDiv").show().css({left: _this.offset().left, top: _this.offset().top + 37, width: _this.width()});
         $scope.poolOrLun = lun;

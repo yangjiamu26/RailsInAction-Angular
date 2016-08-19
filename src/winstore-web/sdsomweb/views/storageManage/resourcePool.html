@@ -13,7 +13,7 @@
 <div class="content" ng-init="initPage()">
     <div ng-show="showTab=='pool'">
         <!--添加一个ceph文件系统的按钮,back,back,back,back,back-->
-        <div class="clearfix">
+        <div class="table-top clearfix">
             <form class="form-search pull-left">
                 <input type="text" placeholder="搜索" class="form-control" style="width:150px">
                 <button class="btn btn-default btn-flat"><i class="fa fa-search"></i></button>
@@ -498,82 +498,6 @@
         <button class="btn btn-flat btn-default" data-dismiss="modal" aria-hidden="true" ng-disabled="isAdd">关闭</button>
     </div>
 </div>
-<!-- 存储池弹出框信息控制DIV展示完 -->
-<!-- 快照信息展示Modal -->
-<div id="snapModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4>{{snapMessage}}</h4>
-    </div>
-    <div class="modal-body">
-        <form style="margin-bottom: 5px">
-            <div ng-show="snapModelAdd">
-                <label class="text-danger">创建快照时只对已写入LUN的数据保存快照</label>
-                <label class="text-danger">强烈建议此时停止对LUN的写IO以保证一致性</label>
-                <br>
-                <label>名称</label>
-                <input type="text" class="form-control" style="width: 460px" placeholder="请输入快照名称，由数字或字母组成，长度为1至8。" ng-model="snapModel.snapName">
-                <br>
-                <label>描述</label>
-                <textarea ng-model="snapModel.remark" placeholder="请输入快照描述，字数在500以内。" class="form-control" style="width: 460px"></textarea>
-            </div>
-            <!-- 修改部分 -->
-            <div ng-show="snapModelUpdate">
-                <label>名称</label>
-                <input type="text" class="form-control" style="width: 460px" ng-model="snapModel.snapName" readOnly>
-                <br>
-                <label>描述</label>
-                <textarea ng-model="snapModel.remark" class="form-control" style="width: 460px"></textarea>
-            </div>
-            <!-- 删除提示部分 -->
-            <div ng-show="snapModelDelete">
-                <p class="alert fontSize14">存储池&nbsp;
-                    <span class="text-danger">{{snapLun.poolName}}</span>
-                    &nbsp;LUN&nbsp;
-                    <span class="text-danger">{{snapLun.lunId}}</span>
-                    &nbsp;的快照&nbsp;
-                    <span class="text-danger">{{snapModel.snapName}}</span>
-                    &nbsp;将被永久删除！
-                </p>
-                <p>
-                    <span>请输入大写&nbsp;'YES'&nbsp;以确定删除操作</span>
-                    <input type="text" class="form-control" style="width:40px;" ng-model="snapModel.sure2deleteSnap" placeholder="NO">
-                </p>
-            </div>
-            <div ng-show="snapModelRollback">
-                <p class="alert fontSize14">存储池&nbsp;
-                    <span class="text-danger">{{snapLun.poolName}}</span>
-                    &nbsspanp;的LUN&nbsp;
-                    <span class="text-danger">{{snapLun.lunId}}</span>
-                    &nbsp;即将回滚到快照&nbsp;
-                    <span class="text-danger">{{snapModel.snapName}}</span>
-                </p>
-                <p>此操作不可逆</p>
-                <p>最晚创建的快照的时间点和回滚操作开始的时间点之间，写入LUN的数据将被清除且不可恢复！
-                </p>
-                <p>
-                    <span>请输入大写&nbsp;'YES'&nbsp;以确定回滚操作</span>
-                    <input type="text" class="form-control" style="width:40px;" ng-model="snapModel.sure2deleteSnap" placeholder="NO">
-                </p>
-            </div>
-            <!-- 确认有initiator连接情况下继续打快照和快照回滚 -->
-            <div ng-show="sure2Snap">
-                <p class="alert fontSize14">POOL:&nbsp;{{snapLun.poolName}}&nbsp;该存储池已连接客户端，建议断开连接后操作，继续操作存在数据丢失风险！</p>
-                <p>
-                    <span>如果要强行继续，请输入大写&nbsp;'YES'&nbsp;以确定继续操作</span>
-                    <input type="text" class="form-control" style="width:40px;" ng-model="snapLun.sure2Snap" placeholder="NO">
-                </p>
-            </div>
-            <div class="fontSize16 text-danger">{{snapErrMsg}}</div>
-        </form>
-        <!-- 加载中 -->
-        <div class="spin"></div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-flat btn-info" ng-click="commitSnap()" ng-disabled="!systemMode.isNormal || isAdd">确定</button>
-        <button class="btn btn-flat btn-default" data-dismiss="modal" aria-hidden="true" ng-disabled="isAdd" ng-click="cancelSnap()">取消</button>
-    </div>
-</div>
 <!-- 存储池ACL管理 add by masi 20150409 -->
 <div id="poolAclSet" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
     <div class="modal-header">
@@ -594,6 +518,7 @@
         <button class="btn btn-flat btn-default" data-dismiss="modal" aria-hidden="true">关闭</button>
     </div>
 </div>
+<!--存储池ACL管理 add by masi 20150409 -->
 <div id="sure2AddAcl" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -612,7 +537,6 @@
         <button class="btn btn-flat btn-default" data-dismiss="modal" aria-hidden="true" ng-click="sure2AddApprovedHide()">关闭</button>
     </div>
 </div>
-<!--存储池ACL管理 add by masi 20150409 END-->
 <!-- 主机映射 主机div -->
 <div id="hostMapView" class="modal hide fade" style="width:380px;left: 60%;" tabindex="10" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
@@ -665,60 +589,5 @@
     <div class="modal-footer">
         <button class="btn btn-flat btn-info" ng-click="confirmView(view)">&nbsp;&nbsp;&nbsp;确&nbsp;定&nbsp;&nbsp;&nbsp;</button>
         <button class="btn btn-flat btn-default disabled" data-dismiss="modal" aria-hidden="true" ng-click="cancel('{{view}}')">&nbsp;&nbsp;&nbsp;取&nbsp;消&nbsp;&nbsp;&nbsp;</button>
-    </div>
-</div>
-<!--存储池ACL管理 add by masi 20150409 END-->
-<!-- 主机映射 主机div -->
-<div id="hostMapView" class="modal hide fade" style="width:380px;left: 60%;" tabindex="10" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 id="myModalLabel">{{viewTitle}}</h4>
-    </div>
-    <div class="modal-body">
-        <div ng-show="view=='createHost' || view=='updateHost'">
-            <lable>名称</lable>
-            <p>
-                <input type="text" placeholder="请输入主机名称" id="hostIdShow" ng-model="host.hostid" rel="popover" data-toggle="popover" data-placement="bottom" class="form-control">
-            </p>
-            <lable>操作系统</lable>
-            <p>
-                <select ng-model="host.osType" class="muted" id="osTypeShow" rel="popover" data-toggle="popover" data-placement="bottom">
-                    <option value="">请选择操作系统</option>
-                    <option value="IOS系统">IOS系统</option>
-                    <option value="android系统">android系统</option>
-                </select>
-            </p>
-            <lable>IP地址</lable>
-            <p>
-                <input type="text" class="form-control" ng-model="host.hostIp" placeholder="请输入IP地址" id="ipShow" rel="popover" data-toggle="popover" data-placement="bottom">
-            </p>
-            <span class="text-danger">未使用空间还有 11.6 TB</span>
-        </div>
-        <div ng-show="view=='createGroup' || view=='updateGroup'">
-            <lable>名称</lable>
-            <p>
-                <input type="text" ng-model="hostGroup.hostGroupName" placeholder="请输入主机组名称" class="form-control">
-            </p>
-            <lable>描述</lable>
-            <p>
-                <textarea ng-model="hostGroup.desc" placeholder="请描述..." class="form-control"></textarea>
-            </p>
-            <lable>可选主机</lable>
-            <img src="images/configure/pic_line.png" />
-            <p>
-                <table class="table table-striped">
-                    <tr ng-repeat="host in hostGroup.hosts">
-                        <td>
-                            <input type="checkbox" ng-checked="host.$checked" />
-                        </td>
-                        <td>{{host.ip}}</td>
-                    </tr>
-                </table>
-            </p>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-flat btn-info" ng-click="confirmView(view)">确定</button>
-        <button class="btn btn-flat btn-default disabled" data-dismiss="modal" aria-hidden="true" ng-click="cancel('{{view}}')">取消</button>
     </div>
 </div>

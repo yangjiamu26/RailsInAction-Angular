@@ -704,12 +704,19 @@
       
       this.addvm = function(){
     	self.currentVO({
-  			name: ko.observable().extend({required: true,
+  			name: ko.observable().extend({required: true,cscNameRule:true,
 				 validation: {
 		                validator: function (val, someOtherVal) {
-		                    return csc.util.invalidValueParam(val);
+		                	if (val != null && val.length <= 32)
+		                    {
+		                        return true;
+		                    }
+		                    else
+		                    {
+		                        return false;
+		                    }
 		                },
-		                message: '名称不能包含特殊字符！'
+		                message: '输入的字符数不能超过 32 个'
 		            }
 			}),
   			vdc: ko.observable().extend({required: true}),
@@ -985,12 +992,19 @@
       //初始化
       this.isAddvm = ko.observable(false);
       this.currentVO = ko.validatedObservable({
-			name: ko.observable().extend({required: true,
+    	  	name: ko.observable().extend({required: true,cscNameRule:true,
 				 validation: {
 		                validator: function (val, someOtherVal) {
-		                	return csc.util.invalidValueParam(val);
+		                	if (val != null && val.length <= 32)
+		                    {
+		                        return true;
+		                    }
+		                    else
+		                    {
+		                        return false;
+		                    }
 		                },
-		                message: '名称不能包含特殊字符！'
+		                message: '输入的字符数不能超过 32 个'
 		            }
 			}),
 			vdc: ko.observable().extend({required: true}),
@@ -1411,6 +1425,7 @@
 		  
 		  self.adjustProcessVO().vdcUuid(object.vdcUuid);
 		  self.adjustProcessVO().vdcName(object.vdcName);
+		  self.adjustProcessVO().azUuid(object.azUuid);
 		  self.adjustProcessVO().busSysName(object.busSysName);
       }
   
@@ -1431,6 +1446,7 @@
     	  
     	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
+    	  azUuid: ko.observable(),
     	  busSysName: ko.observable()
       });
       
@@ -1446,6 +1462,8 @@
     	  orderItem.resourceType = "VM";
     	  orderItem.metaData = metaData;
     	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+    	  orderItem.vdcUuid = self.adjustProcessVO().vdcUuid();
+    	  orderItem.azUuid = self.adjustProcessVO().azUuid();
     	  
     	  var orderItems = [];
     	  orderItems.push(orderItem);
@@ -1454,6 +1472,7 @@
     	  postBody.resourceType = "VM";
     	  postBody.type = "RESOURCE_CHANGE";
     	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
+    	  postBody.azUuid = self.adjustProcessVO().azUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
@@ -1474,6 +1493,7 @@
 		  self.validateProcessVO().uuid(object.uuid);
 		  self.validateProcessVO().vdcUuid(object.vdcUuid);
 		  self.validateProcessVO().vdcName(object.vdcName);
+		  self.validateProcessVO().azUuid(object.azUuid);
 		  self.validateProcessVO().busSysName(Object.busSysName);
 		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
 		  var myDate = new Date();
@@ -1507,6 +1527,7 @@
     	  user: ko.observable(),
     	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
+    	  azUuid: ko.observable(),
     	  busSysName: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
     	  validateTime: ko.observable(),
@@ -1523,6 +1544,8 @@
     	  orderItem.resourceType = "VM";
     	  orderItem.resourceUuid = self.validateProcessVO().uuid();
     	  orderItem.metaData = metaData;
+    	  orderItem.vdcUuid = self.validateProcessVO().vdcUuid();
+    	  orderItem.azUuid = self.validateProcessVO().azUuid();
     	  
     	  var orderItems = [];
     	  orderItems.push(orderItem);
@@ -1531,6 +1554,7 @@
     	  postBody.resourceType = "VM";
     	  postBody.type = "VALIDTIME_CHANGE";
     	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
+    	  postBody.azUuid = self.validateProcessVO().azUuid();
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

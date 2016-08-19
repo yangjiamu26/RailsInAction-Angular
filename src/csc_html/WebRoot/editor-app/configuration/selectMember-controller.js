@@ -24,7 +24,12 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				nodeId = node.id;
 				userType = node.userType;
 				usersArr = [];
-				var param ="orgId="+node.code+"&userType="+userType;
+				var param ="userType="+userType;
+				if(node.code!='0' && node.code!='-1'){
+					param+="&orgId="+node.code;
+				}else{
+					param+="&size=0";
+				}
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
 			       success(function (data, status, headers, config) {
@@ -38,17 +43,23 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 							for(var j = 0;j < selUserList.length;j++){
 								cc += selUserList[j].value + ",";
 							}
+							var userId = '';
+							if(userType == 0){
+								userId = users[i].id;
+							}else{
+								userId = users[i].account;
+							}
 							if(cc != ""){
 								if(cc.indexOf(users[i].id+',') == -1){
 									//result += zy_tmpl_s(listTmpl,users[i],null);
-									result += "<tr><td><input type='radio' name='orgRadioId' value='"+users[i].id+"'"
-										+"sname='"+users[i].name+"' /></td>"
+									result += "<tr><td><input type='radio' name='orgRadioId' value='"+userId+"'"
+										+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
 										+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 								}
 							}else{
 								//result += zy_tmpl_s(listTmpl,users[i],null);
-								result += "<tr><td><input type='radio' name='orgRadioId' value='"+users[i].id+"'"
-									+"sname='"+users[i].name+"' /></td>"
+								result += "<tr><td><input type='radio' name='orgRadioId' value='"+userId+"'"
+									+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
 									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 							}				
 						}
@@ -59,7 +70,8 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 					    	table_body.html("");
 					    	for(var i=0;i<selUserArr.length;i++){			
 					    		var user = selUserArr[i];
-					    		var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+user.id+"' sname='"+user.userName+"'/>" +
+					    		var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+user.id
+					    			+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 					    				"</td><td><label>"+user.userName+"</label></td></tr>";
 					    		table_body.append(newRow);
 					    	}
@@ -101,6 +113,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			var user ={};
 			user.id = jQuery(this).val();
 			user.userName = jQuery(this).attr("sname");
+			user.userType = jQuery(this).attr("userType");
 			usersArr.push(user);
 		});
 		
@@ -117,7 +130,14 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			table_body.html("");
 			for(var i=0;i<selUserArr.length;i++){				
 				var user = selUserArr[i];
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+user.id+"' sname='"+user.userName+"'/>" +
+				var userId = '';
+				if(userType == 0){
+					userId = user.id;
+				}else{
+					userId = user.account;
+				}
+				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+userId
+					+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);
 			}
@@ -134,6 +154,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			var user ={};
 			user.id = jQuery(this).val();
 			user.userName = jQuery(this).attr("sname");
+			user.userType = jQuery(this).attr("userType");
 			delUserArr.push(user);
 		});		
 		if(delUserArr!=null&&delUserArr.length>0){
@@ -152,7 +173,14 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			table_body.html("");
 			for(var i=0;i<selUserArr.length;i++){				
 				var user = selUserArr[i];
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+user.id+"' sname='"+user.userName+"'/>" +
+				var userId = '';
+				if(userType == 0){
+					userId = user.id;
+				}else{
+					userId = user.account;
+				}
+				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+userId
+					+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);
 			}
@@ -171,7 +199,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 	$scope.saveSelectModal = function(){		
 		if(selUserArr.length > 0){
 			$scope.assignment.assignee1 = selUserArr[0].userName;
-			$scope.assignment.assignee = selUserArr[0].id;
+			$scope.assignment.assignee = selUserArr[0].userType+":"+selUserArr[0].id;
 		}else{
 			$scope.assignment.assignee1 = "";
 			$scope.assignment.assignee = "";

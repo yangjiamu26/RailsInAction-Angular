@@ -409,11 +409,13 @@
    </div>
 </div>
 <script type="text/javascript">
-  var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","api/resourceInstance/sshkey/sshkey.js"]
+  var scripts = [null, 
+                 "api/vdc/vdc.js",
+                 "assets/lib/moment/moment.js",
+                 "assets/lib/bootstrap-daterangepicker/daterangepicker.js",
+                 "api/resourceInstance/sshkey/sshkey.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     function ViewModel_SSHKey(){
-  	  //系统当前登录用户标识
-      var account = "";
       //当前用户所辖VDC列表（包括VDC对应的可用分区信息）
       var vdcList = [];
       //当前用户所辖可用分区列表
@@ -464,24 +466,22 @@
          //可用分区
          this.add_partitions = ko.observableArray([]);
          this.add_vdcs_load = function(){
-       	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
-       		  if(data.results){       			
-       			  vdcListForAdd = data.results;
-   		    	  self.add_vdcs(vdcListForAdd);
-       		  }
-       	  });
+       		$.VDC.getVDCs({},function(data){
+       			if(data && data.results){
+       			 self.add_vdcs(data.results);
+       			}
+       		});
          }
          this.add_vdcs_load();
          
          //VDC->可用分区
          this.onchange_add_vdcs = function(){
-       	  var vdcUuid = self.currentVO().vdcUuid();
-       	  for(var i=0;i<vdcListForAdd.length;i++){
-       		  if(vdcListForAdd[i].uuid == vdcUuid){
-       			  self.add_partitions(vdcListForAdd[i].azs);
-       			  break;
-       		  }
-       	  }
+       	 	var vdcUuid = self.currentVO().vdcUuid();
+	       	$.VDC.getVdcAzs(vdcUuid,{},function(data){
+				 if(data && data.results){
+					 self.add_partitions(data.results);
+				 }
+			});
          }
         self.isAddSecretkey(true);
       };
@@ -552,8 +552,6 @@
 	    	  postBody.vdcUuid = self.currentVO().vdcUuid();
 	    	  postBody.azUuid = self.currentVO().azUuid();
 	    	  postBody.remark = self.currentVO().remark;
-	    	  postBody.userName = "admin";//暂时默认，需要获取当前操作的用户，可以在后台添加
-	    	  postBody.userUuid = "1";//
 	    	  
 	    	  var expiryTime = "";
 	    	  var temp = document.getElementsByName("inlineRadioOptions");
@@ -641,7 +639,7 @@
       this.vdcs = ko.observableArray([]);
       this.partitions = ko.observableArray([]);
       this.loadVdcs = function(){
-    	  csc.rest.get('api/v5.0.0/vdcs?account='+account,function(data){
+    	  csc.rest.get('api/v5.0.0/vdcs',function(data){
     		  if(data.results){
     			  vdcList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
@@ -661,7 +659,7 @@
     	  });
       }
       this.loadPartitions = function(){
-    	  csc.rest.get('api/v5.0.0/azs?account='+account,function(data){
+    	  csc.rest.get('api/v5.0.0/azs',function(data){
     		  if(data.results){
     			  azList = data.results;
     			  //为备选列表添加一个名为"全部"的选项
@@ -701,7 +699,7 @@
       this.search = function(){
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/sshKeys',loader:function(result){
+      this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/sshKeys/list/byAccount',loader:function(result){
     	  //由于公钥太长，采用省略号
     	  if(result.publicKey){
     		  var publicKeyString = result.publicKey.substring(0,25)+'....';
@@ -834,6 +832,8 @@
  		  self.validateProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
  		  self.validateProcessVO().vdcUuid(object.vdcUuid);
  		  self.validateProcessVO().vdcName(object.vdcName);
+ 		  self.validateProcessVO().azUuid(object.azUuid);
+		  self.validateProcessVO().azName(object.azName);
  		  var myDate = new Date();
  		  self.validateProcessVO().time(myDate.toLocaleString());
  		  self.validateProcessVO().metaTime(object.expiryDate);
@@ -867,7 +867,8 @@
      	  metaTime: ko.observable(),
      	  vdcUuid: ko.observable(),
      	  vdcName: ko.observable(),
-     	  
+     	  azUuid: ko.observable(),
+   	  	  azName: ko.observable(),
      	  validateTime: ko.observable(),
      	  targetValidateTime: ko.observable()
        });
@@ -881,6 +882,8 @@
      	  orderItem.expireTime = self.validateProcessVO().targetValidateTime() + " 23:59:59";
      	  orderItem.resourceType = "SECRET_KEY";
      	  orderItem.resourceUuid = self.validateProcessVO().uuid();
+     	  orderItem.vdcUuid = self.validateProcessVO().vdcUuid();
+   	  	  orderItem.azUuid = self.validateProcessVO().azUuid();
      	  orderItem.metaData = metaData;
      	  
      	  var orderItems = [];
@@ -890,6 +893,7 @@
      	  postBody.resourceType = "SECRET_KEY";
      	  postBody.type = "VALIDTIME_CHANGE";
      	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
+     	  postBody.azUuid = self.validateProcessVO().azUuid();
      	  postBody.orderItems = orderItems;
      	  
      	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){

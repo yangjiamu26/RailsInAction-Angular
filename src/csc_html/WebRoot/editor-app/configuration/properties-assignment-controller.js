@@ -58,6 +58,8 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     var usersArr = new Array();
     //给候选人赋值
     console.log(allUsers)
+    console.log("ssssooooo")
+    console.log($scope.assignment)
     if(allUsers !== undefined){    	
     	for(var i = 0;i < allUsers.length;i++){
     		for(var j = 0;j < assignUser.length;j++){

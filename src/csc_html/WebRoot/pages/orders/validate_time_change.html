@@ -87,7 +87,7 @@
 	      </div>
 	      <div class="row">
 	        <div class="col-xs-4">
-	          <p><strong>调整前失效时间：</strong><label data-bind="text:"></label></p>
+	          <p><strong>调整前失效时间：</strong><label data-bind="text:metaExpireTime"></label></p>
 	        </div>
 	        <div class="col-xs-4">
 	          <p><strong>调整后失效时间：</strong><label data-bind="text:expireTime"></label></p>
@@ -108,7 +108,6 @@
 			var itemArray = [];
 			csc.rest.get("api/v5.0.0/orders/byFlowInstanceUuid/"+flowInstanceUuid,function(data){
 				self.order(data);
-				//添加data.resourceType == orderItem.resourceTy判断,为了过滤详情和订单不同类型的对象
 				for(var i=0;i<data.orderItems.length;i++){
 				  	var orderItem =	data.orderItems[i];
 				  	var metaData = JSON.parse(orderItem.metaData);
@@ -118,35 +117,14 @@
 				  	orderItem.applyTime = applyTime;
 				  	orderItem.busSysName = resInfo.busSysName;
 				  	orderItem.vdcName = resInfo.vdcName;
-				  	/* if(orderItem.resourceType == "VDC"){
-				  		var osType = '';
-				  		var osLength = metaData.osType.length;
-				  		for(var i=0;i<osLength;i++){
-				  			osType+=metaData.osType[i];
-				  			if(i != (osLength-1)){
-				  				osType+=','
-				  			}
-				  		}
-				  		orderItem.osType = osType;
-				  	} */
+				  	orderItem.metaExpireTime = resInfo.metaExpireTime;
+				  	
 				  	itemArray.push(orderItem);
 			  	}
 				self.orderItems(itemArray);
 			});
 			
 		}
-		
-		/* var showItems = args.items.split('-');
-		var orderDetailedList = $("#orderDetailedList");
-		$.each($("#orderDetailedList > div"),function(n,v){
-			var hasItem = false;
-			$.each(showItems,function(a,b){
-				if($(v).attr("item").indexOf(b) > -1)
-					hasItem = true;
-			});
-			if(!hasItem)
-				$(this).remove();
-		}); */
 		
 		ko.applyBindings(new ViewModel(), $('#vdcChangeDetail')[0]);  
 	});

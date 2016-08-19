@@ -172,10 +172,10 @@
 		/**
 		 * 下载脚本文件
 		 */
-		downloadScript: function (path, params, callback, errorCallback) {
+		downloadScript: function (params, callback, errorCallback) {
 			var param = csc.util.httpQueryParamConvert(params);
 			
-			csc.rest.get('api/v5.0.0/script/download/' + path + '?' + param, function(data) {
+			csc.rest.get('api/v5.0.0/script/download?' + param, function(data) {
 				callback(data);
 			});
 		}

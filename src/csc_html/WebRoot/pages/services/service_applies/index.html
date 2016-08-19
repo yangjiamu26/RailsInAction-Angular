@@ -684,7 +684,7 @@
 		    	_self.azList("");
 		        csc.rest.get("api/v5.0.0/cart/getAzList/"+obj.serviceUuid()+"/"+obj.vdcUuid(), function(data){
 		        	_self.azList(data);
-		        });	        
+		        },function(){},null,true);        
 		    };
 		    
 		    this.azChangeGetVm = function(obj){	
@@ -696,16 +696,24 @@
 		    
 		    this.azChangeGetVpc = function(obj){
 		    	var _self = this;
-		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+obj.vdcUuid()+"/"+obj.azUuid(), function(data){
-		        	_self.vpcList(data);
-		        });
+		    	if(obj.vdcUuid() !="" && obj.azUuid()!=""){
+		    		csc.rest.get("api/v5.0.0/cart/getVpcList/"+obj.vdcUuid()+"/"+obj.azUuid(), function(data){
+				        _self.vpcList(data);
+				    },function(){},null,true);
+		    	}
+		       
 		    }
 		    
 		    this.vpcChange = function(obj){
 		    	var _self = this;
-		        csc.rest.get("api/v5.0.0/cart/getNetworkList/"+obj.serviceUuid()+"/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
-		        	_self.networkList(data);
-		        },function(){},null,true);
+		    	if(obj.serviceUuid()!="" && obj.vpcUuid()!=""){
+		    		 csc.rest.get("api/v5.0.0/cart/getNetworkList/"+obj.serviceUuid()+"/"+obj.vpcUuid(), function(data){//需修改为服务UUID作为参数传递
+				        _self.networkList(data);
+				     },function(){},null,true);
+		    	}
+		    	if(obj.ipList !=null){
+		    		obj.ipList.removeAll();
+		    	}
 		    }
 		    
 		    this.vpcChangeByPublic = function(obj){
@@ -877,6 +885,7 @@
 		    	var instanceCount = 0;
 				for(var i=0;i<jsonArray.length;i++){
 					var name_i;
+					var vdcUuid = jsonArray[i].vdcUuid;
 					if(type == "VM"){
 						name_i=jsonArray[i].vmName;
 					}else{
@@ -892,22 +901,23 @@
 						if(name_i==name_j){
 							systemMsg.alert("序号"+(i+1)+"与序号"+(j+1)+"名称重复，请修改后再提交");
 							callback(false);
+							return
 						}
 					}
-				 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name_i,function(result){
+				 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name_i+'&vdcUuid='+vdcUuid,function(result){
 				 		 if(result.isExist==true){
-				 			  systemMsg.alert("已存在名称为"+result.name+"的购物车申请");
+				 			  systemMsg.alert("该VDC下已存在名称为"+result.name+"的购物车申请");
 							  callback(false);
 						  }else{
-							 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+result.name,function(result1){	
+							 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+result.name+'&vdcUuid='+vdcUuid,function(result1){	
 							 		if(result1.isExist==true){
-										  systemMsg.alert("已存在名称为"+result1.name+"的订单申请");
+										  systemMsg.alert("该VDC下已存在名称为"+result1.instanceName+"的订单申请");
 										  callback(false);
 									  }else{
 										   orderCount = orderCount+1;
-										 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result1.name,function(result2){	
+										 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result1.instanceName+"&vdcUuid="+result1.vdcUuid,function(result2){	
 										 		if(result2.isExist=="true"){
-													  systemMsg.alert("已存在名称为"+result2.name+"的资源实例");
+													  systemMsg.alert("该VDC下已存在名称为"+result2.name+"的资源实例");
 													  callback(false);
 												  }else{
 													  instanceCount = instanceCount+1;
@@ -1161,31 +1171,31 @@
 			       }
 			    });
 			    productJsonArray.forEach(function(e){
-			    	if(productKey == 'SECRET_KEY'){
+			    	if(usable_SECRET_KEY!=null && productKey == 'SECRET_KEY'){
 			    		usable_SECRET_KEY =usable_SECRET_KEY-1;
-			    	}else if(productKey == 'LOAD_BALANCING'){
+			    	}else if(usable_LOAD_BALANCING!=null && productKey == 'LOAD_BALANCING'){
 			    		usable_LOAD_BALANCING = usable_LOAD_BALANCING -1;
-			    	}else if(productKey == 'PUBLICIP'){
+			    	}else if(usable_PUBLICIP!=null && productKey == 'PUBLICIP'){
 			    		usable_PUBLICIP = usable_PUBLICIP -1;
-			    	}else if(productKey == 'OBJECT_STORAGE'){
+			    	}else if(usable_STORAGE!=null && usable_OBJECT_STORAGE!=null && productKey == 'OBJECT_STORAGE'){
 			    		usable_STORAGE = usable_STORAGE- parseInt(e.size);
 			    		usable_OBJECT_STORAGE = usable_OBJECT_STORAGE-1;
-			    	}else if(productKey == 'DISK'){
+			    	}else if(usable_STORAGE!=null && usable_DISK!=null && productKey == 'DISK'){
 			    		usable_STORAGE = usable_STORAGE - parseInt(e.size);
 			    		usable_DISK = usable_DISK-1;
-			    	}else if(productKey == 'VM'){
+			    	}else if(usable_VM!=null && usable_CPU!=null && usable_MEMORY!=null && usable_STORAGE!=null && productKey == 'VM'){
 			    		usable_VM = usable_VM-1;
 			    		usable_CPU = usable_CPU - parseInt(e.cpu);
 			    		usable_MEMORY = usable_MEMORY - parseInt(e.memory);
 			    		usable_STORAGE = usable_STORAGE - parseInt(e.storage);
 			    		
-			    		if(e.mountDisks !=null){
+			    		if(usable_DISK!=null && e.mountDisks !=null){
 			    			e.mountDisks.forEach(function(d){
 			    				usable_DISK = usable_DISK-1;
 			    				usable_STORAGE = usable_STORAGE - parseInt(d.size);
 			    			});
 			    		}
-			    		if(e.softwares !=null){
+			    		if(usable_SOFTWARE!=null && e.softwares !=null){
 			    			e.softwares.forEach(function(s){
 			    				usable_SOFTWARE = usable_SOFTWARE-1;
 			    			});
@@ -1533,7 +1543,7 @@
 	            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 	                      self.model_LB().loadbalancerCartInfo([]);
 	                      self.vdcList(result.vdcList);
-	                      self.vdcListValue();
+	                      self.vdcListValue = ko.observable().extend({required:true});
 	  		 	    	  var vo = new lbVO();
 		  		 	      vo.vdcList(result.vdcList);
 		  		 	      vo.billRuleList(formatCharge(result.chargeList));
@@ -1564,7 +1574,7 @@
 		    	self.charge_more_view(data.charge());
 		    	self.model_LB().loadbalancerCartInfo([]);
 		    	self.num_LB("");
-		    	self.vdcListValue();
+		    	self.vdcListValue = ko.observable().extend({required:true});
 		    	self.isAdd_LBSingle(false);
 		    	self.isAdd_LBMore(true);
 		    }
@@ -1691,7 +1701,7 @@
 	            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 	                      self.model_SSH().sshKeytCartInfo([]);
 	                      self.vdcList(result.vdcList);
-	                      self.vdcListValue();
+	                      self.vdcListValue = ko.observable().extend({required:true});
 	  		 	    	  var vo = new sshVO();
 		  		 	      vo.vdcList(result.vdcList);
 		  		 	      vo.billRuleList(formatCharge(result.chargeList));
@@ -1713,7 +1723,7 @@
 		    	self.charge_more_view(data.charge());
 		    	self.model_SSH().sshKeytCartInfo([]);
 		    	self.num_SSH("");
-		    	self.vdcListValue();
+		    	self.vdcListValue = ko.observable().extend({required:true});
 		    	self.isAdd_SSHSingle(false);
 		    	self.isAdd_SSHMore(true);
 		    }
@@ -1850,7 +1860,7 @@
 			            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 			            	  self.model_Vdisk().vdiskCartInfo([]);
 			        		  self.vdcList(result.vdcList);
-			        		  self.vdcListValue();
+			        		  self.vdcListValue = ko.observable().extend({required:true});
 		  		 	    	  var vo = new vdiskVO();
 			  		 	      vo.vdcList(result.vdcList);
 			  		 	      vo.billRuleArray(formatCharge(result.chargeList));
@@ -1872,7 +1882,7 @@
 				    	self.charge_more_view(data.charge());
 				    	self.model_Vdisk().vdiskCartInfo([]);
 				    	self.num_vdisk("");
-				    	self.vdcListValue();
+				    	self.vdcListValue = ko.observable().extend({required:true});
 				    	self.isAdd_VdiskSingle(false);
 				    	self.isAdd_VdiskMore(true);
 				    }
@@ -2006,7 +2016,7 @@
 	            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 	            	  self.model_ObjectStorage().objectStorageCartInfo([]);
 	            	  self.vdcList(result.vdcList);
-	            	  self.vdcListValue();
+	            	  self.vdcListValue = ko.observable().extend({required:true});
   		 	    	  var vo = new ObjectStorageVO();
 	  		 	      vo.vdcList(result.vdcList);
 	  		 	      vo.billRuleArray(formatCharge(result.chargeList));
@@ -2028,7 +2038,7 @@
 		    	self.charge_more_view(data.charge());
 		    	self.model_ObjectStorage().objectStorageCartInfo([]);
 		    	self.num_ObjectStorage("");
-		    	self.vdcListValue();
+		    	self.vdcListValue = ko.observable().extend({required:true});
 		    	self.isAdd_ObjectStorageSingle(false);
 		    	self.isAdd_ObjectStorageMore(true);
 		    }
@@ -2162,7 +2172,7 @@
 	            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 	            	  self.model_PublicNetwork().publicNetworkCartInfo([]);
 		  			  self.vdcList(result.vdcList);
-					  self.vdcListValue();
+					  self.vdcListValue = ko.observable().extend({required:true});
   		 	    	  var vo = new PublicNetworkVO();
 	  		 	      vo.vdcList(result.vdcList);
 	  		 	      vo.billRuleArray(formatCharge(result.chargeList));
@@ -2184,7 +2194,7 @@
 		    	self.charge_more_view(data.charge());
 		    	self.model_PublicNetwork().publicNetworkCartInfo([]);
 		    	self.num_PublicNetwork("");				
-		    	self.vdcListValue();
+		    	self.vdcListValue = ko.observable().extend({required:true});
 		    	self.isAdd_PublicNetworkSingle(false);
 		    	self.isAdd_PublicNetworkMore(true);
 		    }
@@ -2464,21 +2474,30 @@
 	            //镜像大小
 	            this.imageSize = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.osVersionList(), {uuid: this.osVersion()});
+	            	var iSize =0;
 	            	if(item!=null){
-	            		return csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
-	            	}else{
-	            		return 0;
-	            	} 
+	            		iSize= csc.util.getToFixedNum(csc.util.accDiv(parseInt(item.imageSize ||0),1073741824));
+	            	}
+	            	
+	            	var pSize=0;
+	            	if(this.partitions!=null){
+	            		this.partitions().forEach(function(e){
+						    pSize+=  parseInt( e().size!=null? e().size():0);
+		            	});
+	            	}
+	            	
+					return iSize+pSize;
+	            	
 	            }, this);
 	            this.storage = ko.observable().extend({required:{onlyIf:function(){
 	      			return self.isAdd_VMMore()?self.myStep()==2:true
 	      		}},min:{params:this.imageSize,onlyIf: 
     				(function(_this){  
 	    				return function(){
-	    					return  _this.imageSize()
+	    					return _this.imageSize()
 	    				} 
     				})(this)
-    			}});
+    			} });
 	            //openstack or cnware
 	            this.cloudPlatform = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.azList(), {uuid: this.azUuid()});
@@ -2579,6 +2598,7 @@
 		 	    		_self.price(price);
 		 	    	});	
 				}, this).extend({ deferred: true });
+	            
 	   		}
 	       
 	            
@@ -2682,6 +2702,7 @@
 	      		}},number:{onlyIf:function(){
 	      			return self.isAdd_VMMore()?self.myStep()==4:true
 	      		}} });
+			  	
 		    }
 		    
 		    function SoftwareAttrVO(){
@@ -2715,13 +2736,14 @@
 		            var uri="serviceUuid="+serviceUuid;
 		            csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result){
 		            	csc.rest.get("api/v5.0.0/service/getServiceInfo/"+obj.serviceUuid, function(data){
-		            	if(data.serviceVm.virtualName=="PowerVM"){
+		                if(data.serviceVm.virtualName=="PowerVM"){
 		            		self.isViewPartition(true);
 		            	}else{
 		            		self.isViewPartition(false);
 		            	}
-		            		self.vdcList(result.vdcList);
-		            		self.vdcListValue();
+		            	self.isViewPartition(true);
+		            	self.vdcList(result.vdcList);
+		            	self.vdcListValue = ko.observable().extend({required:true});
 		            		self.model_VM().vmCartInfo([]);
 		  		 	    	  var info = new Info();
 		  		 	    	  info.vdcList(result.vdcList);
@@ -2751,7 +2773,7 @@
 		    	serviceUuid_more = self.model_VM().vmCartInfo()[0]().serviceUuid();
 		    	charge_more = self.model_VM().vmCartInfo()[0]().charge();
 		    	self.num_VM("");
-		    	self.vdcListValue();
+		    	self.vdcListValue = ko.observable().extend({required:true});
 		    	self.model_VM().vmCartInfo([]);
 		    	self.isAdd_VMSingle(false);
 		    	self.isAdd_VMMore(true);
@@ -2830,7 +2852,19 @@
 		    	if(data.mountDisks!=null){
 		    		data.mountDisks.removeAll();
 		    	}
+		    	if(data.osVersionList != null){
+		    		data.osVersionList.removeAll();
+		    	}
+		    	
 		    };
+		    this.getOsVersionForOsTypeChange = function(data){
+		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.serviceUuid()+"/"+data.azUuid()+"/"+data.osType(), function(result){
+		        	data.osVersionList(result);
+		        });
+		    	if(data.softwares!=null){
+		    		data.softwares.removeAll();
+		    	}
+		    }
 		    this.getVpcForAzChange = function(data){
 		        csc.rest.get("api/v5.0.0/cart/getVpcList/"+data.vdcUuid()+"/"+data.azUuid(), function(result){
 		        	data.vpcList(result);
@@ -2843,15 +2877,20 @@
 		    	if(data.mountDisks!=null){
 		    		data.mountDisks.removeAll();
 		    	}
-		    }
-		    this.getOsVersionForOsTypeChange = function(data){
-		    	csc.rest.get("api/v5.0.0/cart/getOsVersionList/"+data.serviceUuid()+"/"+data.azUuid()+"/"+data.osType(), function(result){
-		        	data.osVersionList(result);
-		        });
-		    	if(data.softwares!=null){
-		    		data.softwares.removeAll();
+		    	if(data.osVersionList != null){
+		    		data.osVersionList.removeAll();
+		    	}
+		    	if(data.networkList !=null){
+		    		data.networkList.removeAll();
+		    	}
+		    	if(data.ipList !=null){
+		    		data.ipList.removeAll();
+		    	}
+		    	if(data.serviceUuid !=null && data.serviceUuid()!="" && data.azUuid !=null&& data.azUuid()!="" && data.osType!=null && data.osType()!=""){
+		    		self.getOsVersionForOsTypeChange(data);
 		    	}
 		    }
+		    
 		    this.getIpForNetWorkChange = function(data){
 		    	if(data.vpcNetworkUuid()!=null){
 		    		csc.rest.get("api/v5.0.0/vpcNetworks/" + data.vpcNetworkUuid() + "/availableIp", function(result) {
