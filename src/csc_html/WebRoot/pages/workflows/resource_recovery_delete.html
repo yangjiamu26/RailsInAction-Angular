@@ -3,7 +3,7 @@
     <div style="display:none" id="resource_recycle_" class="panel-heading" >基本信息</div>
     <div id="orderDetailedList" class="wrapper">
       <div class="row">
-        <div class="col-xs-4">资源名称：<span data-bind="text:resourceInfoVo().name"></span> <a id="showDetail" data-bind="click:showDetail">查看</a></div>
+        <div class="col-xs-4">资源名称：<span data-bind="text:resourceInfoVo().name"></span> <a id="showDetail" class="link_in_detail" data-bind="click:showDetail">查看</a></div>
         <div id="resource_vdc_" class="col-xs-4">所属VDC：<span data-bind="text:resourceInfoVo().vdcName"></span></div>
         <div class="col-xs-4">资源类型：<span data-bind="text:resourceInfoVo().typeText"></span></div>
       </div>
@@ -15,9 +15,11 @@
              <span class="label label-warning" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_READY'">待施工</span>
              <span class="label label-info" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_DOING'">施工中</span>
              <span class="label label-success" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_SUCCESS'">施工成功</span>
-             <span class="label label-danger" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_FAILED'">施工失败</span>
-             <a style="display:none" id="repConstruct_" data-bind="click:repConstruct">重施工</a>
+             <span id="constrcution_fail_flag_" style="display:none" class="label label-danger" data-bind="if:resourceInfoVo().itemState()=='CONSTRUCTION_FAILED'">施工失败</span>
+             <span style="display:none" id="construction_fail_"><a class="link_in_detail" data-bind="click:showWorkFailedMessage">失败原因</a> | 
+          		<a class="link_in_detail" data-bind="click:repConstruct">重施工</a></span>
           </div>
+          
       </div>
     </div>
     <!-- 云主机详情  start -->
@@ -392,6 +394,7 @@
             });
             var repConstructOrderItem=null;//重施工需要的orderItems值
             var instanceName_="";//重施工需要的orderItems值
+            var workFailedMessage = "";
            
             this.loadData = function(){
                 csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data_){
@@ -415,6 +418,7 @@
                         repConstructOrderItem=orderItem;
                         var instanceName = orderItem.instanceName;
                         instanceName_ = instanceName;
+                        workFailedMessage = orderItem.workFailedMessage;
                         if(orderItems.length==0) return;
                         self.resourceInfoVo.fromJSON({
                             name:instanceName,
@@ -499,14 +503,14 @@
                                 });
                            });
                         }
-                        
                         if(itemState=="CONSTRUCTION_SUCCESS"){
                             $("#resource_vdc_").css('display', 'none');
                             $("#resource_expiryDate_").css('display', 'none');
                             $("#showDetail").css('display', 'none');
-                            $("#repConstruct_").css('display', 'none');
+                            $("#construction_fail_").css('display', 'none');
                         }else if(itemState=="CONSTRUCTION_FAILED"){
-                            $("#repConstruct_").css('display', 'block');
+                            $("#construction_fail_").css('display', 'inline-block');
+                            $("#constrcution_fail_flag_").css('display', 'inline-block');
                         }
                     });
                 })
@@ -519,6 +523,9 @@
                       self.toConstruct(repConstructOrderItem);
                     });
                 }
+            }
+            this.showWorkFailedMessage = function(){
+            	alert(workFailedMessage);
             }
 
             //执行重施工操作

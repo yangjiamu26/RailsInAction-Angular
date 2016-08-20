@@ -1584,6 +1584,7 @@
 
       })
       this.validateTimeVO = ko.validatedObservable({
+    	  metaTime: ko.observable(),
     	  time: ko.observable(),
     	  uuid: ko.observable()
       });
@@ -1597,11 +1598,17 @@
 	    	  self.isValidateTime(true);
 	    	  self.validateTimeVO().uuid(self.vmVO().uuid);
 	    	  self.validateTimeVO().time(self.vmVO().expiryTime);
+	    	  self.validateTimeVO().metaTime(self.vmVO().expiryTime);
     	  }
       }
       
       //修改有效期
       this.validateTime = function(){
+    	  //检查日期相同的，不发送请求直接关闭页面
+    	  if(self.validateTimeVO().metaTime() == self.validateTimeVO().time()){
+    		  self.isValidateTime(false);
+    		  return;
+    	  }
     	  var putBody = {};
     	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
     	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
@@ -1740,6 +1747,7 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "VM";
+    	  postBody.type = "RESOURCE_CHANGE";
     	  postBody.orderItems = orderItems;
     	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
     	  postBody.azUuid = self.adjustProcessVO().azUuid();
@@ -1805,6 +1813,11 @@
       
       //申请
       this.validateProcessPost = function(){
+    	  //检查日期相同的，不发送请求直接关闭页面
+    	  if(self.validateProcessVO().metaTime() == self.validateProcessVO().targetValidateTime()){
+    		  self.isValidateProcess(false);
+    		  return;
+    	  }
     	  var metaData = "{\"resBaseInfo\":{\"metaExpireTime\":\""+self.validateProcessVO().metaTime() +"\",\"vdcName\": \""+self.validateProcessVO().vdcName()+"\",\"busSysName\":\""+self.validateProcessVO().busSysName()+"\"}}";
     	  
     	  var orderItem = {};
@@ -1822,6 +1835,7 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "VM";
+    	  postBody.type = "VALIDTIME_CHANGE";
     	  postBody.orderItems = orderItems;
     	  postBody.vdcUuid = self.validateProcessVO().vdcUuid();
     	  postBody.azUuid = self.validateProcessVO().azUuid();

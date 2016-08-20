@@ -236,32 +236,43 @@ angular.module('activitiModeler')
             });*/
             
             
-        	$scope.users = [{id : "null" ,name : "--请选择--"}];
-        	$scope.users1 = [];
-            //modified by zhouheng 2016-1-6 start
             
             /************modified by wujie 2016-8-9 start**************************/
+            //$scope.users = [{id : "null" ,name : "--请选择--"}];
+            $scope.users1 = [];
+            $scope.adUsers = [];
+            
             formKeyList.push({key:'approve',name:'approve'});
             formKeyList.push({key:'construct',name:'construct'});
             formKeyList.push({key:'resure',name:'resure'});
-            /************modified by wujie 2016-8-9 end****************************/
             
-    		var userUrl = KISBPM.URL.getUsers();
+            var param ="userType=0&size=0";
+    		var userUrl = KISBPM.URL.getUsers(param);
     	    $http({method: 'GET', url: userUrl}).
     	       success(function (data, status, headers, config) {     	    	   
-    	    	   angular.forEach(data.results,function(v,k){
+    	    	   /*angular.forEach(data.results,function(v,k){
     	    		   this.push(v);
-    	    	   },$scope.users);
+    	    	   },$scope.users);*/
     	    	   angular.forEach(data.results,function(v,k){
     	    		   this.push(v);
     	    	   },$scope.users1);
     	        }).error(function (data, status, headers, config) {
     	            console.log('Error loading users');
     	    });
+    	    
+    	    var adParam ="userType=1&size=0";
+    		var adUserUrl = KISBPM.URL.getUsers(adParam);
+    	    $http({method: 'GET', url: adUserUrl}).
+    	       success(function (data, status, headers, config) {     	    	   
+    	    	   angular.forEach(data.results,function(v,k){
+    	    		   this.push(v);
+    	    	   },$scope.adUsers);
+    	        }).error(function (data, status, headers, config) {
+    	            console.log('Error loading users');
+    	    });
+    	    /************modified by wujie 2016-8-9 end****************************/
            
             
-          //modified by zhouheng 2016-1-6 end
-                        
             /*
              * Listen to selection change events: show properties
              */

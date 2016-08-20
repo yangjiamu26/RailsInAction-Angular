@@ -38,8 +38,20 @@
 		</div>
 		<div class="col-xs-9">
 			<div class="wrapper bg-white clearfix">
-				<div class='col-xs-5' data-bind="with:tableLeft">
+				<div class='col-xs-5'>
 					<p>预分配用户：</p>
+				    <div class="row">
+				      <div class="col-xs-4">
+				          <div class="input-group">
+				            <input class="input-sm form-control" placeholder="用户名称"  data-bind="value: searchParamL().name, enterKey: searchNameL">
+				          </div>   
+				      </div>
+				      <div class="col-xs-1 text-right">
+				          <button class="btn btn-default btn-sm" data-bind="click: searchNameL">搜索</button>     
+				      </div>
+				    </div> 
+				    <br>
+					<div class="table-responsive" data-bind="with:tableLeft">
 					<table class="table table-striped table-bordered">
 						<thead>
 							<tr>
@@ -57,8 +69,8 @@
 								<td>
 									<div class="checkbox">
 										<label class="i-checks"> <input type="checkbox"
-											value="" data-bind="checkedValue: $data, checked: $parent.chosenItems"> <i></i>
-										</label>
+											value="" data-bind="checkedValue: $row.id, checked: $parent.chosenItems"> <i></i>
+										</label>        
 									</div>
 								</td>
 								<td data-bind="text: $row.name"></td>
@@ -67,6 +79,22 @@
 							<!-- /ko -->
 						</tbody>
 					</table>
+					</div>
+					<footer class="panel-footer" data-bind="with: tableLeft, visible: tableLeft.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>
 				</div>
 
 				<div class="col-xs-1">
@@ -79,8 +107,21 @@
 						<i class="fa fa-arrow-left"></i>
 					</button>
 				</div>
-				<div class='col-xs-5' data-bind="with:tableRight">
-					<p>角色已分配用户：</p>
+				<div class='col-xs-5'>
+					<p>角色<span data-bind="text: roleName"></span>已分配用户：</p>
+					  <div class="row">
+				      <div class="col-xs-4">
+				          <div class="input-group">
+				            <input class="input-sm form-control" placeholder="用户名称"  data-bind="value: searchParamR().name, enterKey: searchNameR">
+				          </div>   
+				      </div>
+				      <div class="col-xs-1 text-right">
+				          <button class="btn btn-default btn-sm" data-bind="click: searchNameR">搜索</button>     
+				      </div>
+				    </div> 
+				    <br>
+					
+					<div class="table-responsive" data-bind="with:tableRight">
 					<table class="table table-striped table-bordered">
 						<thead>
 							<tr>
@@ -98,7 +139,7 @@
 								<td>
 									<div class="checkbox">
 										<label class="i-checks"> <input type="checkbox"
-											data-bind="checkedValue: $data, checked: $parent.chosenItems"> <i></i>
+											data-bind="checkedValue: $data.id, checked: $parent.chosenItems"> <i></i>
 										</label>
 									</div>
 								</td>
@@ -108,6 +149,22 @@
 							<!-- /ko -->
 						</tbody>
 					</table>
+					</div>
+					<footer class="panel-footer" data-bind="with: tableRight, visible: tableRight.pages() > 1">
+				      <ul class="pagination">
+				        <li data-bind="css: leftPagerClass, click: prevPage">
+				          <a href="#">&laquo;</a>
+				        </li>
+				        <!-- ko foreach: {data: (new Array(pages()))} -->
+				        <li data-bind="css: $parent.pageClass($index() + 1)">
+				          <a href="#" data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+				        </li>
+				        <!-- /ko -->
+				        <li data-bind="css: rightPagerClass, click: nextPage">
+				          <a href="#">&raquo;</a>
+				        </li>
+				      </ul>
+				    </footer>
 				</div>
 			</div>
 		</div>
@@ -117,9 +174,12 @@
 	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js', null ]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         var roleId = args.roleId;
+        console.log(args);
 		function ViewModel() {
 			var start = 0;
 			var size = 0;
+			var orgId = '';
+			var userType = '';
 			var self = this;
 			var setting = {
 				view : {
@@ -130,19 +190,62 @@
 					onClick: search
 				}
 			};
-			var searchParamLeft
-			var searchParamRight;
-			var orgId = '';
+			this.roleName = ko.observable(args.name);
+			this.searchParamL = ko.observable({
+				name: ""
+			})
+			this.searchNameL = function(){
+				if(orgId == 0 || orgId == -1){
+					orgId = "";
+				}
+				self.searchParamLeft = {
+			    		orgId : orgId,
+			    		roleId : roleId,
+			    		nameLike : this.searchParamL().name,
+			    		systemId : "csc5.0",
+			    		start : start,
+			    		size : size,
+			    		userType : userType
+			    		};
+				  console.log(self.searchParamLeft);
+				  self.loadTableLeft();
+				//alert(this.searchParamL().name)
+			}
+			this.searchParamR = ko.observable({
+				name: ""
+			})
+			this.searchNameR = function(){
+				if(orgId == 0 || orgId == -1){
+					orgId = "";
+				}
+				self.searchParamRight = {
+			    		orgId : orgId,
+			    		roleId : roleId,
+			    		nameLike : this.searchParamR().name,
+			    		systemId : "csc5.0",
+			    		start : start,
+			    		size : size,
+			    		userType : userType
+			    		};
+				console.log(self.searchParamRight);
+				self.loadTableRight();
+				//alert(this.searchParamR().name)
+			}
+			
+			this.searchParamLeft = {start:0, size:0, roleId: roleId, systemId: "csc5.0"}
+			this.searchParamRight = {start:0, size:0, roleId: roleId, systemId: "csc5.0"};
+
 			function search(event, treeId, treeNode) {
 				if(treeNode.code == '0'){
-				    searchParamLeft = {
+					self.searchParamLeft = {
 				    		orgId : "",
+				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
-				    searchParamRight = {
+					self.searchParamRight = {
 							orgId : "",
 							roleId : roleId,
 							systemId : "csc5.0",
@@ -151,14 +254,15 @@
 							userType : treeNode.userType
 						};
 				}else if(treeNode.code == '-1'){
-					searchParamLeft = {
+					self.searchParamLeft = {
 				    		orgId : "",
+				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
-				    searchParamRight = {
+					self.searchParamRight = {
 							orgId : "",
 							roleId : roleId,
 							systemId : "csc5.0",
@@ -167,14 +271,15 @@
 							userType : treeNode.userType
 						};
 				}else{
-				    searchParamLeft = {
+					self.searchParamLeft = {
 							orgId : treeNode.code,
+							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
 				    		size : size,
 							userType : treeNode.userType
 							};
-				    searchParamRight = {
+					self.searchParamRight = {
 							orgId : treeNode.code,
 							roleId : roleId,
 							systemId : "csc5.0",
@@ -184,10 +289,12 @@
 						};
 				}
 			    orgId = treeNode.code;
-	            self.tableLeft.params(searchParamLeft);
-	            self.tableRight.params(searchParamRight);
+			    userType = self.searchParamLeft.userType;
+	            //self.tableLeft.params(searchParamLeft);
+	            //self.tableRight.params(searchParamRight);
+	            self.loadTableLeft();
+	            self.loadTableRight();
 			};
-			
 			$(document).ready(function() {
 				csc.rest.get('api/v5.0.0/uap/organizations', function(data) {
 					$.fn.zTree.init($("#orgZtree"), setting, data);
@@ -196,41 +303,73 @@
 			
 			this.addRoleUsers = function() {
 				var param = {};
-				var temps = '';
-				$.each(self.tableLeft.chosenItems(), function(i,val){
-					temps += (val.id + ',');
-			  	});   
-				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,
-					    function(data) {
-						  for(var i=0;i<data.results.length;i++){
-							  temps += (data.results[i].id + ',');
-						}
-						    param.name = temps;
-						    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
+				if(userType == 0){
+				var leftUsers = self.tableLeft.chosenItems();
+				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId, function(data) {
+					var rightUsers = _.pluck(data.results, 'id');
+					var users = rightUsers.concat(leftUsers);
+					
+					param.id = users.join(",");
+					param.userType = userType;
+					console.log(param);				    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
 									function() {
-								      self.tableLeft.refreshData();
-								      self.tableRight.refreshData();
+								    	self.loadTableLeft();
+								    	self.loadTableRight();		 
+				    				  
 									});
 					});  
+				}else if(userType == 1){
+					var leftUsers = self.tableLeft.chosenItems();
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType, function(data) {
+						var rightUsers = _.pluck(data.results, 'id');
+						var users = rightUsers.concat(leftUsers);
+						
+						param.id = users.join(",");
+						param.userType = userType;
+						console.log(param);
+					    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
+										function() {
+									    	self.loadTableLeft();
+									    	self.loadTableRight();		 
+					    				  
+										});
+						});  
+				}
 			};
 			this.removeRoleUsers = function() {
 				var param = {};
-				var check = '';
-				
-				$.each(self.tableRight.chosenItems(), function(i,val){
-					check += (val.id + ',');
-			  	}); 
-		
-				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,
-					    function(data) {
-					      param.name = getCharge(check,data);
-						  csc.rest.put('api/v5.0.0/uap/'+roleId, param,
-									function() {
-								      self.tableLeft.refreshData();
-								      self.tableRight.refreshData();
-									});
+				if(userType == 0){
+				var leftUsers = self.tableRight.chosenItems();
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,function(data) {
+					    var rightUsers = _.pluck(data.results, 'id');
+					    var users = _.difference(rightUsers, leftUsers); 
+					    param.id = users.join(",");
+					    param.userType = userType;
+					    console.log(param);
+					    //去除rightUsers中包含的leftUsers用户
+						csc.rest.put('api/v5.0.0/uap/'+roleId, param,
+					       function() {
+							  self.loadTableLeft();
+							  self.loadTableRight();
+						});
 					}); 
-			};
+				}else if(userType == 1){
+					var leftUsers = self.tableRight.chosenItems();
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType,function(data) {
+					    var rightUsers = _.pluck(data.results, 'id');
+					    var users = _.difference(rightUsers, leftUsers); 
+					    param.id = users.join(",");
+					    param.userType = userType;
+					    console.log(param);
+					    //去除rightUsers中包含的leftUsers用户
+						csc.rest.put('api/v5.0.0/uap/'+roleId, param,
+					       function() {
+							  self.loadTableLeft();
+							  self.loadTableRight();
+						});
+					}); 
+				}
+			}
 			
 			function getCharge(check,data) {
 			  var userId = [];
@@ -255,14 +394,33 @@
 			}
 
             //初始化预分配表格
-			this.tableLeft = new DataTable([], {
-				perPage : 15,
-				path : '/csc/api/v5.0.0/uap/roleUsers?roleId='+ roleId+'&start='+start+'&size='+size
-			});
+			this.tableLeft = new DataTable([], {enabled: false,perPage:8});
+            this.loadTableLeft = function(){
+            	var params = this.searchParamLeft;
+            	csc.rest.get('/csc/api/v5.0.0/uap/roleUsers?start='+params.start+'&size='+params.size
+            			+(params.roleId ? '&roleId='+ params.roleId:'')
+            			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
+            			+(params.orgId ? '&orgId='+params.orgId:'')
+            			+(params.systemId ? '&systemId='+params.systemId:'')
+            			+(params.userType ? '&userType='+params.userType:''), function(data){
+            		self.tableLeft.rows(data.results);
+            	})
+            }
 			//初始化已分配表格
-			this.tableRight = new DataTable([], {
-				path : '/csc/api/v5.0.0/uap/users?roleId='+ roleId+'&start='+start+'&size='+size
-			});
+			this.tableRight = new DataTable([], {enabled: false,perPage:8});
+			this.loadTableRight = function(){
+				var params = this.searchParamRight;
+				csc.rest.get('/csc/api/v5.0.0/uap/users?start='+params.start+'&size='+params.size
+            			+(params.roleId ? '&roleId='+ params.roleId:'')
+            			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
+            			+(params.orgId ? '&orgId='+params.orgId:'')
+            			+(params.systemId ? '&systemId='+params.systemId:'')
+            			+(params.userType ? '&userType='+params.userType:''), function(data){
+            		self.tableRight.rows(data.results);
+            	})
+            }
+			this.loadTableLeft();
+			this.loadTableRight();
 
 		}
 		ko.applyBindings(new ViewModel(), $('#page-content')[0]);

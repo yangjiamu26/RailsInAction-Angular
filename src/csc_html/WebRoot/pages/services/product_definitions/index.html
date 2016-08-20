@@ -1,3 +1,5 @@
+<link href="assets/lib/webuploader/webuploader.css" rel="stylesheet" type="text/css"/>
+
 <style>
 .form-item-block .checkbox, .form-item-block .radio{display:block;}
 </style>
@@ -53,8 +55,8 @@
 							</div>
 							<div class="col-xs-6">
 								<div class="img-box" style="width:100px;text-align:center">
-									<img src="" alt="" width="100%" height="80">
-									<a class="btn btn-info btn-xs" onclick="showModal('pages/services/product_definitions/uploadimg.html')">上传图片</a>
+									<img src="" alt="" width="100%" height="80" data-bind="attr:{src: currentProduct().imgUrl}">
+									<a class="btn btn-info btn-xs" data-bind="click: changeImg">上传图片</a>
 								</div>
 							</div>
 						</div>
@@ -245,7 +247,7 @@
 	    <div class='modal-content' data-bind="visible:	showConfigType() == 'update'">
 	      <div class='modal-header'>
 	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        	<h3 class='modal-title' data-bind="if: currentConfig().uuid">修改产品配置项</h3>
+        	<h3 class='modal-title'>修改产品配置项</h3>
 	      </div>
 	      <div class='modal-body form-horizontal row'>
 	        <div class="form-group">
@@ -363,7 +365,7 @@
 	  </div>
 	</div>
 </div>
-
+</div>
 
 
 
@@ -381,7 +383,7 @@
 	        <div class="col-xs-4">
 	          <div class="input-group">
 	            <span class="input-group-addon">配置项名称</span>
-	            <select class="form-control input-sm" data-bind="value: configRelation().configA, options: configA_list, optionsText: 'name', optionsValue: 'id'"></select>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configA, options: configA_list, optionsText: 'name', optionsValue: 'uuid'"></select>
 	          </div>      
 	        </div>      
 	        <div class="col-xs-4">
@@ -393,7 +395,7 @@
 	        <div class="col-xs-4">
 	          <div class="input-group">
 	            <span class="input-group-addon">配置项名称</span>
-	            <select class="form-control input-sm" data-bind="value: configRelation().configB, options: configA_list, optionsText: 'name', optionsValue: 'id'"></select>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configB, options: configB_list, optionsText: 'name', optionsValue: 'uuid'"></select>
 	          </div>      
 	        </div>      
 	        <div class="col-xs-6 form-item-block">
@@ -475,9 +477,47 @@
 	</div>
 </div>
 
+<!-- 上传图片 -->
+  <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isChangeImg }" id="picProductModal">
+    <div class='modal-dialog'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>上传图片</h3>
+        </div>
+        <!-- <form action="/api/v5.0.0/file/upload/rest" enctype="multipart/form-data"> -->
+	        <!-- <div class='modal-body row'>
+	          <div class="col-xs-6">
+	            <img src="" alt="" width="100%" height="150" id="ImgPr">
+	          </div>
+	          <div class="col-xs-6">
+	            <p><a href="javascript:;" class="btn btn-success" style="margin-left: 10px;display: inline-block;width: 80px;height: 34px;overflow: hidden;position:relative;">
+					<input id="up" type="file" name="file" style="opacity: 0;position: absolute;left:0;right:0;" 
+					 data-bind="" onclick="preViewImage()"/>上传图片</a></p>
+	        	   <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
+	          </div>
+	        </div> -->
+	        
+	        <div class='modal-body row'>
+	          <div class="col-xs-6">
+	            <div id="fileList" class="uploader-list"><div class="file-item thumbnail" style="height: 120px"><img src="" alt="" id="ImgPr" height="100" width="100" data-bind="attr: {src: currentProduct().imgUrl}"></div></div>
+	          </div>
+	          <div class="col-xs-6">
+	            <div id="filePicker">选择图片</div>
+	        	   <p>支持JPG、GIF、PNG、BMP格式；图片小于2M。</p>
+	          </div>
+	        </div>
+        <!-- </form> -->
+        <div class='modal-footer' style="text-align:center;">
+          <a class="btn btn-default btn-info" data-bind="click: setImg">确定</a>
+          <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+        </div>
+      </div>
+    </div>
+  </div> 
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null, null]
+  var scripts = [null,"assets/lib/webuploader/webuploader.js", null]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
 
@@ -512,8 +552,9 @@
         
         //产品基本
         this.products = ko.observableArray([]);
-        this.currentProduct = ko.observable({
-        	name: ""
+        this.currentProduct = ko.validatedObservable({
+        	name: ko.observable(),
+        	imgUrl: ko.observable()
         });
         
         
@@ -525,7 +566,7 @@
         	required : ko.observable().extend({required: true}),
         	regulation : ko.observable().extend({required: true}),
         	values : ko.observable().extend({required: true}),
-        	newValues : ko.observable().extend({required: true})
+        	newValues : ko.observable()
         });
         
         this.configsTable = new DataTable([], {path: 'api/v5.0.0/products/configs'});
@@ -544,19 +585,19 @@
         	chosenB: ko.observableArray().extend({requried: true})
         });
         
-        this.configA_list = ko.observableArray([
+        /* this.configA_list = ko.observableArray([
         	{id: 1, name: 'CPU', options: [{id: 1, value: '1'}, {id: 2, value: '2'}]},
         	{id: 2, name: '内存', options: [{id: 1, value: '3'}, {id: 2, value: '4'}]}
-        ]);
-        this.configB_list = ko.observableArray([
-         	{id: 1, name: 'CPU', options: [{id: 1, value: '1'}, {id: 2, value: '2'}]},
-         	{id: 2, name: '内存', options: [{id: 1, value: '4'}, {id: 2, value: '5'}]}
-        ]);
+        ]); */
+        
+        this.configA_list = ko.observableArray([]);
+        this.configB_list = ko.observableArray([]);
         this.relation_list = ko.observableArray([                  
-        	{type: '1TO1', name: '1对1'},
         	{type: '1TON', name: '1对多'},
-        	{type: 'NTO1', name: '多对1'},
-        	{type: 'NTON', name: '多对多'}
+        	{type: '1TO1', name: '1对1'}
+        	//,
+        	//{type: 'NTO1', name: '多对1'},
+        	//{type: 'NTON', name: '多对多'}
         ]);
         this.configA_options = ko.observableArray();
         this.configB_options = ko.observableArray();
@@ -565,14 +606,14 @@
         	self.configRelation().chosenB([])
         })
         this.configRelation().configA.subscribe(function(value){
-        	var config = _.findWhere(self.configA_list(), {id: value});
-        	self.configA_options(config.options)
+        	var config = _.findWhere(self.configA_list(), {uuid: value});
+        	self.configA_options(config.valueInfos)
         	self.configRelation().chosenA([])
         	self.configRelation().configA_Name(config.name);
         })
         this.configRelation().configB.subscribe(function(value){
-        	var config = _.findWhere(self.configB_list(), {id: value});
-        	self.configB_options(config.options)
+        	var config = _.findWhere(self.configB_list(), {uuid: value});
+        	self.configB_options(config.valueInfos)
         	self.configRelation().chosenB([])
         	self.configRelation().configB_Name(config.name);
         })
@@ -591,12 +632,19 @@
         	self.configList.remove(object);
         }
         this.saveConfigRelation = function(){
-        	console.log(this.configList())
+        	console.log(ko.toJS(self.configList));
+        	
+    		csc.rest.post('api/v5.0.0/products/'+ self.currentConfig().productId +'/configAndValueRelations',ko.toJS(self.configList),function(data){
+		 		self.isAddConfigRelation(false);
+	        	self.configRelationsTable.refreshData();
+		 		alert('增加配置项关系成功！');
+		    }); 
         }
         this.addConfig = function(){
     		self.isAddConfig(true);
     		self.currentConfig.fromJSON({
     			productId : self.currentProduct().uuid,
+    			id : null,
             	uuid : null,
             	name : '',
             	required : '',
@@ -609,7 +657,7 @@
         this.saveConfig = function(){
 			ko.validation.group(this.currentConfig).showAllMessages();
 	        if(self.currentConfig.isValid()){
-	        	if(self.currentConfig().uuid) {
+	        	if(self.currentConfig().uuid()) {
 	        		csc.rest.put('api/v5.0.0/products/'+ self.currentConfig().productId +'/configs/'+self.currentConfig().uuid(),self.currentConfig.toJSON(),function(data){
 				 		self.isAddConfig(false);
 			        	self.configsTable.refreshData();
@@ -652,18 +700,19 @@
         	self.configRelationsTable.params(self.searchConfigRelationsParam());
       	}
         
-        this.sourceConfigList = ko.observableArray([]);
         this.addConfigRelation = function(){
     		self.isAddConfigRelation(true);
-    		csc.rest.get('api/v5.0.0/products/configsAndRelations',function(data){
-        		self.sourceConfigList = data["sourceConfigList"];
+    		csc.rest.get('api/v5.0.0/products/configs?productId=' + self.currentProduct().uuid,function(data){
+    			var configList = data.results;
+        		self.configA_list(configList);
+        		self.configB_list(configList);
       		});
   		}
         
         this.loadProducts = function() {
         	csc.rest.get('api/v5.0.0/products',function(data){
         		self.products(data);
-        		self.currentProduct(data[0]);
+        		self.currentProduct.fromJSON(data[0]);
         		self.currentConfig().productId = data[0].uuid;
         		self.currentConfigRelations().productId = data[0].uuid;
 
@@ -674,7 +723,7 @@
         
         //左侧产品列表点击事件
         this.setCurrent = function(object, event) {
-        	self.currentProduct(object);
+        	self.currentProduct.fromJSON(object);
         	self.currentConfig().productId = object.uuid;
         	self.currentConfigRelations().productId = object.uuid;
         	
@@ -683,6 +732,108 @@
         }
         
         this.loadProducts();
+        
+        
+        //################--------------上传图片--------------#######################
+        //初始化上传容器
+        function loadInit(){
+      		var $ = jQuery,
+            $list = $('#fileList'),
+             // 优化retina, 在retina下这个值是2
+            ratio = window.devicePixelRatio || 1,
+
+             // 缩略图大小
+            thumbnailWidth = 100 * ratio,
+            thumbnailHeight = 100 * ratio,
+             // Web Uploader实例
+     	    // 初始化Web Uploader
+     	    uploader = new WebUploader.create({
+     	        // 自动上传。
+     	        auto: true,
+     	        // swf文件路径
+     	        swf: '/assets/lib/webuploader/Uploader.swf',
+     	        // 文件接收服务端。
+     	        server: '/csc/api/file/uploadServlet?handler=cscPicture&actionKey=&dataKey=',
+     	        // 选择文件的按钮。可选。
+     	        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+     	        pick: '#filePicker',
+     	        fileSingleSizeLimit: 2*1024*1024,   //设定单个文件大小
+     	        // 只允许选择文件，可选。
+     	        accept: {
+     	            title: 'Images',
+     	            extensions: 'gif,jpg,bmp,png',
+     	            mimeTypes: 'image/*'
+     	        }
+     	    });
+     		uploader.on('beforeFileQueued', function(file) {
+     			//重置上传队列
+     			uploader.reset();
+     		}); 
+     		uploader.on("error",function (type){
+     	        if (type=="Q_TYPE_DENIED"){
+     	            alert("请上传gif、jpg、bmp、png格式文件！");
+     	        }else if(type=="F_EXCEED_SIZE"){
+     	            alert("文件大小不能超过2M！");
+     	        }
+     	    });
+     	    
+     	 // 当有文件添加进来的时候
+     	    uploader.on( 'fileQueued', function( file ) {
+     	    	
+       	        var $li = $(
+     	                '<div id="' + file.id + '" class="file-item thumbnail">' +
+     	                    '<img>' +
+     	                    '<div class="info">' + file.name + '</div>' +
+     	                '</div>'
+     	                ), 
+     	            $img = $("#ImgPr");
+     	    	//	        $img = $li.find('img');
+
+//     	        $list.append( $li ); 
+
+     	        // 创建缩略图
+     	        uploader.makeThumb( file, function( error, src ) {
+     	            if ( error ) {
+     	                $img.replaceWith('<span>不能预览</span>');
+     	                return;
+     	            }
+     	            $img.attr( 'src', src );
+     	        }, 100, 100 );
+     	    });
+
+     	    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+     	    uploader.on( 'uploadSuccess', function( file, result) {
+     	    	debugger
+     	    	self.currentProduct().imgUrl("/csc/api/img/imgServlet?path="+result.path);
+     	        $( '#'+file.id ).addClass('upload-state-done');
+     	    });
+
+     	    // 文件上传失败，现实上传出错。
+     	    uploader.on( 'uploadError', function( file ) {
+     	        alert('上传失败');
+     	    });
+     	   uploader.addButton({
+    		    id: '#filePicker',
+    		    innerHTML: '选择图片'
+    		});
+     	     
+      	}
+        
+        
+        
+        this.isChangeImg = ko.observable(false);
+        this.changeImg = function(){
+	        this.isChangeImg(true);
+	        $("#picProductModal").on("shown.bs.modal",function(){
+					$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+					loadInit();
+			});
+        }
+        //确定方法保存
+        this.setImg = function(){
+          
+          this.isChangeImg(false);
+        }
    	}
     
     //产品配置项信息模型
@@ -703,8 +854,8 @@
         	self.currentProduct(object);
         }
    	} */
-
-    ko.applyBindings(new ViewModel_Products(), $('#page-content')[0]);
+	productModel = new ViewModel_Products();
+    ko.applyBindings(productModel, $('#page-content')[0]);
     //ko.applyBindings(new ViewModel_ProductConfigs(), $('#page-content')[1]);
   });
 </script>

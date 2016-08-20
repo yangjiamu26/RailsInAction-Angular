@@ -500,27 +500,42 @@
 					
 					/** 构建文件上传器 **/
 			      	this.initUploader = function () {
-						self.uploadActionKey = WebUploader.guid('csc_upload_');
+						self.uploadActionKey = WebUploader.guid();
 							
 			      		self.uploader = WebUploader.create({
 							// 文件接收服务端。
 							threads : 1,
-							fileNumLimit : 1,
 							chunked : false,
 							resize : false
 						});
 			      		
 			      		self.uploader.on('beforeFileQueued', function(file) {
 							//重置上传队列
-							self.uploader.reset();
+
+							if (file.source.ext != 'zip') {
+								systemMsg.alert('请先将脚本文件打包成zip压缩文件');
+								return false;
+							}
+							
+							if (file.size > 10485760) {
+								systemMsg.alert('文件大小不可超过10');
+								return false;
+							}
+							
+							return true;
+							
+							//self.uploader.reset();
 						});
 			      		
 			      		self.uploader.on('fileQueued', function(file) {
 			      			var flag = true;
 			      			
+		      				console.log(self.fileTable());
 			      			$.each(self.fileTable(), function(i, val) {
 			      				if (val.name == file.name) {
+			      				console.log(val.name);
 			      					systemMsg.alert('已存在同名文件:' + val.name);
+			      					self.uploader.removeFile(file);
 			      					flag = false;
 			      					return;
 			      				}
@@ -547,7 +562,12 @@
 						});
 			      		
 			      		self.uploader.on('uploadProgress', function(file, progress) {
-			      			self.fileTable()[self.fileTable().length-1].progress((progress*100).toFixed(0) + "%");		
+			      			$.each(self.fileTable(), function(i ,val) {
+			      				if (file.name == val.name) {
+					      			val.progress((progress*100).toFixed(0) + "%");		
+			      					return;
+			      				}
+			      			});
 			      		});
 			      		
 			      		self.uploader.on('uploadSuccess', function(file, response) {
@@ -573,6 +593,9 @@
 			      	this.uploadFile = function() {
 			      		self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscScript&actionKey='
 	      											+ self.uploadActionKey + '&dataKey=' + self.uploadActionKey;
+			      		
+			      		/* self.uploader.options.server = 'api/v5.0.0/file/upload/rest?handler=cscScript&actionKey='
+	      											+ self.uploadActionKey + '&dataKey=' + self.uploadActionKey; */
 			      		
 			      		self.uploader.upload();
 			      	};
@@ -831,6 +854,10 @@
 						});
 					};
 
+					this.resetSubmitData = function() {
+						
+					};
+					
 					// 新增脚本弹窗
 					this.add = function() {
 						self.currentVO.fromJSON({
@@ -854,6 +881,8 @@
 						
 						self.isAdd(true);
 					};
+					
+					
 					
 					//修改脚本弹窗
 					this.update = function(object, event) {
@@ -925,8 +954,7 @@
 						}
 						
 						$.each(self.fileTable(), function(i, val) {
-							
-							val.progress(val.progress().replace('%', ''));
+								val.progress(val.progress().replace('%', ''));
 							
 							if (val.uuid) {
 								self.currentVO().updateScriptFiles.push(val);
@@ -965,6 +993,11 @@
 									self.table.refreshData();
 								} else {
 									systemMsg.alert(msg);
+									self.currentVO().newScriptFiles.splice(0, self.currentVO().newScriptFiles.length);
+									self.currentVO().updateScriptFiles.splice(0, self.currentVO().updateScriptFiles.length);
+									self.currentVO().newDefaultAttrs.splice(0, self.currentVO().newDefaultAttrs.length);
+									self.currentVO().updateDefaultAttrs.splice(0, self.currentVO().updateDefaultAttrs.length);
+									self.currentVO().newSoftwares.splice(0, self.currentVO().newSoftwares.length);
 								}
 							});
 						} else {
@@ -973,6 +1006,13 @@
 									self.isAdd(false);
 									systemMsg.alert('添加脚本成功！');
 									self.table.refreshData();
+								}else {
+									systemMsg.alert(data.message);
+									self.currentVO().newScriptFiles.splice(0, self.currentVO().newScriptFiles.length);
+									self.currentVO().updateScriptFiles.splice(0, self.currentVO().updateScriptFiles.length);
+									self.currentVO().newDefaultAttrs.splice(0, self.currentVO().newDefaultAttrs.length);
+									self.currentVO().updateDefaultAttrs.splice(0, self.currentVO().updateDefaultAttrs.length);
+									self.currentVO().newSoftwares.splice(0, self.currentVO().newSoftwares.length);
 								}
 							});	
 						}

@@ -101,6 +101,21 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			data.orgs.push(rootNode);*/			
 			jQuery.fn.zTree.init(jQuery("#role_org_tree1"), settingRoleOrg, data);
 			jQuery("#role_org_tree1 a:eq(0)").trigger("mouseover").trigger("click");
+			
+			var table_body = jQuery("#sel_user_body1");
+			table_body.html("");
+			var selectuser = $scope.assignment.assignee;
+			if(selectuser!=undefined && selectuser.split(":") > 1){	 				
+				var userId = selectuser.split(":")[0];
+				var userType = selectuser.split(":")[1];
+				var userName = $scope.assignment.assignee1;
+				
+				var newRow = "<tr id='del_"+userId+"'><td><input type='radio' name='delRadio' value='"+userId
+				+"' sname='"+userName+"' userType='"+userType+"'/>" +
+				"</td><td><label>"+userName+"</label></td></tr>";
+				table_body.append(newRow);
+			}
+			
         }).error(function (data, status, headers, config) {
             console.log('Error loading orgs');
     });		
@@ -136,7 +151,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				}else{
 					userId = user.account;
 				}
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+userId
+				var newRow = "<tr id='del_"+userId+"'><td><input type='radio' name='delRadio' value='"+userId
 					+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);
@@ -179,7 +194,7 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				}else{
 					userId = user.account;
 				}
-				var newRow = "<tr id='del_"+user.id+"'><td><input type='radio' name='delRadio' value='"+userId
+				var newRow = "<tr id='del_"+userId+"'><td><input type='radio' name='delRadio' value='"+userId
 					+"' sname='"+user.userName+"' userType='"+userType+"'/>" +
 						"</td><td><label>"+user.userName+"</label></td></tr>";
 				table_body.append(newRow);

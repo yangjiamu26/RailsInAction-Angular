@@ -21,7 +21,7 @@
                 <span class="label label-warning" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_DOING'">施工中</span>
             </p></div>
             <div class="col-xs-4" data-bind="if: currentVO().itemState() == 'CONSTRUCTION_FAILED'"><p>失败原因：
-            	<span data-bind="text: currentVO().workFailedMessage">失败原因</span>
+            	<span class="btn btn-sm btn-default"><a class="link_in_detail" data-bind="click:workFailedMessage">查看</a></span> <span class="btn btn-sm btn-default"><a class="link_in_detail" data-bind="click:reConstruct">重施工</a></span>
             </p></div>
           </div>
           <table class="table">
@@ -59,7 +59,10 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  function ViewModel(){
   		  var self = this;
+  		  
   		  this.currentVO = ko.observable({
+  			uuid:ko.observable(),
+  			orderUuid:ko.observable(),
   			orderId: ko.observable(),
   			itemId: ko.observable(),
   			
@@ -98,7 +101,9 @@
   	      		var itemListData = processData.orderItems;
   	      		var metaData = JSON.parse(itemListData[0].metaData);
   	      		self.currentVO().itemId(itemListData[0].uuid);
-  	      	    self.currentVO().itemState(itemListData[0].itemState);
+  	      		self.currentVO().uuid(itemListData[0].uuid);
+  	      		self.currentVO().orderUuid(itemListData[0].orderUuid);
+  	      	    self.currentVO().itemState("CONSTRUCTION_FAILED");
   	      		self.currentVO().workFailedMessage(itemListData[0].workFailedMessage);
   	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
   	      		
@@ -127,6 +132,7 @@
   	      		
   	      	 });
   		});
+
   		
   		this.save = function(){
        		saveComment(args.taskId,function(){
@@ -146,6 +152,19 @@
 		  	}else{		  
 			  showModal("pages/workflows/next.html");
 		  	}
+		  }
+  		
+  		this.workFailedMessage=function(data){
+			alert((self.currentVO().workFailedMessage()==null||self.currentVO().workFailedMessage()=="")?"未知异常！":self.currentVO().workFailedMessage());
+		 }
+  		
+  		this.reConstruct = function(){
+			  var orderUuid = self.currentVO().orderUuid();
+			  var uuid = self.currentVO().uuid();
+			  csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,{}){
+				 self.currentVO().itemState("CONSTRUCTION_DOING"); //更新订单状态
+				 alert("提交重施工成功！")
+			  },function(){},false,{});
 		  }
   		
   	  }

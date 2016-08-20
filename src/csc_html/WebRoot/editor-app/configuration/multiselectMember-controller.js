@@ -24,7 +24,12 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 				nodeId = node.id;
 				usersArr = [];
 				userType = node.userType;
-				var param ="orgId="+node.code+"&userType="+userType;
+				var param ="userType="+userType;
+				if(node.code!='0' && node.code!='-1'){
+					param+="&orgId="+node.code;
+				}else{
+					param+="&size=0";
+				}
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).
 			       success(function (data, status, headers, config) {	
@@ -40,7 +45,6 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 								}else{
 									userId = users[i].account;
 								}
-								//result += zy_tmpl_s(listTmpl,users[i],null);
 								result += "<tr><td><input type='checkbox' name='orgUserId' value='"+userId+"'"
 									+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
 									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
@@ -84,6 +88,55 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			data.orgs.push(rootNode);*/				
 			jQuery.fn.zTree.init(jQuery("#role_org_tree"), settingRoleOrg, data);
 			jQuery("#role_org_tree a:eq(0)").trigger("mouseover").trigger("click");
+			
+			/*var table_body = jQuery("#sel_user_body");
+			var allRows = jQuery("#sel_user_body tr");
+			table_body.html("");
+			
+			var allUsers = $scope.users1;
+		    var allAdUsers = $scope.adUsers;
+		    var assignUser = $scope.assignment.candidateUsers;
+		    
+		    //给候选人赋值
+		    if(allUsers !== undefined){    	
+		    	for(var j = 0;j < assignUser.length;j++){
+		    		for(var i = 0;i < allUsers.length;i++){
+		    			var userType = assignUser[j].value.split(":")[0];
+		    			var userId = assignUser[j].value.split(":")[1];
+		    			if(userType == "0" && userId == allUsers[i].id){
+		    				var newRow = "<tr id='del_"+userId+"'><td><input type='checkBox' name='delInput' value='"+userId
+								+"' sname='"+allUsers[i].name+"' userType='"+userType+"'/>" +
+									"</td><td><label>"+allUsers[i].name+"</label></td></tr>";
+							table_body.append(newRow);
+							var user = {};
+							user.id = userId;
+							user.userName = allUsers[i].name;
+							user.userType = userType;
+							selUserArr.push(user);
+		    			}
+		    		}
+		    	}
+		    }
+		    if(allAdUsers !== undefined){    	
+		    	for(var j = 0;j < assignUser.length;j++){
+		    		for(var i = 0;i < allAdUsers.length;i++){
+		    			var userType = assignUser[j].value.split(":")[0];
+		    			var userId = assignUser[j].value.split(":")[1];
+		    			if(userType == "1" && userId == allAdUsers[i].account){
+		    				var newRow = "<tr id='del_"+userId+"'><td><input type='checkBox' name='delInput' value='"+userId
+								+"' sname='"+allAdUsers[i].name+"' userType='"+userType+"'/>" +
+									"</td><td><label>"+allAdUsers[i].name+"</label></td></tr>";
+							table_body.append(newRow);
+							var user = {};
+							user.id = userId;
+							user.userName = allAdUsers[i].name;
+							user.userType = userType;
+							selUserArr.push(user);
+		    			}
+		    		}
+		    	}
+		    }*/
+			
         }).error(function (data, status, headers, config) {
             console.log('Error loading orgs');
     });		

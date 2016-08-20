@@ -318,47 +318,37 @@
 	
         //初始化数据
       this.initData = function(){
-    	  csc.rest.get('api/v5.0.0/serverConf', function(data) {
-    		  if(data && csc.util.isNotNull(data.report)){
+    	  
+    	  csc.rest.get('api/v5.0.0/serverConf/repoConfGet', function(data) {
+    		  //debugger;
+    		  if(csc.util.isNotNull(data)){
 	    		  //集算
-	    		  var repoConfs = data.report.split(",");
-	    		  for(var i=0;i<repoConfs.length;i++){
-	    			  if(repoConfs[i].indexOf("url:") > -1){
-	    				  self.server_rep().url(repoConfs[i].split("url:")[1]);
-	    			  }else if(repoConfs[i].indexOf("user:") > -1){	
-	    				  self.server_rep().user(repoConfs[i].split("user:")[1]);
-	    			  }
-	    		  }
+	    		  //debugger;
+	    		  var test = data.url;
+	    		  self.server_rep().url(data.url);
+	    		  self.server_rep().user(data.user);
     		  }
-    		  if(data && csc.util.isNotNull(data.ftp)){
+    	  });
+    	  
+    	  
+    	  csc.rest.get('api/v5.0.0/serverConf/ftpConfGet', function(data) {
+    		  if(csc.util.isNotNull(data)){
 	    		  //ftp
-	    		  var ftpConfs = data.ftp.split(",");
-	    		  for(var i=0;i<ftpConfs.length;i++){
-	    			  if(ftpConfs[i].indexOf("url:") > -1){
-	    				  self.server_ftp().url(ftpConfs[i].split("url:")[1]);
-	    			  }else if(ftpConfs[i].indexOf("port:") > -1){	
-	    				  self.server_ftp().port(ftpConfs[i].split("port:")[1]);
-	    			  }else if(ftpConfs[i].indexOf("softPath:") > -1){	
-	    				  self.server_ftp().softPath(ftpConfs[i].split("softPath:")[1]);
-	    			  }else if(ftpConfs[i].indexOf("scriptPath:") > -1){	
-	    				  self.server_ftp().scriptPath(ftpConfs[i].split("scriptPath:")[1]);
-	    			  }else if(ftpConfs[i].indexOf("user:") > -1){	
-	    				  self.server_ftp().user(ftpConfs[i].split("user:")[1]);
-	    			  }
-	    		  }
+	    		  self.server_ftp().url(data.url);
+	    		  self.server_ftp().port(data.port);
+	    		  self.server_ftp().softPath(data.softPath);
+	    		  self.server_ftp().scriptPath(data.scriptPath);
+	    		  self.server_ftp().user(data.user);
     		  }
-    		  if(data && csc.util.isNotNull(data.chef)){
+    	  });
+    	  
+    	  
+    	  csc.rest.get('api/v5.0.0/serverConf/chefConfGet', function(data) {
+    		  if(csc.util.isNotNull(data)){
 	    		  //chef
-	    		  var chefConfs = data.chef.split(",");
-	    		  for(var i=0;i<chefConfs.length;i++){
-	    			  if(chefConfs[i].indexOf("url:") > -1){
-	    				  self.server_chef().url(chefConfs[i].split("url:")[1]);
-	    			  }else if(chefConfs[i].indexOf("port:") > -1){	
-	    				  self.server_chef().port(chefConfs[i].split("port:")[1]);
-	    			  }else if(chefConfs[i].indexOf("user:") > -1){	
-	    				  self.server_chef().user(chefConfs[i].split("user:")[1]);
-	    			  }
-	    		  }
+	    		  self.server_chef().url(data.url);
+	    		  self.server_chef().port(data.port);
+	    		  self.server_chef().user(data.user);
     		  }
     	  });
  	  }
@@ -376,8 +366,11 @@
 		    	alert("请输入用户名或密码！");
 		    }else{
 		    	var putBody = {};
-	      		putBody.serverName = "report";
-	      		putBody.serverConf = "url:"+self.server_rep().url()+",user:"+self.server_rep().user()+",password:"+self.server_rep().password();
+		    	putBody.url = self.server_rep().url();
+		    	putBody.user = self.server_rep().user();
+		    	putBody.password = self.server_rep().password();
+	      		//putBody.serverName = "report";
+	      		//putBody.serverConf = "url:"+self.server_rep().url()+",user:"+self.server_rep().user()+",password:"+self.server_rep().password();
 	      		  csc.rest.put("api/v5.0.0/serverConf/repoConn",putBody,function(data){
 	      			  if(data && data.msg) {
 	    	      			alert(data.msg + '！');
@@ -394,9 +387,12 @@
 		    	alert("请输入用户名或密码！");
 		    }else{
 		    	var postBody = {};
-			  	postBody.serverName = "report";
-			  	postBody.serverConf = "url:"+self.server_rep().url()+",user:"+self.server_rep().user()+",password:"+self.server_rep().password();
-		    	csc.rest.post('api/v5.0.0/serverConf',postBody , function(){
+		    	postBody.url = self.server_rep().url();
+		    	postBody.user = self.server_rep().user();
+		    	postBody.password = self.server_rep().password();
+			  	//postBody.serverName = "report";
+			  	//postBody.serverConf = "url:"+self.server_rep().url()+",user:"+self.server_rep().user()+",password:"+self.server_rep().password();
+		    	csc.rest.post('api/v5.0.0/serverConf/reportSave',postBody , function(){
 		            self.isAdd(false);
 		            alert("保存配置成功！");
 		            })
@@ -424,8 +420,12 @@
 	        	alert("请输入用户名或密码！");
 	        }else{
 	      	  var putBody = {};
-	    	  putBody.serverName = "ftp";
-	    	  putBody.serverConf = "url:"+self.server_ftp().url()+",port:"+self.server_ftp().port()+",softPath:"+self.server_ftp().softPath()+",scriptPath:"+self.server_ftp().scriptPath()+",user:"+self.server_ftp().user()+",password:"+self.server_ftp().password();
+		      	putBody.url = self.server_ftp().url();
+		      	putBody.user = self.server_ftp().user();
+		      	putBody.port = self.server_ftp().port();
+		      	putBody.password = self.server_ftp().password();
+	    	  //putBody.serverName = "ftp";
+	    	  //putBody.serverConf = "url:"+self.server_ftp().url()+",port:"+self.server_ftp().port()+",softPath:"+self.server_ftp().softPath()+",scriptPath:"+self.server_ftp().scriptPath()+",user:"+self.server_ftp().user()+",password:"+self.server_ftp().password();
 	    		  csc.rest.put('api/v5.0.0/serverConf/ftpConn', putBody ,function(data){
 	    			  if(data && data.msg){
 	  	      			alert(data.msg + '！');
@@ -450,9 +450,15 @@
 	        	alert("请输入用户名或密码！");
 	        }else{
 	        	var postBody = {};
-	         	postBody.serverName = "ftp";
-	         	postBody.serverConf = "url:"+self.server_ftp().url()+",port:"+self.server_ftp().port()+",softPath:"+self.server_ftp().softPath()+",scriptPath:"+self.server_ftp().scriptPath()+",user:"+self.server_ftp().user()+",password:"+self.server_ftp().password();
-	        	csc.rest.post('api/v5.0.0/serverConf', postBody , function(){
+	        	postBody.url = self.server_ftp().url();
+	        	postBody.port = self.server_ftp().port();
+	        	postBody.softPath = self.server_ftp().softPath();
+	        	postBody.scriptPath = self.server_ftp().scriptPath();
+	        	postBody.user = self.server_ftp().user();
+	        	postBody.password = self.server_ftp().password();
+	         	//postBody.serverName = "ftp";
+	         	//postBody.serverConf = "url:"+self.server_ftp().url()+",port:"+self.server_ftp().port()+",softPath:"+self.server_ftp().softPath()+",scriptPath:"+self.server_ftp().scriptPath()+",user:"+self.server_ftp().user()+",password:"+self.server_ftp().password();
+	        	csc.rest.post('api/v5.0.0/serverConf/ftpSave', postBody , function(){
 	                  self.isAdd(false);
 	                  alert("保存配置成功！");
 	                })
@@ -474,8 +480,12 @@
         	   alert("请输入用户名或密码！");
            }else{
         	   var putBody = {};
-         	  putBody.serverName = "chef";
-         	  putBody.serverConf = "url:"+self.server_chef().url()+",port:"+self.server_chef().port()+",user:"+self.server_chef().user()+",password:"+self.server_chef().password();
+        	   putBody.url = self.server_chef().url();
+        	   putBody.port = self.server_chef().port();
+        	   putBody.user = self.server_chef().user();
+        	   putBody.password = self.server_chef().password();
+         	  //putBody.serverName = "chef";
+         	  //putBody.serverConf = "url:"+self.server_chef().url()+",port:"+self.server_chef().port()+",user:"+self.server_chef().user()+",password:"+self.server_chef().password();
          		  csc.rest.put("api/v5.0.0/serverConf/chefConn",putBody,function(data){
          			  if(data && data.resultMsg) {
        	      			alert(data.resultMsg + '！');
@@ -495,9 +505,13 @@
       	   alert("请输入用户名或密码！");
          }else{
         	 var postBody = {};
-         	 postBody.serverName = "chef";
-         	 postBody.serverConf = "url:"+self.server_chef().url()+",port:"+self.server_chef().port()+",user:"+self.server_chef().user()+",password:"+self.server_chef().password();
-        	 csc.rest.post('api/v5.0.0/serverConf', postBody, function(data){
+        	 postBody.url = self.server_chef().url();
+        	 postBody.port = self.server_chef().port();
+        	 postBody.user = self.server_chef().user();
+        	 postBody.password = self.server_chef().password();
+         	 //postBody.serverName = "chef";
+         	 //postBody.serverConf = "url:"+self.server_chef().url()+",port:"+self.server_chef().port()+",user:"+self.server_chef().user()+",password:"+self.server_chef().password();
+        	 csc.rest.post('api/v5.0.0/serverConf/chefSave', postBody, function(data){
                  self.isAdd(false);
                  alert("保存配置成功！");
              })

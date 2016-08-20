@@ -199,7 +199,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 									            { id:"chargeRepo",name:"计费报表" ,checked:false},
 									            { id:"serverRepo",name:"物理机报表",checked:false },
 									            { id:"cloudServerRepo",name:"云主机报表",checked:false },
-									            { id:"selfDefRepo1",name:"自定义报表列表", open:false,checked:false }
+									            { id:"selfDefRepo1",name:"自定义报表列表", isParent:true,open:false,checked:false }
 									 ]
 					            },
 					            { id:"repoDef",name:"自定义报表",open:false ,checked:false}
@@ -383,7 +383,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 									            { id:"chargeRepo",name:"计费报表" ,checked:false},
 									            { id:"serverRepo",name:"物理机报表",checked:false },
 									            { id:"cloudServerRepo",name:"云主机报表",checked:false },
-									            { id:"selfDefRepo1",name:"自定义报表列表", open:false,checked:false }
+									            { id:"selfDefRepo1",name:"自定义报表列表",isParent:true, open:false,checked:false }
 									 ]
 					            },
 					            { id:"repoDef",name:"自定义报表", open:false ,checked:false}
@@ -533,7 +533,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 					      { id:"report",name:"报表", open:false,checked:false,
 					          children: [
 					            { id:"cloudServerRepo",name:"云主机报表",checked:false },
-					            { id:"selfDefRepo",name:"自定义报表列表",checked:false }
+					            { id:"selfDefRepo",name:"自定义报表列表",isParent:true,checked:false }
 					          ]
 					      },
 						];
@@ -557,6 +557,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 				               "repoConf","ftpServerConf","chefServerConf","emailServerConf","warnConf","firstPgConf","license",
 				               "wordConf","resoProperty","warn","sysWarn","vdcMountWarn","cloudServerWarn","notify","sysNotify",
 				               "msgNotify","emailNotify","operaLog","loginLog"]
+			
 			var allSelfNodes = ["firstPage","myResource","cloudServer","cs_PowerOn","cs_PowerOff","cs_Reboot","cs_PoweReboot",
 			                    "cs_Console","cs_Resomodify","cs_TimeMidify","cs_Wait","cs_Recovery","cs_Stop","cs_Delete",
 			                    "cs_Minitor","cloudDisk","cd_Extend","cd_Delete","publicIp","pubIp_CS_Bind","pubIp_LB_Bind",
@@ -566,104 +567,82 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 			                    "ins_Store_Upload","ins_Store_TimeModify","ins_Store_Stop","ins_Store_Delete","serviceAppl",
 			                    "shopCart","myOrder","busiSystem","appli","softInstall","softUpdate1","installLog","work","newWork",
 			                    "myWork","billingCount","warn","cloudServerWarn","notify","sysNotify","report","cloudServerRepo"]
-			var vdcNodes = ["firstPage","service","servManage","resource","resoInstance","cloudServer","cs_PowerOn",
-			                "cs_PowerOff","cs_Reboot","cs_PoweReboot","cs_Console","cs_Resomodify","cs_Wait","cs_Recovery",
-			                "cs_TimeMidify","cs_Stop","cs_Delete","cs_CloudDisk","cs_Minitor","cs_TaskSchedul","cloudDisk",
-			                "cd_Extend","cd_Delete","publicIp","pubIp_CS_Bind","pubIp_LB_Bind","pubIp_CS_Unbind",
-			                "pubIp_TimeModify","pubIp_Stop","pubIp_Delete","loadBalan","lb_VIP_Add","lb_VIP_Edit",
-			                "lb_TimeModify","lb_Stop","lb_Delete","sshKey","ssh_key_DownLoad","ssh_key_CS_Watch",
-			                "ssh_key_TimeModify","ssh_key_Stop","ssh_key_Delete","instanStore","ins_Store_Upload",
-			                "ins_Store_TimeModify","ins_Store_Stop","ins_Store_Delete","ins_Store_Info","resourceBack",
-			                "orderForm","orderFormManager","vdcManger","modify","delete","vdcModiAppl","vpcManger",
-			                "busiSystem","appli","softInstall","softUpdate","installLog","work","newWork","myWork",
-			                "billing","bilRule","bilCount","report","systemDesign","vdcRepo","chargeRepo",
-			                "cloudServerRepo","system","flowManage","warn","cloudServerWarn","notify","sysNotify"]
-			var systemNodes = new Array();
-			//根据是否开启三元机制给系统管理员初始化权限
-			csc.rest.get("api/v5.0.0/roles/"+uuid+"/isSanyuan",function(data){
-				if(data.sanYuan === "true"){
-					systemNodes = ["firstPage","service","proDef","servManage","resource","dataCenter","diskAcce","resoInstance",
-					               "cloudServer","cloudServerCreate","cs_PowerOn","cs_PowerOff","cs_Reboot","cs_PoweReboot",
-					               "cs_Console","cs_Resomodify","cs_Wait","cs_Recovery","cs_TimeMidify","cs_Stop","cs_Delete",
-					               "cs_CloudDisk","cs_Minitor","cs_TaskSchedul","cloudDisk","cd_DiskCreate","cd_Extend","cd_Delete",
-					               "publicIp","pubIp_Create","pubIp_CS_Bind","pubIp_LB_Bind","pubIp_CS_Unbind","pubIp_TimeModify",
-					               "pubIp_Stop","pubIp_Delete","loadBalan","lb_Creat","lb_VIP_Add","lb_VIP_Edit","lb_TimeModify",
-					               "lb_Stop","lb_Delete","sshKey","ssh_key_Create","ssh_key_DownLoad","ssh_key_CS_Watch",
-					               "ssh_key_TimeModify","ssh_key_Stop","ssh_key_Delete","instanStore","ins_Store_Create",
-					               "ins_Store_Upload","ins_Store_TimeModify","ins_Store_Stop","ins_Store_Delete","ins_Store_Info",
-					               "bussiCut","resourceBack","orderForm","orderFormManager","vdcManger","modify","delete","vpcManger",
-					               "busiSystem","appli","softWare","script","softInstall","softUpdate","installLog","work","myWork",
-					               "billing","bilRule","bilCount","report","systemDesign","vdcRepo","chargeRepo","serverRepo",
-					               "cloudServerRepo","repoDef","system","sysUserManage","sysRoleManage","roleCreat",
-					               "roleModify","roleDel","roleAllo","roleMenuPriv","flowManage","serverConf","repoConf","ftpServerConf",
-					               "chefServerConf","emailServerConf","warnConf","firstPgConf","license","wordConf","resoProperty","warn",
-					               "sysWarn","vdcMountWarn","cloudServerWarn","notify","sysNotify","msgNotify","emailNotify"]
-				}else{
-					systemNodes = ["firstPage","service","proDef","servManage","resource","dataCenter","diskAcce","resoInstance",
-					               "cloudServer","cloudServerCreate","cs_PowerOn","cs_PowerOff","cs_Reboot","cs_PoweReboot",
-					               "cs_Console","cs_Resomodify","cs_Wait","cs_Recovery","cs_TimeMidify","cs_Stop","cs_Delete",
-					               "cs_CloudDisk","cs_Minitor","cs_TaskSchedul","cloudDisk","cd_DiskCreate","cd_Extend","cd_Delete",
-					               "publicIp","pubIp_Create","pubIp_CS_Bind","pubIp_LB_Bind","pubIp_CS_Unbind","pubIp_TimeModify",
-					               "pubIp_Stop","pubIp_Delete","loadBalan","lb_Creat","lb_VIP_Add","lb_VIP_Edit","lb_TimeModify",
-					               "lb_Stop","lb_Delete","sshKey","ssh_key_Create","ssh_key_DownLoad","ssh_key_CS_Watch",
-					               "ssh_key_TimeModify","ssh_key_Stop","ssh_key_Delete","instanStore","ins_Store_Create",
-					               "ins_Store_Upload","ins_Store_TimeModify","ins_Store_Stop","ins_Store_Delete","ins_Store_Info",
-					               "bussiCut","resourceBack","orderForm","orderFormManager","vdcManger","modify","delete",
-					               "vdcModiAppl","vpcManger","busiSystem","appli","softWare","script","softInstall","softUpdate",
-					               "installLog","work","newWork","myWork","billing","bilRule","bilCount","report","systemDesign",
-					               "vdcRepo","chargeRepo","serverRepo","cloudServerRepo","repoDef","system","sysUserManage",
-					               "sysRoleManage","roleCreat","roleModify","roleDel","roleAllo","roleMenuPriv","flowManage","serverConf",
-					               "repoConf","ftpServerConf","chefServerConf","emailServerConf","warnConf","firstPgConf","license",
-					               "wordConf","resoProperty","warn","sysWarn","vdcMountWarn","cloudServerWarn","notify","sysNotify",
-					               "msgNotify","emailNotify","operaLog","loginLog"]
-				}
-			});   
-			//运营门户授权菜单保存
+			
+			//授权菜单保存
 		    this.menuSave = function(treeId, type){
-				if(type=="oper"){
+				if(type=="oper"){//运营门户授权菜单保存
 			    	var treeObj = $.fn.zTree.getZTreeObj(treeId);
-			    	var checkedNodes = treeObj.getCheckedNodes(true);
+			    	//debugger;
+			    	if(name == '系统管理员'||name == 'VDC管理员'||name == '安全管理员'||name == '安全审计员'){
+			    		//先把所有置灰的节点激活
+				    	var nodes = treeObj.transformToArray(treeObj.getNodes());
+				    	for(var m = 0;m<nodes.length;m++){
+				    		treeObj.setChkDisabled(nodes[m],false);
+				    	}
+				    	//获取所有已勾选的节点
+				    	var checkedNodes = treeObj.getCheckedNodes(true);
+				    	//最后把激活的节点再次置灰
+				    	for(var i = 0;i<allNodes.length;i++){
+							var node = treeObj.getNodeByParam("id", allNodes[i], null);
+							if(csc.util.isNotNull(node)){
+								treeObj.setChkDisabled(node,true);
+							}
+						}
+			    	}else{
+			    		//获取所有已勾选的节点
+				    	var checkedNodes = treeObj.getCheckedNodes(true);
+			    	}
 			    	var menuIds=new Array();
-			    	if(name == '系统管理员'){
-			    		for(var i=0;i<checkedNodes.length;i++){
-			    			systemNodes.push(checkedNodes[i].id);
-				    	}
-			    		menuIds = systemNodes;
-					}else if(name == 'VDC管理员'){
-						for(var i=0;i<checkedNodes.length;i++){
-							vdcNodes.push(checkedNodes[i].id);
-				    	}
-			    		menuIds = vdcNodes;
-					}else{
-						for(var i=0;i<checkedNodes.length;i++){
-							menuIds.push(checkedNodes[i].id);
-				    	}
-					}
+		    		for(var i=0;i<checkedNodes.length;i++){
+		    			menuIds.push(checkedNodes[i].id);
+			    	}
 			    	if(menuIds.length==0){
 			    		menuIds[0]="000";
 			    	}
 			    	var param = JSON.stringify(menuIds);
 			    	var putBody={};
 					putBody.uuid = uuid;
+					putBody.roleName = name;
 					putBody.privMenu = param;
 					csc.rest.put("api/v5.0.0/roles/updataRoleMenus", putBody,function(data){
 						self.isAdd(true);
 						alert("授权成功！");
 			      		});
-				}else{
+				}else{//自助门户授权保存
+					
 			    	var treeObj = $.fn.zTree.getZTreeObj(treeId);
-			    	var checkedNodes = treeObj.getCheckedNodes(true);
+			    	//debugger;
+			    	var nodes = treeObj.transformToArray(treeObj.getNodes());
+			    	if(name == '普通用户'){
+			    		//先把所有置灰的节点激活
+				    	var nodes = treeObj.transformToArray(treeObj.getNodes());
+				    	for(var m = 0;m<nodes.length;m++){
+				    		treeObj.setChkDisabled(nodes[m],false);
+				    	}
+				    	//获取所有已勾选的节点
+				    	var checkedNodes = treeObj.getCheckedNodes(true);
+				    	//最后把激活的节点再次置灰
+				    	for(var i = 0;i<allSelfNodes.length;i++){
+							var node = treeObj.getNodeByParam("id", allSelfNodes[i], null);
+							if(csc.util.isNotNull(node)){
+								treeObj.setChkDisabled(node,true);
+							}
+						}
+			    	}else{
+			    		//获取所有已勾选的节点
+				    	var checkedNodes = treeObj.getCheckedNodes(true);
+			    	}
 			    	var menuIds=new Array();
 			    	for(var i=0;i<checkedNodes.length;i++){
-			    		allSelfNodes.push(checkedNodes[i].id);
+			    		menuIds.push(checkedNodes[i].id);
 			    	}
-			    	menuIds = allSelfNodes;
-			    	if(menuIds.length==0){
+			    	if(menuIds.length == 0){
 			    		menuIds[0]="000";
 			    	}
 			    	var param = JSON.stringify(menuIds);
 			    	var putBody={};
 					putBody.uuid = uuid;
+					putBody.roleName = name;
 					putBody.privMenu = param;
 					csc.rest.put("api/v5.0.0/roles/updataRoleSelfMenus", putBody,function(data){
 						self.isAdd(true);
@@ -705,17 +684,27 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 													}
 												}	
 											}
-								       });
-							    	  if(name == 'VDC管理员'||name == '系统管理员'){
+							    	  if(name == 'VDC管理员'||
+							    		name == '系统管理员'||
+							    		name == '安全管理员'||
+							    		name == '安全审计员'){
 							    		  //debugger;
 							    		  //console.log(name);
 											for(var i = 0;i<allNodes.length;i++){
+												if(name == '安全管理员'||
+											       name == '安全审计员'){
+													var node = treeObj.getNodeByParam("id", "selfDefRepo1", null);
+													if(csc.util.isNotNull(node)){
+														treeObj.setChkDisabled(node,true,false,true);
+													}
+												}
 												var node = treeObj.getNodeByParam("id", allNodes[i], null);
 												if(csc.util.isNotNull(node)){
 													treeObj.setChkDisabled(node,true);
 												}
 											}
 										}
+								       });
 							      });			      
 							      
 						}else{
@@ -735,6 +724,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 							    	  csc.rest.get("api/v5.0.0/roles/" + uuid + "/initPriMenu", function(data){
 											var str = data.uuid.substring(1,data.uuid.length-1);
 											var privMenus = str.split(",");
+											//debugger;
 											if(privMenus.length>0&&csc.util.isNotNull(privMenus[0])){
 												for(var i=0;i<privMenus.length;i++){
 													var node=treeObj.getNodeByParam("id", privMenus[i].substring(1,privMenus[i].length-1), null);
@@ -743,17 +733,17 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 													}
 												}	
 											}
-								       });
-							    	  if(name == 'VDC管理员'||name == '系统管理员'){
-							    		  //debugger;
-							    		  //console.log(name);
-											for(var i = 0;i<allNodes.length;i++){
-												var node = treeObj.getNodeByParam("id", allNodes[i], null);
-												if(csc.util.isNotNull(node)){
-													treeObj.setChkDisabled(node,true);
+								    	   if(name == 'VDC管理员'||name == '系统管理员'){
+								    		  //debugger;
+								    		  //console.log(name);
+												for(var i = 0;i<allNodes.length;i++){
+													var node = treeObj.getNodeByParam("id", allNodes[i], null);
+													if(csc.util.isNotNull(node)){
+														treeObj.setChkDisabled(node,true);
+													}
 												}
-											}
-										}
+											} 
+								       });
 							      });							      
 						}
 					}); 
@@ -784,7 +774,6 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 							}	
 						}
 						
-				     });
 				  	if(name == '普通用户'){
 			    		  //debugger;
 			    		  //console.log(name);
@@ -795,6 +784,7 @@ var scripts = ["api/reports/report.js", 'assets/lib/zTree/js/jquery.ztree.core.j
 								}
 							}
 						}
+				     });
 				    });
 				}
 			}
