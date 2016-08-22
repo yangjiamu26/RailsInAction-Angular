@@ -67,7 +67,7 @@
             	<span data-bind="if: type == 'SECRET_KEY'">SSH密钥</span>
             	<span data-bind="if: type == 'OBJECT_STORAGE'">对象存储</span>
             </td>
-            <td data-bind="text:userName"></td>
+            <td data-bind="text:account"></td>
             <td data-bind="text:vdcName"></td>
             <td data-bind="text:expiryTime"></td>
             <td data-bind="text:expiredDay"></td>
@@ -234,6 +234,7 @@
       //申请
       this.recoverProcessPost = function(){
     	  if("VM" == self.recoverProcessVO().type()){
+    		  var relateUuid=csc.util.getUuid();
     		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.recoverProcessVO().uuid(),function(volumeData){
             	  var orderItem = {};
             	  orderItem.instanceName = self.recoverProcessVO().name();
@@ -243,6 +244,8 @@
             	  orderItem.resourceUuid = self.recoverProcessVO().uuid();
             	  orderItem.vdcUuid = self.recoverProcessVO().vdcUuid();
             	  orderItem.azUuid = self.recoverProcessVO().azUuid();
+            	  //云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
+            	  orderItem.relateUuid = relateUuid;
             	  
             	  var orderItems = [];
             	  orderItems.push(orderItem);
@@ -258,6 +261,8 @@
                 		  volumeItem.resourceUuid = volumes[i].uuid;
                 		  volumeItem.vdcUuid = volumes[i].vdcUuid;
                 		  volumeItem.azUuid = volumes[i].azUuid;
+                		//云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
+                		  volumeItem.relateUuid = relateUuid;
                 		  orderItems.push(volumeItem);
                 	  }
             	  }
@@ -293,10 +298,12 @@
         	  postBody.orderItems = orderItems;
         	  
         	  csc.rest.post("api/v5.0.0/orders/recycleResource",postBody,function(data){
-        		  if(data.code){
+        		  if(data.taskId){
+            		systemMsg.alert('回收资源实例请求成功，任务ID：' + data.taskId + '！');
+            	  }else if(data.code){
         			systemMsg.alert('资源回收申请成功，订单编号：'+data.code+'！');
-      		 		self.isRecoverProcess(false);
         		  }
+      		 	  self.isRecoverProcess(false);
         	  });
     	  }
     	  

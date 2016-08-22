@@ -494,7 +494,7 @@
 									<td data-bind="text: $row.vdcName"></td>
 									<td data-bind="text: $row.vpcName"></td>
 									<td>
-										   <a data-bind="click:$root.delSecretGroup">删除</a>
+										   <a data-bind="click:$root.delSecretGroup,visible:$row.name != 'default'">删除</a>
 									</td>
 								</tr>
 								<!--  /ko  -->
@@ -785,7 +785,12 @@
     			if(!vpcUuid){
     				  ko.validation.group(self.vpcVO).showAllMessages();
     	    	        if(self.vpcVO.isValid()){
-    	    	        	$.VPC.createVpc(self.vpcVO.toJSON(),function(data){
+    	    	        	 var vpcJson = self.vpcVO.toJSON();
+    	    	        	var param = {"name":vpcJson.name,
+    	    	   				 "vdcUuid":vpcJson.vdcUuid,
+    	    	   				 "azUuid": vpcJson.azUuid
+    	    	   				}
+    	    	        	$.VPC.createVpc(param,function(data){
     	        			 	self.createVpcModal(false);
     	        		    	self.vpcListTable.refreshData();
     	        			});
@@ -1249,7 +1254,7 @@
 			});
 	  	}	  	
 	  	
-	  	this.VPNList = new DataTable([], {path: 'api/v5.0.0/vpns'});
+	  	this.VPNList = new DataTable([], {path: 'api/v5.0.0/vpns?orderBy=createTime:desc'});
 	  	//删除vpn
 	  	this.deleteVPN = function(data,event){
 	  		$.VPN.delVpn(data.uuid,function(data){

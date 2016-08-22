@@ -96,7 +96,7 @@
     	      		console.log(orderData);
     	      		var itemList = orderData.orderItems;
     	      		var orderItem = itemList[0];
-					console.log(orderItem);
+					var oldInstanceName = '';
     	      	  function ViewModel(){	
     	      	      var self = this;
     	      	      
@@ -135,6 +135,7 @@
                              var metaData = JSON.parse(orderItem.metaData);
                              var resBaseInfo = JSON.parse(metaData.resBaseInfo);
                              self.model_ObjSto().applySize(resBaseInfo.applySize);
+                             oldInstanceName = self.model_ObjSto().instanceName();
                           });
                          
                  	    this.vdcChange = function(){//根据变化的vdc及服务ID查找其下的可用分区
@@ -196,6 +197,11 @@
                     	})
                     	
                     function nameCheck(name,type,callback){
+                      		debugger
+                      		if(name == oldInstanceName){
+                      			callback(true);
+                      			return;
+                      		}
         			 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name,function(result){
         			 		 if(result.result==true){
         			 			  systemMsg.alert(result.message);

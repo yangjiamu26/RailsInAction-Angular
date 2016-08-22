@@ -36,7 +36,7 @@
                         <td><span data-bind="text: azName"></span></td>
                         <td><span data-bind="text:expireText"></span></td>
                         <td>
-                            <a class="expand-btn-detail">查看 <i class="fa fa-angle-double-right"></i></a> | <a class="expand-btn-edit">修改 <i class="fa fa-angle-double-right"></i></a> | <a  data-bind="click:$root.removeVm">删除</a>
+                            <a class="expand-btn-detail">查看 <i class="fa fa-angle-double-right"></i></a> | <a class="expand-btn-edit">修改 <i class="fa fa-angle-double-right"></i></a> | <a  data-bind="click:function(data, event){ $root.removeVm(data,$index()) }">删除</a>
                        </td>
                    </tr>
                   <tr style="display: none">
@@ -340,7 +340,7 @@
 					            <div class="form-group">
 					              <label class="col-xs-1 control-label no-padder-h">套餐</label>
 					              <div class="col-xs-10">
-					                <select class="form-control inline w-xs" data-bind="options:billRuleList,optionsText:'name',optionsValue:'value',event:{change:$root.chargeChangeCart},value:billCycle,valueAllowUnset:true,optionsCaption:'请选择'" >
+					                <select class="form-control inline w-xs" data-bind="options:billRuleList,optionsText:'name',optionsValue:'value',value:billCycle,valueAllowUnset:true,optionsCaption:'请选择'" >
 					                </select>    
 					               <span class="control-label col-sm-5 text-left" style="height:34px;" data-bind="text:fee"></span>                      
 					              </div>
@@ -373,11 +373,11 @@
 				                                  <td><span data-bind="text: ($index()+1)"></span></td>
 				                                  <td><input type="text" class="form-control" data-bind="value:instanceName"/></td>
 				                                  <td><input type="text" class="form-control" data-bind="value:volumeSize"/></td>
-				                                  <td><span data-bind="text:serviceName"></span><a class="btn btn-xs btn-default" data-bind="click:function(data,event){ $root.selectVdiskService_VM($parent,data,event)}">选择</a></td>
+				                                  <td><input type="text" data-bind="value:serviceName" disabled><a class="btn btn-xs btn-default" data-bind="click:function(data,event){ $root.selectVdiskService_VM($parent,data,event)}">选择</a></td>
 				                                  <td><span data-bind="text:expireText"></span></td>
-				                                  <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billCycle,event:{change:$root.chargeChangeCart},valueAllowUnset:true,optionsCaption:'请选择'"></select></td>
+				                                  <td><select class="form-control w-xs" data-bind="options: billRuleList,optionsText:'name',optionsValue:'value',value:billCycle,valueAllowUnset:true,optionsCaption:'请选择'"></select></td>
 				                                  <td><span data-bind="text:fee"></span></td>
-				                                  <td><a class="btn btn-xs btn-danger" data-bind="click:$root.delMountDisks">删除</a></td>
+				                                  <td><a class="btn btn-xs btn-danger" data-bind="click:function(data, event){ $root.delMountDisks(data,$index()) }">删除</a></td>
 				                                </tr>
 				                       </tbody>
 					              </table>
@@ -664,7 +664,7 @@
 				      	    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vmInParamData.vdcUuid+"&azUuid="+vmInParamData.azUuid+"&vpcUuid="+vmInParamData.vpcUuid+"&osType="+vmInParamData.osType;
 				                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result,textStatus,callbackCustParam){
 				                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vmInParamData.vdcUuid,function(result2,textStatus,callbackCustParam){
-				                         csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid,function(result3,textStatus,callbackCustParam){
+				                         csc.rest.get("api/v5.0.0/sshKeys?byCurrentUser=true&isValidate=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid,function(result3,textStatus,callbackCustParam){
 				                        	 callback(result,result2,result3,callbackCustParam);
 				                         },function(){},callbackCustParam);
 				                     },function(){},callbackCustParam);
@@ -728,13 +728,13 @@
 				      				vmInfo.repeatPassword(vmInParamData.repeatPassword);
 				      				vmInfo.sshKeyUuid(vmInParamData.sshUuid);
 				      				vmInfo.billCycle(orderItem.billCycle);
-				      				vmInfo.isBill(vmInfo.isBill);
+				      				vmInfo.isBill(orderItem.isBill);
 				      				vmInfo.fee(orderItem.fee);
 				      				vmInfo.expireType(orderItem.expireType);
 				      				vmInfo.expireValue(orderItem.expireValue);
 				      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 				      				vmInfo.relateUuid(orderItem.relateUuid);
-				      				self.currentVO().vmApplyList.push(vmInfo);
+				      				self.currentVO().vmApplyList.push(new ko.validatedObservable(vmInfo));
 				      			  }else if(orderItem.resourceType == "DISK"){
 				      				  var serviceUuid=orderItem.serviceUuid;
 				 	      		      var metaData = JSON.parse(orderItem.metaData);
@@ -763,7 +763,7 @@
 				      				  //diskInfo.expireType(diskInParamData.expireType); 从云主机获取
 				      				  //diskInfo.expireValue(diskInParamData.expireValue);
 				      				  diskInfo.relateUuid(orderItem.relateUuid);
-				      				  self.currentVO().diskApplyList.push(diskInfo);
+				      				  self.currentVO().diskApplyList.push(new ko.validatedObservable(diskInfo));
 				      			  }else if(orderItem.resourceType == "SOFTWARE"){
 						      			/**************加载云软件数据**************************/
 					      				var relateUuid=orderItem.relateUuid;
@@ -819,9 +819,9 @@
 				      		  var diskList = self.currentVO().diskApplyList();
 				      		  var softList = self.currentVO().softApplyList();
 				      		  for(var j=0;j<vmList.length;j++){
-				      			  var vmVO = vmList[j];
+				      			  var vmVO = vmList[j]();
 				          		  for(var i=0;i<diskList.length;i++){
-				          			  var diskVo = diskList[i];
+				          			  var diskVo = diskList[i]();
 				          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == diskVo.relateUuid()){
 				          				 diskSubScribeVm(diskVo,vmVO);
 				          				 vmVO.mountDiskList.push(diskVo);
@@ -891,23 +891,23 @@
 				      			  diskInfo.expireValue(vminfo.expireValue());
 				      			  diskSubScribeVm(diskInfo,vminfo);
 				      			  vminfo.mountDiskList.push(diskInfo);
-			      	              self.currentVO().diskApplyList.push(diskInfo);
+			      	              self.currentVO().diskApplyList.push(new ko.validatedObservable(diskInfo));
 			      	        }
 				      		
-				      		this.delMountDisks = function (data){
+				      		this.delMountDisks = function (data,index){
 				      			  var vmList = self.currentVO().vmApplyList();
 					      		  for(var j=0;j<vmList.length;j++){
-					      			  var vmVO = vmList[j];
+					      			  var vmVO = vmList[j]();
 					      			  if(vmVO.relateUuid() == data.relateUuid()){
 					      				 vmVO.mountDiskList.remove(data);
 					      			  }
 					      		  }
-			      	             self.currentVO().diskApplyList.remove(data);
+			      	             self.currentVO().diskApplyList.splice(index,1);
 			      	        }
 				      		/************磁盘管理********************/
 				      		
 				      	   
-				      		 this.removeVm = function(data){
+				      		 this.removeVm = function(data,index){
 				      			  if(self.currentVO().vmApplyList().length == 1){
 				      				  systemMsg.alert('删除失败，订单中至少存在一个订单项！');	
 				      				  return;
@@ -916,12 +916,12 @@
 				      			confirm("确定移除云主机["+data.instanceName()+"]？",function(arg){
 				      				  var diskList = self.currentVO().diskApplyList();
 						      		  for(var j=0;j<diskList.length;j++){
-						      			  var diskVO = diskList[j];
+						      			  var diskVO = diskList[j]();
 						      			  if(diskVO.relateUuid() == data.relateUuid()){
-						      					self.currentVO().diskApplyList.remove(diskVO);
+						      					self.currentVO().diskApplyList.remove(diskList[j]);
 						      			  }
 						      		  }
-					      			  self.currentVO().vmApplyList.remove(data);
+						      		  self.currentVO().vmApplyList.splice(index,1);
 				    			 });
 				      		 }
 				      		
@@ -934,7 +934,7 @@
 				      	    	  var diskList = self.currentVO().diskApplyList();
 				      	    	  var vmDiskList = data.mountDiskList();
 				      	    	  for(var i=0;i<diskList.length;i++){
-				      	    		  var diskVO = diskList[i];
+				      	    		  var diskVO = diskList[i]();
 				      	    		  for(var j=0;j<vmDiskList.length;j++){
 				      	    			  var vmDiskVO = vmDiskList[j];
 				      	    			  if(diskVO.uuid() ==  vmDiskVO.uuid()){
@@ -987,49 +987,6 @@
 				                	},function(){});
 			                  }
 			                  
-			                 this.chargeChangeCart = function(data, event){//vm
-			                      var serviceUuid=data.serviceUuid();
-			                      var cycle=data.billCycle();
-			           	    	  csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result,textStatus,data){
-			           	    		var price = 0;
-			           	    		var vcpu=data.vcpu!=null?data.vcpu():0;
-			           	    		var memory=data.memory!=null?data.memory():0;
-			           	    		var storage=data.storage!=null?data.storage():0;
-			           	    		var size=data.volumeSize!=null?data.volumeSize():0;
-			           	    		var type=data.billCycle();
-			           	    	   
-			                         if(typeof(type)=="undefined" ){
-			                      	     data.fee("");
-			             	    		 return;
-			                         }
-			           	    		result.ruleList.forEach(function(e){
-			           	    			if(e.attrType=='CPU'){
-			           	    				price += vcpu * e.unitPrice;
-			           	    			}else if(e.attrType=='MEMORY'){
-			           	    				price += memory * e.unitPrice;
-			           	    			}else if(e.attrType=='STORAGE'){
-			           	    				price += storage * e.unitPrice;
-			           	    			}else if(e.attrType=='DISK'){
-			           	    				price += size * e.unitPrice;
-			           	    			}else if(e.attrType=='LOAD_BALANCING'){
-			           	    				price +=e.unitPrice;
-			           	    			}else if(e.attrType=='SECRET_KEY'){
-			           	    				price +=e.unitPrice;
-			           	    			}
-			           	    		});
-			           	    		if(type=="DAY"){
-			           	    			price+="元/天";
-			           	    		}else if(type=="MONTH"){
-			           	    			price+="元/月";
-			           	    		}else if(type=="QUARTER"){
-			           	    			price+="元/季度";
-			           	    		}else{
-			           	    			price+="元/年";
-			           	    		}
-			           	    		data.fee(price);
-			           	    	},function(){},data);	    	
-			           	    }
-			                 
 			                function setArrayCharge(attr){
 				      	  	    	var arrayCharge = [];
 				      	  	    	if(attr !=null){
@@ -1133,7 +1090,7 @@
 					        self.delSoftwart_VM = function(obj,data,event){
 					        	  var vmList = self.currentVO().vmApplyList();
 					      		  for(var j=0;j<vmList.length;j++){
-					      			  var vmVO = vmList[j];
+					      			  var vmVO = vmList[j]();
 					      			  if(vmVO.relateUuid() == data.relateUuid()){
 					      				 vmVO.softwareList.remove(data);
 					      			  }
@@ -1170,8 +1127,8 @@
 				      		function DiskInfo(){
 				      			this.uuid= ko.observable(""),
 				      			this.serviceUuid= ko.observable(""),
-				      			this.serviceName = ko.observable(""),
-				      	        this.instanceName= ko.observable(""),
+				      			this.serviceName = ko.observable("").extend({required:true}),
+				      	        this.instanceName= ko.observable("").extend({required:true,cscNameRule:true,maxLength:32}),
 				      	        this.vmName= ko.observable(""),
 				      	        this.vdcUuid= ko.observable(""),
 				      	        this.vdcName=ko.observable(""),
@@ -1179,8 +1136,15 @@
 				      	        this.azName=ko.observable(""),
 				      	        this.vpcUuid=ko.observable(""),
 				      	        this.vpcName=ko.observable(""),
-				      	        this.volumeSize = ko.observable(""),
-				      	        this.billCycle= ko.observable(""),
+				      	        this.volumeSize = ko.observable("").extend({required:true,number:true}),
+				      	       this.isBill=ko.observable(""),
+				      	        this.billCycle=  ko.observable().extend({required: {onlyIf: 
+				    				(function(_this){  
+					    				return function(){
+					    					return _this.isBill()=="true";
+					    				} 
+				    				})(this)
+				    			}});
 				      	        this.billCycleText = ko.pureComputed(function(){
 				 	            	 return csc.util.getBillCycleText(this.billCycle());
 				 	            }, this);
@@ -1190,19 +1154,65 @@
 				      	        this.expireText = ko.pureComputed(function(){
 				 	            	 return csc.util.getExpireText(this.expireType(),this.expireValue());
 				 	            }, this);
-				      	        this.isBill=ko.observable(""),
 				      	        this.relateUuid=ko.observable(""),
-				      	  	    this.billRuleList = ko.observableArray([])
+				      	  	    this.billRuleList = ko.observableArray([]);
+				      	  	    
+				      	  	ko.computed(function(){
+			 		            var serviceUuid=this.serviceUuid();
+			 		            var cycle=this.billCycle();
+			 	 	    		var cpu=this.cpu!=null?parseInt(this.cpu()||0):0;
+			 	 	    		var memory=this.memory!=null?parseInt(this.memory()||0):0;
+			 	 	    		var storage=this.storage!=null?parseInt(this.storage()||0):0;
+			 	 	    		var size=this.volumeSize!=null?parseInt(this.volumeSize()||0):0;
+			 	 	    		if(typeof(cycle)=="undefined" ){
+			 	 	    			this.fee("");
+			 		   	    			return;
+			 		            }
+			 		            var _self = this;
+			 		 	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+			 		 	    		var price = 0;
+			 		 	    		result.ruleList.forEach(function(e){
+			 		 	    			if(e.attrType=='CPU'){
+			 		 	    				price += cpu * e.unitPrice;
+			 		 	    			}else if(e.attrType=='MEMORY'){
+			 		 	    				price += memory * e.unitPrice;
+			 		 	    			}else if(e.attrType=='STORAGE'){
+			 		 	    				price += storage * e.unitPrice;
+			 		 	    			}else if(e.attrType=='DISK'){
+			 		 	    				price += size * e.unitPrice;
+			 		 	    			}else if(e.attrType=='LOAD_BALANCING'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}else if(e.attrType=='SECRET_KEY'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+			 		 	    				price += size * e.unitPrice;
+			 		 	    			}else if(e.attrType=='PUBLICIP'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}
+			 		 	    		});
+			 		 	    		if(parseInt(price)!=price){
+			 		 	    			price = price.toFixed(2);
+			 		 	    		}
+			 		 	    		if(cycle=="DAY"){
+			 		 	    			price+="元/天";
+			 		 	    		}else if(cycle=="MONTH"){
+			 		 	    			price+="元/月";
+			 		 	    		}else if(cycle=="QUARTER"){
+			 		 	    			price+="元/季度";
+			 		 	    		}else{
+			 		 	    			price+="元/年";
+			 		 	    		}
+			 		 	    		_self.fee(price);
+			 		 	    	});	
+			 				}, this).extend({ deferred: true });
 				      	   }
-				      		
-				      		
 				      		  
 				      		  function VmInfo(){
-				      			this.uuid= ko.observable(""),
-				      			this.serviceUuid= ko.observable(""),
-				      	        this.instanceName= ko.observable(""),
-				      	        this.vdcUuid= ko.observable(""),
-				      	        this.vdcName=ko.observable(""),
+				      			this.uuid= ko.observable("");
+				      			this.serviceUuid= ko.observable("");
+				      	        this.instanceName= ko.observable("").extend({required:true,cscNameRule:true,maxLength:32});
+				      	        this.vdcUuid= ko.observable("").extend({required:true}),
+				      	        this.vdcName=ko.observable("");
 				 	      	    this.vdcName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.vdcList(), {uuid: this.vdcUuid()});
 				 	            	if(item!=null){
@@ -1211,7 +1221,7 @@
 				 	            		return "";
 				 	            	}
 				 	            }, this);
-				      	        this.azUuid=ko.observable(""),
+				      	        this.azUuid=ko.observable("").extend({required:true}),
 				      	        this.azName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.azList(), {uuid: this.azUuid()});
 				 	            	if(item!=null){
@@ -1220,7 +1230,7 @@
 				 	            		return "";
 				 	            	}
 				 	            }, this);
-				      	        this.vpcUuid=ko.observable(""),
+				      	        this.vpcUuid=ko.observable("").extend({required:true}),
 				      	        this.vpcName=ko.observable(""),
 				      	        this.vpcName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
@@ -1230,8 +1240,8 @@
 				 	            		return "";
 				 	            	}
 				 	            }, this);
-				      	        this.osType= ko.observable(""),
-				      	        this.osVersion= ko.observable(""),
+				      	        this.osType= ko.observable("").extend({required:true}),
+				      	        this.osVersion= ko.observable("").extend({required:true}),
 				      	        this.osVersionName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.osVersionList(), {uuid: this.osVersion()});
 				 	            	if(item!=null){
@@ -1240,10 +1250,10 @@
 				 	            		return "";
 				 	            	}
 				 	            }, this);
-				      	        this.vcpu= ko.observable(""),
-				      	        this.memory= ko.observable(""),
-				      	        this.storage= ko.observable(""),
-				      	        this.networkUuid= ko.observable(""),
+				      	        this.vcpu= ko.observable("").extend({required:true}),
+				      	        this.memory= ko.observable("").extend({required:true}),
+				      	        this.storage= ko.observable("").extend({required:true,number:true}),
+				      	        this.networkUuid= ko.observable("").extend({required:true}),
 				      	        this.networkName= ko.observable(""),
 				      	        this.networkName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.privateNetworkList(), {uuid: this.networkUuid()});
@@ -1266,7 +1276,14 @@
 				 	            		return "";
 				 	            	}
 				 	            }, this);
-				      	        this.billCycle= ko.observable(""),
+				      	       this.isBill=ko.observable(""),
+				      	       this.billCycle=  ko.observable().extend({required: {onlyIf: 
+				    				(function(_this){  
+					    				return function(){
+					    					return _this.isBill()=="true";
+					    				} 
+				    				})(this)
+				    			}});
 				 	      	    this.billCycleText = ko.pureComputed(function(){
 				 	            	 return csc.util.getBillCycleText(this.billCycle());
 				 	            }, this);
@@ -1276,7 +1293,6 @@
 				      	        this.expireText = ko.pureComputed(function(){
 				      	      	 return csc.util.getExpireText(this.expireType(),this.expireValue());
 				 	            }, this);
-				      	        this.isBill=ko.observable(""),
 				      	        this.busSysUuid=ko.observable(""),
 				      	        this.busSysName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.bussyList(), {uuid: this.busSysUuid()});
@@ -1300,7 +1316,57 @@
 				 	      	    this.sshList = ko.observableArray([]),
 				      			this.bussyList = ko.observableArray([]),
 				      			this.billRuleList = ko.observableArray([]),
-				      			this.availableIpList = ko.observableArray([])
+				      			this.availableIpList = ko.observableArray([]);
+				      	        
+				      	  	ko.computed(function(){
+			 		            var serviceUuid=this.serviceUuid();
+			 		            var cycle=this.billCycle();
+			 	 	    		var cpu=this.cpu!=null?parseInt(this.cpu()||0):0;
+			 	 	    		var memory=this.memory!=null?parseInt(this.memory()||0):0;
+			 	 	    		var storage=this.storage!=null?parseInt(this.storage()||0):0;
+			 	 	    		var size=this.volumeSize!=null?parseInt(this.volumeSize()||0):0;
+			 	 	    		if(typeof(cycle)=="undefined" ){
+			 	 	    			this.fee("");
+			 		   	    			return;
+			 		            }
+			 		            var _self = this;
+			 		 	    	csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+			 		 	    		var price = 0;
+			 		 	    		result.ruleList.forEach(function(e){
+			 		 	    			if(e.attrType=='CPU'){
+			 		 	    				price += cpu * e.unitPrice;
+			 		 	    			}else if(e.attrType=='MEMORY'){
+			 		 	    				price += memory * e.unitPrice;
+			 		 	    			}else if(e.attrType=='STORAGE'){
+			 		 	    				price += storage * e.unitPrice;
+			 		 	    			}else if(e.attrType=='DISK'){
+			 		 	    				price += size * e.unitPrice;
+			 		 	    			}else if(e.attrType=='LOAD_BALANCING'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}else if(e.attrType=='SECRET_KEY'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+			 		 	    				price += size * e.unitPrice;
+			 		 	    			}else if(e.attrType=='PUBLICIP'){
+			 		 	    				price +=e.unitPrice;
+			 		 	    			}
+			 		 	    		});
+			 		 	    		if(parseInt(price)!=price){
+			 		 	    			price = price.toFixed(2);
+			 		 	    		}
+			 		 	    		if(cycle=="DAY"){
+			 		 	    			price+="元/天";
+			 		 	    		}else if(cycle=="MONTH"){
+			 		 	    			price+="元/月";
+			 		 	    		}else if(cycle=="QUARTER"){
+			 		 	    			price+="元/季度";
+			 		 	    		}else{
+			 		 	    			price+="元/年";
+			 		 	    		}
+			 		 	    		_self.fee(price);
+			 		 	    	});	
+			 				}, this).extend({ deferred: true });
+				      			
 				      		  }
 				      		/******************实体对象定义**********************/  
 				      		  
@@ -1327,9 +1393,32 @@
 				        		    }
 				        		    
 				      	            var vmOrderItemVONew = [];
+				        			
+				        		   
+				        			var bool = false;
+				        			self.currentVO().vmApplyList().forEach(function(e){
+				                		if(!e.isValid()){
+				                			bool=true;
+				                			ko.validation.group(e).showAllMessages();
+				                			return;
+				                		}
+				                	});
+				        			
+				        			self.currentVO().diskApplyList().forEach(function(e){
+				                		if(!e.isValid()){
+				                			bool=true;
+				                			ko.validation.group(e).showAllMessages();
+				                			return;
+				                		}
+				                	});
+				        			
+				        			if(bool){
+				        				return;
+				        			}
+				        			
 				        			var vmList = self.currentVO().vmApplyList();
 				      		        for(var j=0;j<vmList.length;j++){
-					      			    var vmVO = vmList[j];
+					      			    var vmVO = vmList[j]();
 					      			    var vmOrderItemVO = {};
 					      			    vmOrderItemVO.resourceType ="VM"; 
 					      			 	vmOrderItemVO.orderUuid = orderUuid;
@@ -1373,7 +1462,7 @@
 				        		    var diskOrderItemsNew = [];
 				        		    var diskList = self.currentVO().diskApplyList();
 			       		    	    for(var k=0;k<diskList.length;k++){
-			       		    	    	var diskVO = diskList[k];
+			       		    	    	var diskVO = diskList[k]();
 			       		    	    	var newDiskOrderItem = {};
 			       		    	    	newDiskOrderItem.billCycle = diskVO.billCycle();
 			       		    	    	newDiskOrderItem.expireType = diskVO.expireType();

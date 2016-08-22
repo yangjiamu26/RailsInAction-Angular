@@ -288,13 +288,13 @@
 		      	             orderData: ko.observable(orderData)
 		      	      });
 		      	    
-		      	      function getServiceRelationInfo(callback,serviceUuid,vmInParamData,callbackCustParam){//获取服务关联的信息
+		      	      function getServiceRelationInfo(callback,serviceUuid,vmInParamData,userName,userType,callbackCustParam){//获取服务关联的信息
 		      	    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vmInParamData.vdcUuid+"&azUuid="+vmInParamData.azUuid+"&vpcUuid="+vmInParamData.vpcUuid+"&osType="+vmInParamData.osType;
-		                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result,textStatus,callbackCustParam){
+		                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri+"&userAccount="+userName+"&userType="+userType, function(result,textStatus,callbackCustParam){
 		                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vmInParamData.vdcUuid,function(result2,textStatus,callbackCustParam){
-		                         csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid+"&userUuid=",function(result3,textStatus,callbackCustParam){
-		                        	 callback(result,result2,result3,callbackCustParam);
-		                         },function(){},callbackCustParam);
+		                         //csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid+"&userUuid=",function(result3,textStatus,callbackCustParam){
+		                        	 callback(result,result2,callbackCustParam);
+		                        // },function(){},callbackCustParam);
 		                     },function(){},callbackCustParam);
 		                   },function(){},callbackCustParam);
 		      	      }
@@ -306,6 +306,8 @@
 		      			  var orderItem = orderData.orderItems[i];
 		      			  if(orderItem.resourceType == "VM"){
 		      				vmOrderItems.push(orderItem);
+		      				var userName = orderData.userName;
+		      				var userType = orderData.userType;
 		      				var serviceUuid=orderItem.serviceUuid;
 		 	      		    var metaData = JSON.parse(orderItem.metaData);
 		 	      		    var vmInParamData = JSON.parse(metaData.resBaseInfo);
@@ -313,9 +315,9 @@
 		 	                var selelctNetworkUuid = networks[0]?networks[0].networkId:"";
 		 	           	    var vmInfo = new VmInfo();
 		 	                var callbackCustParam = vmInfo;
-		 	                getServiceRelationInfo(function(result,result2,result3,callbackCustParam){
+		 	                getServiceRelationInfo(function(result,result2,callbackCustParam){
 		 	                	  var vmInfo = callbackCustParam;
-		                          vmInfo.sshList(result3.results);
+		                         // vmInfo.sshList(result3.results);
 		 	                	  vmInfo.bussyList(result2.results); 
 		                          vmInfo.vdcList(result.vdcList);
 		                          vmInfo.vpcList(result.vpcList);
@@ -327,7 +329,7 @@
 		                          var osVersionList = result.osVersionList;
 		                          vmInfo.osVersionList(result.osVersionList);
 		                          
-		 	                },serviceUuid,vmInParamData,callbackCustParam);
+		 	                },serviceUuid,vmInParamData,userName,userType,callbackCustParam);
 		 	                
 		 	                vmInfo.selectIp = vmInParamData.ip;//用于查询网络有效ip的回调取值
 		 	                csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
@@ -623,7 +625,7 @@
 		      	        this.volumeSize = ko.observable(""),
 		      	        this.billCycle= ko.observable(""),
 		      	        this.billCycleText = ko.pureComputed(function(){
-		 	            	 return csc.util.getBillCycleText(this.billCycle);
+		 	            	 return csc.util.getBillCycleText(this.billCycle());
 		 	            }, this);
 		      	        this.fee= ko.observable(""),
 		      	        this.expireType=ko.observable(""),
@@ -717,7 +719,7 @@
 		      	        this.sshKeyName= ko.observable(""),
 		      	        this.billCycle= ko.observable(""),
 		 	      	    this.billCycleText = ko.pureComputed(function(){
-		 	            	 return csc.util.getBillCycleText(this.billCycle);
+		 	            	 return csc.util.getBillCycleText(this.billCycle());
 		 	            }, this);
 		      	        this.fee= ko.observable(""),
 		      	        this.expireType=ko.observable(""),

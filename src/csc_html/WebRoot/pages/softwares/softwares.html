@@ -827,7 +827,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 				threads : 1,
 				fileNumLimit : 1,
 				chunked : true,
-				chunkSize : 1310720,
 				resize : false
 			});
 
@@ -846,6 +845,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			self.uploader.options.server = '/csc/api/file/uploadServlet?handler=cscSoft&actionKey=' + WebUploader.guid('csc_upload_') + '&dataKey=' + uuid;
 
 			self.uploader.on('startUpload', function() {
+				
 				var intervalId = setInterval(function() {
 
 					$.SOFTWARE.getProgress(uuid, function(data) {
@@ -856,9 +856,17 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 						}
 
 						//clearInterval(intervalId);
-						if (data.progress == 'success' || data.progress == 'N/A') {
-							clearInterval(intervalId);
-							self.table.refreshData();
+						if ((data.progress == 'success' || data.progress == 'N/A')) {
+							console.log(self.uploader.isInProgress());
+							if (!self.uploader.isInProgress()) {
+								var timeout = setTimeout(function() {
+									if (!self.uploader.isInProgress) {
+										clearInterval(intervalId);
+										self.table.refreshData();
+										clearTimeout(timeout);
+									}
+								}, 3500);
+							}
 						}
 					});
 				}, 3500);

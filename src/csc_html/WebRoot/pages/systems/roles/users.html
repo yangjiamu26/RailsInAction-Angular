@@ -70,7 +70,7 @@
 									<div class="checkbox">
 										<label class="i-checks"> <input type="checkbox"
 											value="" data-bind="checkedValue: $row.id, checked: $parent.chosenItems"> <i></i>
-										</label>        
+										</label>
 									</div>
 								</td>
 								<td data-bind="text: $row.name"></td>
@@ -174,7 +174,6 @@
 	var scripts = [ null, 'assets/lib/zTree/js/jquery.ztree.core.js', null ]
 	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         var roleId = args.roleId;
-        console.log(args);
 		function ViewModel() {
 			var start = 0;
 			var size = 0;
@@ -207,7 +206,6 @@
 			    		size : size,
 			    		userType : userType
 			    		};
-				  console.log(self.searchParamLeft);
 				  self.loadTableLeft();
 				//alert(this.searchParamL().name)
 			}
@@ -227,7 +225,6 @@
 			    		size : size,
 			    		userType : userType
 			    		};
-				console.log(self.searchParamRight);
 				self.loadTableRight();
 				//alert(this.searchParamR().name)
 			}
@@ -303,30 +300,14 @@
 			
 			this.addRoleUsers = function() {
 				var param = {};
-				if(userType == 0){
 				var leftUsers = self.tableLeft.chosenItems();
-				csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId, function(data) {
-					var rightUsers = _.pluck(data.results, 'id');
-					var users = rightUsers.concat(leftUsers);
-					
-					param.id = users.join(",");
-					param.userType = userType;
-					console.log(param);				    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
-									function() {
-								    	self.loadTableLeft();
-								    	self.loadTableRight();		 
-				    				  
-									});
-					});  
-				}else if(userType == 1){
-					var leftUsers = self.tableLeft.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType, function(data) {
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&systemId='+userType, function(data) {
 						var rightUsers = _.pluck(data.results, 'id');
 						var users = rightUsers.concat(leftUsers);
 						
 						param.id = users.join(",");
+						param.name = args.name;
 						param.userType = userType;
-						console.log(param);
 					    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
 										function() {
 									    	self.loadTableLeft();
@@ -334,33 +315,16 @@
 					    				  
 										});
 						});  
-				}
 			};
 			this.removeRoleUsers = function() {
 				var param = {};
-				if(userType == 0){
 				var leftUsers = self.tableRight.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId,function(data) {
-					    var rightUsers = _.pluck(data.results, 'id');
-					    var users = _.difference(rightUsers, leftUsers); 
-					    param.id = users.join(",");
-					    param.userType = userType;
-					    console.log(param);
-					    //去除rightUsers中包含的leftUsers用户
-						csc.rest.put('api/v5.0.0/uap/'+roleId, param,
-					       function() {
-							  self.loadTableLeft();
-							  self.loadTableRight();
-						});
-					}); 
-				}else if(userType == 1){
-					var leftUsers = self.tableRight.chosenItems();
 					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType,function(data) {
 					    var rightUsers = _.pluck(data.results, 'id');
 					    var users = _.difference(rightUsers, leftUsers); 
 					    param.id = users.join(",");
+					    param.name = args.name;
 					    param.userType = userType;
-					    console.log(param);
 					    //去除rightUsers中包含的leftUsers用户
 						csc.rest.put('api/v5.0.0/uap/'+roleId, param,
 					       function() {
@@ -368,7 +332,6 @@
 							  self.loadTableRight();
 						});
 					}); 
-				}
 			}
 			
 			function getCharge(check,data) {

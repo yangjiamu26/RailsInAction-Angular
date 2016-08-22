@@ -260,16 +260,14 @@
 	      	             softApplyList : ko.observableArray([])
 	      	      });
 	      	    
-	      	      function getServiceRelationInfo(callback,serviceUuid,vmInParamData,callbackCustParam){//获取服务关联的信息
+	      	      function getServiceRelationInfo(callback,serviceUuid,vmInParamData,userName,userType,callbackCustParam){//获取服务关联的信息
 	      	    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vmInParamData.vdcUuid+"&azUuid="+vmInParamData.azUuid+"&vpcUuid="+vmInParamData.vpcUuid+"&osType="+vmInParamData.osType;
-	                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result,textStatus,callbackCustParam){
+	                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri+"&userAccount="+userName+"&userType="+userType, function(result,textStatus,callbackCustParam){
 	                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vmInParamData.vdcUuid,function(result2,textStatus,callbackCustParam){
 	                        	 callback(result,result2,callbackCustParam);
 	                     },function(){},callbackCustParam);
 	                   },function(){},callbackCustParam);
 	      	      }
-	      	      
-	      	      
 	      	      
 	      	      
 	      	      orderData.orderItems.sort(function(a,b){return a.instanceName > b.instanceName});//排序
@@ -279,6 +277,8 @@
 	      			  var orderItem = orderData.orderItems[i];
 	      			  if(orderItem.resourceType == "VM"){
 	      				vmOrderItems.push(orderItem);
+	      				var userName = orderData.userName;
+	      				var userType = orderData.userType;
 	      				var serviceUuid=orderItem.serviceUuid;
 	 	      		    var metaData = JSON.parse(orderItem.metaData);
 	 	      		    var vmInParamData = JSON.parse(metaData.resBaseInfo);
@@ -308,7 +308,7 @@
 	                          var osVersionList = result.osVersionList;
 	                          vmInfo.osVersionList(result.osVersionList);
 	                          
-	 	                },serviceUuid,vmInParamData,callbackCustParam);
+	 	                },serviceUuid,vmInParamData,userName,userType,callbackCustParam);
 	 	                
 	      				vmInfo.serviceUuid(orderItem.serviceUuid);
 	      				vmInfo.instanceName(orderItem.instanceName);
@@ -429,7 +429,6 @@
 	          			  if(vmVO.relateUuid()  && vmVO.relateUuid() == diskVo.relateUuid()){
 	          				  diskVo.expireText(vmVO.expireText())
 	          				  vmVO.mountDiskList.push(diskVo);
-	          				  break;
 	          			  }
 	          		  }
 	          		  
@@ -490,14 +489,15 @@
  	      	        this.volumeSize = ko.observable(""),
  	      	        this.billCycle= ko.observable(""),
 	      	        this.billCycleText = ko.pureComputed(function(){
-	 	            	 return csc.util.getBillCycleText(this.billCycle);
+	 	            	 return csc.util.getBillCycleText(this.billCycle());
 	 	            }, this);
 	      	        this.fee= ko.observable(""),
 	      	        this.expireType=ko.observable(""),
 	      	        this.expireValue=ko.observable(""),
 	      	        this.expireText=ko.observable(""),
 	      	        this.isBill=ko.observable(""),
-	      	        this.relateUuid=ko.observable("")
+	      	        this.relateUuid=ko.observable("");
+	      	        
 	      	   }
 	      		
 	      		
@@ -565,7 +565,7 @@
  	      	        this.sshKeyName= ko.observable("");
  	      	        this.billCycle= ko.observable("");
 	 	      	    this.billCycleText = ko.pureComputed(function(){
-	 	            	 return csc.util.getBillCycleText(this.billCycle);
+	 	            	 return csc.util.getBillCycleText(this.billCycle());
 	 	            }, this);
  	      	        this.fee= ko.observable("");
  	      	        this.expireType=ko.observable("");

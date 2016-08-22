@@ -5930,7 +5930,6 @@ ko.bindingHandlers.check_click = {
 	        		flag = true;
 	        	}
 	        }
-	        flag = true;
 	        if(flag){
 	        	ko.bindingHandlers.click.init(element, valueAccessor, allBindings, viewModel, bindingContext);
 	        }else{
