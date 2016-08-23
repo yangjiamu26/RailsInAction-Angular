@@ -7,36 +7,52 @@
 </div>
 
 <div class="wrapper-md">
-    
     <div id="knockout-form" style="display: none;" data-bind="visible: true" >
-        <form id="" action="" data-bind="foreach: Fields" class="">
+        <form id="" action="" data-bind="foreach: Fields" class="form-horizontal">
             <!--ko if: $parent.HiddenElements().indexOf(Name()) == -1 -->
-            <div class="" data-bind="css:''+Type()">
+            <div class="form-group" >
                 <!--ko if: Element() !== "button" && Type() !== "submit" -->
-                    <label data-bind="text: Name, attr: {for:Name}"></label>
+                    <label class="col-sm-2 control-label" data-bind="text: Name, attr: {for:Name}"></label>
                 <!--/ko-->
 
                 <!--ko if: Element() === "select" -->
-                    <select data-bind="options: Options, attr: {id:Name}, value:Value"></select>
+                    <div class="col-sm-10">
+                        <select class="form-control" data-bind="options: Options, attr: {id:Name}, value:Value"></select>
+                    </div>
                 <!--/ko-->
 
                 <!--ko if: Element() === "input" && Type() === "radio" || Type() === "checkbox" -->
-                    <div class="" data-bind="foreach: Options">
-                        <input data-bind="checked: $parent.DefaultValue, attr: {id:$data, type:$parent.Type, name:$data}, value:$data"/>
-                        <label data-bind="text: $data, attr: {for:$data}"></label>
+                    <div class="col-sm-10">
+                        <div class="form-inline" data-bind="foreach: Options">
+                            <div class="checkbox">
+                                <label>
+                                  <input data-bind="checked: $parent.DefaultValue, attr: {id:$data, type:$parent.Type, name:$data}, value:$data"/> <span data-bind="text: $data, attr: {for:$data}"></span>
+                                </label>
+                            </div>
+
+                        </div>
                     </div>
                 <!--/ko-->
 
                 <!--ko if: Element() === "input" && Type() !== "radio" && Type() !== "checkbox" && Type() !== "submit" -->
-                    <input data-bind="attr: {id:Name, type:Type, placeholder:Placeholder }, value:Value "></input>
+                    <div class="col-sm-10">
+                        <input class="form-control" data-bind="attr: {id:Name, type:Type, placeholder:Placeholder }, value:Value "></input>
+                    </div>
                 <!--/ko-->
 
                 <!--ko if: Element() === "textarea" -->
-                    <textarea data-bind="attr: {id:Name, placeholder:Placeholder, value:Value}, value:Value"></textarea>
+                    <div class="col-sm-10">
+                        <textarea class="form-control" data-bind="attr: {id:Name, placeholder:Placeholder, value:Value}, value:Value"></textarea>
+                    </div>
                 <!--/ko-->
 
                 <!--ko if: Element() === "input" && Type() === "submit" -->
-                    <input data-bind=" attr: {id:Name, type:Type, value: Value}, click: $root.SaveForm"></input>
+                    <div class="form-group" >
+                        <label class="col-sm-2 control-label"></label>
+                        <div class="col-sm-10">
+                            <input class="btn btn-primary" data-bind=" attr: {id:Name, type:Type, value: Value}, click: $root.SaveForm"></input>
+                        </div>
+                    </div>
                 <!--/ko-->
 
                 <!--ko if: Element() === "button" -->
@@ -52,7 +68,7 @@
     var scripts = ["assets/js/knockout.form.js", null];
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         $.get('pages/workflows/knockout.form.json', function(data){
-            ko.applyBindings(new FormViewModel(data.formElements), $("#knockout-form")[0]);
+            ko.applyBindings(new FormViewModel(JSON.parse(data).formElements), $("#knockout-form")[0]);
         });
     });
     
