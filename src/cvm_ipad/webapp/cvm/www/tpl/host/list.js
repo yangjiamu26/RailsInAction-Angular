@@ -7,6 +7,7 @@ myApp.onPageInit("host-list", function(page) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore, hypervisor, resPoolId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -34,6 +35,8 @@ myApp.onPageInit("host-list", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
           self.dataList.push(data.data[i]);
@@ -42,6 +45,7 @@ myApp.onPageInit("host-list", function(page) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }
@@ -49,13 +53,14 @@ myApp.onPageInit("host-list", function(page) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
 
-  viewModel.loadData(false,"","");
+  viewModel.loadData(false);
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false,viewModel.hypervisor(),viewModel.resPoolId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
+          console.log(1)
+    viewModel.loadData(true,viewModel.hypervisor(),viewModel.resPoolId());
   });  
 
 });

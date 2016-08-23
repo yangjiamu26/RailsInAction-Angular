@@ -72,7 +72,7 @@ function initsingleStorage_use_chart(data) {
 }
 
 // 单个存储池-分配率占比图
-function initsingleStorage_assigned_chart() {
+function initsingleStorage_assigned_chart(data) {
     $('#singleStorage_assigned_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -129,12 +129,12 @@ function initsingleStorage_assigned_chart() {
           name: '存储',
           data: [{
                   name: '未分配',
-                  y: 3.73,
+                  y: data.storageTotal-data.allocatedStorage,
                   color:"#fadf4f"
               },
               {
                   name: '已分配',
-                  y: 4.81,
+                  y: data.allocatedStorage,
                   color:"#f87b38"
               }
           ]
@@ -152,6 +152,7 @@ function initsingleStorage_assigned_chart() {
       "path":'',
       "shared":''
     });
+    this.hypervisor = ko.observable(page.query.hypervisor);
     this.loadData = function(){
       var self = this;
       RestServiceJs(BASE_URL+"/storagePool/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
@@ -177,7 +178,9 @@ function initsingleStorage_assigned_chart() {
         self.summary(data);
 
         initsingleStorage_use_chart(data);
-        initsingleStorage_assigned_chart(data);
+        if(page.query.hypervisor=='winserver'){
+          initsingleStorage_assigned_chart(data);
+        }
       });      
     };
   }
