@@ -136,15 +136,15 @@ function initHost_status_chart(nums) {
               break;
             case 'RESTART':
               data.data[i].state='重启中';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='orange';
               break;
             case 'DISCONNECT':
               data.data[i].state='未运行';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='gray';
               break;
             case 'MAINTAIN':
               data.data[i].state='维护';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='gray';
               break;
           }
           self.dataList.push(data.data[i]);
