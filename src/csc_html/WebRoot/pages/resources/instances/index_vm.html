@@ -93,7 +93,7 @@
                 <td data-bind="text: vcpu"></td>
                 <td data-bind="text: memory"></td>
                 <td data-bind="text: storage"></td>
-                <td data-bind="text: userName"></td>
+                <td data-bind="text: account"></td>
                 <td data-bind="text: createTime"></td>
                 <td><span data-bind="check_action:'cs_Console'"><a data-bind="click: $root.console">控制台</a> | </span> <span data-bind="check_action:'cs_TimeMidify'"><a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |</span>
                   <div class="btn-group">
@@ -322,7 +322,7 @@
                       </thead>
                       <tbody data-bind="foreach: diskItems">
                         <tr>
-                          <td><input type="text" class="form-control input-sm" data-bind="value: volumeName"/></td>
+                          <td><input type="text" class="form-control input-sm" data-bind="value: volumeName" maxlength="32"/></td>
                           <td><input type="text" class="form-control input-sm" data-bind="value: volumeSize"/></td>
                           <td><a data-bind="click:$root.delAction">删除</a></td>
                         </tr>
@@ -1068,7 +1068,6 @@
     	  csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
     		  if(data.results){
 		    	  self.add_partitions(data.results);
-		    	  self.add_vpcs_def();
     		  }
     	  });
       }
@@ -1076,7 +1075,7 @@
       //可用分区
       this.add_partitions = ko.observableArray([]);
       
-      //可用分区->镜像+SSH
+      //可用分区->镜像+SSH+vpc
       this.onchange_add_partitions = function(){
     	  var azUuid = self.currentVO().partition();
     	  csc.rest.get('api/v5.0.0/images?azUuid='+azUuid,function(data){
@@ -1085,6 +1084,7 @@
     	  csc.rest.get('api/v5.0.0/sshKeys?isValidate=true&azUuid='+azUuid,function(data){
     		  self.add_sshKeys(data.results);
     	  });
+    	  self.add_vpcs_def();
       }
       
       //镜像
@@ -1094,7 +1094,8 @@
       this.add_vpcs = ko.observableArray([]);
       this.add_vpcs_def = function(){
     	  var vdcUuid = self.currentVO().vdc();
-    	  csc.rest.get('api/v5.0.0/vpcs?vdcUuid='+vdcUuid,function(data){
+    	  var azUuid = self.currentVO().partition();
+    	  csc.rest.get('api/v5.0.0/vpcs?vdcUuid='+vdcUuid+'&azUuid='+azUuid,function(data){
     		  self.add_vpcs(data.results);
     	  });
       }
@@ -1401,10 +1402,12 @@
             	  postBody.orderItems = orderItems;
             	  
             	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-            		  if(data.code){
-            			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-          		 		self.isDeleteProcess(false);
+            		  if(data.taskId){
+            			systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！');
+            		  }else if(data.code){
+            			systemMsg.alert('删除资源申请成功，订单编号：' + data.code + '！');
             		  }
+          		 	  self.isDeleteProcess(false);
             	  });
     		  });
       }

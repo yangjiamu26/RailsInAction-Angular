@@ -227,13 +227,12 @@
 				<h3 class='modal-title' data-bind="ifnot: currentVO().id">接入云管理平台</h3>
 				<h3 class='modal-title' data-bind="if: currentVO().id">修改</h3>
 			</div>
-			<div class='modal-body form-horizontal'
-				data-bind="with:currentVO">
+			<div class='modal-body form-horizontal'>
 				<div class="form-group">
 					<label class="col-xs-3 control-label">名称</label>
 					<div class="col-xs-8">
 						<input type="text" class="form-control" placeholder="请输入名称"
-							data-bind="value:name">
+							data-bind="value:currentVO().name">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -254,7 +253,7 @@
 					<label class="col-xs-3 control-label">云管理平台类型</label>
 					<div class="col-xs-8">
 						<select class="form-control"
-							data-bind="value:type,attr:{disabled:id}">
+							data-bind="value:currentVO().type,attr:{disabled:currentVO().id}">
 							<option value="OpenStack">OpenStack</option>
 							<option value="CNware">CNware</option>
 						</select>
@@ -264,7 +263,7 @@
 					<label class="col-xs-3 control-label">IP</label>
 					<div class="col-xs-8">
 						<input type="text" class="form-control" placeholder="请输入名称"
-							data-bind="value:ip,attr:{disabled:id}">
+							data-bind="value:currentVO().ip,attr:{disabled:currentVO().id}">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -274,7 +273,7 @@
 					<label class="col-xs-3 control-label">端口</label>
 					<div class="col-xs-8">
 						<input type="text" class="form-control" placeholder="请输入名称"
-							data-bind="value:port,attr:{disabled:id}">
+							data-bind="value:currentVO().port,attr:{disabled:currentVO().id}">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -284,7 +283,7 @@
 					<label class="col-xs-3 control-label">用户名</label>
 					<div class="col-xs-8">
 						<input type="text" class="form-control" placeholder="请输入名称"
-							data-bind="value:username">
+							data-bind="value:currentVO().username">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -294,57 +293,77 @@
 					<label class="col-xs-3 control-label">密码</label>
 					<div class="col-xs-8">
 						<input type="password" class="form-control" placeholder="请输入名称"
-							data-bind="value:password">
+							data-bind="value:currentVO().password">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
 					</div>
 				</div>
-				<div class="form-group" data-bind="visible: type() == 'CNware'">
+				<div class="form-group" data-bind="visible: currentVO().type() == 'CNware'">
+					<label class="col-xs-3 control-label"></label>
+					<div class="col-xs-8">
+						<a class="btn btn-default btn-info" data-bind="click: findDomain">发现资源域</a>
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm"></span>
+					</div>
+				</div>
+				<div class="form-group" data-bind="visible: currentVO().type() == 'CNware'">
 					<label class="col-xs-3 control-label">资源域</label>
 					<div class="col-xs-8">
-						<div class="panel panel-default table-responsive no-height">
+						<div class="panel panel-default table-responsive no-height" id="domainTable" data-bind="with: domainTable">
 							<table class="table table-striped">
 								<thead>
 									<tr>
 										<th>
 											<div class="radio">
-												<label class="i-checks"> <input type="radio"
-													value=""> <i></i>
-												</label>
+												<label class="i-checks"  style="display:none"> <input type="radio" value=""> <i></i></label>
 											</div>
 										</th>
+									
 										<th>名称</th>
 										<th>IP</th>
 										<th>端口</th>
 									</tr>
 								</thead>
 								<tbody>
+										<tr data-bind="visible: showNoData">
+							              <td colspan=4 class="aligncenter">
+							                	暂无数据
+							              </td>
+							            </tr>
+							        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 									<tr>
 										<td>
 											<div class="radio">
-												<label class="i-checks"> <input type="radio"
-													value=""> <i></i>
-												</label>
+												<label class="i-checks"><input type="radio" name="originalIds" data-bind="checkedValue: $data,checked: $parent.chosenItems"> <i></i></label>
 											</div>
 										</td>
-										<td>金阳</td>
-										<td>192.168.2.33</td>
-										<td>8090</td>
+									
+										<td data-bind="text:name">金阳</td>
+										<td data-bind="text:ip">192.168.2.33</td>
+										<td data-bind="text:port">8090</td>
 									</tr>
+									 <!-- /ko -->
 								</tbody>
 							</table>
 						</div>
+						<span id="domainTableValidateMessage" class="validationMessage" data-bind="visible"></span>
+					</div>
+					<div class="col-xs-1">
+						<span class="text-danger inline m-l-n m-t-sm">*</span>
 					</div>
 				</div>
 				<div class="form-group">
 					<label class="col-xs-3 control-label">描述</label>
 					<div class="col-xs-8">
 						<textarea class="form-control" cols="30" rows="3"
-							data-bind="value:description"></textarea>
+							data-bind="value:currentVO().description"></textarea>
 					</div>
 				</div>
 			</div>
+			
+			
 			<div class='modal-footer' style="text-align: center;">
 				<a class="btn btn-default btn-info" data-bind="click:ok">确定</a> <a
 					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
@@ -606,12 +625,17 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       };
 
     this.ok = function(){ 	  
+
    		//接入
       	if(this.currentVO().id == null){
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {
+
+     	    	var postBody = self.currentVO.toJSON();
+     	    	postBody.domain = self.domainTable.chosenItems();
+
       			//保存
-      			$.CLOUD_PLATFORM.createCloudPlatform(self.currentVO.toJSON(),function(data){
+      			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
       				self.isEdit(false);//关闭modal
             		if(data.uuid){
           				alert("接入云管理平台成功！")               	  
@@ -627,7 +651,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       }else{
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {   
-     	  		console.log(this.currentVO.toJSON());
+     	  		//console.log(this.currentVO.toJSON());
      	  		$.CLOUD_PLATFORM.modifyCloudPlatform(self.currentVO().uuid,this.currentVO.toJSON(),function(data){
      	  			alert("修改云管理平台成功")
  		        	self.table.refreshData();//刷新列表    	        	
@@ -651,8 +675,27 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
     //this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
     this.table = new DataTable([], {path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID});
+    
+    
+  	//---------------------资源域wce----------------------
+
+    this.domainTable =  new DataTable([],{perPage:100,loader:function(result){
+    	return result;
+    }});//设置大一些不分页
+    
+    this.findDomain = function(){
+    	
+    	var ip = self.currentVO().ip();
+    	var port = self.currentVO().port();
+    	var username = self.currentVO().username();
+    	var password = self.currentVO().password();
+    	self.domainTable.path('api/v5.0.0/domains?ip='+ip+"&port="+port+"&username="+username+"&password="+password);
+    }
+    
+    
   };
   
+
   ko.applyBindings(new ViewModel(), $('#page-content')[0]);
 
 

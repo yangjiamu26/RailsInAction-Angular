@@ -5,7 +5,7 @@ function RestServiceJs(newurl) {
   var self = {};
   self.myurl = url;  
    
-  self.post = function(model, callback) {  
+  self.post = function(model, callback, error) {  
       $.ajax({  
           type: 'POST',  
           url: self.myurl,  
@@ -14,7 +14,7 @@ function RestServiceJs(newurl) {
           dataType: 'json',
           contentType: 'application/json',
           success: callback,  
-          error: function(req, status, ex) {
+          error: error ? error : function(req, status, ex) {
             console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
@@ -26,7 +26,7 @@ function RestServiceJs(newurl) {
       });  
   };  
    
-  self.put= function(params, callback) {  
+  self.put= function(params, callback, error) {  
       $.ajax({  
           type: 'PUT',  
           url: self.myurl,  
@@ -35,7 +35,7 @@ function RestServiceJs(newurl) {
           dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
-          error: function(req, status, ex) {
+          error: error ? error : function(req, status, ex) {
             console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
@@ -47,7 +47,7 @@ function RestServiceJs(newurl) {
       });  
   };  
    
-  self.get = function(id, params, callback) {
+  self.get = function(id, params, callback, error) {
     var end = '';
       if(self.myurl.indexOf('demoapi')>-1){
         self.myurl = self.myurl.replace('.json','');
@@ -60,7 +60,7 @@ function RestServiceJs(newurl) {
           dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
-          error: function(req, status, ex) {
+          error: error ? error : function(req, status, ex) {
             console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
@@ -72,7 +72,7 @@ function RestServiceJs(newurl) {
       });  
   };
    
-  self.query = function(params, callback) {
+  self.query = function(params, callback, error) {
       $.ajax({  
           type: 'GET',  
           url: self.myurl,
@@ -80,7 +80,7 @@ function RestServiceJs(newurl) {
           dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
-          error: function(req, status, ex) {
+          error: error ? error : function(req, status, ex) {
             console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);
@@ -92,14 +92,14 @@ function RestServiceJs(newurl) {
       });  
   };  
    
-  self.del = function(id, callback) {  
+  self.del = function(id, callback, error) {  
       $.ajax({  
           type: 'DELETE',  
           url: self.myurl + '/' + id,  
           dataType: 'json',
           contentType: 'application/json',  
           success: callback,  
-          error: function(req, status, ex) {
+          error: error ? error : function(req, status, ex) {
             console.log(req);
             if(req.responseText){
               myApp.alert(JSON.parse(req.responseText).exception);

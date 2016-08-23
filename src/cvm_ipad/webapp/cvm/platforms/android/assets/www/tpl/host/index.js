@@ -72,6 +72,7 @@ function initHost_status_chart(nums) {
     this.hostId = ko.observable("");
     this.dataList = ko.observableArray([]);
     this.hostSize = ko.observable("");
+    this.dcName = ko.observable(CVM_PAD.dcName);
 
     this.loading = false;
     this.page = 1;

@@ -76,7 +76,7 @@
                 <div class="col-xs-1 font-bold">业务系统：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().busSysName"></div>
                 <div class="col-xs-1 font-bold">创建人：</div>
-                <div class="col-xs-3" data-bind="text:vmVO().userName"></div>
+                <div class="col-xs-3" data-bind="text:vmVO().account"></div>
                 <div class="col-xs-1 font-bold">创建时间：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().createTime"></div>
               </div>
@@ -1312,31 +1312,26 @@
     //3.windows必须有密码，linux如果没有密码使用密钥（用户名、密码保存在数据库，以后可以做修改功能）
     //4.安装完成后将公网IP与虚拟机解绑
     this.submitInstallSoftwares = function(){
-    	//获取待安装软件的uuids
-    	var softwareUuid = "";
-    	for(var ia=0;ia<self.softwareItems().length;ia++){
-    		if(ia == self.softwareItems().length-1){
-    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid;
-    		}else{
-    			softwareUuid = softwareUuid + self.softwareItems()[ia].uuid + ",";
-    		}
-    	}
-    	if(csc.util.isNull(softwareUuid)){
+    	if(self.softwareItems().length == 0){
     		systemMsg.alert('请选择一个软件！');
     		return;
     	}
-    	var vm = {};
-    	vm.id = self.vmVO().id;
-    	vm.uuid = self.vmVO().uuid;
-    	vm.userName = self.installSoftwareVO().userName();
-    	if(csc.util.isNotNull(self.installSoftwareVO().password())){
-	    	vm.userPwd = self.installSoftwareVO().password();
+    	if(csc.util.isNull(self.installSoftwareVO().userName())){
+    		systemMsg.alert('请填写用户名	！');
+    		return;
     	}
-    	vm.softwareUuid = softwareUuid;
-    		
     	var vms = [];
-    	vms.push(vm);
-    	
+    	for(var ia=0;ia<self.softwareItems().length;ia++){
+    		var vm = {};
+        	vm.id = self.vmVO().id;
+        	vm.uuid = self.vmVO().uuid;
+        	vm.userName = self.installSoftwareVO().userName();
+        	if(csc.util.isNotNull(self.installSoftwareVO().password())){
+    	    	vm.userPwd = self.installSoftwareVO().password();
+        	}
+        	vm.softwareUuid = self.softwareItems()[ia].uuid;
+        	vms.push(vm);
+    	}
     	var postBody = {};
     	postBody.vms = vms;
     	csc.rest.post("api/v5.0.0/install",postBody,function(data){
@@ -1676,10 +1671,12 @@
         	  postBody.orderItems = orderItems;
         	  
         	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-        		  if(data.code){
+        		  if(data.taskId){
+          			systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！');
+          		  }else if(data.code){
         			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-      		 		self.isDeleteProcess(false);
         		  }
+      		 	  self.isDeleteProcess(false);
         	  });
 		  });
   		}
@@ -2173,9 +2170,11 @@
 						cpu_chart.xAxis[0].setCategories(element.xdataList);
 					};
 				});
-			}else{
-				systemMsg.alert("监控信息查询为空!");
 			}
+			//若无数据，什么都不显示
+			/* else{
+				systemMsg.alert("监控信息查询为空!");
+			} */
 		});
 	};
 	 //--------------------------------------------性能监控 结束-------------------------------------

@@ -145,7 +145,7 @@
               <div class="form-group" data-bind="visible: showVdc">
                 <label for="inputEmail3" class="col-xs-3 control-label">所属VDC</label>
                 <div class="col-xs-8">
-                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', attr: {'disabled': vdcDisable}">
+                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', attr: {'disabled': vdcDisable},valueAllowUnset:true">
                   </select>
                 </div>
               </div>
@@ -281,8 +281,14 @@
 								<td data-bind="text: $row.deployTime"></td>
 								<td><span class="label" data-bind="text: $row.statusName, css: {'label-danger':$row.status,'label-success':!$row.status}"></span></td>
 								<td>
-									<a data-bind="click: $root.pause">挂起</a> |
-									<a data-bind="click: $root.activate">激活</a> |
+								    <span>
+								        <span data-bind="ifnot:status"><a data-bind="click: $root.pause">挂起</a> |</span>
+								        <span title="已经挂起的流程不需要再次挂起" data-bind="if:status">挂起|</span>
+									</span>
+									<span>
+										<span data-bind="if:status"><a data-bind="click: $root.activate">激活</a> |</span>
+										<span title="已经激活的流程不需要再次激活" data-bind="ifnot:status">激活|</span>
+									</span>
 									<a data-bind="click: $root.review">查看</a>
 								</td>
 							</tr>
@@ -344,7 +350,7 @@
 	    	  id: ko.observable(""),
 	    	  name: ko.observable("").extend({required: true,maxLength:32, cscNameRule: true}),
 	          processType: ko.observable("").extend({required: true}),
-	          vdcId: ko.observable("").extend({required: true}),
+	          vdcId: ko.observable(""),
 	          description: ko.observable(""),
 	          productTypes: ko.observable(""),
 	          isDefault: ko.observable("")
@@ -356,6 +362,8 @@
 	      
 	      this.isAdd = ko.observable(false);
 	      this.add = function(){
+	        ko.validation.group(self.modelVO).showAllMessages('');
+	          
 	    	self.typeDisable(false);
 	    	self.vdcDisable(false);
 	    	self.modelVO.fromJSON({
@@ -408,9 +416,6 @@
 	        	$("input[name='productTypes']:checked").each(function(){
 	        		types.push($(this).val());
 	        	});
-	        	if(self.modelVO.toJSON().isDefault){
-	        		self.modelVO.fromJSON({"vdcId":"0"});
-		    	}
 	        	if(self.modelVO.toJSON().processType != 'VDC_APPLY' && self.modelVO.toJSON().processType != 'VDC_CHANGE' 
 	        			&& types == ""){
 	        		alert("请选择产品类型！");
@@ -420,12 +425,16 @@
 	        		productTypes: types
 	  	        });
 	        	
+	        	if(self.modelVO.toJSON().isDefault){
+		        	self.modelVO.fromJSON({vdcId:"0"});
+		    	}
+	        	
 	        	var modelId = self.modelVO.toJSON().id;
 	        	var modelName = self.modelVO.toJSON().name;
 	        	var processType = self.modelVO.toJSON().processType;
 	        	var vdcId = self.modelVO.toJSON().vdcId;
 	        	
-	        	if(metaProcessType == processType && metaVdcId == vdcId){	        		
+	        	if((metaProcessType == processType && metaVdcId == vdcId) || (vdcId == "0")){	    
 		        	processType="-1";
 		        	vdcId="-1";
 	        	}
