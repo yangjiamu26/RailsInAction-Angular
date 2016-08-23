@@ -157,6 +157,23 @@ function initsingleStorage_assigned_chart() {
       RestServiceJs(BASE_URL+"/storagePool/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
       //$$.getJSON("tpl/storage/summary.json?id="+page.query.id, function(data){
         myApp.pullToRefreshDone();
+        switch(data.type){
+          case 'udev':
+            data.type = '可移动存储';
+            break;
+          case 'nfs':
+            data.type = 'NFS';
+            break;
+          case 'lvm':
+            data.type = '本地LVM';
+            break;
+          case 'LOCAL':
+            data.type = '本地存储';
+            break;
+          case 'LVPOOL':
+            data.type = '本地LVM卷组';
+            break;
+        }
         self.summary(data);
 
         initsingleStorage_use_chart(data);

@@ -61,6 +61,12 @@ myApp.onPageInit("login", function(page) {
         "password": this.password()
       },function(data){
         goLogin(data);
+      },function(req, status, ex){
+        if(req.responseText){
+          myApp.alert(JSON.parse(req.responseText).exception);
+        }else{
+          myApp.alert('请检查网络地址填写是否正确！');
+        }
       });
     }
   }

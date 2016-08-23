@@ -1,0 +1,59 @@
+<div class="bg-light lter b-b wrapper-sm">
+  <ol class="breadcrumb">
+    <li>当前位置：</li>
+    <li>工作</li>
+    <li class="active">动态表单</li>
+  </ol>
+</div>
+
+<div class="wrapper-md">
+    
+    <div id="knockout-form" style="display: none;" data-bind="visible: true" >
+        <form id="" action="" data-bind="foreach: Fields" class="ym-form">
+            <!--ko if: $parent.HiddenElements().indexOf(Name()) == -1 -->
+            <div class="ym-fbox" data-bind="css:'ym-fbox-'+Type()">
+                <!--ko if: Element() !== "button" && Type() !== "submit" -->
+                    <label data-bind="text: Name, attr: {for:Name}"></label>
+                <!--/ko-->
+
+                <!--ko if: Element() === "select" -->
+                    <select data-bind="options: Options, attr: {id:Name}, value:Value"></select>
+                <!--/ko-->
+
+                <!--ko if: Element() === "input" && Type() === "radio" || Type() === "checkbox" -->
+                    <div class="ym-label" data-bind="foreach: Options">
+                        <input data-bind="checked: $parent.DefaultValue, attr: {id:$data, type:$parent.Type, name:$data}, value:$data"/>
+                        <label data-bind="text: $data, attr: {for:$data}"></label>
+                    </div>
+                <!--/ko-->
+
+                <!--ko if: Element() === "input" && Type() !== "radio" && Type() !== "checkbox" && Type() !== "submit" -->
+                    <input data-bind="attr: {id:Name, type:Type, placeholder:Placeholder }, value:Value "></input>
+                <!--/ko-->
+
+                <!--ko if: Element() === "textarea" -->
+                    <textarea data-bind="attr: {id:Name, placeholder:Placeholder, value:Value}, value:Value"></textarea>
+                <!--/ko-->
+
+                <!--ko if: Element() === "input" && Type() === "submit" -->
+                    <input data-bind=" attr: {id:Name, type:Type, value: Value}, click: $root.SaveForm"></input>
+                <!--/ko-->
+
+                <!--ko if: Element() === "button" -->
+                    <button data-bind="attr: {id:Name}"><span data-bind="text: Value, click: $root.SaveForm"></span></button>
+                <!--/ko-->
+            </div>
+            <!--/ko-->
+        </form>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var scripts = ["assets/js/knockout.form.js", null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+        $.get('pages/workflows/knockout.form.json', function(data){
+            ko.applyBindings(new FormViewModel(data.formElements), $("#knockout-form")[0]);
+        });
+    });
+    
+</script>

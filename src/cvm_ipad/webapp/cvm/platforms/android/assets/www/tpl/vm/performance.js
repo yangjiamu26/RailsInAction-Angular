@@ -25,7 +25,7 @@ function initMemoryUse_chart(data, xAxis) {
             }
         },        
         tooltip: {
-            valueSuffix: '%'
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}%</b>'
         },
         legend: {
             layout: 'vertical',
@@ -62,7 +62,7 @@ function initcpuUse_chart1(data,xAxis) {
             },
         },        
         tooltip: {
-            valueSuffix: '%'
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}%</b>'
         },
         legend: {
             layout: 'vertical',
@@ -99,7 +99,83 @@ function initcpuUse_chart2(data,xAxis) {
             },
         },        
         tooltip: {
-            valueSuffix: '%'
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}%</b>'
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0,
+            itemMarginTop: 10
+        },
+        series: data
+    });
+}
+
+// 单个虚拟机磁盘使用率曲线
+function initDiskUse_chart(data,xAxis) {
+    $('#diskUse_chart').highcharts({
+        title: {
+            text: '磁盘使用率(GB)',
+        },
+        credits:{
+          enabled: false,
+          text : ""
+        },  
+        colors: [
+            '#E35733', // orange
+            '#4c97d7', // blue
+            '#52d74c', // green
+            '#e268de' // purple
+        ],               
+        xAxis: {
+            categories: xAxis
+        },
+        yAxis: {
+            title: {
+                text: ''
+            },
+        },        
+        tooltip: {
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}GB</b>'
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0,
+            itemMarginTop: 10
+        },
+        series: data
+    });
+}
+
+// 单个虚拟机网络使用率曲线
+function initNetwork_chart(data,xAxis) {
+    $('#network_chart').highcharts({
+        title: {
+            text: '网络速率(kb/s)',
+        },
+        credits:{
+          enabled: false,
+          text : ""
+        },  
+        colors: [
+            '#E35733', // orange
+            '#4c97d7', // blue
+            '#52d74c', // green
+            '#e268de' // purple
+        ],               
+        xAxis: {
+            categories: xAxis
+        },
+        yAxis: {
+            title: {
+                text: ''
+            },
+        },        
+        tooltip: {
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}kb/s</b>'
         },
         legend: {
             layout: 'vertical',
@@ -115,6 +191,7 @@ function initcpuUse_chart2(data,xAxis) {
   function ViewModel(){
     var self = this;
     this.name = ko.observable(page.query.name);
+    this.hypervisor = ko.observable(page.query.hypervisor);
     this.isShowCharts = ko.observable(true);
     this.memory = ko.observable('');
 
@@ -160,7 +237,7 @@ function initcpuUse_chart2(data,xAxis) {
           type = "cunstom";
           start = "";
           end = "";
-          $$('#vmPerformanceDate').val('');
+          $$('#vmPerformanceDate').val('请选择时间范围');
           break;
       }
       if(type=="cunstom" && start=="" && end==""){
@@ -170,9 +247,7 @@ function initcpuUse_chart2(data,xAxis) {
         self.loadData(type,start,end);
       }
     }
-
     this.loadData = function(type,start,end){
-
       RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"type":type,"startTime":start||"","endTime":end||""},function(data){
         var startTime = new Date(Number(data.meta.start+"000"));
         var endTime = new Date(Number(data.meta.end+"000"));
@@ -185,6 +260,7 @@ function initcpuUse_chart2(data,xAxis) {
         var calendarRange = myApp.calendar({
             input: '#vmPerformanceDate',
             dateFormat: 'yyyy.mm.dd',
+            inputReadOnly: true,
             rangePicker: true,
             maxDate:new Date(),
             monthNames: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
@@ -203,42 +279,144 @@ function initcpuUse_chart2(data,xAxis) {
               }
             }
         });
+
         var xAxis = [];
-        var memory = {
-              "name":"内存使用率",
-              "data":[]
+        if(page.query.hypervisor=='winserver'){
+          var memory = {
+                "name":"内存使用率",
+                "data":[]
+              }
+          var cpus = [];
+          var cpu = {
+                "name":"CPU使用率",
+                "data":[]
+              }
+          var disks = [];
+          var networks = [];
+          var memoryIndex = 0;
+          var diskIndex = [];
+          var networkIndex = [];
+          $.each(data.meta.legend,function(index,val){
+            var items = val.split(':');
+            if(items[items.length-1].indexOf('cpu')>-1){
+              var val1 = items[items.length-1];
+              cpus.push({
+                "name":val1+"使用率",
+                "data":[]
+              })
             }
-        var cpus = [];
-        var cpu = {
-              "name":"CPU使用率",
-              "data":[]
+            if(items[items.length-1].indexOf('vbd')>-1){
+              var val2 = items[items.length-1];
+              disks.push({
+                "name":val2,
+                "data":[]
+              });
+              diskIndex.push(index);
             }
-        var memoryIndex = 0;
-        $.each(data.meta.legend,function(index,val){
-          if(val.indexOf('cpu')>47){
-            var val = val.slice(48);
-            cpus.push({
-              "name":val+"使用率",
-              "data":[]
-            })
-          }
-          if(val.indexOf('memory')>47){
-            memoryIndex = index;
-          }
-        });
-        for(var i=data.data.length-1;i>-1;i--){
-          memory.data.push(Number(data.data[i].v[memoryIndex])/Number(self.memory())/10);
-          xAxis.push(getDates(data.data[i].t, isDay));
-          cpu.data[i] = 0;
-          $.each(cpus,function(index,val){
-            cpus[index].data.push(Number(data.data[i].v[index])*100);
-            cpu.data[i] = cpu.data[i] + Number(data.data[i].v[index])*100;
+            if(items[items.length-1].indexOf('vif')>-1){
+              var val3 = items[items.length-1];
+              networks.push({
+                "name":val3.indexOf('tx')>-1 ? '上行速率' : '下行速率',
+                "data":[]
+              });
+              networkIndex.push(index);
+            }
+            if(items[items.length-1].indexOf('memory')>-1){
+              memoryIndex = index;
+            }
           });
-          cpu.data[i] = cpu.data[i]/cpus.length;
+          for(var i=data.data.length-1;i>-1;i--){
+            memory.data.push(Number(data.data[i].v[memoryIndex])/Number(self.memory())/10);
+            xAxis.push(getDates(data.data[i].t, isDay));
+            cpu.data[i] = 0;
+            $.each(cpus,function(index,val){
+              cpus[index].data.push(Number(data.data[i].v[index])*100);
+              cpu.data[i] = cpu.data[i] + Number(data.data[i].v[index])*100;
+            });
+            cpu.data[i] = cpu.data[i]/cpus.length;
+            $.each(disks,function(index,val){
+              var thisIndex = diskIndex[index];
+              disks[index].data.push(Number(data.data[i].v[thisIndex])/1024/1024);
+            });
+            $.each(networks,function(index,val){
+              var thisIndex = networkIndex[index];
+              networks[index].data.push(Number(data.data[i].v[thisIndex])/1024);
+            });
+          }
+          initMemoryUse_chart(memory,xAxis);
+          initcpuUse_chart1(cpu,xAxis);
+          initcpuUse_chart2(cpus,xAxis);
+          initDiskUse_chart(disks,xAxis);
+          initNetwork_chart(networks,xAxis);
         }
-        initMemoryUse_chart(memory,xAxis);
-        initcpuUse_chart1(cpu,xAxis);
-        initcpuUse_chart2(cpus,xAxis);
+        if(page.query.hypervisor=='VMware'){
+          var memory = {
+                "name":"内存使用率",
+                "data":[]
+              }
+          var cpu = {
+                "name":"CPU使用率",
+                "data":[]
+              }
+          var disks = [];
+          var networks = [];
+          var VMwareDateNum = data.data.CPU_PERCENT_COUNTER.length;
+          var timeInterval = (endTime-startTime)/VMwareDateNum;
+          for(var i=0;i<VMwareDateNum;i++){
+            var date = new Date(Number(data.meta.start+"000")+timeInterval*i);
+            xAxis.push(getDates(date, isDay));
+          }
+          for(item in data.data){
+            $.each(data.data[item],function(index,val){
+              if(val=='null'){
+                data.data[item][index] = null;
+              }else{
+                data.data[item][index] = Number(val);
+              }
+            })
+            if(item.indexOf('CPU_PERCENT')>-1){
+              cpu.data = data.data[item];
+            }
+            if(item.indexOf('MEMORY_PERCENT')>-1){
+              memory.data = data.data[item];
+            }
+            if(item.indexOf('VIRTUAL_DISK_READING')>-1){
+              $.each(data.data[item],function(index,val){
+                data.data[item][index] = Number(val)/1024;
+              });
+              disks.push({
+                'name':item.split('&')[1]+'读取',
+                'data':data.data[item]
+              })
+            }
+            if(item.indexOf('VIRTUAL_DISK_WRITING')>-1){
+              $.each(data.data[item],function(index,val){
+                data.data[item][index] = Number(val)/1024;
+              });
+              disks.push({
+                'name':item.split('&')[1]+'写入',
+                'data':data.data[item]
+              })
+            }
+            if(item.indexOf('NETWORK_RECEIVED')>-1){
+              networks.push({
+                'name':item.split('&')[1]+'下行',
+                'data':data.data[item]
+              })
+            }
+            if(item.indexOf('NETWORK_TRANSMITTED')>-1){
+              networks.push({
+                'name':item.split('&')[1]+'上行',
+                'data':data.data[item]
+              })
+            }
+          }
+          initMemoryUse_chart(memory,xAxis);
+          initcpuUse_chart1(cpu,xAxis);
+          initDiskUse_chart(disks,xAxis);
+          initNetwork_chart(networks,xAxis);
+        }
+        
       }); 
     };
   }
@@ -246,7 +424,7 @@ function initcpuUse_chart2(data,xAxis) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.vm_performance_viewModel = viewModel;
 
-  if(page.query.hypervisor == 'PowerVM'){
+  if(page.query.hypervisor == 'PowerVM'||page.query.state!='运行中'){
     viewModel.isShowCharts(false);
   }else{
     viewModel.setTimeSelected('最近一小时');

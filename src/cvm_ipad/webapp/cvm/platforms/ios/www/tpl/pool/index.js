@@ -349,6 +349,7 @@ function initPool_storage_chart(data) {
     this.hypervisor = ko.observable("");
     this.pools_count = ko.observable("");
     this.dataList = ko.observableArray([]);
+    this.dcName = ko.observable(CVM_PAD.dcName);
 
     this.loading = false;
     this.page = 1;

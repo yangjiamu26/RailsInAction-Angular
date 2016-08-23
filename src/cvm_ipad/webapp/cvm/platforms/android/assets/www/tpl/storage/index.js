@@ -152,7 +152,9 @@ function initStorage_use_chart(free, total) {
   function ViewModel(){
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
+    this.hostId = ko.observable("");
     this.dataList = ko.observableArray([]);
+    this.dcName = ko.observable(CVM_PAD.dcName);
     this.infos = ko.observable({
       "totalSize":'',
       "sharedSize":'',
@@ -166,7 +168,7 @@ function initStorage_use_chart(free, total) {
 
     this.loading = false;
     this.page = 1;
-    this.loadData = function(is_loadMore, hypervisor, resPoolId){
+    this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
       }else{
@@ -177,12 +179,17 @@ function initStorage_use_chart(free, total) {
       }else{
         this.resPoolId("");
       }
+      if(hostId){
+        this.hostId(hostId);
+      }else{
+        this.hostId("");
+      }
       var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$$.getJSON("tpl/storage/index.json?id="+page.query.id+"&page="+self.page,function(data){
         data.totalSize = Number((Number(data.totalSize)/1024).toFixed(2));
         data.sharedSize = Number(data.sharedSize/1024);
@@ -215,10 +222,10 @@ function initStorage_use_chart(free, total) {
   viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
+    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
   });  
   
 });
