@@ -17,14 +17,13 @@ ko.dirtyFlag = function(root, isInitiallyDirty) {
 
 function FormField(data) {
     var self            =   this;
+    self.ID             =   ko.observable(data.ID);
     self.Name           =   ko.observable(data.Name).extend({required:true});;
     self.Element        =   ko.observable(data.Element);
     self.Type           =   ko.observable(data.Type);
     self.Options        =   ko.observableArray(data.Options);
     self.Placeholder    =   ko.observable(data.Placeholder);
     self.Value          =   ko.observable(data.Value).extend(data.Validation);
-    self.HideElement    =   ko.observable(data.HideField.HideElement);
-    self.HideCondition  =   ko.observable(data.HideField.HideCondition);
 }
 
 function FormViewModel(data) {
@@ -46,7 +45,6 @@ function FormViewModel(data) {
         }
     };
 
-    self.HiddenElements = ko.observableArray([]);
     self.dirtyFlag = new ko.dirtyFlag(this);
     self.isDirty = ko.computed(function (){
         if (self.dirtyFlag.isDirty()){
@@ -56,18 +54,6 @@ function FormViewModel(data) {
             for (var i=0;i<formElements.length;i++){
 
                 var ElementValue            =   formElements[i].Value();
-                var HideElement             =   formElements[i].HideElement();
-                var HideCondition           =   formElements[i].HideCondition();
-
-                if( HideElement !== ""){
-                    for (var i=0;i<formElements.length;i++){
-                        if(formElements[i].Name() === HideElement ){
-                            if( ElementValue.match(HideCondition) ){
-                                self.HiddenElements([HideElement]);
-                            }
-                        }
-                    }
-                }
 
             }
         }
