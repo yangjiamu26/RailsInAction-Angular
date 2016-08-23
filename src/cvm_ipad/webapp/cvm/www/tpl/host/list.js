@@ -39,6 +39,24 @@ myApp.onPageInit("host-list", function(page) {
           if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
+          switch(data.data[i].state){
+            case 'OK':
+              data.data[i].state='运行中';
+              data.data[i].stateCss='green';
+              break;
+            case 'RESTART':
+              data.data[i].state='重启中';
+              data.data[i].stateCss='green';
+              break;
+            case 'DISCONNECT':
+              data.data[i].state='未运行';
+              data.data[i].stateCss='green';
+              break;
+            case 'MAINTAIN':
+              data.data[i].state='维护';
+              data.data[i].stateCss='green';
+              break;
+          }
           self.dataList.push(data.data[i]);
         }
         self.page++;

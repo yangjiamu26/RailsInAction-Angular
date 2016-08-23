@@ -103,7 +103,7 @@ function initsingleStorage_assigned_chart(data) {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {

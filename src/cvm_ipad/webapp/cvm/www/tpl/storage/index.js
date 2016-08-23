@@ -257,6 +257,43 @@ function initStorage_use_chart(free, total) {
             case 'NETAPP_POOL':
               data.data[i].type = 'NETAPP FAS存储池';
               break;
+            default:
+              data.data[i].type = '未知';
+              break;
+          }
+          switch(data.data[i].state){
+            case 'plugException':
+              data.data[i].state='挂载异常';
+              data.data[i].stateCss='orange';
+              break;
+            case 'OK':
+              data.data[i].state='活动';
+              data.data[i].stateCss='green';
+              break;
+            case 'unPlug':
+              data.data[i].state='未挂载';
+              data.data[i].stateCss='gray';
+              break;
+            case 'INACTIVE':
+              data.data[i].state='未活动';
+              data.data[i].stateCss='gray';
+              break;
+            case 'Deleting':
+              data.data[i].state='删除中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'UnPluging':
+              data.data[i].state='卸载中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'Pluging':
+              data.data[i].state='挂载中';
+              data.data[i].stateCss='orange';
+              break;
+            default:
+              data.data[i].state='异常';
+              data.data[i].stateCss='orange';
+              break;
           }
           self.dataList.push(data.data[i]);
         }
