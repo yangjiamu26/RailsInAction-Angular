@@ -162,17 +162,53 @@ function initsingleStorage_assigned_chart(data) {
           case 'udev':
             data.type = '可移动存储';
             break;
-          case 'nfs':
-            data.type = 'NFS';
-            break;
           case 'lvm':
-            data.type = '本地LVM';
+            data.type = '本地LVM卷组';
+            break;
+          case 'ext':
+            data.type = '本地EXT';
+            break;
+          case 'nfs':
+            data.type = 'NFS共享存储';
+            break;
+          case 'lvmoiscsi':
+            data.type = '软件ISCSI';
+            break;
+          case 'lvmohba':
+            data.type = '硬件HBA';
+            break;
+          case 'NFS':
+            data.type = 'NFS共享存储';
+            break;
+          case 'FCSAN':
+            data.type = 'FC SAN';
+            break;
+          case 'iSCSI':
+            data.type = 'iSCSI';
             break;
           case 'LOCAL':
             data.type = '本地存储';
             break;
+          case 'UNKNOW':
+            data.type = '未知';
+            break;
           case 'LVPOOL':
             data.type = '本地LVM卷组';
+            break;
+          case 'SVC_POOL':
+            data.type = 'SVC存储池';
+            break;
+          case 'EMC_POOL':
+            data.type = 'EMC VNX存储池';
+            break;
+          case 'DS4700_POOL':
+            data.type = 'DS4700存储池';
+            break;
+          case 'NETAPP_POOL':
+            data.type = 'NETAPP FAS存储池';
+            break;
+          default:
+            data.type = '未知';
             break;
         }
         self.summary(data);
