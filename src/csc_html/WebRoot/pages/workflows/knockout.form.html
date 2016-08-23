@@ -7,26 +7,24 @@
 </div>
 
 <div class="wrapper-md">
-    <div id="knockout-form" style="display: none;" data-bind="visible: true" >
-        <form id="" action="" data-bind="foreach: Fields" class="form-horizontal">
-            <!--ko if: $parent.HiddenElements().indexOf(Name()) == -1 -->
-            <div class="form-group" >
-                <!--ko if: Element() !== "button" && Type() !== "submit" -->
-                    <label class="col-sm-2 control-label" data-bind="text: Name, attr: {for:Name}"></label>
-                <!--/ko-->
+    <div id="knockout-form" class="panel panel-default form-horizontal" style="display: none;width:600px;margin:auto;" data-bind="visible: true" >
+        <div class="panel-heading">流程任务</div>
+        <form id="" action="" data-bind="foreach: Fields" class="panel-body">
+            <div class="form-group">
+                <label class="col-sm-3 control-label" data-bind="text: Name()+'：', attr: {for:ID}"></label>
 
                 <!--ko if: Element() === "select" -->
-                    <div class="col-sm-10">
-                        <select class="form-control" data-bind="options: Options, attr: {id:Name}, value:Value"></select>
+                    <div class="col-sm-9">
+                        <select class="form-control" data-bind="options: Options, attr: {id:ID}, value:Value"></select>
                     </div>
                 <!--/ko-->
 
-                <!--ko if: Element() === "input" && Type() === "radio" || Type() === "checkbox" -->
-                    <div class="col-sm-10">
+                <!--ko if: Element() === "radio" -->
+                    <div class="col-sm-9">
                         <div class="form-inline" data-bind="foreach: Options">
                             <div class="checkbox">
                                 <label>
-                                  <input data-bind="checked: $parent.DefaultValue, attr: {id:$data, type:$parent.Type, name:$data}, value:$data"/> <span data-bind="text: $data, attr: {for:$data}"></span>
+                                  <input type="radio" data-bind="checked: $parent.DefaultValue, attr: {id:$data, name:$parent.ID}, value:$data"/> <span data-bind="text: $data, attr: {for:$data}"></span>
                                 </label>
                             </div>
 
@@ -34,33 +32,37 @@
                     </div>
                 <!--/ko-->
 
-                <!--ko if: Element() === "input" && Type() !== "radio" && Type() !== "checkbox" && Type() !== "submit" -->
-                    <div class="col-sm-10">
-                        <input class="form-control" data-bind="attr: {id:Name, type:Type, placeholder:Placeholder }, value:Value "></input>
-                    </div>
-                <!--/ko-->
+                <!--ko if: Element() === "checkbox" -->
+                    <div class="col-sm-9">
+                        <div class="form-inline" data-bind="foreach: Options">
+                            <div class="checkbox">
+                                <label>
+                                  <input type="checkbox" data-bind="checked: $parent.DefaultValue, attr: {id:$data, name:$parent.ID}, value:$data"/> <span data-bind="text: $data, attr: {for:$data}"></span>
+                                </label>
+                            </div>
 
-                <!--ko if: Element() === "textarea" -->
-                    <div class="col-sm-10">
-                        <textarea class="form-control" data-bind="attr: {id:Name, placeholder:Placeholder, value:Value}, value:Value"></textarea>
-                    </div>
-                <!--/ko-->
-
-                <!--ko if: Element() === "input" && Type() === "submit" -->
-                    <div class="form-group" >
-                        <label class="col-sm-2 control-label"></label>
-                        <div class="col-sm-10">
-                            <input class="btn btn-primary" data-bind=" attr: {id:Name, type:Type, value: Value}, click: $root.SaveForm"></input>
                         </div>
                     </div>
                 <!--/ko-->
 
-                <!--ko if: Element() === "button" -->
-                    <button data-bind="attr: {id:Name}"><span data-bind="text: Value, click: $root.SaveForm"></span></button>
+                <!--ko if: Element() === "input" -->
+                    <div class="col-sm-9">
+                        <input class="form-control" data-bind="attr: {id:ID, type: Type, placeholder:Placeholder }, value:Value "></input>
+                    </div>
+                <!--/ko-->
+
+                <!--ko if: Element() === "textarea" -->
+                    <div class="col-sm-9">
+                        <textarea class="form-control" data-bind="attr: {id:ID, placeholder:Placeholder, value:Value}, value:Value"></textarea>
+                    </div>
                 <!--/ko-->
             </div>
-            <!--/ko-->
         </form>
+
+        <div class="panel-footer text-center">
+            <button class="btn btn-primary" data-bind="click: $root.SaveForm">提交</button>
+            <button class="btn btn-danger">取消</button>
+        </div>
     </div>
 
 </div>
@@ -68,7 +70,10 @@
     var scripts = ["assets/js/knockout.form.js", null];
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         $.get('pages/workflows/knockout.form.json', function(data){
-            ko.applyBindings(new FormViewModel(JSON.parse(data).formElements), $("#knockout-form")[0]);
+            if(typeof(data)=="String"){
+                data = JSON.parse(data)
+            }
+            ko.applyBindings(new FormViewModel(data.formElements), $("#knockout-form")[0]);
         });
     });
     
