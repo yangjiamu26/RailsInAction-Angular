@@ -207,7 +207,57 @@ function initStorage_use_chart(free, total) {
           initStorage_share_chart(data.sharedSize,data.totalSize);
           initStorage_use_chart(data.availSize,data.totalSize);
         }
-        for(var i=0; i<data.data.length; i++){       
+        for(var i=0; i<data.data.length; i++){
+          switch(data.data[i].type){
+            case 'udev':
+              data.data[i].type = '可移动存储';
+              break;
+            case 'lvm':
+              data.data[i].type = '本地LVM卷组';
+              break;
+            case 'ext':
+              data.data[i].type = '本地EXT';
+              break;
+            case 'nfs':
+              data.data[i].type = 'NFS共享存储';
+              break;
+            case 'lvmoiscsi':
+              data.data[i].type = '软件ISCSI';
+              break;
+            case 'lvmohba':
+              data.data[i].type = '硬件HBA';
+              break;
+            case 'NFS':
+              data.data[i].type = 'NFS共享存储';
+              break;
+            case 'FCSAN':
+              data.data[i].type = 'FC SAN';
+              break;
+            case 'iSCSI':
+              data.data[i].type = 'iSCSI';
+              break;
+            case 'LOCAL':
+              data.data[i].type = '本地存储';
+              break;
+            case 'UNKNOW':
+              data.data[i].type = '未知';
+              break;
+            case 'LVPOOL':
+              data.data[i].type = '本地LVM卷组';
+              break;
+            case 'SVC_POOL':
+              data.data[i].type = 'SVC存储池';
+              break;
+            case 'EMC_POOL':
+              data.data[i].type = 'EMC VNX存储池';
+              break;
+            case 'DS4700_POOL':
+              data.data[i].type = 'DS4700存储池';
+              break;
+            case 'NETAPP_POOL':
+              data.data[i].type = 'NETAPP FAS存储池';
+              break;
+          }
           self.dataList.push(data.data[i]);
         }
         self.page++;
