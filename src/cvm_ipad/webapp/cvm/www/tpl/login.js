@@ -62,10 +62,18 @@ myApp.onPageInit("login", function(page) {
       },function(data){
         goLogin(data);
       },function(req, status, ex){
-        if(req.responseText){
-          myApp.alert(JSON.parse(req.responseText).exception);
+        if(req){
+          if(req.responseText){
+            if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+              myApp.alert('请检查CSC服务是否正常！');
+            }else{
+              myApp.alert(JSON.parse(req.responseText).exception);
+            }
+          }else{
+            myApp.alert('请检查服务器环境是否启动/网络地址填写是否正确！');
+          }
         }else{
-          myApp.alert('请检查网络地址填写是否正确！');
+          myApp.alert('请求超时！');
         }
       });
     }

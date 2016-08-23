@@ -168,6 +168,7 @@ function initStorage_use_chart(free, total) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -189,7 +190,7 @@ function initStorage_use_chart(free, total) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"hostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$$.getJSON("tpl/storage/index.json?id="+page.query.id+"&page="+self.page,function(data){
         data.totalSize = Number((Number(data.totalSize)/1024).toFixed(2));
         data.sharedSize = Number(data.sharedSize/1024);
@@ -200,6 +201,8 @@ function initStorage_use_chart(free, total) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
 
           initStorage_share_chart(data.sharedSize,data.totalSize);
           initStorage_use_chart(data.availSize,data.totalSize);
@@ -211,6 +214,7 @@ function initStorage_use_chart(free, total) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }
