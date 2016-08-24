@@ -101,6 +101,9 @@ function systemMessage(){
 						'</div>');
 		var modal = $("#"+msgId);
 		modal.modal('show');
+		modal.on("shown.bs.modal",function(){
+			modal.find('.modal-dialog').draggable({ handle:'.modal-header'});
+		})
 		modal.on("hidden.bs.modal",function(){
 			modal.remove();
 		})
@@ -125,6 +128,9 @@ function systemMessage(){
 						'</div>');
 		var modal = $("#systemMessageConfirmModal");
 		modal.modal('show');
+		modal.on("shown.bs.modal",function(){
+			modal.find('.modal-dialog').draggable({ handle:'.modal-header'});
+		})
 		modal.on("hidden.bs.modal",function(){
 			modal.remove();
 		})
