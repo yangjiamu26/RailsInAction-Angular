@@ -16,10 +16,18 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: error ? error : function(req, status, ex) {
             console.log(req);
-            if(req.responseText){
-              myApp.alert(JSON.parse(req.responseText).exception);
+            if(req){
+              if(req.responseText){
+                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                  myApp.alert('请检查CSC服务是否正常！');
+                }else{
+                  myApp.alert(JSON.parse(req.responseText).exception);
+                }
+              }else{
+                myApp.alert('错误！');
+              }
             }else{
-              myApp.alert('错误！');
+              myApp.alert('请求超时！');
             }
           },  
           timeout:60000  
@@ -37,10 +45,18 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: error ? error : function(req, status, ex) {
             console.log(req);
-            if(req.responseText){
-              myApp.alert(JSON.parse(req.responseText).exception);
+            if(req){
+              if(req.responseText){
+                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                  myApp.alert('请检查CSC服务是否正常！');
+                }else{
+                  myApp.alert(JSON.parse(req.responseText).exception);
+                }
+              }else{
+                myApp.alert('错误！');
+              }
             }else{
-              myApp.alert('错误！');
+              myApp.alert('请求超时！');
             }
           },  
           timeout:60000  
@@ -62,10 +78,18 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: error ? error : function(req, status, ex) {
             console.log(req);
-            if(req.responseText){
-              myApp.alert(JSON.parse(req.responseText).exception);
+            if(req){
+              if(req.responseText){
+                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                  myApp.alert('请检查CSC服务是否正常！');
+                }else{
+                  myApp.alert(JSON.parse(req.responseText).exception);
+                }
+              }else{
+                myApp.alert('错误！');
+              }
             }else{
-              myApp.alert('错误！');
+              myApp.alert('请求超时！');
             }
           }, 
           timeout:60000  
@@ -82,10 +106,18 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: error ? error : function(req, status, ex) {
             console.log(req);
-            if(req.responseText){
-              myApp.alert(JSON.parse(req.responseText).exception);
+            if(req){
+              if(req.responseText){
+                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                  myApp.alert('请检查CSC服务是否正常！');
+                }else{
+                  myApp.alert(JSON.parse(req.responseText).exception);
+                }
+              }else{
+                myApp.alert('错误！');
+              }
             }else{
-              myApp.alert('错误！');
+              myApp.alert('请求超时！');
             }
           }, 
           timeout:60000  
@@ -101,10 +133,18 @@ function RestServiceJs(newurl) {
           success: callback,  
           error: error ? error : function(req, status, ex) {
             console.log(req);
-            if(req.responseText){
-              myApp.alert(JSON.parse(req.responseText).exception);
+            if(req){
+              if(req.responseText){
+                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                  myApp.alert('请检查CSC服务是否正常！');
+                }else{
+                  myApp.alert(JSON.parse(req.responseText).exception);
+                }
+              }else{
+                myApp.alert('错误！');
+              }
             }else{
-              myApp.alert('错误！');
+              myApp.alert('请求超时！');
             }
           }, 
           timeout:60000  

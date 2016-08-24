@@ -6,6 +6,7 @@ myApp.onPageInit("volumn-list", function(page) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore){
       var self = this;
       if (self.loading) return;
@@ -31,14 +32,49 @@ myApp.onPageInit("volumn-list", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
-        for(var i=0; i<data.data.length; i++){       
+        for(var i=0; i<data.data.length; i++){
+          switch(data.data[i].type){
+            case 'system':
+              data.data[i].type = '系统盘';
+              break;
+            case 'data':
+              data.data[i].type = '数据盘';
+              break;
+            case 'unknown':
+              data.data[i].type = '未知';
+              break;
+            case 'SYSTEM':
+              data.data[i].type = '系统盘';
+              break;
+            case 'USER':
+              data.data[i].type = '数据盘';
+              break;
+            case 'SUSPEND':
+              data.data[i].type = '未知';
+              break;
+            case 'HA_STATEFILE':
+              data.data[i].type = '其他';
+              break;
+            case 'REDO_LOG':
+              data.data[i].type = '其他';
+              break;
+            case 'BLOCK':
+              data.data[i].type = '存储LUN';
+              break;
+            default:
+              data.data[i].type = '未知';
+              break;
+          }
           self.dataList.push(data.data[i]);
         }
         self.page++;
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }

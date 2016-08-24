@@ -72,7 +72,7 @@ function initsingleStorage_use_chart(data) {
 }
 
 // 单个存储池-分配率占比图
-function initsingleStorage_assigned_chart() {
+function initsingleStorage_assigned_chart(data) {
     $('#singleStorage_assigned_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -103,7 +103,7 @@ function initsingleStorage_assigned_chart() {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -129,12 +129,12 @@ function initsingleStorage_assigned_chart() {
           name: '存储',
           data: [{
                   name: '未分配',
-                  y: 3.73,
+                  y: data.storageTotal-data.allocatedStorage,
                   color:"#fadf4f"
               },
               {
                   name: '已分配',
-                  y: 4.81,
+                  y: data.allocatedStorage,
                   color:"#f87b38"
               }
           ]
@@ -152,6 +152,7 @@ function initsingleStorage_assigned_chart() {
       "path":'',
       "shared":''
     });
+    this.hypervisor = ko.observable(page.query.hypervisor);
     this.loadData = function(){
       var self = this;
       RestServiceJs(BASE_URL+"/storagePool/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
@@ -161,23 +162,61 @@ function initsingleStorage_assigned_chart() {
           case 'udev':
             data.type = '可移动存储';
             break;
-          case 'nfs':
-            data.type = 'NFS';
-            break;
           case 'lvm':
-            data.type = '本地LVM';
+            data.type = '本地LVM卷组';
+            break;
+          case 'ext':
+            data.type = '本地EXT';
+            break;
+          case 'nfs':
+            data.type = 'NFS共享存储';
+            break;
+          case 'lvmoiscsi':
+            data.type = '软件ISCSI';
+            break;
+          case 'lvmohba':
+            data.type = '硬件HBA';
+            break;
+          case 'NFS':
+            data.type = 'NFS共享存储';
+            break;
+          case 'FCSAN':
+            data.type = 'FC SAN';
+            break;
+          case 'iSCSI':
+            data.type = 'iSCSI';
             break;
           case 'LOCAL':
             data.type = '本地存储';
             break;
+          case 'UNKNOW':
+            data.type = '未知';
+            break;
           case 'LVPOOL':
             data.type = '本地LVM卷组';
+            break;
+          case 'SVC_POOL':
+            data.type = 'SVC存储池';
+            break;
+          case 'EMC_POOL':
+            data.type = 'EMC VNX存储池';
+            break;
+          case 'DS4700_POOL':
+            data.type = 'DS4700存储池';
+            break;
+          case 'NETAPP_POOL':
+            data.type = 'NETAPP FAS存储池';
+            break;
+          default:
+            data.type = '未知';
             break;
         }
         self.summary(data);
 
         initsingleStorage_use_chart(data);
-        initsingleStorage_assigned_chart(data);
+        if(page.query.hypervisor=='winserver'){
+          initsingleStorage_assigned_chart(data);
+        }
       });      
     };
   }

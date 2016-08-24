@@ -76,6 +76,7 @@ function initHost_status_chart(nums) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore,hypervisor,resPoolId,hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -124,6 +125,8 @@ function initHost_status_chart(nums) {
             }
           }
           initHost_status_chart(nums);
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
           switch(data.data[i].state){
@@ -133,15 +136,15 @@ function initHost_status_chart(nums) {
               break;
             case 'RESTART':
               data.data[i].state='重启中';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='orange';
               break;
             case 'DISCONNECT':
               data.data[i].state='未运行';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='gray';
               break;
             case 'MAINTAIN':
               data.data[i].state='维护';
-              data.data[i].stateCss='green';
+              data.data[i].stateCss='gray';
               break;
           }
           self.dataList.push(data.data[i]);
@@ -150,6 +153,7 @@ function initHost_status_chart(nums) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }

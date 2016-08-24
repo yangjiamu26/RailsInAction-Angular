@@ -10,6 +10,7 @@ myApp.onPageInit("vm-index", function(page) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -38,6 +39,8 @@ myApp.onPageInit("vm-index", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
 
           self.vmNum(data.size);
           var os = [data.winVm,data.linuxVm,data.othersVm], status = [data.okStateVm,data.stoppeStatedVm,data.otherStatedVm];
@@ -142,6 +145,7 @@ myApp.onPageInit("vm-index", function(page) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }
