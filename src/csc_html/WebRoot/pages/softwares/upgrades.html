@@ -11,16 +11,16 @@
 		<div class="row wrapper">
 			<div class="col-xs-3">
 				<div class="input-group">
-					<span class="input-group-addon">软件分类</span> <select
-						class="form-control input-sm"
-						data-bind="value: searchParam().softType, options: $root.catelogs, optionsText: 'name', optionsValue: 'name',  optionsCaption: ''"></select>
+					<span class="input-group-addon">软件分类</span> 
+					<select class="form-control input-sm" id="softTypeSel"
+						data-bind="value: searchParam().softType, options: $root.catelogs, optionsText: 'name', optionsValue: 'name',  optionsCaption: '全部'"></select>
 				</div>
 			</div>
 			<div class="col-xs-3">
 				<div class="input-group">
 					<span class="input-group-addon">软件类型</span> <select
 						class="form-control input-sm"
-						data-bind="value: searchParam().softTypeName, options: $root.types, optionsText: 'name', optionsValue: 'name', optionsCaption: ''">
+						data-bind="value: searchParam().softTypeName, options: $root.types, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
 					</select>
 				</div>
 			</div>
@@ -28,7 +28,7 @@
 				<div class="input-group">
 					<span class="input-group-addon">名称</span>
 					<input type="text" class="input-sm form-control" placeholder="请输入名称"
-						data-bind="value: searchParam().softwareName">
+						data-bind="value: searchParam().softwareName" id="upgrade_search_input" />
 				</div>
 			</div>
 			<div class="col-xs-2">
@@ -112,8 +112,8 @@
 				<div>
 					<button class="btn btn-default btn-sm pull-right"
 						data-bind="click: upgradeVM">选择云主机</button>
-					脚本名称：<span data-bind="text: softwareVO().name"></span> 软件版本：<span
-						data-bind="text: softwareVO().version">1</span>
+					脚本名称：<span data-bind="text: softwareVO().name"></span> 
+					软件版本：<span data-bind="text: softwareVO().version"></span>
 				</div>
 				<hr />
 				<p class="text-muted">注：没有密钥对的虚拟机需输入云主机用户密码。</p>
@@ -134,7 +134,7 @@
 							<td data-bind="text:ip"></td>
 							<td><a data-bind="click: $root.openAttr">查看</a></td>
 							<td><input data-bind="value: userName" /></td>
-							<td><input data-bind="visible: !hasSSHKey, value: userPwd" /></td>
+							<td><input type="password" data-bind="visible: !hasSSHKey, value: userPwd" /></td>
 							<td><a data-bind="click: $root.removeVM">移除</a></td>
 						</tr>
 					</tbody>
@@ -152,7 +152,7 @@
 <!-- 待升级云主机弹窗 end -->
 
 <!-- 虚拟机选择弹窗 start -->
-<div role="dialog" aria-hidden="true" class="modal fade"
+<div role="dialog" aria-hidden="true" class="modal fade" id="vm_selection_modal"
 	data-bind="modal: { show: isUpgradeVM }">
 	<div class='modal-dialog modal-lg' role='document'>
 		<div class='modal-content'>
@@ -164,8 +164,8 @@
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-inline">
-					云主机名称：<input type="text" class="form-control" data-bind="value: searchVmParam().vmName" /> 
-					云主机IP：<input type="text" class="form-control" data-bind="value: searchVmParam().vmIp" />
+					云主机名称：<input type="text" class="form-control" data-bind="value: searchVmParam().vmName" id="vm_name_search_input" /> 
+					云主机IP：<input type="text" class="form-control" data-bind="value: searchVmParam().vmIp" id="vm_ip_search_input" />
 					<button class="btn btn-default" data-bind="click: filterVm">搜索</button>
 				</div>
 				<p>&nbsp;</p>
@@ -358,9 +358,33 @@
 					
 					/** 安装属性数据对象 **/
 					this.attrVO = ko.validatedObservable({
-						name: ko.observable().extend({required : true}),
-						code: ko.observable().extend({required : true}),
-						value: ko.observable().extend({required : true}),
+						name: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
+						code: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
+						value: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
 						attrTableRow: null
 					});
 					
@@ -565,8 +589,12 @@
 					/** 提交执行安装信息 **/
 					this.confirmUpgrade = function () {
 						
+						if (self.toUpgradeTable().length == 0) {
+							systemMsg.alert('没有指定目标云主机');
+							return;
+						}
+						
 						$.each(self.toUpgradeTable(), function (i, val) {
-							
 							var installAttrs = [];
 							
 							$.each(self.vmAttrs[val.uuid](), function(i, attr) {
@@ -594,7 +622,6 @@
 						});
 						
 						$.INSTALL.installSoft(self.upgradeVO(), function(data) {
-							
 							self.isUpgrade(false);
 							setTimeout(function () {
 								window.location.href = '#pages/softwares/logs';
@@ -609,6 +636,38 @@
 				$(document).ready(function() {
 					var viewModel = new ViewModel();
 					ko.applyBindings(viewModel, $('#page-content')[0]);
+					
+					$('#upgrade_search_input').keyup(function(evt) {
+						if (evt.keyCode == 13) {
+							viewModel.search();
+						}
+					});
+					
+					$('#softTypeSel').on('change', function() {
+						var softType = viewModel.searchParam().softType();
+						
+						if (softType) {
+							viewModel.loadTypes({
+								softType : softType 
+							});
+						} else {
+							viewModel.loadTypes({});
+						}
+					});
+					
+					$('#vm_selection_modal').on('shown.bs.modal', function() {
+						$('#vm_name_search_input').keyup(function(evt) {
+							if (evt.keyCode == 13) {
+								viewModel.filterVm();
+							}
+						});
+						
+						$('#vm_ip_search_input').keyup(function(evt) {
+							if (evt.keyCode == 13) {
+								viewModel.filterVm();
+							}
+						});
+					});
 				});
 			});
 </script>

@@ -41,8 +41,8 @@
 										</div>
 										<div class="col-xs-3">
 											<div class="input-group">
-												<span class="input-group-addon">软件类型</span> <select
-													class="form-control input-sm"
+												<span class="input-group-addon">软件类型</span> 
+												<select class="form-control input-sm" id="soft_type_search_sel" 
 													data-bind="value: searchParam().softTypeName, options: $root.typeNames, optionsText: 'name', optionsValue: 'name', optionsCaption: '全部'">
 												</select>
 											</div>
@@ -223,8 +223,8 @@
 									value="64-bit" data-bind="checked: cpuArchArr"> <i></i>64位
 								</label>
 							</div>
-							<span style="color: red;"
-								data-bind='visible: cpuArchArr().length == 0'>适用架构不能为空</span>
+							<div style="color: red; margin-top: 1px;"
+								data-bind='visible: cpuArchArr().length == 0'>适用架构不能为空</div>
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -261,10 +261,11 @@
 					</div>
 
 					<div class="form-group">
-						<div class="col-xs-3">
-							<label class="control-label"> 适用操作系统 </label> <label
-								class="control-label" style="color: #CCCCCC;">
-								(按Ctrl键可多选 )</label>
+						<div class="col-xs-3" style="text-align: right;">
+							<label class="control-label"> 适用操作系统 </label> 
+							<label class="control-label" style="color: #CCCCCC;">
+								(按Ctrl键可多选 )
+							</label>
 						</div>
 						<div class="col-xs-8">
 							<input type="text" class="form-control" id="selVal"
@@ -310,6 +311,7 @@
 								<input class="input-sm form-control" type="text"
 									data-bind="value: currentVO().scriptName" readonly="readonly" />
 								<button class="btn btn-default" data-bind="click: chooseScript">选择脚本</button>
+								<button class="btn btn-default" data-bind="click: unbindScript">取消关联</button>
 							</div>
 						</div>
 					</div>
@@ -498,8 +500,7 @@
 				</div>
 
 				<div class='modal-footer'>
-					<div
-						data-bind="with: scriptTable, visible: scriptTable.pages() > 1">
+					<div data-bind="with: scriptTable, visible: scriptTable.pages() > 1">
 						<ul class="pagination">
 							<li data-bind="css: leftPagerClass, click: prevPage"><a
 								href="#">&laquo;</a></li>
@@ -553,25 +554,55 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 		this.sofyTypeVO = ko.validatedObservable({
 			type : ko.observable().extend({
-				required : true
+				required : true,
+			 	validation: {
+               		validator: function (val, someOtherVal) {
+            	    	return csc.util.invalidValueParam(val);
+	                }, 
+	               	message: '不能包含特殊字符'
+	        	}
 			}),
 			name : ko.observable().extend({
-				required : true
+				required : true,
+				validation: {
+               		validator: function (val, someOtherVal) {
+            	    	return csc.util.invalidValueParam(val);
+	                }, 
+	               	message: '不能包含特殊字符'
+	        	}
 			})
 		});
 
 		this.osNameOptions = ko.observableArray([]);
 
 		this.cpuArchArr = ko.observableArray([]);
+		
+		/**软件搜索参数**/
+		this.searchParam = ko.observable({
+			softTypeName : ko.observable(''),
+			softwareName : ""
+		});
 
 		this.currentVO = ko.validatedObservable({
 			Id : null,
 			uuid : null,
 			name : ko.observable().extend({
-				required : true
+				required : true,
+				validation: {
+               		validator: function (val, someOtherVal) {
+            	    	return csc.util.invalidValueParam(val);
+	                }, 
+	               	message: '不能包含特殊字符'
+	        	}
 			}),
 			version : ko.observable().extend({
-				required : true
+				required : true,
+				validation: {
+               		validator: function (val, someOtherVal) {
+            	    	return csc.util.invalidValueParam(val);
+	                }, 
+	               	message: '不能包含特殊字符'
+	        	}
 			}),
 			softType : ko.observable().extend({
 				required : true
@@ -627,6 +658,12 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 						params.softTypeName = treeNode.name;
 					}
 
+					if (!treeNode.isParent) {
+						self.searchParam().softTypeName(treeNode.name);
+					} else {
+						self.searchParam().softTypeName('');
+					}
+					
 					self.table.params(params);
 				}
 			}
@@ -664,6 +701,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			self.loadTypes();
 			self.osNames([]);
 			self.cpuArchArr([]);
+			ko.validation.group(self.currentVO).showAllMessages(true);
+			
 			self.isAdd(true);
 		};
 
@@ -748,16 +787,30 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 			self.isBindScript(false);
 		};
-
-		/**软件搜索参数**/
-		this.searchParam = ko.observable({
-			softTypeName : "",
-			softwareName : ""
-		});
+		
+		/** 取消绑定 **/
+		this.unbindScript = function() {
+			self.currentVO().scriptUuid = null;
+			self.currentVO().scriptName('');
+		};
 
 		/**软件搜索**/
 		this.search = function() {
-			this.table.params(this.searchParam());
+			this.table.params({
+				softTypeName : this.searchParam().softTypeName(),
+				softwareName : this.searchParam().softwareName
+			});
+			
+			var treeObj = $.fn.zTree.getZTreeObj('serverDefinitionsTree');
+			
+			var treeNodes = treeObj.transformToArray(treeObj.getNodes());
+			
+			$.each(treeNodes, function(i, val) {
+				if (val.name == self.searchParam().softTypeName()) {
+					treeObj.selectNode(val, false);
+					return;
+				}
+			});
 		};
 
 		/**软件列表数据**/
@@ -820,6 +873,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 			self.isBindScript(true);
 		};
+		
 		/** 构建文件上传器 **/
 		this.initUploader = function() {
 			self.uploader = WebUploader.create({
@@ -857,10 +911,9 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 						//clearInterval(intervalId);
 						if ((data.progress == 'success' || data.progress == 'N/A')) {
-							console.log(self.uploader.isInProgress());
 							if (!self.uploader.isInProgress()) {
 								var timeout = setTimeout(function() {
-									if (!self.uploader.isInProgress) {
+									if (!self.uploader.isInProgress()) {
 										clearInterval(intervalId);
 										self.table.refreshData();
 										clearTimeout(timeout);
@@ -1047,28 +1100,36 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 				if (self.sofyTypeVO().uuid) {
 
 					$.SOFT_TYPE.updateSoftType(self.sofyTypeVO().uuid, params, function(data) {
-						systemMsg.alert('修改软件类型成功！');
-						self.typeTable.refreshData();
-
-						self.loadTypeNames({});
-
-						$.SOFT_TYPE.loadSoftTypeTree(function(data) {
-							$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
-						});
-
-						self.isTypeAdd(false);
+						if (data.message) {
+							systemMsg.alert(data.message);
+						} else {
+							systemMsg.alert('修改软件类型成功！');
+							self.typeTable.refreshData();
+	
+							self.loadTypeNames({});
+	
+							$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+								$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+							});
+	
+							self.isTypeAdd(false);
+						}
 					});
 				} else {
 					$.SOFT_TYPE.createSoftType(params, function(data) {
-						systemMsg.alert('添加软件类型成功！');
-						self.isTypeAdd(false);
-						self.typeTable.refreshData();
-
-						self.loadTypeNames({});
-
-						$.SOFT_TYPE.loadSoftTypeTree(function(data) {
-							$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
-						});
+						if (data.message) {
+							systemMsg.alert(data.message);
+						} else {
+							systemMsg.alert('添加软件类型成功！');
+							self.isTypeAdd(false);
+							self.typeTable.refreshData();
+	
+							self.loadTypeNames({});
+	
+							$.SOFT_TYPE.loadSoftTypeTree(function(data) {
+								$.fn.zTree.init($("#serverDefinitionsTree"), self.treeSetting, data);
+							});
+						}
 					});
 				}
 			}
@@ -1120,7 +1181,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			});
 
 			viewModel.uploader.on('fileQueued', function(file) {
-
 				viewModel.currentVO().installFileName(file.name);
 			});
 

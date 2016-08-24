@@ -145,7 +145,7 @@
 							<td data-bind="text:type">xxx</td>
 							<td data-bind="text:ip">192.168.1.100</td>
 							<td data-bind="text:port">8080</td>
-							<td data-bind="text:domain"></td>
+							<td data-bind="text:domainIp"></td>
 							<!-- <td><span class="label label-success"
 								data-bind="if:state == '正常'">正常</span> <span
 								class="label label-danger" data-bind="if:state == '异常'">异常</span>
@@ -225,7 +225,7 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 				<h3 class='modal-title' data-bind="ifnot: currentVO().id">接入云管理平台</h3>
-				<h3 class='modal-title' data-bind="if: currentVO().id">修改</h3>
+				<h3 class='modal-title' data-bind="if: currentVO().id">修改云管理平台</h3>
 			</div>
 			<div class='modal-body form-horizontal'>
 				<div class="form-group">
@@ -299,7 +299,7 @@
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
 					</div>
 				</div>
-				<div class="form-group" data-bind="visible: currentVO().type() == 'CNware'">
+				<div class="form-group" data-bind="visible: (currentVO().id==null) &&(currentVO().type() == 'CNware')">
 					<label class="col-xs-3 control-label"></label>
 					<div class="col-xs-8">
 						<a class="btn btn-default btn-info" data-bind="click: findDomain">发现资源域</a>
@@ -311,7 +311,7 @@
 				<div class="form-group" data-bind="visible: currentVO().type() == 'CNware'">
 					<label class="col-xs-3 control-label">资源域</label>
 					<div class="col-xs-8">
-						<div class="panel panel-default table-responsive no-height" id="domainTable" data-bind="with: domainTable">
+						<div class="panel panel-default table-responsive no-height" style="margin-bottom:0px;"  id="domainTable" >
 							<table class="table table-striped">
 								<thead>
 									<tr>
@@ -327,16 +327,16 @@
 									</tr>
 								</thead>
 								<tbody>
-										<tr data-bind="visible: showNoData">
+										<tr data-bind="visible: domainArray().length==0">
 							              <td colspan=4 class="aligncenter">
 							                	暂无数据
 							              </td>
 							            </tr>
-							        <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+							        <!-- ko foreach: domainArray -->
 									<tr>
 										<td>
 											<div class="radio">
-												<label class="i-checks"><input type="radio" name="originalIds" data-bind="checkedValue: $data,checked: $parent.chosenItems"> <i></i></label>
+												<label class="i-checks"><input type="radio" name="originalIds" data-bind="checkedValue: $data,checked: $root.domainChosen"> <i></i></label>
 											</div>
 										</td>
 									
@@ -348,7 +348,7 @@
 								</tbody>
 							</table>
 						</div>
-						<span id="domainTableValidateMessage" class="validationMessage" data-bind="visible"></span>
+						<span id="domainTableValidateMessage" class="validationMessage" data-bind="visible: isShowDomainValidateMsg() && (domainChosen()==null)">必须勾选一个资源域</span>
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -362,7 +362,6 @@
 					</div>
 				</div>
 			</div>
-			
 			
 			<div class='modal-footer' style="text-align: center;">
 				<a class="btn btn-default btn-info" data-bind="click:ok">确定</a> <a
@@ -581,18 +580,22 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
 	    //点击接入按钮时，初始化数据
 	this.add = function(){
+    	//console.log(self.isShowDomainValidateMsg());
 	      this.currentVO({
 	        id: null,
-	        name	:	ko.observable('').extend({ required: true, maxLength: 32 }),
+	        name	:	ko.observable('').extend({ required: true, maxLength: 32,cscNameRule:true }),
 	        dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
 	        type	:	ko.observable('').extend({ required: true }),
-	        ip	:	ko.observable('').extend({ required: true }),
-	        port	:	ko.observable().extend({ required: true}),
+	        ip	:	ko.observable('').extend({ required: true,ip:true }),
+	        port	:	ko.observable().extend({ required: true,positiveIntegerRule:true}),
 	        username	:	ko.observable('').extend({ required: true }),
 	        password	:	ko.observable('').extend({ required: true }),
 	        domain:{},
 	        description:''
 	      });
+	      self.domainArray([]);//清空域
+	      self.domainChosen(null);
+	      self.isShowDomainValidateMsg(false);
 	      self.isEdit(true);
 	    };
 
@@ -600,16 +603,18 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       self.currentVO({
     	  	id: object.uuid,//这个会加到put的路径
     	  	uuid: object.uuid,//uuid，保存的时候会有这个
-	        name	:	ko.observable(object.name).extend({ required: true, maxLength: 32 }),
+	        name	:	ko.observable(object.name).extend({ required: true, maxLength: 32,cscNameRule:true }),
 	        dataCenterUUID	:	self.dataCenterUUID,//从上一个页面传过来的 “数据中心uuid”
 	        type	:	ko.observable(object.type).extend({ required: true }),
-	        ip	:	ko.observable(object.ip).extend({ required: true }),
-	        port	:	ko.observable(object.port).extend({ required: true}),
+	        ip	:	ko.observable(object.ip).extend({ required: true,ip:true }),
+	        port	:	ko.observable(object.port).extend({ required: true,positiveIntegerRule:true}),
 	        username	:	ko.observable(object.username).extend({ required: true }),
 	        password	:	ko.observable('cscTempPasswordXXYY').extend({ required: true }),
 	        domain:{},
 	        description	:	object.description
       });
+      self.domainArray([object.domain]);
+      self.domainChosen(object.domain);
       self.isEdit(true);        
     };
     
@@ -624,28 +629,39 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         });//end confirm    	  
       };
 
-    this.ok = function(){ 	  
-
+    this.ok = function(){ 
+    	this.currentVO.errors.showAllMessages();
    		//接入
       	if(this.currentVO().id == null){
         	//验证通过
-     	  	if(this.currentVO.errors().length === 0) {
-
-     	    	var postBody = self.currentVO.toJSON();
-     	    	postBody.domain = self.domainTable.chosenItems();
-
-      			//保存
-      			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
-      				self.isEdit(false);//关闭modal
-            		if(data.uuid){
-          				alert("接入云管理平台成功！")               	  
-	            		self.table.refreshData();//刷新列表                	
-            		}
-      			});
-	        }else{
-	      	  //显示错误提示
-	      	  this.currentVO.errors.showAllMessages();
-	        }
+      		 if(self.currentVO().type()=='CNware'){
+      			self.isShowDomainValidateMsg(self.domainChosen()==null);//显示请选择资源域的提示
+      			if(this.currentVO.errors().length === 0 && self.domainChosen()) {
+         	    	var postBody = self.currentVO.toJSON();
+         	    	postBody.domain = self.domainChosen();
+          			//保存
+          			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
+          				self.isEdit(false);//关闭modal
+                		if(data.uuid){
+              				alert("接入云管理平台成功！")               	  
+    	            		self.table.refreshData();//刷新列表                	
+                		}
+          			});
+    	        }
+      		 }else{//openstack
+         	  	if(this.currentVO.errors().length === 0 ) {
+         	    	var postBody = self.currentVO.toJSON();
+          			//保存
+          			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
+          				self.isEdit(false);//关闭modal
+                		if(data.uuid){
+              				alert("接入云管理平台成功！")               	  
+    	            		self.table.refreshData();//刷新列表                	
+                		}
+          			});
+    	        }
+      			 
+      		 }
 
       //修改
       }else{
@@ -658,9 +674,6 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
  	        		self.isEdit(false);//关闭modal
      	  		});
      	  		
-     	  	}else{
-     	  	 //显示错误提示
-  	      	  this.currentVO.errors.showAllMessages();    	  		
      	  	}
       }
     };
@@ -674,24 +687,36 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     };
 
     //this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
-    this.table = new DataTable([], {path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID});
+    this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID,loader:function(result){
+    	if(result.domain){
+    		result.domainIp = result.domain.ip;
+    	}else{
+    		result.domainIp = "";
+    	}
+    	return result;
+    }});
     
     
   	//---------------------资源域wce----------------------
 
-    this.domainTable =  new DataTable([],{perPage:100,loader:function(result){
-    	return result;
-    }});//设置大一些不分页
-    
+  	this.isShowDomainValidateMsg = ko.observable(false);
+    this.domainChosen = ko.observable();
+    this.domainArray = ko.observableArray([]);
     this.findDomain = function(){
-    	
     	var ip = self.currentVO().ip();
     	var port = self.currentVO().port();
     	var username = self.currentVO().username();
     	var password = self.currentVO().password();
-    	self.domainTable.path('api/v5.0.0/domains?ip='+ip+"&port="+port+"&username="+username+"&password="+password);
+    	csc.rest.get('api/v5.0.0/domains?ip='+ip+"&port="+port+"&username="+username+"&password="+password,function(data){
+    		if(data && data.results && data.results.length>0){
+    			  self.domainArray(data.results);
+    		  }else{
+    			  self.domainArray([]);
+    		  }
+	    });
     }
-    
+
+   
     
   };
   

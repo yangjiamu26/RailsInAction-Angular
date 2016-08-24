@@ -279,9 +279,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	//目录树end
   
   	//初始化产品列表下拉框
-    function loadProduct(){
+    function loadProduct(bool){
     	csc.rest.get('api/v5.0.0/products',function(data){    		
     		viewModel.productList(data);
+			if(bool){
+	    		viewModel.serviceVO().imageUrl(data[0].imgUrl);
+			}
         });
     }    
 
@@ -501,7 +504,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
   	
     $(document).ready(function(){
     	loadTree();		    //服务目录树
-        loadProduct();	   //获取产品下拉框数据
+        loadProduct(false);	   //获取产品下拉框数据
         
     });         	
   	
@@ -510,22 +513,26 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       var self = this;
       this.isAdd = ko.observable(false);
 
-      this.directoryVO = ko.validatedObservable({    	  
-          name: ko.observable("").extend({required: true,cscNameRule:true}),          
-          parentName: ko.observable("服务目录")
-      });            
+      this.directoryVO = ko.observable();
+      function directoryEntity(){
+    	  this.uuid = ko.observable("");
+          this.parentUuid = ko.observable("");
+    	  this.name = ko.observable("").extend({required: true,cscNameRule:true});
+          this.parentName = ko.observable("服务目录");
+      }
+
       //新增           
       this.add = function(){
     	var treeObj = $.fn.zTree.getZTreeObj("serverDefinitionsTree");
     	var nodes = treeObj.getSelectedNodes();
+    	var vo = new directoryEntity();
+    	this.directoryVO = new ko.validatedObservable(vo);
     	if(nodes.length > 0){
+    		this.directoryVO.fromJSON({
+                parentName: nodes[0].name,
+                parentUuid: nodes[0].uuid
+            });
     	   this.isAdd(true);    	   
-           this.directoryVO.fromJSON({
-               uuid: null,
-               name: "",
-               parentName: nodes[0].name,
-               parentUuid: nodes[0].uuid
-           });	
     	}else{
     		alert('请选择根目录！');
     	}
@@ -534,9 +541,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       //保存
       this.save = function(){
           ko.validation.group(this.directoryVO).showAllMessages();          
-          if(this.directoryVO.isValid()){       	  
-              if(this.directoryVO().uuid){
-                  csc.rest.put('api/v5.0.0/service/directory/'+this.directoryVO().uuid,this.directoryVO.toJSON(),function(data){
+          if(this.directoryVO.isValid()){
+              if(this.directoryVO().uuid()){
+                  csc.rest.put('api/v5.0.0/service/directory/'+this.directoryVO().uuid(),this.directoryVO.toJSON(),function(data){
                 	  self.isAdd(false);
                 	  self.table.refreshData();
                 	  loadTree();
@@ -575,18 +582,20 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       //修改
       this.editDir = function(object, event){
     	  var treeObj = $.fn.zTree.getZTreeObj("serverDefinitionsTree");
-          var nodes = treeObj.getSelectedNodes();          
+          var nodes = treeObj.getSelectedNodes(); 
+          var vo = new directoryEntity();
+      	  this.directoryVO = new ko.validatedObservable(vo);
           if(nodes.length > 0){
         	  if(nodes[0].uuid == 0){
         		  alert('根目录不能修改！');
         	  }else{
-        		  this.isAdd(true);           
-                  this.directoryVO.fromJSON({
+        		  this.directoryVO.fromJSON({
                       uuid: nodes[0].uuid,
                       name: nodes[0].name,
                       parentName: nodes[0].parentName,
                       parentUuid: nodes[0].uuid
                   }); 
+        		  this.isAdd(true);           
         	  }                
            }else{
                alert('请选择要修改的目录！');
@@ -825,6 +834,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       <!-- 云主机 end  -->
       
       <!-- 修改服务弹窗-->
+      this.vmOsVersionList = ko.observableArray();
       this.editService = function(object, event){
     	  var vo = new entityVO();
 	  	  self.serviceVO = new ko.validatedObservable(vo);
@@ -911,20 +921,49 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         			  self.osTypeList.push(vdcOsType);
         		  }
     			  //if(limit == "yes"){
-    				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
-    				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
-    				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
-    				  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
-    				  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
-    				  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
-    				  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
-    				  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
-    				  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
-    				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
-    				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
-    				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
-    				  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
-    				  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
+    				  if(data.serviceVDC.maxCpu != null && data.serviceVDC.maxCpu != ""){
+    					  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
+    				  }
+    				  if(data.serviceVDC.maxVmNum != null && data.serviceVDC.maxVmNum != ""){
+    					  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
+    				  }
+    				  if(data.serviceVDC.maxMemory != null && data.serviceVDC.maxMemory != ""){
+    					  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
+    				  }
+    				  if(data.serviceVDC.maxDiskNum != null && data.serviceVDC.maxDiskNum != ""){
+    					  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
+    				  }
+    				  if(data.serviceVDC.maxStorager != null && data.serviceVDC.maxStorager != ""){
+    					  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
+    				  }
+    				  if(data.serviceVDC.maxIpNum != null && data.serviceVDC.maxIpNum != ""){
+    					  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
+    				  }
+    				  if(data.serviceVDC.maxVPC != null && data.serviceVDC.maxVPC != ""){
+    					  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
+    				  }
+    				  if(data.serviceVDC.maxRouterNum != null && data.serviceVDC.maxRouterNum != ""){
+    					  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
+    				  }
+    				  if(data.serviceVDC.maxObjStorageNum != null && data.serviceVDC.maxObjStorageNum != ""){
+    					  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
+    				  }
+    				  if(data.serviceVDC.maxFireWallNum != null && data.serviceVDC.maxFireWallNum != ""){
+    					  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
+    				  }
+    				  if(data.serviceVDC.maxSSHNum != null && data.serviceVDC.maxSSHNum != ""){
+    					  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
+    				  }
+    				  if(data.serviceVDC.maxLoadBalanceNum != null && data.serviceVDC.maxLoadBalanceNum != ""){
+    					  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
+    				  }
+    				  if(data.serviceVDC.maxSecurityGroupNum != null && data.serviceVDC.maxSecurityGroupNum != ""){
+    					  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
+    				  }
+    				  if(data.serviceVDC.maxVpnNum != null && data.serviceVDC.maxVpnNum != ""){
+    					  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
+    				  }
+    				  
     			 // }
     		  }else{
     			  //初始化AZ数据
@@ -1000,20 +1039,20 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   		  osTypes: vmOsType
                   	  });
                   	  var vmOsVersion = data.serviceVm.osVersion;
-                  	  var vmOsVersionList = new Array();
+                  	  
 	                  if(vmOsVersion.indexOf(",") != -1){
-	                	  vmOsVersionList(vmOsVersion.split(","));
+	                	  self.vmOsVersionList(vmOsVersion.split(","));
 	          		  }else{
-	          			  vmOsVersionList.push(vmOsVersion);
+	          			  self.vmOsVersionList.push(vmOsVersion);
 	          		  }
 	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
 	                  if(self.osType_chosen().length > 0){
 	                	  self.osType_chosen.removeAll();
 	                  }
-                  	  if(self.osVersionList.pagedRows().length > 0 && vmOsVersionList.length > 0){
+                  	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
                   		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
-                  			  for(var n = 0; n < vmOsVersionList.length; n++){
-                  				  if(self.osVersionList.pagedRows()[m].imageUuid == vmOsVersionList[n]){
+                  			  for(var n = 0; n < self.vmOsVersionList().length; n++){
+                  				  if(self.osVersionList.pagedRows()[m].imageUuid == self.vmOsVersionList()[n]){
                   					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
                   				  }
                   			  }
@@ -1070,41 +1109,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  if(self.packages_chosen().length > 0){
 			  self.packages_chosen.removeAll();
 		  }
-    	  
-/*     	  this.showItems("no");
-    	  this.showItems.subscribe(function(value){
-    	         if(value=='yes'){
-    	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxVmNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxMemory.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxDiskNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxStorager.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxIpNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxVPC.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxRouterNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxObjStorageNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxSecurityGroupNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxVpnNum.extend({required: {params: true, onlyIf:function(){return true}}});
-    	       	  }else{
-    	       		self.serviceVO().serviceVDC.maxCpu.extend({required: {params: false, onlyIf:function(){return true}}})
-    	       		self.serviceVO().serviceVDC.maxVmNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxMemory.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxDiskNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxStorager.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxIpNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxVPC.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxRouterNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxObjStorageNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxFireWallNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxSSHNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxLoadBalanceNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxSecurityGroupNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       		self.serviceVO().serviceVDC.maxVpnNum.extend({required: {params: false, onlyIf:function(){return true}}});
-    	       	  }
-    	  }) */
+    	  loadProduct(true);
     	  this.isFee("1");
     	  //初始化数据end
     	  loadServiceTree();//加载服务目录树
@@ -1193,100 +1198,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     			  alert("请至少选择一个支持操作系统！");
     			  return;
     		  }
-    		 /*  var isLimit = this.showItems();
-    		  if(isLimit == "yes"){
-    			  ko.validation.group(this.serviceVO).showAllMessages();
-    			  var isMandatory = true;
-    			  var obj = this.serviceVO().serviceVDC;
-    	    	  var maxCpu = obj.maxCpu();
-    	    	  if(typeof(maxCpu) == "undefined" || maxCpu == ""){
-//    	    		  alert("【最大CPU(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxVmNum = obj.maxVmNum(); 
-    	    	  if(typeof(maxVmNum) == "undefined" || maxVmNum == ""){
-//    	    		  alert("【最大云主机数(台)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxMemory = obj.maxMemory(); 
-    	    	  if(typeof(maxMemory) == "undefined" || maxMemory == ""){
-//    	    		  alert("【最大内存(GB)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxDiskNum = obj.maxDiskNum(); 
-    	    	  if(typeof(maxDiskNum) == "undefined" || maxDiskNum == ""){
-//    	    		  alert("【最大云硬盘数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxStorager = obj.maxStorager(); 
-    	    	  if(typeof(maxStorager) == "undefined" || maxStorager == ""){
-//    	    		  alert("【最大存储(GB)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxIpNum = obj.maxIpNum(); 
-    	    	  if(typeof(maxIpNum) == "undefined" || maxIpNum == ""){
-//    	    		  alert("【最大公网IP数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxVPC = obj.maxVPC(); 
-    	    	  if(typeof(maxVPC) == "undefined" || maxVPC == ""){
-//    	    		  alert("【最大VPC(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxRouterNum = obj.maxRouterNum(); 
-    	    	  if(typeof(maxRouterNum) == "undefined" || maxRouterNum == ""){
-//    	    		  alert("【最大路由器数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxObjStorageNum = obj.maxObjStorageNum(); 
-    	    	  if(typeof(maxObjStorageNum) == "undefined" || maxObjStorageNum == ""){
-//    	    		  alert("【最大对象存储(GB)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxFireWallNum = obj.maxFireWallNum(); 
-    	    	  if(typeof(maxFireWallNum) == "undefined" || maxFireWallNum == ""){
-//    	    		  alert("【最大防火墙数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxSSHNum = obj.maxSSHNum(); 
-    	    	  if(typeof(maxSSHNum) == "undefined" || maxSSHNum == ""){
-//    	    		  alert("【最大SSH密钥数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxLoadBalanceNum = obj.maxLoadBalanceNum(); 
-    	    	  if(typeof(maxLoadBalanceNum) == "undefined" || maxLoadBalanceNum == ""){
-//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxSecurityGroupNum = obj.maxSecurityGroupNum(); 
-    	    	  if(typeof(maxSecurityGroupNum) == "undefined" || maxSecurityGroupNum == ""){
-//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  var maxVpnNum = obj.maxVpnNum(); 
-    	    	  if(typeof(maxVpnNum) == "undefined" || maxVpnNum == ""){
-//    	    		  alert("【最大负载均衡数(个)】为必填，并且只能为正整数！")
-					  isMandatory = false;
-//    	    		  return;
-    	    	  }
-    	    	  if(!isMandatory){
-          			  alert("请输入限制的配额的值！");
-          			  return;
-          		  }
-    		  } */
     	  }
 
     	  this.step(this.step()+1);
@@ -1331,6 +1242,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           }else{
         	  getAzsByUser(viewModel,true);
           }
+          csc.rest.get('api/v5.0.0/products?codeName='+viewModel.selected_product(),function(data){  
+  	    	  viewModel.serviceVO().imageUrl(data[0].imgUrl);
+          });
+    		
         }
         //
      	function getAzsByUser(viewModel,bool){

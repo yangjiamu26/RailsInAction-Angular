@@ -55,7 +55,10 @@
         </tr>
         <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
         <tr>
-          <td><a data-bind="text:name,click:$root.showFileTable">cdisk</a></td>
+          <td >
+          		<span data-bind="if:isOwner"><a data-bind="text:name,click:$root.showFileTable">cdisk</a></span>
+          		<span data-bind="ifnot:isOwner"><a style="color:#58666e;cursor:text" data-bind="text:name">cdisk</a></span>	
+          </td>
           <td data-bind="text:azName">AX1</td>
           <td data-bind="text:vdcName">VDC1</td>
           <td data-bind="text:applySize2">50</td>
@@ -77,7 +80,7 @@
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                        <li data-bind="if: $row.isValidate == true,check_action:'ins_Store_Upload'"><a data-bind="click: $root.upload">上传文件</a></li>
+                        <li data-bind="if: ($row.isValidate == true && isOwner),check_action:'ins_Store_Upload'"><a data-bind="click: $root.upload">上传文件</a></li>
                       	<li data-bind="if: $row.isValidate == true,check_action:'ins_Store_Stop'"><a href="#" data-bind="click: $root.validate">终止</a></li>
                       	<li data-bind="if: $row.isValidate == false,check_action:'ins_Store_Delete'"><a data-bind="click: $root.removeOne">删除</a></li>
                     </ul>
@@ -160,7 +163,7 @@
               <td data-bind="text:name">centos7.iso</td>
               <td data-bind="text:sizeInBytes">1G</td>
               <td data-bind="text:lastModified">2016-06-29 13:56</td>
-              <td><a data-bind="attr:{href:'api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name+'/download'}">下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
+              <td data-bind="visible:$root.containerVO().containerIsValidate"><a data-bind="attr:{href:'api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name+'/download'}">下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
             </tr>
             <!-- /ko -->
           </tbody>
@@ -471,10 +474,10 @@
       this.createDisk = function(){
     	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
     	  this.currentVO({
-        	  name: ko.observable().extend({required: true}),
+        	  name: ko.observable().extend({required: true, maxLength: 32,cscNameRule:true}),
         	  vdcUuid:ko.observable().extend({required: true}),
           	  azUuid:ko.observable().extend({required: true}),
-          	  applySize:ko.observable().extend({required: true}),
+          	  applySize:ko.observable().extend({required: true,positiveIntegerRule:true}),
           	  yearMonth:ko.observable().extend({required: false}),
           	  toDate:'',
           	  remark:''
@@ -517,15 +520,28 @@
           }
       }
       this.changeYearMonthValidateYesOrNot = function(t){
-    	  self.currentVO({
-        	  name: ko.observable(self.currentVO().name()).extend({required: true}),
-        	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
-          	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
-          	  applySize:ko.observable(self.currentVO().applySize()).extend({required: true}),
-          	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: t}),
-          	  toDate:self.currentVO().toDate,
-          	  remark:self.currentVO().remark
-          });
+    	  if(t){
+    		  self.currentVO({
+            	  name: ko.observable(self.currentVO().name()).extend({required: true, maxLength: 32,cscNameRule:true}),
+            	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
+              	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
+              	  applySize:ko.observable(self.currentVO().applySize()).extend({required: true,positiveIntegerRule:true}),
+              	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: true,positiveIntegerRule:true}),
+              	  toDate:self.currentVO().toDate,
+              	  remark:self.currentVO().remark
+              });
+    	  }else{
+    		  self.currentVO({
+            	  name: ko.observable(self.currentVO().name()).extend({required: true, maxLength: 32,cscNameRule:true}),
+            	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
+              	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
+              	  applySize:ko.observable(self.currentVO().applySize()).extend({required: true,positiveIntegerRule:true}),
+              	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: false}),
+              	  toDate:self.currentVO().toDate,
+              	  remark:self.currentVO().remark
+              });
+    	  }
+    	  
     	  //重新初始化日期控制，如果不设置清空，具体不明
     	  $('#resource_instance_objectStorage_limit_option3').val(self.currentVO().toDate).daterangepicker(
  	            {
@@ -782,7 +798,7 @@
 		    			//console.log(response);
 		    			
 		    			if (response.message) {
-		    				systemMsg.alert(response.message);
+		    				systemMsg.alert(response.message+'！');
 		    				clearInterval(intervalId);
 		    				if(response.message=='上传成功'){ 
 		    					 self.progressText("100%");
@@ -849,6 +865,7 @@
     				  //console.log(data);
     				  if(data.message == '停止成功'){
     					  clearInterval(intervalId);	
+    					  alert('终止上传成功！');
     					  self.showUploadDialog(false);
     				  }
     			  });
@@ -873,12 +890,8 @@
 	    	  confirm("您确定要删除该对象存储["+object.name+"]吗？",function(){    
 	    		  $.OBJECT_STORAGE.deleteObjectStorage(object.uuid,function(data){
 	    			  if(data.result == 'success'){
-	    				  alert('删除成功');
+	    				  alert('删除对象存储成功！');
 	            		  self.table.refreshData();
-	    			  }else if(data.result == 'faile'){
-	    				  alert('删除底层数据失败');
-	    			  }else{
-	    				  alert('没有发现对象存储！');
 	    			  }
 	        	  });
 	    	  });
@@ -991,6 +1004,7 @@
           ); 
       })
       this.validateTimeVO = ko.validatedObservable({
+    	  metaTime: ko.observable(),
     	  time: ko.observable(),
     	  uuid: ko.observable()
       });
@@ -1002,13 +1016,19 @@
      		  //不走流程
 	    	  self.isValidateTime(true);
 	    	  self.validateTimeVO().uuid(object.uuid);
-	    	  self.validateTimeVO().time(object.expiryTime);
+	    	  self.validateTimeVO().time(object.expiryDate);
+	    	  self.validateTimeVO().metaTime(object.expiryDate);
      	  }
       }
       //修改有效期
       this.validateTime = function(){
     	  var putBody = {};
     	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
+    	 //检查日期相同不发送请求，直接关闭页面
+    	  if(self.validateTimeVO().metaTime() == self.validateTimeVO().time()){
+    		  self.isValidateTime(false);
+    		  return;
+    	  }
     	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
 		 		systemMsg.alert('对象存储修改有效期成功！');
 		 		self.isValidateTime(false);
@@ -1062,7 +1082,7 @@
       this.removeOneObject = function(object,event){
     	  confirm("您确定要删除该对象["+object.name+"]吗？",function(){    
     		  $.OBJECT_STORAGE.deleteObject(object.objectStorageUuid,object.name,function(data){
-        		  alert('删除成功');
+        		  alert('删除对象成功！');
         		  self.fileTable.refreshData();
         		  self.table.refreshData();
         	  });
@@ -1123,10 +1143,12 @@
        	  postBody.orderItems = orderItems;
        	  
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-       		  if(data.code){
-       			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-       			self.isDeleteProcess(false);
-       		  }
+       		  if(data.taskId){
+    			systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！');
+    		  }else if(data.code){
+    			systemMsg.alert('删除资源申请成功，订单编号：' + data.code + '！');
+    		  }
+  		 	  self.isDeleteProcess(false);
        	  });
  		}
       
@@ -1213,11 +1235,11 @@
     	  postBody.orderItems = orderItems;
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
-    		  if(data.code){
-    			systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
-  		 		self.isValidateProcess(false);
-    		  }
-    	  });
+      		  if(data.code){
+      				systemMsg.alert('有效时间变更申请成功，订单编号：'+data.code+'！');
+    		 		self.isValidateProcess(false);
+      		  }
+      	  });
       }
       //------------------------------------------有效期-流程结束--------------------------------
       
@@ -1262,7 +1284,7 @@ function renderSizeToGB(value){
   }
   var gb = roundFun((value/(1024*1024*1024)),2);
   if(value>0 && gb==0){//很小的大小
-	  return 0.01;
+	  return 0.00;
   }
   return gb;
 }

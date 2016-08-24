@@ -62,7 +62,7 @@
             </td>
             <td><a href="#pages/resources/partitions/partition_detail" data-bind="text:name,attr:{href:'#pages/resources/partitions/partition_detail?azUuid=' + $row.uuid + '&cloudPlatform='+$row.cloudPlatform + '&virtualHypervisor='+$row.virtualHypervisor+'&azName='+$row.name}"></a></td>
             <!-- <td data-bind="text:resourcePoolNum==null?0:resourcePoolNum"></td> -->
-            <td data-bind="text:cloudPlatform=='OpenStack'?'':resourcePoolNum"></td>
+            <td data-bind="text:cloudPlatform=='OpenStack'?'':(resourcePoolNum==null?'':resourcePoolNum)"></td>
             <td data-bind="text:datacenterName"></td>
             <td data-bind="text:cloudplatformName"></td>
             <td data-bind="text:isPrivate=='1'?'是':'否'">
@@ -93,15 +93,14 @@
   </div>
 </div>
 
-<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEdit }">
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAdd }">
   <div class='modal-dialog'>
     <div class='modal-content'>
       <div class='modal-header'>
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h3 class='modal-title' data-bind="ifnot: currentVO().uuid">创建可用分区</h3>
-        <h3 class='modal-title' data-bind="if: currentVO().uuid">修改可用分区</h3>
+        <h3 class='modal-title'>创建可用分区</h3>
       </div>
-      <div class='modal-body form-horizontal row' data-bind="with:currentVO">
+      <div class='modal-body form-horizontal' data-bind="with:currentVO">
         <div class="form-group">
           <label class="col-xs-3 control-label">名称</label>
           <div class="col-xs-8">
@@ -113,8 +112,8 @@
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">数据中心</label>
-          <div class="col-xs-8">
-            <select class="form-control" data-bind="value:datacenterUuid, options: $root.dcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_dcs},attr:{disabled:id}">
+          <div class="col-xs-8" data-bind="visible: uuid()==''"><!-- 创建 -->
+            <select class="form-control" data-bind="value:datacenterUuid, options: $root.dcs, optionsText: 'name', optionsValue: 'uuid'">
               <option value="1">1</option>
               <option value="2">2</option>
             </select>
@@ -125,8 +124,8 @@
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">云管理平台</label>
-          <div class="col-xs-8">
-            <select class="form-control" data-bind="value:cloudplatformUuid, options: $root.cloudPlatforms, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_cloudPlatforms},attr:{disabled:id}">
+          <div class="col-xs-8" data-bind="visible: uuid()==''"><!-- 创建 -->
+            <select class="form-control" data-bind="value:cloudplatformUuid, options: $root.cloudPlatforms, optionsText: 'name', optionsValue: 'uuid'">
               <option value="1">1</option>
               <option value="2">2</option>
             </select>
@@ -134,12 +133,8 @@
         </div>
         <div class="form-group">
           <label class="col-xs-3 control-label">虚拟化类型</label>
-          <div class="col-xs-8">
-            <select class="form-control" data-bind="value:virtualHypervisor, options: $root.virtualHypervisors, optionsText: 'virtualHypervisor', optionsValue: 'virtualHypervisor',attr:{disabled:id}">
-              <!-- 
-              <option value="1">1</option>
-              <option value="2">2</option>
-               -->
+          <div class="col-xs-8" data-bind="visible: uuid()==''"><!-- 创建 -->
+            <select class="form-control" data-bind="value:virtualHypervisor, options: $root.virtualHypervisors, optionsText: 'virtualHypervisor', optionsValue: 'virtualHypervisor'">
             </select>
           </div>
         </div>
@@ -152,22 +147,20 @@
             </select>
           </div>
         </div>
-        <!-- 
-        <div class="form-group">
+        <div class="form-group" data-bind="visible: cloudPlatform()=='CNware'">
           <label class="col-xs-3 control-label">资源池</label>
           <div class="col-xs-8">
-            <div class="panel panel-default table-responsive no-height">
+            <div class="panel panel-default table-responsive no-height" data-bind="with:$root.resPoolTable">
               <table class="table table-striped">
                 <thead>
                   <tr>
                     <th>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </th>
+						<div class="checkbox">
+							<label class="i-checks"> <input type="checkbox"
+								data-bind="checked: isSelectedAll"> <i></i>
+							</label>
+						</div>
+					</th>
                     <th>资源池名称</th>
                     <th>CPU</th>
                     <th>内存</th>
@@ -175,27 +168,27 @@
                   </tr>
                 </thead>
                 <tbody>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
                     <td>
-                      <div class="checkbox">
-                        <label class="i-checks">
-                          <input type="checkbox" value="">
-                          <i></i>
-                        </label>
-                      </div>
-                    </td>
-                    <td>资源池1</td>
-                    <td>2</td>
-                    <td>10</td>
-                    <td>200</td>
+						<div class="checkbox">
+							<label class="i-checks"> <input type="checkbox"
+								data-bind="checkedValue: $data.id, checked: $parent.chosenItems">
+								<i></i>
+							</label>
+						</div>
+					</td>
+                    <td data-bind="text:name"></td>
+                    <td data-bind="text:totalCpu"></td>
+                    <td data-bind="text:totalMemory"></td>
+                    <td data-bind="text:totalStorage"></td>
                   </tr>
+                  <!-- /ko -->
                 </tbody>
-                
               </table>
             </div>
           </div>
         </div>
-         -->
         <div class="form-group">
           <label class="col-xs-3 control-label">描述</label>
           <div class="col-xs-8">
@@ -204,7 +197,113 @@
         </div>
       </div>
       <div class='modal-footer' style="text-align:center;">
-        <a class="btn btn-default btn-info" data-bind="click:ok">确定</a>
+        <a class="btn btn-default btn-info" data-bind="click:okAdd">确定</a>
+        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isEdit }">
+  <div class='modal-dialog'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h3 class='modal-title'>修改可用分区</h3>
+      </div>
+      <div class='modal-body form-horizontal' data-bind="with:currentVOEdit">
+        <div class="form-group">
+          <label class="col-xs-3 control-label">名称</label>
+          <div class="col-xs-8">
+            <input type="email" class="form-control" placeholder="请输入名称" data-bind="value:name">
+          </div>
+          <div class="col-xs-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>          
+        </div>
+        <div class="form-group">
+          <label class="col-xs-3 control-label">数据中心</label>
+          <div class="col-xs-8"><!-- 修改 -->
+            <input type="email" class="form-control" placeholder="" data-bind="value:datacenterName,attr:{disabled:true}">
+          </div>
+          <div class="col-xs-1">
+            <span class="text-danger inline m-l-n m-t-sm">*</span>
+          </div>          
+        </div>
+        <div class="form-group">
+          <label class="col-xs-3 control-label">云管理平台</label>
+          <div class="col-xs-8"><!-- 修改 -->
+            <input type="email" class="form-control" placeholder="" data-bind="value:cloudplatformName,attr:{disabled:true}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-3 control-label">虚拟化类型</label>
+          <div class="col-xs-8"><!-- 修改 -->
+            <input type="email" class="form-control" placeholder="" data-bind="value:virtualHypervisor,attr:{disabled:true}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-3 control-label">是否独占</label>
+          <div class="col-xs-8">
+            <select class="form-control" data-bind="value:isPrivate">
+              <option value="1">是</option>
+              <option value="0">否</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" data-bind="visible: cloudPlatform()=='CNware'">
+          <label class="col-xs-3 control-label">资源池</label>
+          <div class="col-xs-8">
+            <div class="panel panel-default table-responsive no-height" data-bind="with:$root.resPoolTableEdit">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>
+						<!-- <div class="checkbox">
+							<label class="i-checks"> <input type="checkbox"
+								data-bind="checked: isSelectedAll"> <i></i>
+							</label>
+						</div> -->
+						选择
+					</th>
+                    <th>资源池名称</th>
+                    <th>CPU</th>
+                    <th>内存</th>
+                    <th>存储</th>
+                  </tr>
+                </thead>
+                <tbody>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+                  <tr>
+                    <td>
+						<div class="checkbox">
+							<label class="i-checks"> <input type="checkbox"
+								data-bind="checkedValue: $data.id, checked: $parent.chosenItems,attr:{disabled:!$data.editAble4Az}">
+								<i></i>
+							</label>
+						</div>
+					</td>
+                    <td data-bind="text:name"></td>
+                    <td data-bind="text:totalCpu"></td>
+                    <td data-bind="text:totalMemory"></td>
+                    <td data-bind="text:totalStorage"></td>
+                  </tr>
+                  <!-- /ko -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-3 control-label">描述</label>
+          <div class="col-xs-8">
+            <textarea class="form-control" cols="30" rows="3" data-bind="value:description"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align:center;">
+        <a class="btn btn-default btn-info" data-bind="click:okEdit">确定</a>
         <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
       </div>
     </div>
@@ -218,96 +317,119 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
    function ViewModel(){
       this.isEdit = ko.observable(false);
+      this.isAdd = ko.observable(false);
       var self = this;
       
-      var CurrentVO = function(){
-        return ko.validatedObservable({
-            "name": ko.observable().extend({required: true,cscNameRule:true,maxLength:32})
-        });
-      };
-      this.currentVO = new CurrentVO();
+      this.currentVO = new ko.validatedObservable({
+    	  uuid: ko.observable(),
+    	  id: ko.observable(),
+          name: ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
+          datacenterUuid : ko.observable(),
+          cloudPlatform : ko.observable(),
+          cloudplatformUuid : ko.observable(),
+          virtualHypervisor : ko.observable(),
+          isPrivate: ko.observable(false),
+          description: ko.observable("")
+      });
+      
+      this.currentVOEdit = new ko.validatedObservable({
+    	  uuid: ko.observable(),
+    	  id: ko.observable(),
+          name: ko.observable().extend({required: true,cscNameRule:true,maxLength:32}),
+          datacenterUuid : ko.observable(),
+          cloudPlatform : ko.observable(),
+          cloudplatformUuid : ko.observable(),
+          virtualHypervisor : ko.observable(),
+          isPrivate: ko.observable(false),
+          description: ko.observable("")
+      });
 	  
+      
       //数据中心,下拉列表
       this.dcs = ko.observableArray([]);
       //云平台,下拉列表
       this.cloudPlatforms = ko.observableArray([]);
       //虚拟化类型,下拉列表
       this.virtualHypervisors = ko.observableArray([]);
-      //加载数据中心方法
+      
+      /*************************** 初始化异步加载 BEGIN ******************************/
+      //数据中心,下拉  ------>异步加载
       this.loadDcs = function(){
         $.ajax("api/v5.0.0/datacenters?isFilter=true").done(function(data){
           self.dcs(data.results);
-          self.onchange_dcs();
         });
       };
-      //加载云平台方法
-      this.loadCloudPlatforms = function(dcId, isFilterHasAz){
-    	if(isFilterHasAz){
-    		$.ajax("api/v5.0.0/cloudPlatforms?isFilterHasAz=true&dataCenterUUID=" + dcId).done(function(data){
-   	          self.cloudPlatforms(data.results);
-   	        });    		
-    	}else{
-    		$.ajax("api/v5.0.0/cloudPlatforms?dataCenterUUID=" + dcId).done(function(data){
-   	          self.cloudPlatforms(data.results);
-   	        });
-    	}
-      };
-      //加载虚拟化类型方法
-      this.loadVirtualHypervisors = function(type){
-          self.virtualHypervisors([]);
-    	  $.ajax("api/v5.0.0/azs/0/hypervisor?cloudPlatform=" + type).done(function(data){
+      this.currentVO().datacenterUuid.subscribe(function(dcUuid){
+    	  $.ajax(self.currentVO.toJSON().uuid
+	  				? "api/v5.0.0/cloudPlatforms?dataCenterUUID=" + dcUuid
+	  				: "api/v5.0.0/cloudPlatforms?isFilterHasAz=true&dataCenterUUID=" + dcUuid
+  				).done(function(data){
+ 	          self.cloudPlatforms(data.results);
+ 	          // 根据选中虚拟化云平台类型来联动加载虚拟化类型
+ 	    	  if(self.currentVO.toJSON().cloudplatformUuid){
+ 	    		//重置虚拟化类型，下拉列表
+ 	      		for(var i=0;i<self.cloudPlatforms().length;i++){
+ 	          		if(self.currentVO.toJSON().cloudplatformUuid == self.cloudPlatforms()[i].uuid){
+ 	          			self.currentVO().cloudPlatform(self.cloudPlatforms()[i].type);
+ 	          			return;
+ 	          		}
+ 	          	}
+ 	      	  }
+          });    		
+      });
+      
+      this.currentVO().cloudplatformUuid.subscribe(function(cloudplatformUuid){
+    	  self.virtualHypervisors([]);
+    	  $.ajax("api/v5.0.0/cloudPlatforms/"+cloudplatformUuid+"/hypervisor").done(function(data){
     		  self.virtualHypervisors(data);
  	      }); 
-      };
+      });
       
-      //数据中心下拉框onChange
-      this.onchange_dcs = function(){
-    	  var dcUuid = self.currentVO.toJSON().datacenterUuid;
-    	  var azUuid = self.currentVO.toJSON().uuid;
-    	  //结合可用分区UUID判断是新增还是修改
-    	  if(azUuid){//修改 
-    		self.loadCloudPlatforms(dcUuid, false);
-    	  }else{//新增
-	    	self.loadCloudPlatforms(dcUuid, true);
-    	  }
-      }
-      //虚拟化云平台下拉框onChange
-      this.onchange_cloudPlatforms = function(){
-    	  //TODO 根据选中虚拟化云平台类型来联动加载
-    	  var currentPlatFormUuid = self.currentVO.toJSON().cloudplatformUuid;
-    	  if(currentPlatFormUuid){
-      		for(var i=0;i<self.cloudPlatforms().length;i++){
-          		if(currentPlatFormUuid == self.cloudPlatforms()[i].uuid){
-          			self.loadVirtualHypervisors(self.cloudPlatforms()[i].type);
-          		}
-          	}	
-      	  }
-      }
+	  //虚拟化云平台，下拉框  ------->onchange,联动改变资源池的方法
+	  this.currentVO().virtualHypervisor.subscribe(function(hypervisor){
+		  if(self.currentVO().cloudPlatform() == "CNware" && hypervisor){
+			  self.resPoolTable.path('api/v5.0.0/cloudPlatforms/'+self.currentVO.toJSON().cloudplatformUuid
+					  +'/resourcePools?hypervisor='+hypervisor + '&isFilter=true');
+		  }
+	  });
+	  /*************************** 初始化加载 END ******************************/
+	  
       
-      //console.log(this.dcs.toJSON());
-      
+      /*************************** 创建        BEGIN ******************************/
       this.add = function(){
-        this.currentVO.fromJSON({
-          id: null,
-          uuid:'',
-          name:'',
-          datacenterUuid:'',
-          cloudplatformUuid:'',
-          virtualHypervisor:'',
-          isPrivate:'',
-          description:''
-        });
+        //加载数据中心，下拉列表
+        self.currentVO.fromJSON({
+	          id: null,
+	          uuid:'',
+	          name:'',
+	          datacenterUuid:'',
+	          datacenterName:'',
+	          cloudplatformUuid:'',
+	          cloudplatformName:'',
+	          virtualHypervisor:'',
+	          isPrivate:'',
+	          description:'',
+	          resourcePoolIds:'',
+	    });        
         self.loadDcs();
-        self.isEdit(true);
+        self.isAdd(true);
       };
+      /*************************** 创建        END ******************************/
 
+      /*************************** 修改        BEGIN ******************************/
       this.edit = function(object, event){
-        //console.log(object);
-        self.loadDcs();
-        self.currentVO.fromJSON(object);
-        self.isEdit(true);        
+    	self.currentVOEdit.fromJSON(object);
+    	if(object.cloudPlatform == "CNware"){
+		  self.resPoolTableEdit.path('api/v5.0.0/cloudPlatforms/'+object.cloudplatformUuid
+			  +'/resourcePools?hypervisor='+object.virtualHypervisor+'&azUuid='+object.uuid);
+		}
+        //加载数据中心，下拉列表
+        self.isEdit(true);
+        //self.loadDcs();
       };
+      /*************************** 修改        END ******************************/
       
+      /*************************** 删除        BEGIN ******************************/
       this.delAz = function(rowObj){
   		var azName = rowObj.name;
   		var azUuid = rowObj.uuid;
@@ -318,25 +440,46 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		    });
   		 });
   	  }
+      /*************************** 删除        END ******************************/
 
-      this.ok = function(){
-    	ko.validation.group(self.currentVO).showAllMessages();
-      	var azUuid = self.currentVO.toJSON().uuid;
-      	
-      	if(self.currentVO.isValid()){
-	   		if(!azUuid){
-	   			csc.rest.post('api/v5.0.0/azs', this.currentVO.toJSON(), function(){
-	   	            self.isEdit(false);
-	   	            self.table.refreshData();
-	   			});
-	   		}else{
-	   			csc.rest.put('api/v5.0.0/azs/'+azUuid, this.currentVO.toJSON(), function(){
-	   	            self.isEdit(false);
-	   	            self.table.refreshData();
-	   			});
-	   		}
+      /*************************** 保存        BEGIN ******************************/
+      this.okAdd = function(){
+    	  ko.validation.group(self.currentVO).showAllMessages();
+        	var azUuid = self.currentVO.toJSON().uuid;
+        	var cloudPlatform = self.currentVO().cloudPlatform();
+       		if(cloudPlatform == "CNware"){
+       			if (self.resPoolTable.chosenItems().length == 0) {
+       				systemMsg.alert('至少选择一个资源池');
+       				return;
+       			}
+       			self.currentVO().resourcePoolIds = self.resPoolTable.chosenItems().join(",");
+       		}
+   			csc.rest.post('api/v5.0.0/azs', this.currentVO.toJSON(), function(){
+   	            self.isAdd(false);
+   	            self.table.refreshData();
+   			});
+      };
+      
+      this.okEdit = function(){
+    	ko.validation.group(self.currentVOEdit).showAllMessages();
+      	var azUuid = self.currentVOEdit.toJSON().uuid;
+      	var cloudPlatform = self.currentVOEdit().cloudPlatform();
+      	if(self.currentVOEdit.isValid()){
+      		if(cloudPlatform == "CNware"){
+      			if (self.resPoolTableEdit.chosenItems().length == 0) {
+      				systemMsg.alert('至少选择一个资源池');
+      				return;
+      			}
+      			self.currentVOEdit().resourcePoolIds = self.resPoolTableEdit.chosenItems().join(",");
+      		}
+   			csc.rest.put('api/v5.0.0/azs/'+azUuid, this.currentVOEdit.toJSON(), function(){
+   	            self.isEdit(false);
+   	            self.table.refreshData();
+   			});
         }
       };
+      /*************************** 保存        END ******************************/
+      
 
       this.searchParam = ko.observable({
         name: ""
@@ -346,7 +489,20 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         this.table.params(this.searchParam());
       };
 
+      //可用分区列表
       this.table = new DataTable([], {path: 'api/v5.0.0/azs'});
+      
+      //资源池列表
+      this.onFinish = function(){
+  		  //绑定默认选中列表
+  		  var azUuid = self.currentVOEdit.toJSON().uuid;
+  		  $.ajax("api/v5.0.0/azs/"+azUuid+"/resourcePools").done(function(data){
+  			  //console.log(_.pluck(data.results,"id"))
+  			  self.resPoolTableEdit.chosenItems(_.pluck(data.results,"id"));
+   	      }); 
+  	  }
+      this.resPoolTable = new DataTable([], {chosenItemId: 'id'});
+      this.resPoolTableEdit = new DataTable([], {chosenItemId: 'id', onFinish:this.onFinish});
       
     }
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);

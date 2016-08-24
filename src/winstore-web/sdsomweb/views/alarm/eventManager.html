@@ -1,152 +1,52 @@
-<div class="alarm-container div-radius" ng-init="initPage()">
-    <div ng-show="showTab=='event'">
-        <table class="table table-bordered" id="no-radius-table">
-            <thead>
-                <tr style="background-color: #253138;">
-                    <th width="12%">发生时间</th>
-                    <th width="8%">操作者</th>
-                    <th width="8%">事件类型</th>
-                    <th width="10%">事件对象</th>
-                    <th width="5%">事件状态</th>
-                    <th width="8%">登陆IP</th>
-                    <th width="40%">其他信息</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="event in eventList" id="eventTr{{$index+1}}">
-                    <td>{{event.when | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-                    <td>{{event.operator}}</td>
-                    <td>{{event.event_type}}</td>
-                    <td>{{event.object}}</td>
-                    <td>{{event.status}}</td>
-                    <td>{{event.sourceip}}</td>
-                    <td style="text-align:left;">{{event.extra_info}}</td>
-                </tr>
-            </tbody>
-        </table>
-        <page total-count="eventPage.totalCount" page-count="eventPage.pageSize"
-            select-size="getEventList(pageCount, currentPage)"
-            current-page="eventPage.currentPage" go-page="getEventList(pageCount, currentPage)"
-            show-max-page="6" first-text="首页" last-text="末页"
-            previous-text="上一页" next-text="下一页"></page>
-    </div>
+<div class="content-header">
+    <ol class="breadcrumb">
+        <li>系统管理</li>
+        <li class="active">事件</li>
+    </ol>
+    <p class="muted">说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字，说明文字说明文字说明文字说明文字。</p>
 </div>
-<!-- 提示信息 -->
-<div id="alertModal" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">手工修复</h3>
-    </div>
-    <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
-        <form>
-            <!--label style="color:#000;margin-bottom:20px;">
-                索引：{{resovleIndex}}
-            </label>
-            -->
-            <label>备注：</label>
-            <textarea class="span12" rows="3" ng-model="remark"></textarea>
+<div class="content" ng-init="initPage()">
+    <div class="table-top clearfix">
+        <form class="form-search pull-left">
+            <input type="text" placeholder="搜索" class="form-control" style="width:150px">
+            <button class="btn btn-default btn-flat"><i class="fa fa-search"></i></button>
         </form>
     </div>
-    <div class="modal-footer">
-        <button class="btn btn-success" ng-click="resolveAlarm()">确定</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">取消</button>
-    </div>
-</div>
-<!-- 收集日志 -->
-<div id="log" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabelE" style="color:#fff;padding-top:20px;">日志收集</h3>
-    </div>
-    <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
-        <form>
-            <label>节点名称</label>
-            <div class="input-append">
-                <input type="text" ng-model="log.hostid" placeholder="请输入节点名称"/>
-            </div>
-            <label>IP地址</label>
-            <div class="input-append">
-                <input type="text" ng-model="log.ipaddr" placeholder="请输入IP地址"/>
-                <button class="btn btn-primary" ng-click="addALog()">+ 新增一条</button>
-            </div>
-        </form>
-        <div style="height:30px;width:100%;line-height:10px;">
-            日志收集列表<br/>
-        <img src="images/storage/pic_line3.png" style="height:1px;width:100%;">
+    <div class="box">
+        <div class="box-body no-padding">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th width="12%">发生时间</th>
+                        <th width="8%">操作者</th>
+                        <th width="8%">事件类型</th>
+                        <th width="10%">事件对象</th>
+                        <th width="5%">事件状态</th>
+                        <th width="8%">登陆IP</th>
+                        <th width="40%">其他信息</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="event in eventList" id="eventTr{{$index+1}}">
+                        <td>{{event.when | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                        <td>{{event.operator}}</td>
+                        <td>{{event.event_type}}</td>
+                        <td>{{event.object}}</td>
+                        <td>{{event.status}}</td>
+                        <td>{{event.sourceip}}</td>
+                        <td style="text-align:left;">{{event.extra_info}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div ng-repeat="log in log4Create" style="margin:10px 0;border:1px dotted #e14a07;height:25px;line-height:25px;padding:1px 10px;width:80%;color:#e14a07;">
-            <span>节点名称：{{log.hostid}}，</span>
-            <span>IP地址：{{log.ipaddr}}</span>
-            <span style="float:right;color:#e14a07;cursor:pointer;" ng-click="deleteALog(log)">×</span>
+        <div class="box-footer clearfix no-border">
+            <page total-count="eventPage.totalCount" page-count="eventPage.pageSize"
+                select-size="getEventList(pageCount, currentPage)"
+                current-page="eventPage.currentPage" go-page="getEventList(pageCount, currentPage)"
+                show-max-page="6" first-text="首页" last-text="末页"
+                previous-text="上一页" next-text="下一页"></page>
         </div>
-    </div>
-    <div class="modal-footer" style="text-align:center;">
-        <!-- <button class="btn btn-success">确定</button> -->
-        <button class="btn btn-success" ng-click="sureCreateLog()">确定</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">取消</button>
     </div>
 </div>
 
-<div id="createLog" class="modal hide fade" style="background-color: #4f97dc;width:380px;left: 55%;"
-tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-            ×
-        </button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">
-            收集日志
-        </h3>
-    </div>
-    <div class="modal-body" style="background-color:#fff;">
-        <div> 
-            下载最近
-            <select  ng-model="logTime" style="width:95px; margin-top:3px" >
-                <option value="onemonth"> 一个月 </option>
-                <option value="oneweek"> 一个星期 </option>
-                <option value="threeday"> 三天 </option>
-                <option value="oneday"> 一天 </option>
-            </select>
-            <select ng-model="logModule" style="width:95px; margin-top:3px" >
-                <option value="all"> 全部 </option>
-                <option value="engine" > 存储引擎 </option>
-                <option value="om"> 管理系统 </option>
-                <option value="os">操作系统</option>
-            </select>
-            的日志
-        </div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="collectLog()">
-            确定
-        </button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">
-            取消
-        </button>
-    </div>
-</div>
-
-<div id="deleteLog" class="modal hide fade" style="background-color: #4f97dc;width:380px;left: 50%;"
-tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-            ×
-        </button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">
-            清除日志
-        </h3>
-    </div>
-    <div class="modal-body" style="background-color:#fff;">
-        <p>
-            确定清除日志
-        </p>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="deleteLog()">
-            确定
-        </button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">
-            取消
-        </button>
-    </div>
-</div>
 

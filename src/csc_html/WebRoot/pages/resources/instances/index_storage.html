@@ -596,7 +596,14 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             csc.rest.get('api/v5.0.0/vms?vdcUuid=' + vdcUuid + '&azUuid=' + azUuid, function(data) {
                 if (data.results) {
                     var vms = data.results;
-                    self.vms(vms);
+                    //过滤无服务实例云主机
+                    var targetVms = [];
+                    for(var i=0;i<vms.length;i++){
+                    	if(csc.util.isNull(vms[i].serviceInstanceUuid)){
+                    		targetVms.push(vms[i]);
+                    	}
+                    }
+                    self.vms(targetVms);
                     //vms加载完成后，触发vms下拉变更事件，加载有效时间 
                     self.onchange_vms_add();
                 }
@@ -769,7 +776,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  
       	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
       		  if(data.code){
-      			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+      			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
     		 		self.isAdjustProcess(false);
       		  }
       	  });

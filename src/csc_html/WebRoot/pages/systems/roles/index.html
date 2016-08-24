@@ -14,9 +14,9 @@
       <div class="col-xs-3">
         <div class="input-group">
           <span class="input-group-addon">角色名称</span>
-          <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name">
+          <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().name, enterKey: search">
         </div>       
-      </div>  
+      </div>
       <div class="col-xs-1">
         <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>        
@@ -42,7 +42,7 @@
           <tr>
             <td data-bind="text: $row.roleId"></td>
             <td data-bind="text: $row.name"></td>
-            <td data-bind="text: $row.desc"></td>
+            <td data-bind="text: $row.desc_, attr:{'title': $row.desc}"></td>
             <!-- <td>范冰冰</td> -->
             <td data-bind="text: $row.createTime"></td>
             <td>
@@ -106,7 +106,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">角色名称</label>
           <div class="col-xs-8">
-            <input type="text" class="form-control" data-bind="value: currentVO().name">
+            <input type="text" class="form-control" maxlength="32" data-bind="value: currentVO().name">
           </div>
           <div class="col-xs-1">
             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -115,7 +115,7 @@
         <div class="form-group">
           <label class="col-xs-3 control-label">角色说明</label>
           <div class="col-xs-8">
-            <textarea name="" id="" cols="30" rows="4" class="form-control" data-bind="value: currentVO().desc"></textarea>
+            <textarea name="" id="" cols="30" rows="4" maxlength="255" class="form-control" data-bind="value: currentVO().desc"></textarea>
           </div>
         </div>
         
@@ -138,12 +138,15 @@
 			var self = this;
 			self.isAdd = ko.observable(false);
 
-			self.currentVO = ko.observable({});
+			self.currentVO = ko.validatedObservable({
+				"name":ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
+				"desc":ko.observable("").extend({maxLength: 255})
+			});
 			self.oldVO = ko.observable({});
 
 			//显示添加页面
 			self.showAddPage = function() {
-				self.currentVO({
+				self.currentVO.fromJSON({
 					uuid : "",
 					name : "",
 					desc : ""
@@ -153,14 +156,18 @@
 			//创建角色
 			self.createRole = function(currentVO) {
 				params = {
-					name : currentVO.name,
-					desc : currentVO.desc
+					name : currentVO.name(),
+					desc : currentVO.desc()
 				};
-				$.ROLE.createRole(params, function(data) {
-					self.isAdd(false);
-					self.roleTable.refreshData();
-					alert("创建角色成功！");
-				});
+				ko.validation.group(self.currentVO).showAllMessages();
+    	        if(self.currentVO.isValid()){
+    	        	$.ROLE.createRole(params, function(data) {
+    					self.isAdd(false);
+    					self.roleTable.refreshData();
+    					alert("创建角色成功！");
+    				});
+    	        }
+				
 			}
 			//显示编辑角色页面
 			self.showEditPage = function(object, event) {
@@ -168,13 +175,13 @@
 					name: object.name,
 					desc: object.desc
 				});
-				self.currentVO(object);
+				self.currentVO.fromJSON(object);
 				
 				self.isAdd(true);
 			}
 			//判断角色是否已修改
 			self.isChanged = function(o1, o2){
-				if(o1.name == o2.name.trim() && o1.desc == o2.desc.trim()){
+				if(o1.name == o2.name().trim() && o1.desc == o2.desc().trim()){
 					return false;
 				}else{
 					return true;
@@ -184,8 +191,8 @@
 			self.editRole = function(currentVO) {
 				if(self.isChanged(self.oldVO(), currentVO)){
 					params = {
-							name : currentVO.name.trim(),
-							desc : currentVO.desc.trim()
+							name : currentVO.name().trim(),
+							desc : currentVO.desc().trim()
 						};
 						$.ROLE.updateRole(currentVO.uuid, params, function(data) {
 							self.isAdd(false);
@@ -230,7 +237,12 @@
 				perPage : 10,
 				path : 'api/v5.0.0/roles',
 				loader : function(result) {
-
+					if(csc.util.isNotNull(result.desc) && result.desc.length > 30){
+						result.desc_ = result.desc.substring(0, 24) + "......";
+					}else{
+						result.desc_ = result.desc
+					}
+					
 					return result;
 				}
 			});

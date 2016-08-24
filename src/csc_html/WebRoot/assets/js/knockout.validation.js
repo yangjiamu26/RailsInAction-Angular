@@ -1622,6 +1622,9 @@ ko.validatedObservable = function (initialValue, options) {
     return ko.toJS(obsv);
   }
   obsv.fromJSON = function(json){
+	  
+	  
+	  
     for(var key in json){
       if(obsv()[key] && ko.isObservable(obsv()[key])){
         obsv()[key](json[key]);
@@ -1629,6 +1632,8 @@ ko.validatedObservable = function (initialValue, options) {
         obsv()[key] = json[key];
       }
     }
+    
+    ko.validation.group(obsv).showAllMessages(false);
   }
 
   return obsv;

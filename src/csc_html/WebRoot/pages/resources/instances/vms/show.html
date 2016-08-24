@@ -1115,7 +1115,7 @@
      		self.softwareSearchParam().softTypeName = null;
     	}
     	self.vm_software_table.params(self.softwareSearchParam());
-    	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
+    	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid);
     }
     this.softTypeNamePartitions = ko.observableArray([]);
     
@@ -1644,10 +1644,12 @@
         	  orderItem.instanceName = self.deleteProcessVO().name();
         	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
         	  orderItem.resourceType = "VM";
-        	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
+        	  orderItem.metaData =  "{\"resBaseInfo\": {\"vpc\": \""+self.vmVO().vpcName+"\",\"cpu\": \""+self.vmVO().vcpu+"\",\"memory\": \""+self.vmVO().memory+"\",\"storage\": \""+self.vmVO().storage+"\",\"ip\": \""+self.vmVO().ip+"\",\"expireTime\": \""+self.vmVO().expiryDate+"\"}}";
         	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
         	  orderItem.vdcUuid = self.deleteProcessVO().vdcUuid();
+        	  orderItem.vdcName = self.vmVO().vdcName;
         	  orderItem.azUuid = self.deleteProcessVO().azUuid();
+        	  orderItem.azName = self.vmVO().azName;
         	  
         	  var orderItems = [];
         	  orderItems.push(orderItem);
@@ -1656,12 +1658,12 @@
         		  var volumes = volumeData.results;
             	  for(var i=0;i<volumes.length;i++){
             		  var volumeItem = {};
-            		  volumeItem.instanceName = volumes[i].volumeName();
-            		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+            		  volumeItem.instanceName = volumes[i].volumeName;
+            		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid;
             		  volumeItem.resourceType = "DISK";
-            		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+            		  volumeItem.metaData =  "{\"resBaseInfo\": {\"type\": \"DISK\",\"size\": \""+volumes[i].volumeSize+"\",\"storageName\": \""+volumes[i].storagePoolName+"\"}}";
             		  volumeItem.vdcUuid = volumes[i].vdcUuid;
-            		  volumeItem.azUuid =  volumes[i].azUuid;
+            		   volumeItem.azUuid =  volumes[i].azUuid;
             		  orderItems.push(volumeItem);
             	  }
         	  }
@@ -1751,7 +1753,7 @@
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
     		  if(data.code){
-    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
   		 		self.isAdjustProcess(false);
     		  }
     	  });
@@ -1874,7 +1876,8 @@
       
       //申请 
       this.adjustVolumeProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustVolumeProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustVolumeProcessVO().targetSize()+"\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustVolumeProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustVolumeProcessVO().targetSize()
+    	 	+ "\",\"metaSize\":\""+self.adjustVolumeProcessVO().size()+"\"}}";
     	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.adjustVolumeProcessVO().name();
@@ -1890,13 +1893,14 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "DISK";
+    	  postBody.type = "RESOURCE_CHANGE";
     	  postBody.orderItems = orderItems;
     	  postBody.vdcUuid = self.adjustVolumeProcessVO().vdcUuid();
     	  postBody.azUuid = self.adjustVolumeProcessVO().azUuid();
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
     		  if(data.code){
-    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
   		 		self.isAdjustVolumeProcess(false);
     		  }
     	  });

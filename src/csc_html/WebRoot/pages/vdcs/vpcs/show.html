@@ -59,8 +59,8 @@
 					<table class="table table-striped"  data-bind="with: netListTable">
 						<thead>
 							<tr>
-								<th>网络名称</th>
-								<th>网段</th>
+								<th  style="width:300px">网络名称</th>
+								<th style="width:500px">网段</th>
 								<th>IP总数</th>
 								<th>创建时间</th>
 								<th>操作</th>
@@ -118,7 +118,7 @@
 			  <div class='modal-dialog modal-lg' role='document'>
 			    <div class='modal-content'>
 			      <div class='modal-header'>
-			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加子网</h3>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加外部网络</h3>
 			      </div>
 			      <div class='modal-body form-horizontal'>
 			        <div class="form-group string required">
@@ -139,7 +139,7 @@
 			 <div class='modal-dialog' role='document' >
 			    <div class='modal-content'>
 			      <div class='modal-header'>
-			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建网络</h3>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建私有网络</h3>
 			      </div>
 			      <div class='modal-body form-horizontal'>
 			        <div class="form-group">
@@ -884,7 +884,7 @@
       
       
       
-		$.VPC.getVpcs({uuid:vpcUuid},function(data){console.log(data);
+		$.VPC.getVpcs({uuid:vpcUuid},function(data){ 
 			  if(data.results && data.results.length > 0){
 				    var vpcObj = data.results[0];
 					function vpcInfoViewModel(){
@@ -953,6 +953,10 @@
 		    			   });
 			    			
 			    		self.addNetPoolsItem = function(){
+			    			if(self.vpcNetVO().netPools().length >4){
+    	    	        		alert("IP段最多只能添加5组！");
+    	    	        	    return ;
+    	    	        	}
 			    			self.vpcNetVO().netPools.push({
 			    				start: "",
 			    				end: ""
@@ -970,12 +974,13 @@
 								 "masterDns":"",
 								 "slaverDns":""
 								});
+			    			self.vpcNetVO().netPools([]);
 			    			self.createVpcNetModal(true)	
 			    		}
 			    		
 			    		self.vpcNetSubmit = function(){
 		    				    ko.validation.group(self.vpcNetVO).showAllMessages();
-		    				    console.log(self.vpcNetVO.toJSON())
+		    				    
 		    	    	        if(self.vpcNetVO.isValid()){
 		    	    	        	var vpcNetJson = self.vpcNetVO.toJSON();
 		    	    	        	var param = {};
@@ -986,6 +991,7 @@
 		    	    	        	param.type="INNER";
 		    	    	        	param.enableDhcp="true";
 		    	    	        	param.dnsNames = [vpcNetJson.masterDns,vpcNetJson.slaverDns];
+		    	    	        	
 		    	    	        	param.pools =  vpcNetJson.netPools;
 		    	    	        	/* var netPoolList = vpcNetJson.netPools;
 		    	    	        	for(var i=0;i<netPoolList.length;i++){
@@ -1062,7 +1068,6 @@
 		    	    	     param.uuid = vpcExtNetUuid;
 		    	    	     param.type = "EXTERNAL";
 			    			$.VPC.createVpcNetwork(param,function(data){
-			    				console.log(data)
 			    				 if(data){
 			    					 self.vpcExtNetQuery({
 		    							  "name":data.name,

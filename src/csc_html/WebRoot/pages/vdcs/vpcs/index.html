@@ -1002,10 +1002,33 @@
     	    	    
     	    	subscriptionVpc =  self.firewallVO().vpcUuid.subscribe(function(val){
     	    		    self.routerList([]);
-    	    	    	$.ROUTER.getRouters({vpcUuid:val},function(data){
-    		   				 if(data && data.results){
-    		   					 self.routerList(data.results);
-    		   				 }
+    	    	    	$.ROUTER.getRouters({vpcUuid:val},function(routerData){
+    	    	    		if(routerData && routerData.results){
+	    	    	    		$.FIREWALL.getFirewalls({vpcUuid:val},function(fwData){
+	    	    	    			if(fwData && fwData.results){
+	    	    	    				var fwList = fwData.results;
+	    	    	    				var routerList = routerData.results;
+	    	    	    				var showRouterList = [];
+	    	    	    				for(var j=0;j<routerList.length;j++){
+    	    	    						var routerVo = routerList[j];
+    	    	    						var notHasUse = true;
+    	    	    						for(var i=0;i<fwList.length;i++){
+    	    	    	    					var fwVo = fwList[i];
+	    	    	    						if(fwVo.routerUuid &&  fwVo.routerUuid == routerVo.uuid){
+	    	    	    							notHasUse = false;
+	    	    	    							break;
+	    	    	    						}
+    	    	    					    }
+    	    	    						if(notHasUse){
+    	    	    							showRouterList.push(routerVo);
+    	    	    						}
+	    	    	    		       }
+	    	    	    				self.routerList(showRouterList);
+	    	    	    			}else{
+	           		   				     self.routerList(routerData.results);
+	    	    	    			}
+	    	    	    		});
+    	    	    		}
     		   			});
     	    	    })
     			
@@ -1257,10 +1280,13 @@
 	  	this.VPNList = new DataTable([], {path: 'api/v5.0.0/vpns?orderBy=createTime:desc'});
 	  	//删除vpn
 	  	this.deleteVPN = function(data,event){
-	  		$.VPN.delVpn(data.uuid,function(data){
-  				self.VPNList.refreshData();
-  				alert("删除成功！");
-  			})
+	  		var vpnName = data.name;
+	  		confirm("确定删除VPN[" + vpnName + "]？", function(arg){
+		  		$.VPN.delVpn(data.uuid,function(data){
+	  				self.VPNList.refreshData();
+	  				alert("删除成功！");
+	  			});
+	  		});
 	  	}
 	  	//查看详情
 	  	this.showVPNDetail = function(data,event){

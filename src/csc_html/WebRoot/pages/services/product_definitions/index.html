@@ -17,15 +17,19 @@
     <div class="col w lter b-r">
       <div class="vbox">
         <div class="wrapper b-b">
-          <div class="left-title"><span style="font-size:16px;">产品列表</span><span class="glyphicon glyphicon-minus pull-right product-delete-btn" style="color:#9c9c9c;top:3px;"></span><span class="glyphicon glyphicon-plus pull-right product-add-btn" style="color:#2aabd2;top:3px;margin-right:5px;"></span></div>
+          <div class="left-title">
+          	<span style="font-size:16px;">产品列表</span>
+          	<!-- <span class="glyphicon glyphicon-minus pull-right product-delete-btn" style="color:#9c9c9c;top:3px;"></span> -->
+          	<span class="glyphicon glyphicon-plus pull-right product-add-btn" style="color:#2aabd2;top:3px;margin-right:5px;"></span>
+          </div>
         </div>
         <div class="row-row">
           <div class="cell scrollable hover">
             <div class="cell-inner">
               <div class='table-responsive'>
-                <table class='table table-striped table-hover left-list'>
+                <table id="product-left-list" class='table table-striped table-hover left-list'>
                 	<tbody data-bind="foreach: products">
-                    	<tr data-bind="css: {'active': $root.currentProduct().name==name}">
+                    	<tr data-bind="css: {'active': $root.currentProduct().name()==name}">
 							<td><a data-bind="text: name, click: $root.setCurrent"></a></td>
 						</tr> 
 			     </tbody>
@@ -47,7 +51,10 @@
               <div class="wrapper-md">
 				<div class="service-right-content">
 					<form>
-						<a class="btn btn-info btn-sm form-edit">修改</a><a style="display:none;" class="btn btn-success btn-sm form-save">保存</a>
+						<!-- ko if: (isUserDefinedProduct())  -->
+							<a class="btn btn-info btn-sm form-edit">修改</a>
+							<a style="display:none;" class="btn btn-success btn-sm form-save">保存</a>
+						<!-- /ko -->
 						<div class="row">
 							<div class="col-xs-6" style="margin-top:10px;">
 								<label>产品名称：</label><span class="value-span" data-bind="text:currentProduct().name"></span>
@@ -61,10 +68,14 @@
 							</div>
 						</div>
 						<div>
-							<p><label>产品配置项：</label>
-							<span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;
-							cursor:pointer;" data-bind="click: addConfig">
-							</span></p>
+							<p>
+								<label>产品配置项：</label>
+								<!-- ko if: (isUserDefinedProduct())  -->
+									<span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;
+									cursor:pointer;" data-bind="click: addConfig">
+									</span>
+								<!-- /ko -->
+							</p>
 							<div class="panel panel-default b-blue" data-bind="with: configsTable">
 								<table class="table table-striped">
 									<thead>
@@ -77,7 +88,7 @@
 									<tbody>
 										<tr data-bind="visible: showNoData">
 							           		<td colspan="3" class="aligncenter">
-							              		This table has no data.
+							              		暂无数据
 							           		</td>
 							            </tr>
 							            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
@@ -88,7 +99,12 @@
 							</div>
 						</div>
 						<div>
-							<p><label>产品配置项关系：</label><span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" data-bind="click: addConfigRelation"></span></p>
+							<p>
+								<label>产品配置项关系：</label>
+								<!-- ko if: (isUserDefinedProduct())  -->
+									<span class="glyphicon glyphicon-plus-sign" style="color:#47b007;top:4px;font-size:18px;cursor:pointer;" data-bind="click: addConfigRelation"></span>
+								<!-- /ko -->
+							</p>
 							<div class="panel panel-default b-blue" data-bind="with: configRelationsTable">
 								<table class="table table-striped">
 									<thead>
@@ -98,8 +114,21 @@
 										<th>操作</th>
 									</thead>
 									<tbody>
+										<tr data-bind="visible: showNoData">
+							           		<td colspan="4" class="aligncenter">
+							              		暂无数据
+							           		</td>
+							            </tr>
 										<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
-							            	<tr><td data-bind="text:sourceName"></td><td data-bind="text:relationTypeDesc"></td><td data-bind="text:targetName"></td><td><a onclick="showModal('pages/services/product_definitions/addRelation.html')">查看</a> | <a onclick="showModal('pages/services/product_definitions/addRelation.html')">修改</a></td></tr>
+							            	<tr>
+							            		<td data-bind="text:sourceName"></td>
+							            		<td data-bind="text:relationTypeDesc"></td>
+							            		<td data-bind="text:targetName"></td>
+								            	<td>
+								            		<a data-bind="click: $root.showConfigRelation">查看</a> | 
+								            		<a data-bind="click: $root.editConfigRelation">修改</a>
+								            	</td>
+							            	</tr>
 							            <!-- /ko -->
 									</tbody>
 								</table>
@@ -375,6 +404,10 @@
 <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isAddConfigRelation }">
 	<div class="simple_form form-horizontal">
 	  <div class='modal-dialog modal-lg' style="width:640px;">
+	    <!-- 新增配置项关系  -->
+	    <!-- <div class='modal-content' data-bind="visible:	showConfigRelationType() == 'add'"> -->
+	    
+	    <!-- ko if: (showConfigRelationType() == 'add')  -->
 	    <div class='modal-content'>
 	      <div class='modal-header'>
 	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>新增产品配置项关系</h3>
@@ -383,25 +416,25 @@
 	        <div class="col-xs-4">
 	          <div class="input-group">
 	            <span class="input-group-addon">配置项名称</span>
-	            <select class="form-control input-sm" data-bind="value: configRelation().configA, options: configA_list, optionsText: 'name', optionsValue: 'uuid'"></select>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configA, options: configRelation().configA_list, optionsText: 'name', optionsValue: 'uuid'"></select>
 	          </div>      
 	        </div>      
 	        <div class="col-xs-4">
 	          <div class="input-group">
 	            <span class="input-group-addon">关系</span>
-	            <select class="form-control input-sm" data-bind="value: configRelation().relation, options: relation_list, optionsText: 'name', optionsValue: 'type'"></select>
+	            <select class="form-control input-sm" data-bind="value: configRelation().relation, options: configRelation().relation_list, optionsText: 'name', optionsValue: 'type'"></select>
 	          </div>      
 	        </div>      
 	        <div class="col-xs-4">
 	          <div class="input-group">
 	            <span class="input-group-addon">配置项名称</span>
-	            <select class="form-control input-sm" data-bind="value: configRelation().configB, options: configB_list, optionsText: 'name', optionsValue: 'uuid'"></select>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configB, options: configRelation().configB_list, optionsText: 'name', optionsValue: 'uuid'"></select>
 	          </div>      
 	        </div>      
 	        <div class="col-xs-6 form-item-block">
 	          <label class="control-label"><span data-bind="text: configRelation().configA_Name"></span></label>
 	          <!-- ko if: (configRelation().relation()=="1TO1" || configRelation().relation()=="1TON")  -->
-	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configA_options">
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configA_options">
 	          	<div class="radio">
 	              <label>
 	                <input type="radio" name="optionsRadiosA" data-bind="value: value, checked: $root.configRelation().chosenA"><span data-bind="text: value"></span>
@@ -410,7 +443,7 @@
 	          </div>
 	          <!-- /ko -->
 	          <!-- ko if: (configRelation().relation()=="NTO1" || configRelation().relation()=="NTON")  -->
-	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configA_options">
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configA_options">
 	            <div class="checkbox">
 	              <label>
 	                <input type="checkbox" data-bind="checkedValue: value, checked: $root.configRelation().chosenA"><span data-bind="text: value"></span>
@@ -422,7 +455,7 @@
 	        <div class="col-xs-6 form-item-block">
 	          <label class="control-label"><span data-bind="text: configRelation().configB_Name"></span></label>
 	          <!-- ko if: (configRelation().relation()=="1TO1" || configRelation().relation()=="NTO1")  -->
-	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configB_options">
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configB_options">
 	          	<div class="radio">
 	              <label>
 	                <input type="radio" name="optionsRadiosB" data-bind="value: value, checked: $root.configRelation().chosenB"><span data-bind="text: value"></span>
@@ -431,7 +464,7 @@
 	          </div>
 	          <!-- /ko -->
 	          <!-- ko if: (configRelation().relation()=="1TON" || configRelation().relation()=="NTON")  -->
-	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configB_options">
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configB_options">
 	            <div class="checkbox">
 	              <label>
 	                <input type="checkbox" data-bind="checkedValue: value, checked: $root.configRelation().chosenB"><span data-bind="text: value"></span>
@@ -455,7 +488,7 @@
 	      			  <th>操作</th>
 	      			</tr>
 	      			</thead>
-	      			<tbody data-bind="foreach: configList">
+	      			<tbody data-bind="foreach: configRelation().configList">
 	      				<tr>
 	      					<td data-bind="text: configA_Name"></td>
 	      					<td data-bind="text: chosenA"></td>
@@ -473,6 +506,174 @@
 	        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 	      </div>
 	    </div>
+	    <!-- /ko -->
+	    
+	    <!-- 修改配置项关系  -->
+	    <!-- ko if: (showConfigRelationType() == 'update')  -->
+	    <div class='modal-content'>
+	      <div class='modal-header'>
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改产品配置项关系</h3>
+	      </div>
+	      <div class='modal-body row'>
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">配置项名称</span>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configA, options: configRelation().configA_list, optionsText: 'name', optionsValue: 'uuid'"></select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">关系</span>
+	            <select class="form-control input-sm" data-bind="value: configRelation().relation, options: configRelation().relation_list, optionsText: 'name', optionsValue: 'type'"></select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-4">
+	          <div class="input-group">
+	            <span class="input-group-addon">配置项名称</span>
+	            <select class="form-control input-sm" data-bind="value: configRelation().configB, options: configRelation().configB_list, optionsText: 'name', optionsValue: 'uuid'"></select>
+	          </div>      
+	        </div>      
+	        <div class="col-xs-6 form-item-block">
+	          <label class="control-label"><span data-bind="text: configRelation().configA_Name"></span></label>
+	          <!-- ko if: (configRelation().relation()=="1TO1" || configRelation().relation()=="1TON")  -->
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configA_options">
+	          	<div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadiosA" data-bind="value: value, checked: $root.configRelation().chosenA"><span data-bind="text: value"></span>
+	              </label>
+	            </div>
+	          </div>
+	          <!-- /ko -->
+	          <!-- ko if: (configRelation().relation()=="NTO1" || configRelation().relation()=="NTON")  -->
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configA_options">
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox" data-bind="checkedValue: value, checked: $root.configRelation().chosenA"><span data-bind="text: value"></span>
+	              </label>
+	            </div>
+	          </div>
+	          <!-- /ko -->
+	        </div>
+	        <div class="col-xs-6 form-item-block">
+	          <label class="control-label"><span data-bind="text: configRelation().configB_Name"></span></label>
+	          <!-- ko if: (configRelation().relation()=="1TO1" || configRelation().relation()=="NTO1")  -->
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configB_options">
+	          	<div class="radio">
+	              <label>
+	                <input type="radio" name="optionsRadiosB" data-bind="value: value, checked: $root.configRelation().chosenB"><span data-bind="text: value"></span>
+	              </label>
+	            </div>
+	          </div>
+	          <!-- /ko -->
+	          <!-- ko if: (configRelation().relation()=="1TON" || configRelation().relation()=="NTON")  -->
+	          <div style="border:1px solid #eee;padding:10px;" data-bind="foreach: configRelation().configB_options">
+	            <div class="checkbox">
+	              <label>
+	                <input type="checkbox" data-bind="checkedValue: value, checked: $root.configRelation().chosenB"><span data-bind="text: value"></span>
+	              </label>
+	            </div>
+	          </div>
+	          <!-- /ko -->
+	        </div>
+	        
+	        <div class="col-xs-12 form-item-block text-center" style="padding: 10px 0px 10px;">
+	        	<label class="btn btn-sm btn-success">原有项</label>
+	        </div>
+	      	<div class="col-xs-12 form-item-block">
+	      		<table class="table">
+	      			<thead>
+	      			<tr>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			  <th>关系</th>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			</tr>
+	      			</thead>
+	      			<tbody data-bind="foreach: oldConfigRelation().configList">
+	      				<tr>
+	      					<td data-bind="text: $root.oldConfigRelation().configA_Name"></td>
+	      					<td data-bind="text: chosenA"></td>
+	      					<td data-bind="text: $root.oldConfigRelation().relation"></td>
+	      					<td data-bind="text: $root.oldConfigRelation().configB_Name"></td>
+	      					<td data-bind="text: chosenB"></td>
+	      				</tr>
+	      			</tbody>
+	      		</table>
+	      	</div>
+	        
+	        <div class="col-xs-12 form-item-block text-center" style="padding: 10px 0px 10px;">
+	        	<a class="btn btn-sm btn-success" data-bind="click: addRelation">添加</a>
+	        </div>
+	      	<div class="col-xs-12 form-item-block">
+	      		<table class="table">
+	      			<thead>
+	      			<tr>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			  <th>关系</th>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			  <th>操作</th>
+	      			</tr>
+	      			</thead>
+	      			<tbody data-bind="foreach: configRelation().configList">
+	      				<tr>
+	      					<td data-bind="text: configA_Name"></td>
+	      					<td data-bind="text: chosenA"></td>
+	      					<td data-bind="text: relation"></td>
+	      					<td data-bind="text: configB_Name"></td>
+	      					<td data-bind="text: chosenB"></td>
+	      					<td><a data-bind="click: $root.removeRelation">删除</a></td>
+	      				</tr>
+	      			</tbody>
+	      		</table>
+	      	</div>
+	      </div>
+	      <div class='modal-footer' style="text-align:center;">
+	        <a class="btn btn-default btn-info" data-bind="click: saveConfigRelation">确定</a>
+	        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+	      </div>
+	    </div>
+	    <!-- /ko -->
+	    
+	    
+	    <!-- 查看配置项关系  -->
+	    <!-- ko if: (showConfigRelationType() == 'show')  -->
+	    <div class='modal-content' data-bind="visible:	showConfigRelationType() == 'show'">
+	      <div class='modal-header'>
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>查看产品配置项关系</h3>
+	      </div>
+	      <div class='modal-body row'>
+	        <div class="col-xs-12 form-item-block">
+	      		<table class="table">
+	      			<thead>
+	      			<tr>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			  <th>关系</th>
+	      			  <th>配置项名称</th>
+	      			  <th>配置项值</th>
+	      			</tr>
+	      			</thead>
+	      			<tbody data-bind="foreach: oldConfigRelation().configList">
+	      				<tr>
+	      					<td data-bind="text: $root.oldConfigRelation().configA_Name"></td>
+	      					<td data-bind="text: chosenA"></td>
+	      					<td data-bind="text: $root.oldConfigRelation().relation"></td>
+	      					<td data-bind="text: $root.oldConfigRelation().configB_Name"></td>
+	      					<td data-bind="text: chosenB"></td>
+	      				</tr>
+	      			</tbody>
+	      		</table>
+	      	</div>
+	      </div>
+	      <div class='modal-footer' style="text-align:center;">
+	        <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
+	      </div>
+	    </div>
+	    <!-- /ko -->
+	    
 	  </div>
 	</div>
 </div>
@@ -542,13 +743,14 @@
     	}
     })
     
-    
-    //产品基本信息模型
+    //产品信息模型
     function ViewModel_Products() {
         var self = this;
         this.isAddConfig = ko.observable(false);
         this.isAddConfigRelation = ko.observable(false);
+        this.isUserDefinedProduct = ko.observable(false); //是否是用户自定义产品
         this.showConfigType = ko.observable("add"); //显示配置项类型
+        this.showConfigRelationType = ko.observable("add"); //显示配置项类型
         
         //产品基本
         this.products = ko.observableArray([]);
@@ -569,75 +771,77 @@
         	newValues : ko.observable()
         });
         
-        this.configsTable = new DataTable([], {path: 'api/v5.0.0/products/configs'});
-        this.searchConfigsParam = this.currentConfig;
-        this.searchConfigs = function(){
-        	self.configsTable.params(self.searchConfigsParam.toJSON());
+        this.configsTable = new DataTable([], {path: ''});
+
+        this.searchConfigs = function(productId){
+        	self.configsTable.params({
+            	productId : productId
+            });
+        	
+        	self.configsTable.path('api/v5.0.0/products/configs');
       	}
         
-        this.configRelation = ko.validatedObservable({
-        	configA_Name: ko.observable(),
-        	configA: ko.observable(),
-        	configB_Name: ko.observable(),
-        	configB: ko.observable(),
-        	relation: ko.observable(),
-        	chosenA: ko.observableArray().extend({requried: true}),
-        	chosenB: ko.observableArray().extend({requried: true})
-        });
-        
-        /* this.configA_list = ko.observableArray([
-        	{id: 1, name: 'CPU', options: [{id: 1, value: '1'}, {id: 2, value: '2'}]},
-        	{id: 2, name: '内存', options: [{id: 1, value: '3'}, {id: 2, value: '4'}]}
-        ]); */
-        
-        this.configA_list = ko.observableArray([]);
-        this.configB_list = ko.observableArray([]);
-        this.relation_list = ko.observableArray([                  
-        	{type: '1TON', name: '1对多'},
-        	{type: '1TO1', name: '1对1'}
-        	//,
-        	//{type: 'NTO1', name: '多对1'},
-        	//{type: 'NTON', name: '多对多'}
-        ]);
-        this.configA_options = ko.observableArray();
-        this.configB_options = ko.observableArray();
-        this.configRelation().relation.subscribe(function(value){
-        	self.configRelation().chosenA([])
-        	self.configRelation().chosenB([])
-        })
-        this.configRelation().configA.subscribe(function(value){
-        	var config = _.findWhere(self.configA_list(), {uuid: value});
-        	self.configA_options(config.valueInfos)
-        	self.configRelation().chosenA([])
-        	self.configRelation().configA_Name(config.name);
-        })
-        this.configRelation().configB.subscribe(function(value){
-        	var config = _.findWhere(self.configB_list(), {uuid: value});
-        	self.configB_options(config.valueInfos)
-        	self.configRelation().chosenB([])
-        	self.configRelation().configB_Name(config.name);
-        })
-        this.configList = ko.observableArray();
+        function configRelationVO() {
+        	var self = this;
+        	
+        	//传入后台的属性start
+           	this.configA_Name = ko.observable();
+           	this.configA = ko.observable();
+           	this.configB_Name = ko.observable();
+           	this.configB = ko.observable();
+           	this.relation = ko.observable();
+           	this.chosenA = ko.observableArray().extend({requried: true});
+           	this.chosenB = ko.observableArray().extend({requried: true});
+          	//传入后台的属性end
+           	
+           	
+           	this.configA_list = ko.observableArray([]);
+            this.configB_list = ko.observableArray([]);
+            this.relation_list = ko.observableArray([                  
+            	{type: '1TON', name: '1对多'},
+            	{type: '1TO1', name: '1对1'}
+            ]);
+            this.configA_options = ko.observableArray();
+            this.configB_options = ko.observableArray();
+            this.relation.subscribe(function(value){
+            	self.chosenA([])
+            	self.chosenB([])
+            })
+            this.configA.subscribe(function(value){
+            	/* console.log(self.configA_list()); */
+            	var config = _.findWhere(self.configA_list(), {uuid: value});
+            	self.configA_options(config.valueInfos)
+            	self.chosenA([])
+            	self.configA_Name(config.name);
+            })
+            this.configB.subscribe(function(value){
+            	var config = _.findWhere(self.configB_list(), {uuid: value});
+            	self.configB_options(config.valueInfos)
+            	self.chosenB([])
+            	self.configB_Name(config.name);
+            })
+            this.configList = ko.observableArray();
+        }
+
         this.addRelation = function(){
-        	if(this.configRelation.isValid()){
-        		if(!(this.configRelation().chosenA().length==0 || this.configRelation().chosenB().length==0)){
-        			this.configList.push(this.configRelation.toJSON())
+        	if(self.configRelation.isValid()){
+        		if(!(self.configRelation().chosenA().length==0 || self.configRelation().chosenB().length==0)){
+        			self.configRelation().configList.push(self.configRelation.toJSON())
         			
-        			this.configRelation().chosenA([])
-        			this.configRelation().chosenB([])
+        			self.configRelation().chosenA([])
+        			self.configRelation().chosenB([])
         		}
         	}
         }
+   
         this.removeRelation = function(object,event){
-        	self.configList.remove(object);
+        	self.configRelation().configList.remove(object);
         }
         this.saveConfigRelation = function(){
-        	console.log(ko.toJS(self.configList));
-        	
-    		csc.rest.post('api/v5.0.0/products/'+ self.currentConfig().productId +'/configAndValueRelations',ko.toJS(self.configList),function(data){
+    		csc.rest.post('api/v5.0.0/products/'+ self.currentConfig().productId +'/configAndValueRelations',ko.toJS(self.configRelation().configList),function(data){
 		 		self.isAddConfigRelation(false);
 	        	self.configRelationsTable.refreshData();
-		 		alert('增加配置项关系成功！');
+		 		alert('操作配置项关系成功！');
 		    }); 
         }
         this.addConfig = function(){
@@ -683,31 +887,92 @@
       	//查看配置项
       	this.showConfig = function(object, event){
         	self.currentConfig.fromJSON(object);
-        	console.log(self.currentConfig.toJSON());
         	self.isAddConfig(true); 
         	self.showConfigType("show");
       	}
-      	
-        
         
         //配置项关联关系
         this.currentConfigRelations = ko.observable({
         	productId: ""
         });
-        this.configRelationsTable = new DataTable([], {path: 'api/v5.0.0/products/configRelations'});
-        this.searchConfigRelationsParam = this.currentConfigRelations;
-        this.searchConfigRelations = function(){
-        	self.configRelationsTable.params(self.searchConfigRelationsParam());
+        this.configRelationsTable = new DataTable([], {path: ''});
+        this.searchConfigRelations = function(productId){
+        	self.configRelationsTable.path("");
+        	self.configRelationsTable.params({
+        		productId: productId
+        	});
+        	self.configRelationsTable.path("api/v5.0.0/products/configRelations")
       	}
         
+        this.configRelation = ko.observable();
+        
         this.addConfigRelation = function(){
+		  	self.configRelation = new ko.validatedObservable(new configRelationVO());
     		self.isAddConfigRelation(true);
+    		self.showConfigRelationType("add");
+    		
     		csc.rest.get('api/v5.0.0/products/configs?productId=' + self.currentProduct().uuid,function(data){
     			var configList = data.results;
-        		self.configA_list(configList);
-        		self.configB_list(configList);
+        		self.configRelation().configA_list(configList);
+        		self.configRelation().configB_list(configList);
       		});
   		}
+        
+      	//修改配置项关联关系
+      	this.oldConfigRelation = ko.observable();
+      	
+      	this.editConfigRelation = function(object, event){
+      		self.configRelation = new ko.validatedObservable(new configRelationVO());
+      		self.oldConfigRelation(new configRelationVO())
+      		
+      		self.isAddConfigRelation(true);
+    		self.showConfigRelationType("update");
+			
+		    var configAList = new Array();
+			configAList.push({name:object.sourceName,uuid:object.sourceId});
+			self.configRelation().configA_list(configAList);
+			
+			var relationList = new Array();
+			relationList.push({name:object.relationTypeDesc,type:object.relationType});
+			self.configRelation().relation_list(relationList);
+			
+			var configBList = new Array();
+			configBList.push({name:object.targetName,uuid:object.targetId});
+			self.configRelation().configB_list(configBList);
+			
+			self.oldConfigRelation().configA_Name(object.sourceName);
+			self.oldConfigRelation().relation(object.relationType);
+			self.oldConfigRelation().configB_Name(object.targetName);
+			
+    		var queryParam = "?sourceId="+ object.sourceId +"&targetId="+ object.targetId;
+    		csc.rest.get('api/v5.0.0/products/'+ self.currentConfig().productId +'/configAndValueRelations' + queryParam, function(data) {
+    			if(data) {
+    				self.configRelation().configA_options(data.sourceConfigValueList);
+        			self.configRelation().configB_options(data.targetConfigValueList);
+        			self.oldConfigRelation().configList(data.oldConfigList);
+    			}
+           	});
+      	}
+      	
+      	//查看配置项关联关系
+      	this.showConfigRelation = function(object, event){
+      		self.configRelation = new ko.validatedObservable(new configRelationVO());
+      		self.oldConfigRelation(new configRelationVO())
+      		
+      		self.isAddConfigRelation(true);
+    		self.showConfigRelationType("show");
+    		
+    		self.oldConfigRelation().configA_Name(object.sourceName);
+			self.oldConfigRelation().relation(object.relationType);
+			self.oldConfigRelation().configB_Name(object.targetName);
+			
+			var queryParam = "?sourceId="+ object.sourceId +"&targetId="+ object.targetId;
+    		csc.rest.get('api/v5.0.0/products/'+ self.currentConfig().productId +'/configAndValueRelations' + queryParam, function(data) {
+    			if(data) {
+        			self.oldConfigRelation().configList(data.oldConfigList);
+    			}
+           	});
+      	}
         
         this.loadProducts = function() {
         	csc.rest.get('api/v5.0.0/products',function(data){
@@ -716,19 +981,35 @@
         		self.currentConfig().productId = data[0].uuid;
         		self.currentConfigRelations().productId = data[0].uuid;
 
-    	      	self.searchConfigs();
-    	      	self.searchConfigRelations();
+    	      	self.searchConfigs(data[0].uuid);
+    	      	self.searchConfigRelations(data[0].uuid);
+    	      	
+    	      	//判断是否为用户自定义产品
+    	      	if(data[0].isDefault && data[0].isDefault == 1) {
+    	      		self.isUserDefinedProduct(false);
+    	      	} else {
+    	      		self.isUserDefinedProduct(true);
+    	      	}
       		});
         }
         
         //左侧产品列表点击事件
         this.setCurrent = function(object, event) {
-        	self.currentProduct.fromJSON(object);
-        	self.currentConfig().productId = object.uuid;
-        	self.currentConfigRelations().productId = object.uuid;
-        	
-        	self.searchConfigs();
-        	self.searchConfigRelations();
+        	csc.rest.get('api/v5.0.0/products?uuid=' + object.uuid,function(data){
+        		self.currentProduct.fromJSON(data[0]);
+        		self.currentConfig().productId = data[0].uuid;
+        		self.currentConfigRelations().productId = data[0].uuid;
+
+    	      	self.searchConfigs(data[0].uuid);
+    	      	self.searchConfigRelations(data[0].uuid);
+    	      	
+    	      	//判断是否为用户自定义产品
+    	      	if(object.isDefault && object.isDefault == 1) {
+    	      		self.isUserDefinedProduct(false);
+    	      	} else {
+    	      		self.isUserDefinedProduct(true);
+    	      	}
+      		});
         }
         
         this.loadProducts();
@@ -803,7 +1084,6 @@
 
      	    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
      	    uploader.on( 'uploadSuccess', function( file, result) {
-     	    	debugger
      	    	self.currentProduct().imgUrl("/csc/api/img/imgServlet?path="+result.path);
      	        $( '#'+file.id ).addClass('upload-state-done');
      	    });
@@ -819,8 +1099,6 @@
      	     
       	}
         
-        
-        
         this.isChangeImg = ko.observable(false);
         this.changeImg = function(){
 	        this.isChangeImg(true);
@@ -831,31 +1109,15 @@
         }
         //确定方法保存
         this.setImg = function(){
-          
-          this.isChangeImg(false);
+        	this.isChangeImg(false);
+   			csc.rest.put('api/v5.0.0/products',self.currentProduct.toJSON(),function(data){
+         		alert("修改成功!");
+       		});	  
         }
+      	//################--------------上传图片--------------#######################
    	}
-    
-    //产品配置项信息模型
-    /* function ViewModel_ProductConfigs() {
-        var self = this;
-        
-        this.productConfigs = ko.observableArray([]);
-        this.currentProductConfigs = ko.observable({
-        	uuid: ""
-        });
-        this.loadProductConfigs = function() {
-        	csc.rest.get('api/v5.0.0/products',function(data){
-        		self.productConfigs(data);
-        		self.currentProductConfigs(data[0])
-      		});
-        }
-        this.setCurrent = function(object, event) {
-        	self.currentProduct(object);
-        }
-   	} */
+
 	productModel = new ViewModel_Products();
     ko.applyBindings(productModel, $('#page-content')[0]);
-    //ko.applyBindings(new ViewModel_ProductConfigs(), $('#page-content')[1]);
   });
 </script>

@@ -56,24 +56,24 @@ vsanApp.controller("nodeViewManager", ["$scope", "$timeout", "nodeFactory", func
     $scope.diskOp = "add";
     $scope.diskDiscoverDone = false;
 
-    $scope.wholeSelected = {background: '#45566C'};
+    $scope.wholeSelected = {color: '#999'};
 
-    $scope.partSelected = {background: '#488FD2'};
+    $scope.partSelected = {color: '#333'};
 
     $scope.toggleNodes = function (type) {
         if (type == 'whole') {
             $scope.partOfNode = false;
             $scope.wholeOfNode = true;
             //设置缩略图和全视图的选中状态
-            $scope.partSelected = {background: '#45566C'};
-            $scope.wholeSelected = {background: '#488FD2'};
+            $scope.wholeSelected = {color: '#333'};
+            $scope.partSelected = {color: '#999'};
         }
         if (type == 'part') {
             $scope.partOfNode = true;
             $scope.wholeOfNode = false;
             //设置缩略图和全视图的选中状态
-            $scope.wholeSelected = {background: '#45566C'};
-            $scope.partSelected = {background: '#488FD2'};
+            $scope.wholeSelected = {color: '#999'};
+            $scope.partSelected = {color: '#333'};
         }
     };
 
@@ -289,7 +289,8 @@ vsanApp.controller("nodeViewManager", ["$scope", "$timeout", "nodeFactory", func
                 nodeName: nodeData.nodeName,
                 nodeNum: nodeData.nodeIp
             };
-            $scope.nodeStatus.selectedNodeIp = " : " + nodeData.nodeIp;
+            // $scope.nodeStatus.selectedNodeIp = " : " + nodeData.nodeIp;
+            $scope.nodeStatus.selectedNodeIp = nodeData.nodeIp;
             cpuData = {
                 from: "-1h",
                 target: "servers."+nodeData.nodeName+".sandstone.memory.total"

@@ -552,57 +552,120 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 <script type="text/javascript">
   var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js","assets/lib/moment/moment.js",];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
-	
-  	// 如果是 系统管理员、运维管理员、运营管理员，并且系统还没有创建数据中心，则跳转到向导页预览
- 	csc.rest.get('api/v5.0.0/homepage/user',function(data){
-		if(data == null || data == "" ){
+
+	  var unlimited = '-1.0';//配额不限制默认值
+	  
+	var userDataInitFalg = false, serviceDataInitFlag = false, dataCentersDataInitFlag = false, azsCNwareDataInitFlag = false,
+		azsOpenstackDataInitFlag = false, imageDataInitFlag = false;
+	  
+  	var userData;
+  	csc.rest.get('api/v5.0.0/homepage/user',function(data){
+  		userData = data;
+  		userDataInitFalg = true;
+  		if (serviceDataInitFlag && dataCentersDataInitFlag && azsCNwareDataInitFlag 
+  				&& azsOpenstackDataInitFlag && imageDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+  	
+  	var serviceData;
+  	csc.rest.get('api/v5.0.0/service?maxResult=1&firstResult=0&state=1',function(data1){
+  		serviceData = data1;
+  		serviceDataInitFlag = true;
+  		if (userDataInitFalg && dataCentersDataInitFlag && azsCNwareDataInitFlag 
+  				&& azsOpenstackDataInitFlag && imageDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+  	
+  	var dataCentersData;
+  	csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){
+  		dataCentersData = data2;
+  		dataCentersDataInitFlag = true;
+  		if (userDataInitFalg && serviceDataInitFlag && azsCNwareDataInitFlag 
+  				&& azsOpenstackDataInitFlag && imageDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+  	
+  	var azsCNwareData;
+  	csc.rest.get('api/v5.0.0/azs?cloudPlatform=CNware&maxResult=1&firstResult=0',function(data3){
+  		azsCNwareData = data3;
+  		azsCNwareDataInitFlag = true;
+  		if (userDataInitFalg && serviceDataInitFlag && dataCentersDataInitFlag 
+  				&& azsOpenstackDataInitFlag && imageDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+
+  	var azsOpenstackData;
+  	csc.rest.get('api/v5.0.0/azs?cloudPlatform=OpenStack&maxResult=1&firstResult=0',function(data4){
+  		azsOpenstackData = data4;
+  		azsOpenstackDataInitFlag = true;
+  		if (userDataInitFalg && serviceDataInitFlag && dataCentersDataInitFlag 
+  				&& azsCNwareDataInitFlag && imageDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+  	
+  	var imageData;
+  	csc.rest.get('api/v5.0.0/images/counts',function(data5){
+  		imageData = data5;
+  		imageDataInitFlag = true;
+  		if (userDataInitFalg && serviceDataInitFlag && dataCentersDataInitFlag 
+  				&& azsCNwareDataInitFlag && azsOpenstackDataInitFlag) {
+  			//加载首页右侧信息
+  		  	loadIndexPageInfo();
+  		}
+  	});
+
+  	this.loadIndexPageInfo = function(){
+  		// 如果是 系统管理员、运维管理员、运营管理员，并且系统还没有创建数据中心，则跳转到向导页预览
+  		if(userData == null || userData == "" ){
 			return ;
 		}
-		if(data.roleName == '系统管理员' || data.roleName == '运维管理员' || data.roleName == '运营管理员'){
-			csc.rest.get('api/v5.0.0/service?maxResult=1&firstResult=0&state=1',function(data1){//判断是否已完成运营向导
-				if(data1 == null || data1 == ""){
+		if(userData.roleName == '系统管理员' || userData.roleName == '运维管理员' || userData.roleName == '运营管理员'){
+			//判断是否已完成运营向导
+			if(serviceData == null || serviceData == ""){
+				return ;
+			}
+			if(serviceData.results.length > 0){//如果还未创建产品，则进入向导页面
+				//判断是否完成入云向导
+				if(dataCentersData == null || dataCentersData == "" || dataCentersData.results == null){
 					return ;
 				}
-				if(data1.results.length > 0){//如果还未创建产品，则进入向导页面
-					csc.rest.get('api/v5.0.0/datacenters?maxResult=1&firstResult=0',function(data2){//判断是否完成入云向导
-						if(data2 == null || data2 == "" || data2.results == null){
+				if(dataCentersData.results.length == 0){//如果还未创建数据中心，则进入向导页面
+					window.location.href='#pages/guide/index';
+				}else{
+					if(azsCNwareData == null || azsCNwareData == ""){
+						return ;
+					}
+					if(azsCNwareData.results.length == 0){//如果还未创建CNWARE可用分区，则判断是否有openstack可用分区
+						if(azsOpenstackData == null || azsOpenstackData == ""){
 							return ;
 						}
-						if(data2.results.length == 0){//如果还未创建数据中心，则进入向导页面
+						if(azsOpenstackData.results.length == 0){//如果还未创建openstack可用分区，则进入向导页面
 							window.location.href='#pages/guide/index';
 						}else{
-							csc.rest.get('api/v5.0.0/azs?cloudPlatform=CNware&maxResult=1&firstResult=0',function(data3){
-								if(data3 == null || data3 == ""){
-									return ;
-								}
-								if(data3.results.length == 0){//如果还未创建CNWARE可用分区，则判断是否有openstack可用分区
-									csc.rest.get('api/v5.0.0/azs?cloudPlatform=OpenStack&maxResult=1&firstResult=0',function(data4){
-										if(data4 == null || data4 == ""){
-											return ;
-										}
-										if(data4.results.length == 0){//如果还未创建openstack可用分区，则进入向导页面
-											window.location.href='#pages/guide/index';
-										}else{
-											csc.rest.get('api/v5.0.0/images/counts',function(data5){
-												if(data5 == null || data5 == ""){
-													return ;
-												}
-												if(data5.imageCount == 0){//如果已创建openstack可用分区，则判断有没镜像存在，没则进入向导页面
-													window.location.href='#pages/guide/index';
-												}
-											});
-										}
-									});
-								}
-							});
+							if(imageData == null || imageData == ""){
+								return ;
+							}
+							if(imageData.imageCount == 0){//如果已创建openstack可用分区，则判断有没镜像存在，没则进入向导页面
+								window.location.href='#pages/guide/index';
+							}
 						}
-					});
-				}else{
-					window.location.href='#pages/guide/index';
+					}
 				}
-			});
+			}else{
+				window.location.href='#pages/guide/index';
+			}
 		} 
-    });	 
+  	}
   	
     function doHighchartsVDC(data){
       // cpu占比图
@@ -668,8 +731,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.cpuTotal)-parseFloat(data.cpuUsed),
-                    unit: data.cpuUnit,
+                    y: data.cpuTotal != unlimited ? parseFloat(data.cpuTotal)-parseFloat(data.cpuUsed) : "不限制",
+                    unit: data.cpuTotal != unlimited ? data.cpuUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -740,8 +803,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.memTotal)-parseFloat(data.memUsed),
-                    unit: data.memUnit,
+                    y: data.memTotal != unlimited ? parseFloat(data.memTotal)-parseFloat(data.memUsed) : "不限制",
+                    unit: data.memTotal != unlimited ? data.memUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -812,8 +875,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.stoTotal)-parseFloat(data.stoUsed),
-                    unit: data.stoUnit,
+                    y: data.stoTotal != unlimited ? parseFloat(data.stoTotal)-parseFloat(data.stoUsed) : "不限制",
+                    unit: data.stoTotal != unlimited ? data.stoUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -884,8 +947,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.vmTotal)-parseFloat(data.vmUsed),
-                    unit: data.vmUnit,
+                    y: data.vmTotal != unlimited ? parseFloat(data.vmTotal)-parseFloat(data.vmUsed) : "不限制",
+                    unit: data.vmTotal != unlimited ? data.vmUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -956,8 +1019,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.diskTotal)-parseFloat(data.diskUsed),
-                    unit: data.diskUnit,
+                    y: data.diskTotal != unlimited ? parseFloat(data.diskTotal)-parseFloat(data.diskUsed) : "不限制",
+                    unit: data.diskTotal != unlimited ? data.diskUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -1028,8 +1091,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.objTotal)-parseFloat(data.objUsed),
-                    unit: data.objUnit,
+                    y: data.objTotal != unlimited ? parseFloat(data.objTotal)-parseFloat(data.objUsed) : "不限制",
+                    unit: data.objTotal != unlimited ? data.objUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -1100,8 +1163,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.routerTotal)-parseFloat(data.routerUsed),
-                    unit: data.routerUnit,
+                    y: data.routerTotal != unlimited ? parseFloat(data.routerTotal)-parseFloat(data.routerUsed) : "不限制",
+                    unit: data.routerTotal != unlimited ? data.routerUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -1172,8 +1235,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.firewallTotal)-parseFloat(data.firewallUsed),
-                    unit: data.firewallUnit,
+                    y: data.firewallTotal != unlimited ? parseFloat(data.firewallTotal) - parseFloat(data.firewallUsed) : "不限制",
+                    unit: data.firewallTotal != unlimited ? data.firewallUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -1244,8 +1307,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                 },
                 {
                     name: '未用',
-                    y: parseFloat(data.securityGroupTotal)-parseFloat(data.securityGroupUsed),
-                    unit: data.securityGroupUnit,
+                    y: data.securityGroupTotal != unlimited ? parseFloat(data.securityGroupTotal)-parseFloat(data.securityGroupUsed) : "不限制",
+                    unit: data.securityGroupTotal != unlimited ? data.securityGroupUnit : "",
                     color:"#fad733"
                 }
             ]
@@ -1511,7 +1574,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     var dataList = JSON.stringify(index_LocalStorage);
     var re = new RegExp('"', "g");
     dataList = dataList.replace(re, '\"');
-    //debugger;
       csc.rest.post("api/v5.0.0/homepage/display", {
           displayVisible:dataList,
           dispalySequence:DrapCommon.getCookie("configArr")
@@ -1733,15 +1795,12 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       //加载数据中心统计信息
       this.loadDCStatistics = function(obj){
     	  self.dcStatResult("");
-    	  if(self.selectedDc() && self.selectedDc().cloudPlatform == "OpenStack"){
-    		  self.netWorkTextName("网络");
-    		  self.isShowResourcePool(false);
-    	  }else if(self.selectedDc() && self.selectedDc().cloudPlatform == "CNware"){
+    	  if(self.selectedDc() && self.selectedDc().cloudPlatform == "CNware"){
     		  self.netWorkTextName("IP池");
     		  self.isShowResourcePool(true);
     	  }else{
     		  self.netWorkTextName("网络");
-    		  self.isShowResourcePool(true);
+    		  self.isShowResourcePool(!(self.selectedDc() && self.selectedDc().cloudPlatform == "OpenStack"));
     	  }
     	  
     	  var url = "api/v5.0.0/homepage/datacenter";
@@ -1803,7 +1862,6 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
     		  self.doHighchartsWarning(data);
    	      });
       }
-      this.loadAlarmStat();
       
       //-------------------总体告警统计end----------------//
       
@@ -1815,19 +1873,8 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       });
       //告警状态不同颜色不同
    	  this.alarmStateCss = function(index){
-    	  var state = index%5;
-       	  switch(state){
-	       	  case 1:
-	       		  return "";
-	       	  case 2:
-	       		  return "b-warning";
-	       	  case 3:
-	     		  return "b-primary";
-	       	  case 4:
-	     		  return "b-success";
-	       	  case 0:
-	     		  return "b-info";
-       	  }
+		  var stateStr = new Array("b-info", "", "b-warning", "b-primary", "b-success")
+    	  return stateStr[index%5];
       };
    	  //--------------------最新告警模块end--------------//
    	  
@@ -1841,41 +1888,70 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
    	  //--------------------我的任务模块end--------------//
    	  
       //--------------------VDC配额模块start------------//
+      //未使用数
+      function calcUnused(used, total, unit){
+   		  var tempTotal;
+   		  if (total != unlimited) {
+			tempTotal = parseFloat(total) - parseFloat(used);
+   		  } else {
+   			tempTotal = '不限制';
+   		  }
+		  return parseFloat(used) + "/" + tempTotal + "(" + unit + ")";
+   	  }
+   	  
+   	  //比率
+   	  function calcRate(total, used) {
+   		  if (total != unlimited) {
+   			return parseFloat(total) == 0 ? '0%' : Math.round(parseFloat(used) / parseFloat(total) * 10000) / 100 + "%";
+   		  }
+   		  //当限额为不限制(-1)时的比率默认值
+		  return '0%';
+   	  }
+   	  
+   	  //不限制统一转换
+   	  function parseUnlimited(total, unit) {
+   		  return total != unlimited ? parseFloat(total) + unit : "不限制";
+   	  }
+      
       this.loadVdcStat = function(){
     	  var url = "api/v5.0.0/homepage/vdcQuota?vdcUuid="+self.selectedVdc();
     	  csc.rest.get(url, function(data){
     		  self.doHighchartsVDC(data);
-    		  self.vdcQuotaVO().cpu(parseFloat(data.cpuTotal)+""+data.cpuUnit);
-    		  self.vdcQuotaVO().mem(parseFloat(data.memTotal)+""+data.memUnit);
-    		  self.vdcQuotaVO().sto(parseFloat(data.stoTotal)+""+data.stoUnit);
-    		  self.vdcQuotaVO().vm(parseFloat(data.vmTotal)+""+data.vmUnit);
-    		  self.vdcQuotaVO().disk(parseFloat(data.diskTotal)+""+data.diskUnit);
-    		  self.vdcQuotaVO().obj(parseFloat(data.objTotal)+""+data.objUnit);
-    		  self.vdcQuotaVO().router(parseFloat(data.routerTotal)+""+data.routerUnit);
-    		  self.vdcQuotaVO().firewall(parseFloat(data.firewallTotal)+""+data.firewallUnit);
-    		  self.vdcQuotaVO().secgroup(parseFloat(data.securityGroupTotal)+""+data.securityGroupUnit);
-    		  self.vdcQuotaVO().vpcA(parseFloat(data.vpcTotal)+""+data.vpcUnit);
-    		  self.vdcQuotaVO().vpcB(parseFloat(data.vpcUsed)+"/"+(parseFloat(data.vpcTotal)-parseFloat(data.vpcUsed))+"("+data.vpcUnit+")");
-    		  self.vdcQuotaVO().vpcRate(parseFloat(data.vpcTotal)==0?'0%':Math.round(parseFloat(data.vpcUsed)/parseFloat(data.vpcTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().blaA(parseFloat(data.blaTotal)+""+data.blaUnit);
-    		  self.vdcQuotaVO().blaB(parseFloat(data.blaUsed)+"/"+(parseFloat(data.blaTotal)-parseFloat(data.blaUsed))+"("+data.blaUnit+")");
-    		  self.vdcQuotaVO().blaRate(parseFloat(data.blaTotal)==0?'0%':Math.round(parseFloat(data.blaUsed)/parseFloat(data.blaTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().ipA(parseFloat(data.ipTotal)+""+data.ipUnit);
-    		  self.vdcQuotaVO().ipB(parseFloat(data.ipUsed)+"/"+(parseFloat(data.ipTotal)-parseFloat(data.ipUsed))+"("+data.ipUnit+")");
-    		  self.vdcQuotaVO().ipRate(parseFloat(data.ipTotal)==0?'0%':Math.round(parseFloat(data.ipUsed)/parseFloat(data.ipTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().sshA(parseFloat(data.sshTotal)+""+data.sshUnit);
-    		  self.vdcQuotaVO().sshB(parseFloat(data.sshUsed)+"/"+(parseFloat(data.sshTotal)-parseFloat(data.sshUsed))+"("+data.sshUnit+")");
-    		  self.vdcQuotaVO().sshRate(parseFloat(data.sshTotal)==0?'0%':Math.round(parseFloat(data.sshUsed)/parseFloat(data.sshTotal)*10000)/100+"%");
-    		  self.vdcQuotaVO().vpnA(parseFloat(data.vpnTotal)+""+data.vpnUnit);
-    		  self.vdcQuotaVO().vpnB(parseFloat(data.vpnUsed)+"/"+(parseFloat(data.vpnTotal)-parseFloat(data.vpnUsed))+"("+data.vpnUnit+")");
-    		  self.vdcQuotaVO().vpnRate(parseFloat(data.vpnTotal)==0?'0%':Math.round(parseFloat(data.vpnUsed)/parseFloat(data.vpnTotal)*10000)/100+"%");
+    		  self.vdcQuotaVO().cpu(parseUnlimited(data.cpuTotal, data.cpuUnit));
+    		  self.vdcQuotaVO().mem(parseUnlimited(data.memTotal, data.memUnit));
+    		  self.vdcQuotaVO().sto(parseUnlimited(data.stoTotal, data.stoUnit));
+    		  self.vdcQuotaVO().vm(parseUnlimited(data.vmTotal, data.vmUnit));
+    		  self.vdcQuotaVO().disk(parseUnlimited(data.diskTotal, data.diskUnit));
+    		  self.vdcQuotaVO().obj(parseUnlimited(data.objTotal, data.objUnit));
+    		  self.vdcQuotaVO().router(parseUnlimited(data.routerTotal, data.routerUnit));
+    		  self.vdcQuotaVO().firewall(parseUnlimited(data.firewallTotal, data.firewallUnit));
+    		  self.vdcQuotaVO().secgroup(parseUnlimited(data.securityGroupTotal, data.securityGroupUnit));
+    		  
+    		  self.vdcQuotaVO().vpcA(parseUnlimited(data.vpcTotal, data.vpcUnit));
+    		  self.vdcQuotaVO().vpcB(calcUnused(data.vpcUsed, data.vpcTotal, data.vpcUnit));
+    		  self.vdcQuotaVO().vpcRate(calcRate(data.vpcTotal, data.vpcUsed));
+    		  
+    		  self.vdcQuotaVO().blaA(parseUnlimited(data.blaTotal, data.blaUnit));
+    		  self.vdcQuotaVO().blaB(calcUnused(data.blaUsed, data.blaTotal, data.blaUnit));
+    		  self.vdcQuotaVO().blaRate(calcRate(data.blaTo1tal, data.blaUsed));
+    		  
+    		  self.vdcQuotaVO().ipA(parseUnlimited(data.ipTotal, data.ipUnit));
+    		  self.vdcQuotaVO().ipB(calcUnused(data.ipUsed, data.ipTotal, data.ipUnit));
+    		  self.vdcQuotaVO().ipRate(calcRate(data.ipTotal, data.ipUsed));
+    		  
+    		  self.vdcQuotaVO().sshA(parseUnlimited(data.sshTotal, data.sshUnit));
+    		  self.vdcQuotaVO().sshB(calcUnused(data.sshUsed, data.sshTotal, data.sshUnit));
+    		  self.vdcQuotaVO().sshRate(calcRate(data.sshTotal, data.sshUsed));
+    		  
+    		  self.vdcQuotaVO().vpnA(parseUnlimited(data.vpnTotal, data.vpnUnit));
+    		  self.vdcQuotaVO().vpnB(calcUnused(data.vpnUsed, data.vpnTotal, data.vpnUnit));
+    		  self.vdcQuotaVO().vpnRate(calcRate(data.vpnTotal, data.vpnUsed));
     	  });
       }
    	  //加载VDC列表
 	  this.vdcList = ko.observableArray();
       csc.rest.get("api/v5.0.0/homepage/vdcs", function(data){
      	  self.vdcList(data);
-      	  self.loadVdcStat();
       });
       this.selectedVdc = ko.observable();
       //加载VDC配额信息

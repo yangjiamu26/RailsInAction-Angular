@@ -235,49 +235,53 @@
       this.recoverProcessPost = function(){
     	  if("VM" == self.recoverProcessVO().type()){
     		  var relateUuid=csc.util.getUuid();
-    		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.recoverProcessVO().uuid(),function(volumeData){
-            	  var orderItem = {};
-            	  orderItem.instanceName = self.recoverProcessVO().name();
-            	  orderItem.serviceInstanceUuid = self.recoverProcessVO().serviceInstanceUuid();
-            	  orderItem.resourceType = self.recoverProcessVO().type();
-            	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
-            	  orderItem.resourceUuid = self.recoverProcessVO().uuid();
-            	  orderItem.vdcUuid = self.recoverProcessVO().vdcUuid();
-            	  orderItem.azUuid = self.recoverProcessVO().azUuid();
-            	  //云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
-            	  orderItem.relateUuid = relateUuid;
-            	  
-            	  var orderItems = [];
-            	  orderItems.push(orderItem);
-            	  
-            	  if(volumeData.results){
-            		  var volumes = volumeData.results;
-                	  for(var i=0;i<volumes.length;i++){
-                		  var volumeItem = {};
-                		  volumeItem.instanceName = volumes[i].volumeName;
-                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid;
-                		  volumeItem.resourceType = "DISK";
-                		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
-                		  volumeItem.resourceUuid = volumes[i].uuid;
-                		  volumeItem.vdcUuid = volumes[i].vdcUuid;
-                		  volumeItem.azUuid = volumes[i].azUuid;
-                		//云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
-                		  volumeItem.relateUuid = relateUuid;
-                		  orderItems.push(volumeItem);
-                	  }
-            	  }
-            	  
-            	  var postBody = {}; 
-            	  postBody.resourceType = self.recoverProcessVO().type();
-            	  postBody.vdcUuid = self.recoverProcessVO().vdcUuid();
-            	  postBody.orderItems = orderItems;
-            	  
-            	  csc.rest.post("api/v5.0.0/orders/recycleResource",postBody,function(data){
-            		  if(data.code){
-            			systemMsg.alert('资源回收申请成功，订单编号：'+data.code+'！');
-          		 		self.isRecoverProcess(false);
-            		  }
-            	  });
+    		  csc.rest.get('api/v5.0.0/vms/'+self.recoverProcessVO().uuid(),function(vmDate){
+	    		  csc.rest.get("api/v5.0.0/volumes?vmUuid="+self.recoverProcessVO().uuid(),function(volumeData){
+	            	  var orderItem = {};
+	            	  orderItem.instanceName = self.recoverProcessVO().name();
+	            	  orderItem.serviceInstanceUuid = self.recoverProcessVO().serviceInstanceUuid();
+	            	  orderItem.resourceType = self.recoverProcessVO().type();
+	            	  orderItem.metaData =  "{\"resBaseInfo\": {\"vpc\": \""+vmDate.vpcName+"\",\"cpu\": \""+vmDate.vcpu+"\",\"memory\": \""+vmDate.memory+"\",\"storage\": \""+vmDate.storage+"\",\"ip\": \""+vmDate.ip+"\",\"expireTime\": \""+vmDate.expiryDate+"\"}}";
+	            	  orderItem.resourceUuid = self.recoverProcessVO().uuid();
+	            	  orderItem.vdcUuid = self.recoverProcessVO().vdcUuid();
+	            	  orderItem.vdcName = vmDate.vdcName;
+	            	  orderItem.azUuid = self.recoverProcessVO().azUuid();
+	            	  orderItem.azName = vmDate.azName;
+	            	  //云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
+	            	  orderItem.relateUuid = relateUuid;
+	            	  
+	            	  var orderItems = [];
+	            	  orderItems.push(orderItem);
+	            	  
+	            	  if(volumeData.results){
+	            		  var volumes = volumeData.results;
+	                	  for(var i=0;i<volumes.length;i++){
+	                		  var volumeItem = {};
+	                		  volumeItem.instanceName = volumes[i].volumeName;
+	                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid;
+	                		  volumeItem.resourceType = "DISK";
+	                		  volumeItem.metaData =  "{\"resBaseInfo\": {\"type\": \"DISK\",\"size\": \""+volumes[i].volumeSize+"\",\"storageName\": \""+volumes[i].storagePoolName+"\"}}";
+	                		  volumeItem.resourceUuid = volumes[i].uuid;
+	                		  volumeItem.vdcUuid = volumes[i].vdcUuid;
+	                		  volumeItem.azUuid = volumes[i].azUuid;
+	                		//云主机回收的时候，申请信息中带上了云硬盘，需要赋值relateUuid 且值相同
+	                		  volumeItem.relateUuid = relateUuid;
+	                		  orderItems.push(volumeItem);
+	                	  }
+	            	  }
+	            	  
+	            	  var postBody = {}; 
+	            	  postBody.resourceType = self.recoverProcessVO().type();
+	            	  postBody.vdcUuid = self.recoverProcessVO().vdcUuid();
+	            	  postBody.orderItems = orderItems;
+	            	  
+	            	  csc.rest.post("api/v5.0.0/orders/recycleResource",postBody,function(data){
+	            		  if(data.code){
+	            			systemMsg.alert('资源回收申请成功，订单编号：'+data.code+'！');
+	          		 		self.isRecoverProcess(false);
+	            		  }
+	            	  });
+	    		  });
     		  });
     	  }else{
         	  var orderItem = {};

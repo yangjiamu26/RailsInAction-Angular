@@ -10,7 +10,7 @@
                   <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: linux"/> Linux</label></div>&nbsp;&nbsp;
                   <div class="checkbox"><label><input disabled class="form-group" type="checkbox" data-bind="checked: aix"/> Aix</label></div>
                 </div>
-                <div class="table-responsive no-height" data-bind="visible: limitQuota()">
+                <div class="table-responsive no-height" data-bind="visible: quotas().length > 0">
                   <table class="table table-striped">
                     <thead>
                       <tr>
@@ -22,71 +22,87 @@
                         <th>申请后</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr>
-                        <td>CPU(个)</td>
-                        <td data-bind="text: metaVdc().cpu"></td>
-                        <td data-bind="text: changeVdc().cpu"></td>
-                        <td>内存(G)</td>
-                        <td data-bind="text: metaVdc().memory"></td>
-                        <td data-bind="text: changeVdc().memory"></td>
-                      </tr>
-                      <tr>
-                        <td>存储(G)</td>
-                        <td data-bind="text: metaVdc().storage"></td>
-                        <td data-bind="text: changeVdc().storage"></td>
-                        <td>VPC(个)</td>
-                        <td data-bind="text: metaVdc().vpc"></td>
-                        <td data-bind="text: changeVdc().vpc"></td>
-                      </tr>
-                      <tr>
-                        <td>云主机(个)</td>
-                        <td data-bind="text: metaVdc().vm"></td>
-                        <td data-bind="text: changeVdc().vm"></td>
-                        <td>云硬盘(个)</td>
-                        <td data-bind="text: metaVdc().disk"></td>
-                        <td data-bind="text: changeVdc().disk"></td>
-                      </tr>
-                      <tr>
-                        <td>公网IP(个)</td>
-                        <td data-bind="text: metaVdc().publicIp"></td>
-                        <td data-bind="text: changeVdc().publicIp"></td>
-                        <td>路由器(个)</td>
-                        <td data-bind="text: metaVdc().router"></td>
-                        <td data-bind="text: changeVdc().router"></td>
-                      </tr>
-                      <tr>
-                        <td>防火墙(个)</td>
-                        <td data-bind="text: metaVdc().firewall"></td>
-                        <td data-bind="text: changeVdc().firewall"></td>
-                        <td>负载均衡器(个)</td>
-                        <td data-bind="text: metaVdc().loadBalance"></td>
-                        <td data-bind="text: changeVdc().loadBalance"></td>
-                      </tr>
-                      <tr>
-                        <td>SSH密钥(对)</td>
-                        <td data-bind="text: metaVdc().secretKey"></td>
-                        <td data-bind="text: changeVdc().secretKey"></td>
-                        <td>对象存储(GB)</td>
-                        <td data-bind="text: metaVdc().objectStorage"></td>
-                        <td data-bind="text: changeVdc().objectStorage"></td>
-                      </tr>
-                      <tr>
-                        <td>安全组(个)</td>
-                        <td data-bind="text: metaVdc().securityGroup"></td>
-                        <td data-bind="text: changeVdc().securityGroup"></td>
-                        <td>VPN(个)</td>
-                        <td data-bind="text: metaVdc().vpn"></td>
-                        <td data-bind="text: changeVdc().vpn"></td>
-                      </tr>
-                    </tbody>
+                    <tbody data-bind="foreach: quotas">
+	                  <tr>
+	                    <td>
+	                    	<span data-bind="visible: q1.type=='CPU'">CPU(个)</span>
+	                    	<span data-bind="visible: q1.type=='MEMORY'">内存(GB)</span>
+	                    	<span data-bind="visible: q1.type=='STORAGE'">存储(GB)</span>
+	                    	<span data-bind="visible: q1.type=='VPC'">VPC(个)</span>
+	                    	<span data-bind="visible: q1.type=='VM'">云主机(个)</span>
+	                    	<span data-bind="visible: q1.type=='DISK'">云硬盘(个)</span>
+	                    	<span data-bind="visible: q1.type=='PUBLICIP'">公网IP(个)</span>
+	                    	<span data-bind="visible: q1.type=='ROUTER'">路由器(个)</span>
+	                    	<span data-bind="visible: q1.type=='FIREWALL'">防火墙(个)</span>
+	                    	<span data-bind="visible: q1.type=='LOAD_BALANCING'">负载均衡器(个)</span>
+	                    	<span data-bind="visible: q1.type=='SECRET_KEY'">SSH密钥(对)</span>
+	                    	<span data-bind="visible: q1.type=='OBJECT_STORAGE'">对象存储(GB)</span>
+	                    	<span data-bind="visible: q1.type=='SECURITY_GROUP'">安全组(个)</span>
+	                    	<span data-bind="visible: q1.type=='VPN'">VPN(个)</span>
+	                    </td>
+	                    <td>
+	                    	<span data-bind="text: $root.applyChangeVdc().cpu,visible: q1.type=='CPU'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().memory,visible: q1.type=='MEMORY'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().storage,visible: q1.type=='STORAGE'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vpc,visible: q1.type=='VPC'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vm,visible: q1.type=='VM'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().disk,visible: q1.type=='DISK'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().publicIp,visible: q1.type=='PUBLICIP'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().router,visible: q1.type=='ROUTER'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().firewall,visible: q1.type=='FIREWALL'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().loadBalance,visible: q1.type=='LOAD_BALANCING'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().secretKey,visible: q1.type=='SECRET_KEY'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().objectStorage,visible: q1.type=='OBJECT_STORAGE'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().securityGroup,visible: q1.type=='SECURITY_GROUP'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vpn,visible: q1.type=='VPN'"></span>
+	                    </td>
+	                    <td>
+	                    	<input type="text" class="form-control input-sm" data-bind="value: q1.value" data-toggle="tooltip" data-placement="right" data-trigger="focus" disabled>
+	                    </td>
+	                    <td>
+	                    	<span data-bind="visible: q2.type=='CPU'">CPU(个)</span>
+	                    	<span data-bind="visible: q2.type=='MEMORY'">内存(GB)</span>
+	                    	<span data-bind="visible: q2.type=='STORAGE'">存储(GB)</span>
+	                    	<span data-bind="visible: q2.type=='VPC'">VPC(个)</span>
+	                    	<span data-bind="visible: q2.type=='VM'">云主机(个)</span>
+	                    	<span data-bind="visible: q2.type=='DISK'">云硬盘(个)</span>
+	                    	<span data-bind="visible: q2.type=='PUBLICIP'">公网IP(个)</span>
+	                    	<span data-bind="visible: q2.type=='ROUTER'">路由器(个)</span>
+	                    	<span data-bind="visible: q2.type=='FIREWALL'">防火墙(个)</span>
+	                    	<span data-bind="visible: q2.type=='LOAD_BALANCING'">负载均衡器(个)</span>
+	                    	<span data-bind="visible: q2.type=='SECRET_KEY'">SSH密钥(对)</span>
+	                    	<span data-bind="visible: q2.type=='OBJECT_STORAGE'">对象存储(GB)</span>
+	                    	<span data-bind="visible: q2.type=='SECURITY_GROUP'">安全组(个)</span>
+	                    	<span data-bind="visible: q2.type=='VPN'">VPN(个)</span>
+	                    </td>
+	                    <td>
+	                    	<span data-bind="text: $root.applyChangeVdc().cpu,visible: q2.type=='CPU'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().memory,visible: q2.type=='MEMORY'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().storage,visible: q2.type=='STORAGE'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vpc,visible: q2.type=='VPC'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vm,visible: q2.type=='VM'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().disk,visible: q2.type=='DISK'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().publicIp,visible: q2.type=='PUBLICIP'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().router,visible: q2.type=='ROUTER'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().firewall,visible: q2.type=='FIREWALL'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().loadBalance,visible: q2.type=='LOAD_BALANCING'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().secretKey,visible: q2.type=='SECRET_KEY'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().objectStorage,visible: q2.type=='OBJECT_STORAGE'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().securityGroup,visible: q2.type=='SECURITY_GROUP'"></span>
+	                    	<span data-bind="text: $root.applyChangeVdc().vpn,visible: q2.type=='VPN'"></span>
+	                    </td>
+	                    <td>
+	                    	<input type="text" class="form-control input-sm" data-bind="value: q2.value,visible:q2.value!=''" data-toggle="tooltip" data-placement="right" data-trigger="focus" disabled>
+	                    </td>
+	                  </tr>
+	                </tbody>
                   </table>
                 </div>
               </div>
             </div>
             
-            <div data-bind="visible: limitQuota()">
-            <h5 class="text-info">可用分区 <button class="btn btn-sm btn-info" data-bind="click:addVdcAZ">添加</button></h5>
+            <div>
+            	<h5 class="text-info">可用分区 <button class="btn btn-sm btn-info" data-bind="click:addVdcAZ">添加</button></h5>
 	            <table class="table table-striped">
 	                <thead>
 	                    <tr>
@@ -375,8 +391,9 @@
 	  	  this.windows = ko.observable("");
 	  	  this.linux = ko.observable("");
 	  	  this.aix = ko.observable("");
+	  	  this.quotas = ko.observable("");
 	  	  
-	  	  this.changeVdc = ko.validatedObservable({
+	  	  this.applyChangeVdc = ko.validatedObservable({
   	        cpu: ko.observable(""),
   	        memory: ko.observable(""),
   	        storage: ko.observable(""),
@@ -424,75 +441,66 @@
 	      		self.order(orderData);
 	      		self.vdc(itemListData[0]);
 	      		self.metaData(metaData);
-	      		self.limitQuota(resBaseInfo.limitQuota);
-	      		if(self.limitQuota()){
-		      		for(var i=0;i<vdcQuotaList.length;i++){
+	      		
+	      		var quotas = [];
+    			var quota = {};
+	    		var num = 1;
+	    		for(var i=vdcQuotaList.length-1;i>=0;i--){
+	    			if(vdcQuotaList[i].value == ''){
+	    				continue;
+	    			}
+	    			if(num == 1){
+	    				quota.q1 = vdcQuotaList[i];
+	    				num++;
+	    				if(i == 0){
+	    					quotas.push(quota);
+	    					var q2={value:'',type:''};
+	    					quota.q2 = q2;
+	    				}
+	    			}else{
+	    				quota.q2 = vdcQuotaList[i];
+	    				quotas.push(quota);
+	    				quota = {};
+	    				num = 1;
+	    			}
+	    		}
+	    		self.quotas(quotas);
+	    		
+	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
+	      			var vdcQuotaList = data.results;
+	      			for(var i=0;i<vdcQuotaList.length;i++){	      				
 		      			if(vdcQuotaList[i].type=='CPU'){
-		      				self.changeVdc().cpu(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().cpu(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='MEMORY'){
-		      				self.changeVdc().memory(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().memory(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='STORAGE'){
-		      				self.changeVdc().storage(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().storage(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='VPC'){
-		      				self.changeVdc().vpc(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().vpc(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='VM'){
-		      				self.changeVdc().vm(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().vm(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='DISK'){
-		      				self.changeVdc().disk(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().disk(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
-		      				self.changeVdc().publicIp(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().publicIp(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='ROUTER'){
-		      				self.changeVdc().router(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().router(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='FIREWALL'){
-		      				self.changeVdc().firewall(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().firewall(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
-		      				self.changeVdc().secretKey(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().secretKey(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
-		      				self.changeVdc().objectStorage(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().objectStorage(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
-		      				self.changeVdc().loadBalance(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().loadBalance(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
-		      				self.changeVdc().securityGroup(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().securityGroup(vdcQuotaList[i].value);
 		      			}else if(vdcQuotaList[i].type=='VPN'){
-		      				self.changeVdc().vpn(vdcQuotaList[i].value);
+		      				self.applyChangeVdc().vpn(vdcQuotaList[i].value);
 		      			}
-		      		}
-		      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
-			    		var vdcQuotaList = data.results;
-			    		for(var i=0;i<vdcQuotaList.length;i++){
-			    			if(vdcQuotaList[i].type=='CPU'){
-			      				self.metaVdc().cpu(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='MEMORY'){
-			      				self.metaVdc().memory(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='STORAGE'){
-			      				self.metaVdc().storage(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='VPC'){
-			      				self.metaVdc().vpc(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='VM'){
-			      				self.metaVdc().vm(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='DISK'){
-			      				self.metaVdc().disk(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
-			      				self.metaVdc().publicIp(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='ROUTER'){
-			      				self.metaVdc().router(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='FIREWALL'){
-			      				self.metaVdc().firewall(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
-			      				self.metaVdc().secretKey(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
-			      				self.metaVdc().objectStorage(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
-			      				self.metaVdc().loadBalance(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
-			      				self.metaVdc().securityGroup(vdcQuotaList[i].value);
-			      			}else if(vdcQuotaList[i].type=='VPN'){
-			      				self.metaVdc().vpn(vdcQuotaList[i].value);
-			      			}
-			    		}
-			    	});
-		      		self.vdcQuotaList(vdcQuotaList);
-	      		}
+	      			}
+		    	})
+	      		
 	      		for(var i=0;i<osType.length;i++){
 	      			if(osType[i]=='windows'){
 	      				self.windows(true);
@@ -710,15 +718,13 @@
 					var metaData = self.metaData();
 					var osType = metaData.osType;
 					var resBaseInfo = JSON.parse(metaData.resBaseInfo);
-					var limitQuota = resBaseInfo.limitQuota;
 					var vdcQuotaList = resBaseInfo.vdcQuotaList;
 					
-					var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
+					var meta = {"osType":osType,"resBaseInfo":{"vdcQuotaList":vdcQuotaList,"azs":azs}};
 					meta = JSON.stringify(meta);
 				    var itemResults = {"metaData":meta};
 					
-				    self.itemResults(itemResults);
-					csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,self.itemResults(),function(data){
+					csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,itemResults,function(data){
 						if(typeof(callback) != 'undefined'){
 							callback();
 							return;

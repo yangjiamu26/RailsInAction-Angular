@@ -1,0 +1,234 @@
+<div class="panel panel-info resouce-recovery">
+    <div id="resource_delete_" class="panel-heading" >基本信息</div>
+       <div>
+            <table class="table"  data-bind="foreach:resourceInfoVo().vmList">
+               <tr >
+                 <td colspan="11" class="no-padder">
+                       <h5>
+                           <i class="fa fa-minus fa-rotate-90 text-info"></i>云主机
+                       </h5>
+                       <div class="bg-light b-t b-b wrapper-sm">
+                           <div class="row m-b">
+                               <div class="col-xs-4"><strong>云主机名称：</strong><span data-bind="text:instanceName"></span></div>
+                               <div class="col-xs-4"><strong>所属VDC：</strong><span data-bind="text:vdcName"></span></div>
+                           </div>
+                           <div class="row m-b">
+                               <div class="col-xs-4"><strong>可用分区：</strong><span data-bind="text:azName"></span></div>
+                               <div class="col-xs-4"><strong>所属VPC：</strong><span data-bind="text:vpcName"></span></div>
+                           </div>
+                           <div class="row m-b">
+                               <div class="col-xs-4"><strong>CPU(个)：</strong><span data-bind="text:cpu"></span></div>
+                               <div class="col-xs-4"><strong>内存(GB)：</strong><span data-bind="text:memory"></span></div>
+                           </div>
+                           <div class="row m-b">
+                               <div class="col-xs-4"><strong>存储(GB)：</strong><span data-bind="text:storage"></span></div>
+                               <div class="col-xs-4"><strong>指定IP：</strong><span data-bind="text:ip"></span></div>
+                           </div>
+                           <div class="row m-b">
+                               <div class="col-xs-4"><strong>失效时间：</strong><span data-bind="text:expireTime"></span></div>
+                               <div class="col-xs-4"><strong>施工状态：</strong>
+                                  <span class="label label-warning" data-bind="if:itemState()=='CONSTRUCTION_READY'">待施工</span>
+                                  <span class="label label-info" data-bind="if:itemState()=='CONSTRUCTION_DOING'">施工中</span>
+                                  <span class="label label-success" data-bind="if:itemState()=='CONSTRUCTION_SUCCESS'">施工成功</span>
+                                  <span class="label label-danger" data-bind="if:itemState()=='CONSTRUCTION_FAILED'">施工失败 </span>
+                                  <span data-bind="if:itemState()=='CONSTRUCTION_FAILED'">
+                                      <a class="link_in_detail" data-bind="click:$root.vmErrorMsg">失败原因</a> | 
+                                      <a class="link_in_detail" data-bind="click:$root.repConstruct">重施工</a>
+                                  </span>
+                           </div>
+                       </div>
+                       <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>挂载云硬盘</h5>
+                       <div class="table-responsive no-height">
+                           <table class="table table-striped table-hover">
+                               <thead>
+                                 <tr>
+                                   <th>序号</th>
+                                   <th>云硬盘名称</th>
+                                   <th>云硬盘类型</th>
+                                   <th>所属存储池</th>
+                                   <th>大小(GB)</th>
+                                   <th>施工状态</th>
+                                   <th>操作</th>
+                                 </tr>
+                               </thead>
+                               <tbody  data-bind="foreach:diskList">
+                                 <tr>
+                                   <td><span data-bind="text: ($index()+1)"></span></td>
+                                   <td><span data-bind="text:instanceName"></span></td>
+                                   <td><span data-bind="text:type"></span></td>
+                                   <td><span data-bind="text:storageName"></span></td>
+                                   <td><span data-bind="text:size"></span></td>
+                                   <td>
+                                      <span class="label label-warning" data-bind="if:itemState()=='CONSTRUCTION_READY'">待施工</span>
+                                      <span class="label label-info" data-bind="if:itemState()=='CONSTRUCTION_DOING'">施工中</span>
+                                      <span class="label label-success" data-bind="if:itemState()=='CONSTRUCTION_SUCCESS'">施工成功</span>
+                                      <span class="label label-danger" data-bind="if:itemState()=='CONSTRUCTION_FAILED'">施工失败 </span>
+                                   <td>
+                                      <span data-bind="if:itemState()=='CONSTRUCTION_FAILED'">
+                                          <a class="link_in_detail" data-bind="click:$root.vmErrorMsg">失败原因</a> | 
+                                          <a class="link_in_detail" data-bind="click:$root.repConstruct">重施工</a>
+                                      </span>
+                                   </td>
+                                 </tr>
+                               </tbody>
+                          </table>
+                     </div>    
+                   </div>
+                 </td>
+               </tr>
+          </table>
+       </div>
+</div>
+
+
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+    var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js", null];
+    $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+        function ViewModel(){
+            var self = this;
+            this.resourceInfoVo = ko.validatedObservable({
+                vmList : ko.observableArray([])
+            });
+            var repConstructOrderItem=null;//重施工需要的orderItems值
+            var instanceName_="";//重施工需要的orderItems值
+            var workFailedMessage = "";
+           
+            this.loadData = function(){
+                csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data_){
+                    var processInstanceId = data_.taskInfo[0].processInstanceId;
+                    csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(vmData){
+                       
+                        vmData.orderItems.sort(function(a,b){return a.resourceType < b.resourceType});//排序
+                        var vmInfo = new VmInfo();;
+                        for(var i=0;i<vmData.orderItems.length;i++){
+                            var orderItem = vmData.orderItems[i];
+                            //判断状态有成功的，就置灰回退按钮
+                            if(orderItem.itemState=='CONSTRUCTION_SUCCESS'||orderItem.itemState=='CONSTRUCTION_DOING'){
+                                $("#btn_task_fallback").attr("disabled","true");
+                            }
+                            
+                            if(orderItem.resourceType == "VM"){
+                                var metaData = JSON.parse(orderItem.metaData);
+                                var vmInParamData = JSON.parse(metaData.resBaseInfo);
+                                
+                                vmInfo.instanceName(orderItem.instanceName);
+                                vmInfo.uuid(orderItem.uuid);
+                                vmInfo.orderUuid(orderItem.orderUuid);
+                                vmInfo.itemState(orderItem.itemState);
+                                vmInfo.vdcName(orderItem.vdcName);
+                                vmInfo.azName(orderItem.azName);
+                                vmInfo.workFailedMessage(orderItem.workFailedMessage);
+                                vmInfo.vpcName(vmInParamData.vpc);
+                                vmInfo.cpu(vmInParamData.cpu);
+                                vmInfo.memory(vmInParamData.memory);
+                                vmInfo.storage(vmInParamData.storage);
+                                vmInfo.ip(vmInParamData.ip);
+                                vmInfo.expireTime(vmInParamData.expireTime);
+                                self.resourceInfoVo().vmList.push(vmInfo);
+                             }else if(orderItem.resourceType == "DISK"){
+                                var metaData = JSON.parse(orderItem.metaData);
+                                var diskInParamData = JSON.parse(metaData.resBaseInfo);
+                                var diskInfo = new DiskInfo();
+                                diskInfo.instanceName(orderItem.instanceName);
+                                diskInfo.workFailedMessage(orderItem.workFailedMessage);
+                                diskInfo.uuid(orderItem.uuid);
+                                diskInfo.orderUuid(orderItem.orderUuid);
+                                diskInfo.itemState(orderItem.itemState);
+                                diskInfo.type(diskInParamData.type);
+                                if(diskInParamData.storageName&&diskInParamData.storageName!="null"){
+                                    diskInfo.storageName(diskInParamData.storageName);
+                                }
+                                diskInfo.size(diskInParamData.size);
+                                
+                                vmInfo.diskList.push(diskInfo);
+                            }
+                         }
+
+                        
+                     /******************实体对象定义**********************/
+                        function DiskInfo(){
+                            this.instanceName= ko.observable("");
+                            this.uuid= ko.observable("");
+                            this.orderUuid= ko.observable("");
+                            this.size = ko.observable("");
+                            this.storageName = ko.observable("");
+                            this.type = ko.observable("");
+                            this.itemState = ko.observable("");
+                            this.workFailedMessage = ko.observable("");
+                            
+                       }
+                        
+                      function VmInfo(){
+                         this.instanceName = ko.observable("");
+                         this.uuid = ko.observable("");
+                         this.orderUuid = ko.observable("");
+                         this.itemState = ko.observable("");
+                         this.vpcName = ko.observable("");
+                         this.vdcName = ko.observable("");
+                         this.azName = ko.observable("");
+                         this.cpu = ko.observable("");
+                         this.memory = ko.observable("");
+                         this.storage = ko.observable("");
+                         this.ip = ko.observable("");
+                         this.expireTime = ko.observable("");
+                         this.workFailedMessage = ko.observable("");
+                         this.diskList =  ko.observableArray([]);
+                       }
+                      
+                    /******************实体对象定义**********************/
+                   });
+                })
+            }
+            self.loadData();
+            
+            self.repConstruct = function(orderItem){
+                if(orderItem!=null){
+                    confirm("确定["+orderItem.instanceName()+"]进入重施工?",function(arg){
+                      self.toConstruct(orderItem);
+                    });
+                }
+            }
+            
+            self.vmErrorMsg = function(data){
+               if(data.workFailedMessage()){
+               	 systemMsg.alert(data.workFailedMessage());
+               }else{
+               	 systemMsg.alert("未知异常！");
+               }
+            }
+
+            //执行重施工操作
+            self.toConstruct = function(orderItem){
+                var orderUuid = orderItem.orderUuid();
+                var uuid = orderItem.uuid();
+                csc.rest.put("api/v5.0.0/orders/"+orderUuid+"/items/"+uuid+"/construction","",function(data,textStatus,orderItem){
+                   self.loadData();
+               	 alert("提交重施工成功！");
+                },function(){alert("施工失败,未知异常!")},false,orderItem);
+            }
+            
+            this.save = function(){
+	       		saveComment(args.taskId,function(){
+	       			alert("保存成功！");
+	       		});
+			  }
+			  
+			  this.next = function(){
+				if(isLast){
+				  saveComment(args.taskId,function(){
+					var databody = {"userId":"","action":"designated"};
+					csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+					  alert("审核成功！");
+					  location.href = "#pages/workflows/tasks?type=work";
+					},function(){alert("操作失败！")});
+				  });
+			  	}else{		  
+				  showModal("pages/workflows/next.html");
+			  	}
+			  }
+        }
+        
+        ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+    });
+</script>
