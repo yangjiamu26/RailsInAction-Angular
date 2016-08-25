@@ -323,8 +323,8 @@ function initTotal_storage_chart(data) {
       })
       
       RestServiceJs(BASE_URL+"/overallDetails/resourceStat").query({},function(data){
-        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1024).toFixed(2));
-        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1024).toFixed(2));
+        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
+        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
         data.memoryUsed = Number((Number(data.memoryUsed)/1024).toFixed(2));
         data.pvmTotalCpu = Number(Number(data.pvmTotalCpu).toFixed(2));
@@ -390,6 +390,7 @@ function popoverClose(event){
   var datacenter_name = event && $(event.target).attr("datacenter_name") || "demo数据中心";
   CVM_PAD.dcId = datacenter_id;
   CVM_PAD.dcName = datacenter_name;
+  myApp.closeModal(".login-screen.modal-in");
 
   indexFilter_business=indexFilter_business || myApp.addView('#indexFilter-business', {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-business"});
   indexFilter_pool       = indexFilter_pool || myApp.addView('#indexFilter-pool',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-pool"});
@@ -424,6 +425,5 @@ function popoverClose(event){
   myApp.showTab("#view-home");
 
   is_reload = true;
-
 }
 

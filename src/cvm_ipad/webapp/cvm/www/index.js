@@ -18,6 +18,19 @@ var myApp = new Framework7({
   pushState: false
 });
 
+var pageInitNUM = 0;
+$$(document).on('pageInit', function (e) {
+  pageInitNUM = pageInitNUM+1;
+  if(pageInitNUM>1) return;
+  if(navigator.onLine!=true){
+    if(thisRequest==1){
+      myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
+        pageInitNUM = 0;
+      });
+    }
+    return;
+  }
+})
 var getTheTime = function(minseconds){
   var seconds = minseconds/1000;
   var day = parseInt(seconds/86400);
@@ -34,9 +47,27 @@ $$(document).on('ajaxComplete', function () {
     myApp.hideIndicator();
 });
 
+myApp.showAssisTime = true;
 $(function(){
 
-  myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
+  var infos = eval('(' + Storage.getItem('userInfo') + ')');
+  if(infos&&infos.token&&infos.tokenKey){
+    USER_INFO = infos;
+    BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
+    if(!this.dashboard){
+      this.dashboard = myApp.addView('#view-dashboard', {dynamicNavbar: false,domCache: true});
+    }
+    this.dashboard.router.load({url: "tpl/dashboard.html",animatePages: false});
+    myApp.popup('.popup-dashboard');
+
+    setTimeout(function(){
+      if(myApp.showAssisTime){
+        $$("#assistive").show();
+      }
+    },2000);
+  }else{
+    myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
+  }
 
   function assistiveViewModel(){
     this.isLow = ko.observable('false');

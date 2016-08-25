@@ -42,8 +42,8 @@ myApp.onPageInit("home-index", function(page) {
         self.infos(data);
       });
       RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat").query({},function(data){
-        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1024).toFixed(2));
-        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1024).toFixed(2));
+        data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
+        data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
         data.memoryUsed = Number((Number(data.memoryUsed)/1024).toFixed(2));
         if(Number(data.storageTotal)>1023){

@@ -2,7 +2,7 @@ myApp.onPageInit("vm-performance", function(page) {
 
 // 单个虚拟机内存使用率曲线
 function initMemoryUse_chart(data, xAxis) {
-    $('#memoryUse_chart').highcharts({
+    $('#memoryUse_chart'+viewModel.belongTab()).highcharts({
         title: {
             text: '内存使用率(%)',
         },
@@ -39,7 +39,7 @@ function initMemoryUse_chart(data, xAxis) {
 }
 // 单个虚拟机cpu总量使用率曲线
 function initcpuUse_chart1(data,xAxis) {
-    $('#cpuUse_chart1').highcharts({
+    $('#cpuUse_chart1'+viewModel.belongTab()).highcharts({
         title: {
             text: 'CPU使用率(%)',
         },
@@ -76,7 +76,7 @@ function initcpuUse_chart1(data,xAxis) {
 }
 // 单个虚拟机cpu线程使用率曲线
 function initcpuUse_chart2(data,xAxis) {
-    $('#cpuUse_chart2').highcharts({
+    $('#cpuUse_chart2'+viewModel.belongTab()).highcharts({
         title: {
             text: 'CPU使用率(%)',
         },
@@ -114,7 +114,7 @@ function initcpuUse_chart2(data,xAxis) {
 
 // 单个虚拟机磁盘使用率曲线
 function initDiskUse_chart(data,xAxis) {
-    $('#diskUse_chart').highcharts({
+    $('#diskUse_chart'+viewModel.belongTab()).highcharts({
         title: {
             text: '磁盘使用率(GB)',
         },
@@ -152,7 +152,7 @@ function initDiskUse_chart(data,xAxis) {
 
 // 单个虚拟机网络使用率曲线
 function initNetwork_chart(data,xAxis) {
-    $('#network_chart').highcharts({
+    $('#network_chart'+viewModel.belongTab()).highcharts({
         title: {
             text: '网络速率(kb/s)',
         },
@@ -194,6 +194,7 @@ function initNetwork_chart(data,xAxis) {
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.isShowCharts = ko.observable(true);
     this.memory = ko.observable('');
+    this.belongTab = ko.observable(page.query.belongTab);
 
     this.timeItems = ko.observableArray(['最近十分钟','最近一小时','最近一天','最近一周','最近一个月','最近一年','自定义']);
     this.timeSelected = ko.observable("最近一小时");

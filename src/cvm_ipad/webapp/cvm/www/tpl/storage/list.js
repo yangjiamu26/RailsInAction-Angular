@@ -4,6 +4,7 @@ myApp.onPageInit("storage-list", function(page) {
     this.dataList = ko.observableArray([]);
     this.fromPage=ko.observable("");
     this.hypervisor = ko.observable(page.query.hypervisor);
+    this.belongTab = ko.observable(page.query.belongTab);
 
     this.loading = false;
     this.page = 1;
