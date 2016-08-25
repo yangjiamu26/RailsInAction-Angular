@@ -10,10 +10,6 @@
             </div>
             <div class="wrapper-sm">套餐：<span data-bind="text: fee()"></span></div>
             <div class="wrapper-sm">描述：<span data-bind="text: desc()"></span></div>
-            <div class="wrapper-sm">配额限制：
-	            <span data-bind="visible: limitQuota()=='true'">限制</span>
-	            <span data-bind="visible: limitQuota()=='false'">不限制</span>
-            </div>
             <h5 class="text-info">配额信息</h5>
             <div class="wrapper-sm">
               <div class="form-group row">
@@ -428,6 +424,8 @@
     	this.azs = ko.observable("");//可用分区列表
     	this.networks = ko.observable("");//网络列表
     	
+    	this.vdcQuotas = ko.observable("");
+    	
 		self.selectVdcVO = ko.observable({});//选中的vdc
     	
 		csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -436,6 +434,7 @@
 	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
 	      		var orderData = data;
 	      		var itemListData = data.orderItems;
+	      		console.log(itemListData)
 	      		var metaData = JSON.parse(itemListData[0].metaData);
 	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
 	      		var osType = metaData.osType;
@@ -445,9 +444,15 @@
 	      		self.itemList(itemListData[0]);
 	      		self.metaData(metaData);
 	      		self.desc(itemListData[0].desc);
-	      		self.limitQuota(resBaseInfo.limitQuota);
 	      		
+	      		self.limitQuota(resBaseInfo.limitQuota);
+	      		var quatas = [];
 	      		for(var i=0;i<vdcQuotaList.length;i++){
+	      			var v = null;
+	  				if(typeof(vdcQuotaList[i].value) != 'undefined'){
+	  					v = vdcQuotaList[i].value;
+	  				}
+	  				quatas.push({type:vdcQuotaList[i].type,value:v});
 	      			if(vdcQuotaList[i].type=='CPU'){
 	      				self.cpu(vdcQuotaList[i].value);
 	      			}else if(vdcQuotaList[i].type=='MEMORY'){
@@ -478,6 +483,8 @@
 	      				self.vpn(vdcQuotaList[i].value);
 	      			}
 	      		}
+	      		self.vdcQuotas(quatas);
+	      		
 	      		var os = '';
 	      		for(var i=0;i<osType.length;i++){
 	      			if(osType[i]=='windows'){
@@ -731,7 +738,7 @@
 				var limitQuota = resBaseInfo.limitQuota;
 				var vdcQuotaList = resBaseInfo.vdcQuotaList;
 				
-				var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
+				var meta = {"osType":osType,"resBaseInfo":{"vdcQuotaList":self.vdcQuotas(),"azs":azs}};
 				meta = JSON.stringify(meta);
 			    var itemResults = {"metaData":meta};
 				

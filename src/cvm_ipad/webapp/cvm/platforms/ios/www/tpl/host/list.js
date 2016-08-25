@@ -7,6 +7,7 @@ myApp.onPageInit("host-list", function(page) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore, hypervisor, resPoolId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -34,14 +35,35 @@ myApp.onPageInit("host-list", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
+          switch(data.data[i].state){
+            case 'OK':
+              data.data[i].state='运行中';
+              data.data[i].stateCss='green';
+              break;
+            case 'RESTART':
+              data.data[i].state='重启中';
+              data.data[i].stateCss='orange';
+              break;
+            case 'DISCONNECT':
+              data.data[i].state='未运行';
+              data.data[i].stateCss='gray';
+              break;
+            case 'MAINTAIN':
+              data.data[i].state='维护';
+              data.data[i].stateCss='gray';
+              break;
+          }
           self.dataList.push(data.data[i]);
         }
         self.page++;
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }
@@ -49,13 +71,14 @@ myApp.onPageInit("host-list", function(page) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
 
-  viewModel.loadData(false,"","");
+  viewModel.loadData(false);
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false,viewModel.hypervisor(),viewModel.resPoolId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-    viewModel.loadData(true);
+          console.log(1)
+    viewModel.loadData(true,viewModel.hypervisor(),viewModel.resPoolId());
   });  
 
 });

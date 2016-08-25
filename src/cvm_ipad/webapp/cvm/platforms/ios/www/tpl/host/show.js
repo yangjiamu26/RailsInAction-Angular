@@ -8,6 +8,7 @@ myApp.onPageInit("host-show", function(page) {
       "state":'',
       "runTime":''
     });
+    this.hypervisor = ko.observable(page.query.hypervisor);
     this.loadData = function(){
       var self = this;
 

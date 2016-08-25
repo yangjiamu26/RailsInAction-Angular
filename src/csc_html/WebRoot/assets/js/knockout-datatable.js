@@ -46,6 +46,7 @@
         descSortClass: "glyphicon glyphicon-sort-by-attributes-alt",
         serverSidePagination: {
           enabled: enabled,
+          notShowLoading: options.notShowLoading || false,
           path: options.path,
           loader: options.loader || function(row){
             return row;
@@ -53,7 +54,10 @@
         }
       };
       var self = this;
+      this.chosenItem = ko.observable();
       this.chosenItems = ko.observableArray();
+      this.chosenItemId = options.chosenItemId;
+      this.onFinish = options.onFinish;
       this.isSelectedAll = ko.pureComputed({
         read: function () {
             return (this.chosenItems().length > 0) && (this.chosenItems().length === this.pagedRows().length);
@@ -63,7 +67,7 @@
             this.chosenItems([]);
             var rows = this.pagedRows();
             for(var i=0; i<rows.length; i++){
-              this.chosenItems.push(rows[i]);
+              this.chosenItems.push(this.chosenItemId ? rows[i][this.chosenItemId] : rows[i]);
             }
           }else{
             this.chosenItems([]);
@@ -78,6 +82,7 @@
         //}
         this.options.paginationPath = serverSideOpts.path;
         this.options.resultHandlerFn = serverSideOpts.loader;
+        this.options.notShowLoading = serverSideOpts.notShowLoading;
         this.initWithServerSidePagination();
       } else {
         this.initWithClientSidePagination(rows);
@@ -365,6 +370,7 @@
       _getDataFromServer = (function(_this) {
         return function(data, cb) {
           _this.isSelectedAll(false);
+          _this.chosenItem(null);
           var key, req, url, val;
           var path = _this.path();
            
@@ -392,18 +398,25 @@
           req.setRequestHeader('Content-Type', 'application/json');
           //req.setRequestHeader('If-Modified-Since', '0'); 
           req.onload = function() {
-            hideLoading();
+        	if(!_this.options.notShowLoading)
+              hideLoading();
             if (req.status >= 200 && req.status < 400) {
               return cb(null, JSON.parse(req.responseText));
             } else {
+              try{
+            	  var res = JSON.parse(req.responseText);
+            	  alert("["+res.exceptionCode+"]"+res.exceptionMessage);
+              }catch(e){}
               return cb(new Error("Error communicating with server"));
             }
           };
-          req.onerror = function() {
-            hideLoading();
+          req.onerror = function(XMLHttpRequest, textStatus, errorThrown) {
+        	if(!_this.options.notShowLoading)
+              hideLoading();
             return cb(new Error("Error communicating with server"));
           };
-          showLoading();
+          if(!_this.options.notShowLoading)
+        	  showLoading();
           return req.send();
         };
       })(this);
@@ -432,7 +445,7 @@
       this.filtering = ko.observable(false);
       this.pagedRows = ko.observableArray([]);
       this.numFilteredRows = ko.observable(0);
-      this.path = ko.observable(this.options.paginationPath);
+      this.path = ko.observable(this.options.paginationPath).extend({ notify: 'always' });
       this.filter.subscribe((function(_this) {
         return function() {
           return _this.currentPage(1);
@@ -466,10 +479,14 @@
             if (err) {
               return console.log(err);
             }
+            if(_this.onFinish){
+            	_this.onFinish();
+            }
             total = response.total, results = response.results;
             _this.numFilteredRows(total);
-            if(results)
-            return _this.pagedRows(results.map(_this.options.resultHandlerFn));
+            if(results){
+            	return _this.pagedRows(results.map(_this.options.resultHandlerFn));
+            }
           });
         };
       })(this)).extend({
@@ -563,6 +580,7 @@
         return function() {
           var data;
           _this.isSelectedAll(false);
+          _this.chosenItem(null);
           _this.loading(true);
           _this.filtering(true);
           data = _gatherData(_this.perPage(), _this.currentPage(), _this.filter(), _this.sortDir(), _this.sortField(), _this.params());

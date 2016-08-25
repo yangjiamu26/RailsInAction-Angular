@@ -105,7 +105,7 @@ function initSinglePool_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -145,6 +145,8 @@ function initSinglePool_memory_chart(data) {
 }
 // 单个资源池-存储占比图
 function initSinglePool_storage_chart(data) {
+    var init = 'GB';
+    if(data.isTB) init = 'TB';
     $('#singlePool_storage_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -176,7 +178,7 @@ function initSinglePool_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>T',
+        labelFormat: '{name}：<b>{y:.2f}</b>'+init,
       },
       plotOptions: {
           pie: {
@@ -223,7 +225,8 @@ function initSinglePool_storage_chart(data) {
       "cpu":"",
       "memory":"",
       "storage":"",
-      "cpuSlots":""
+      "cpuSlots":"",
+      "isTB":false
     });
     this.loadData = function(){
       var self = this;
@@ -234,8 +237,15 @@ function initSinglePool_storage_chart(data) {
         data.availCpu = data.hypervisor == 'PowerVM' ? Number(Number(data.availCpu).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
         data.memory = Number((Number(data.memory)/1024).toFixed(2));
         data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
-        data.storage = Number((Number(data.storage)/1024).toFixed(2));
-        data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
+        if(Number(data.storage)>1023){
+          data.isTB = true;
+          data.storage = Number((Number(data.storage)/1024).toFixed(2));
+          data.availStorage = Number((Number(data.availStorage)/1024).toFixed(2));
+        }else{
+          data.isTB = false;
+          data.storage = Number((Number(data.storage)).toFixed(2));
+          data.availStorage = Number((Number(data.availStorage)).toFixed(2));
+        }
         self.summary(data);
 
         initSinglePool_cpu_chart(data);

@@ -1,0 +1,114 @@
+<div class="content-header">
+    <ol class="breadcrumb">
+        <li><a href="#" ng-click="showNodeManage(); changeBgColor(4)" ui-sref="mainManager.nodeManager">硬件管理</a></li>
+        <li class="active">硬盘管理</li>
+    </ol>
+    <p class="muted">说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字，说明文字说明文字说明文字说明文字。</p>
+</div>
+<div class="content" ng-init="initPage()">
+    <div class="table-top clearfix">
+        <button class="btn btn-success btn-flat pull-right" type="button" id="addhddBtn"  ng-click="showModal('addHdd')" role="button" data-toggle="modal">
+            <i class="fa fa-plus"></i> 添加硬盘
+        </button>
+    </div>
+    <div class="box">
+        <div class="box-body no-padding">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th style="width:17%">主机名称</th>
+                        <th style="width:17%">IP地址</th>
+                        <th style="width:17%">设备名称</th>
+                        <th style="width:17%">设备类型</th>
+                        <th style="width:17%">WWID</th>
+                        <th style="width:17%">磁盘大小</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="disk in disks">
+                        <td>{{disk.server_hostid}}</td>
+                        <td>{{disk.server_ip}}</td>
+                        <td>{{disk.device_name}}</td>
+                        <td>{{disk.device_type}}</td>
+                        <td>{{disk.wwid}}</td>
+                        <td>{{disk.total_capacity_kb}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="hddModal" class="modal hide fade" tabindex="-1"
+     role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 id="myModalLabel">{{modal.message}}</h4>
+    </div>
+    <div class="modal-body">
+        <form style="margin-bottom: 5px">
+            <div ng-show="modal.to=='addHdd'">
+                <div id="errMsgDiv" class="fontSize16" style="color:red;">{{errMsg}}</div>
+                <label for="serverList">请选择服务器：</label>
+                <select id="serverList" style="width:67%; margin-right: 10px;"
+                        onchange="changeServer();">
+                    <option value="-1" selected="selected">请选择...</option>
+                    <option ng-repeat="server in servers" value="{{server.hostid}}_{{server.ip}}">{{server.hostid}} -
+                        {{server.ip}}
+                    </option>
+                </select>
+                <!--<input id="ip" type="text" style="width:67%;" placeholder="请输入主机IP">-->
+                <button style="margin-bottom: 10px;" id="scanHddBtn" class="btn btn-success btn-flat"
+                        ng-click="scanningHdd()" data-loading-text="Loading...">
+                    <span ng-show="!showLoading"><i class="fa fa-search"></i> 开始扫描</span>
+                    <span ng-show="showLoading" style="">
+                        <img src="images/configure/loading2.gif"/>
+                    </span>
+                </button>
+                <div><span>可添加磁盘列表：</span></div>
+                <div id="hddList">
+                    <table id="hddtable" class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th width="5%"><input id="selectAll" type="checkbox"></th>
+                            <th width="15%">设备名</th>
+                            <th width="12%">类型</th>
+                            <th width="37%">WWID</th>
+                            <th>大小</th>
+                        </tr>
+                        </thead>
+                        <tbody id="hddtablebody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+        <!-- 加载中 -->
+        <div class="spin"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-info btn-flat" ng-click="modal.sure()">确定</button>
+        <button class="btn btn-default btn-flat" data-dismiss="modal" aria-hidden="true">取消</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#selectAll').change(function () {
+            if ($(this).prop('checked')) {
+                $('tbody tr td input[type="checkbox"]').each(function () {
+                    $(this).prop('checked', true);
+                });
+            } else {
+                $('tbody tr td input[type="checkbox"]').each(function () {
+                    $(this).prop('checked', false);
+                });
+            }
+        });
+    });
+    function changeServer() {
+        $("#hddtablebody").empty();
+        //var serverIp = $("#serverList").val();
+    }
+</script>
+

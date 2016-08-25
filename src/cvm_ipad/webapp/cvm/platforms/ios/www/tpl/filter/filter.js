@@ -34,7 +34,7 @@ myApp.onPageInit("indexFilter-business", function(page) {
       window.business_index_viewModel.loadData(false,busId,busName);
     }
     this.getBusinessDomains = function(){
-      RestServiceJs(BASE_URL+"/busdomain").query({},function(data){
+      RestServiceJs(BASE_URL+"/busdomain").query({"dcId":CVM_PAD.dcId},function(data){
         self.busdomain.busdomainNum=data.busdomainNum;
         self.busdomain.projectNum=data.projectNum;
         for(var i=0;i<data.data.length;i++){

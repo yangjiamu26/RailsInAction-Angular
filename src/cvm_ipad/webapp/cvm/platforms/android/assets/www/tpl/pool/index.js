@@ -353,6 +353,7 @@ function initPool_storage_chart(data) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore,hypervisor){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -372,6 +373,8 @@ function initPool_storage_chart(data) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
 
           self.pools_count(data.data.length);
           if(self.hypervisor()==''){
@@ -393,6 +396,7 @@ function initPool_storage_chart(data) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }

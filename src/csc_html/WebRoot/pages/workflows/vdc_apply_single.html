@@ -12,17 +12,17 @@
             <label class="col-xs-2 control-label">支持操作系统：</label>
               <div class="col-xs-7">
                 <label class="checkbox-inline i-checks">
-                  <input type="checkbox" value="option1" class="canmodify" data-bind="checked: windows" disabled><i></i> windows
+                  <input type="checkbox" value="option1" data-bind="checked: windows" disabled><i></i> windows
                 </label>
                 <label class="checkbox-inline i-checks">
-                  <input type="checkbox" value="option1" class="canmodify" data-bind="checked: linux" disabled><i></i> linux
+                  <input type="checkbox" value="option1" data-bind="checked: linux" disabled><i></i> linux
                 </label>
                 <label class="checkbox-inline i-checks">
-                  <input type="checkbox" value="option1" class="canmodify" data-bind="checked: aix" disabled><i></i> aix
+                  <input type="checkbox" value="option1" data-bind="checked: aix" disabled><i></i> aix
                 </label>
               </div>
           </div>
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label class="col-xs-2 control-label">是否限制配额：</label>
             <div class="col-xs-7 form-inline">
               <div class="form-inline">
@@ -38,8 +38,8 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="form-group row" data-bind="visible: showItems()=='yes'">
+          </div> -->
+          <div class="form-group row">
             <div class="form-group">
                 <label class="col-xs-2 control-label">CPU配额(个)：</label>
                 <div class="col-xs-1">
@@ -200,6 +200,8 @@
   	  
   	  this.applyList = ko.observableArray(csc.util.getMonthsList());;
   	  
+  	  this.vdcQuotas = ko.observable("");
+  	  
   	  if(args.state=='UNSUBMIT'){
   		  $(".canmodify").attr("disabled", false);
   		  //$("input").attr("disabled", false);
@@ -207,7 +209,6 @@
   		  $("select").attr("disabled", false);
   	  }
   	  
-  	  this.showItems = ko.observable('no');
 	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
    	     var processInstanceId = data.taskInfo[0].processInstanceId;
 		 //获取订单数据
@@ -223,12 +224,14 @@
       		self.vdc(itemListData[0]);
       		self.metaData(metaData);
       		self.desc(itemListData[0].desc);
-      		if(resBaseInfo.limitQuota=='true'){
-      			self.showItems('yes');
-      		}else{
-      			self.showItems('no');
-      		}
+      		
+      		var quatas = [];
       		for(var i=0;i<vdcQuotaList.length;i++){
+      			var v = null;
+  				if(typeof(vdcQuotaList[i].value) != 'undefined'){
+  					v = vdcQuotaList[i].value;
+  				}
+  				quatas.push({type:vdcQuotaList[i].type,value:v});
       			if(vdcQuotaList[i].type=='CPU'){
       				self.cpu(vdcQuotaList[i].value);
       			}else if(vdcQuotaList[i].type=='MEMORY'){
@@ -259,6 +262,8 @@
       				self.vpn(vdcQuotaList[i].value);
       			}
       		}
+      		self.vdcQuotas(quatas);
+      		
       		for(var i=0;i<osType.length;i++){
       			if(osType[i]=='windows'){
       				self.windows(true);
@@ -276,12 +281,7 @@
             }else if(itemListData[0].expireType=='3'){
            		self.applyTime(itemListData[0].expireValue);
             }
-      		/* $("input[name='optionsRadios'][value='"+itemListData[0].expireType+"']").attr("checked",true);
-      		if(itemListData[0].expireType == '3'){
-      			$("#applyServer_daterange").val(itemListData[0].expireValue);
-      		}else{
-      			$("#applyServer_daterange").val('');
-      		} */
+      		
       		self.serviceUuid(itemListData[0].serviceUuid);
       		csc.rest.get("api/v5.0.0/service/getServiceInfo/"+itemListData[0].serviceUuid, function(data){
 		    	self.billRuleArray(setArrayCharge(data.chargeType));
@@ -314,6 +314,9 @@
       }
 	  
 	  function setArrayCharge(value){
+		  if(value == null){
+			  return;
+		  }
     	var attr = getArrayByString(value);
     	var arrayCharge = [];
     	for(var i=0;i<attr.length;i++){
@@ -358,7 +361,7 @@
 						if(self.aix()){
 							osType.push('aix');
 						}
-						var limitQuota = '';
+						/* var limitQuota = '';
 						var vdcQuotaList = [];
 						if(self.showItems()=='yes'){
 							limitQuota = 'true';
@@ -378,7 +381,7 @@
 							 vdcQuotaList.push({type:"VPN",value:self.vpn()});
 						}else{
 							limitQuota = 'false';
-						}
+						} */
 						var expireValue;
 						var expireType = $("input[name='optionsRadios']:checked").val();
 						if(self.expireType()=="1"){
@@ -391,9 +394,10 @@
 						var desc = self.desc();
 						
 						var meta = {"instanceName":self.vdc().instanceName,"osType":osType,
-								"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList}};
+								"resBaseInfo":{"vdcQuotaList":self.vdcQuotas()}};
 						meta = JSON.stringify(meta);
 					    var itemResults = {"instanceName":self.vdc().instanceName,"expireType":expireType,"expireValue":expireValue,"metaData":meta,"desc":desc};
+					    
 					    csc.rest.put('api/v5.0.0/orders/'+self.order().uuid+'/modifyItem/'+self.vdc().uuid,itemResults,function(data){
 					    	if(typeof(callback) != 'undefined'){
 								callback();

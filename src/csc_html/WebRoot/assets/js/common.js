@@ -407,7 +407,12 @@ csc.util = {
         return text;
 	},
     invalidValueParam : function(val){
-    	var telReg = /[。~!@#$%\^\+\*&\\\/\?\|:\.<>{}【】';="]+/;
+//    	var telReg = /[。~!@#$%\^\+\*&\\\/\?\|:\.<>{}【】';="]+/;
+    	
+    	// 去掉“.”符号，“.”不作为特殊字符
+    	// 新增中文特殊类型字符
+    	// 欧航 2016-08-23
+    	var telReg = /[。~·`!！@#$￥%\^\+\*&\\\/\?？\|:：《》<>{}｛｝\[\]【】'“”；;、,，="]+/;
         if(telReg.test(val)){
         	return false;
         }else{

@@ -216,6 +216,8 @@ function initTotal_memory_chart(data) {
 }
 // 首页存储占比图
 function initTotal_storage_chart(data) {
+  var init = 'GB';
+  if(data.isTB) init = 'TB';
     $('#total_storage_chart').highcharts({
       chart: {
           marginTop: 10,
@@ -246,7 +248,7 @@ function initTotal_storage_chart(data) {
           
           fontWeight: 'normal'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>'+init,
       },
       plotOptions: {
           pie: {
@@ -299,6 +301,7 @@ function initTotal_storage_chart(data) {
       "x86TotalCpu":0,
       "pvmTotalCpu":0,
       "memoryTotal":0,
+      "isTB":false
     });
 
     this.loading = false;
@@ -324,10 +327,17 @@ function initTotal_storage_chart(data) {
         data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1024).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
         data.memoryUsed = Number((Number(data.memoryUsed)/1024).toFixed(2));
-        data.storageTotal = Number(Number(data.storageTotal).toFixed(2));
-        data.storageUsed = Number(Number(data.storageUsed).toFixed(2));
         data.pvmTotalCpu = Number(Number(data.pvmTotalCpu).toFixed(2));
         data.pvmUsedCpu = Number(Number(data.pvmUsedCpu).toFixed(2));
+        if(Number(data.storageTotal)>1023){
+          data.isTB = true;
+          data.storageTotal = Number((Number(data.storageTotal)/1024).toFixed(2));
+          data.storageUsed = Number((Number(data.storageUsed)/1024).toFixed(2));
+        }else{
+          data.isTB = false;
+          data.storageTotal = Number(Number(data.storageTotal).toFixed(2));
+          data.storageUsed = Number(Number(data.storageUsed).toFixed(2));
+        }
         self.infos2(data);
         initTotal_cpu_chart(data);
         initTotal_cpu_chart2(data);

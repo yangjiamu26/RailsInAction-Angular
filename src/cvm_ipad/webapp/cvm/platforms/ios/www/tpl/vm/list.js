@@ -7,6 +7,7 @@ myApp.onPageInit("vm-list", function(page) {
 
     this.loading = false;
     this.page = 1;
+    this.noMore = ko.observable();
     this.loadData = function(is_loadMore){
       var self = this;
       if (self.loading) return;
@@ -38,6 +39,8 @@ myApp.onPageInit("vm-list", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
           var reg1 = /windows/i,
@@ -136,6 +139,7 @@ myApp.onPageInit("vm-list", function(page) {
         if(is_loadMore && (data.data.length < PAGE_SIZE)){
           myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
         }
       })
     }

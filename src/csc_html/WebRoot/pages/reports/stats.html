@@ -15,7 +15,7 @@
 				<a id="feeTab" aria-controls="billing" data-toggle="tab" href="#billing" role="tab">计费</a>
 			</li>
 			<li role="presentation">
-				<a id="hostTab" aria-controls="host" data-toggle="tab" href="#host" role="tab">物理机</a>
+				<a id="hostTab" aria-controls="host" data-toggle="tab" href="#host" role="tab">物理主机</a>
 			</li>
 			<li role="presentation">
 				<a id="vmTab" aria-controls="vm" data-toggle="tab" href="#vm" role="tab">云主机</a>
@@ -216,6 +216,12 @@
 						</div>
 						<div class="senior-search m-t" id="senior_billing" style="display:none">
 							<div class="row">
+							 <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('resourceName')>-1">
+							      <div class="input-group">
+							         <span class="input-group-addon">实例名称</span>
+							         <input type="text" value="" class="form-control input-sm" placeholder="请输入实例名称" data-bind="value: searchParam().resourceName, enterKey: search">
+							      </div>      
+							  </div>
 							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('serviceName')>-1">
 							      <div class="input-group">
 							         <span class="input-group-addon">服务名称</span>
@@ -434,14 +440,14 @@
 							  </div>
 							  <div class="col-xs-3" data-bind="visible: configVO().checkConditonsSelected().indexOf('name')>-1">
 							      <div class="input-group">
-							         <span class="input-group-addon">物理机名称</span>
-							         <input type="text" value="" class="form-control input-sm" placeholder="请输入物理机名称" data-bind="value: searchParam().name, enterKey: search">
+							         <span class="input-group-addon">物理主机名称</span>
+							         <input type="text" value="" class="form-control input-sm" placeholder="请输入物理主机名称" data-bind="value: searchParam().name, enterKey: search">
 							      </div>        
 							  </div>
 							  <div class="col-xs-4" data-bind="visible: configVO().checkConditonsSelected().indexOf('ip')>-1">
 							      <div class="input-group">
-							         <span class="input-group-addon">物理机IP</span>
-							         <input type="text" value="" class="form-control input-sm" placeholder="请输入物理机IP" data-bind="value: searchParam().ip, enterKey: search">
+							         <span class="input-group-addon">物理主机IP</span>
+							         <input type="text" value="" class="form-control input-sm" placeholder="请输入物理主机IP" data-bind="value: searchParam().ip, enterKey: search">
 							      </div>        
 							  </div>
 							</div>
@@ -508,7 +514,7 @@
 				      </div>
 				      <div class='modal-body form-horizontal row' data-bind="with: configVO">
 				        <div class="form-group">
-				          <label class="col-xs-2 control-label">报表名称：</label><span class="col-xs-8" style="top: 7px;position: relative;">物理机报表</span>
+				          <label class="col-xs-2 control-label">报表名称：</label><span class="col-xs-8" style="top: 7px;position: relative;">物理主机报表</span>
 				        </div>
 				        <div class="form-group">
 				          <label class="col-xs-2 control-label">搜索条件：</label>
@@ -807,6 +813,7 @@
       	this.searchParam = ko.observable({
       		vdcName: "",
       		resourceType: "",
+      		resourceName: "",
       		serviceName: "",
       		user: "",
       		dcUuid: "",
@@ -1004,7 +1011,7 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(name == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','userName']);
+      					self.configVO().conditions_selected_ids(['resourceName','serviceName','userName']);
       					self.configVO().checkConditonsSelected(['serviceName','userName']);
           				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','userName',
           				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
@@ -1056,7 +1063,7 @@
           				                                     'objStorageNum','userNum','cpuQuotaNum','cpuUsedNum','totalMemQuota',
           				                                     'totalUsedMem','totalStorageQuota','totalUsedStorage']);
       				}else if(report == 'billing'){
-      					self.configVO().conditions_selected_ids(['serviceName','userName']);
+      					self.configVO().conditions_selected_ids(['resourceName','serviceName','userName']);
           				self.configVO().fields_selected_ids(['uuid','serviceName','resourceType','vdcName','userName',
           				                                     'finishedTime','timestamp','cycle','fee','totalFee']);
       				}else if(report == 'host'){
@@ -1107,11 +1114,13 @@
     var feeViewModel = new ViewModel(
     		'api/v5.0.0/reports/fee',
     		[
+		    	{id: 'resourceName', name: '实例名称'},
 		    	{id: 'serviceName', name: '服务名称'},
 		    	{id: 'userName', name: '服务申请人'}
 			],
 			[
 				{id: 'uuid', name: '计费清单ID'},
+				{id: 'resourceName', name: '实例名称'},
 				{id: 'serviceName', name: '服务名称'},
 				{id: 'resourceType', name: '产品类型'},
 				{id: 'vdcName', name: '所属VDC'},
@@ -1129,12 +1138,12 @@
     		'api/v5.0.0/reports/macReport',
     		[
 		    	{id: 'partitionName', name: '所属可用分区'},
-		    	{id: 'name', name: '物理机名称'},
-		    	{id: 'ip', name: '物理机IP'}
+		    	{id: 'name', name: '物理主机名称'},
+		    	{id: 'ip', name: '物理主机IP'}
 			],
 			[
-				{id: 'name', name: '物理机名称'},
-				{id: 'ip', name: '物理机IP'},
+				{id: 'name', name: '物理主机名称'},
+				{id: 'ip', name: '物理主机IP'},
 				{id: 'partitionName', name: '所属可用分区'},
 				{id: 'virtualType', name: '虚拟化类型'},
 				{id: 'vmNum', name: '虚拟机总数'},
@@ -1170,7 +1179,7 @@
 				{id: 'applicant', name: '申请人'},
 				{id: 'effectDate', name: '生效日期'},
 				{id: 'failureDate', name: '失效日期'},
-				{id: 'ownerHost', name: '所属物理机'},
+				{id: 'ownerHost', name: '所属物理主机'},
 				{id: 'ownerBusdomain', name: '所属业务系统'},
 				{id: 'ownerVdc', name: '所属VDC'},
 				{id: 'busdomainHead', name: '业务系统负责人'}

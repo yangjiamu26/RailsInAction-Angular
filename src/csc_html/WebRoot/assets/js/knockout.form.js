@@ -24,6 +24,7 @@ function FormField(data) {
     self.Options        =   ko.observableArray(data.Options);
     self.Placeholder    =   ko.observable(data.Placeholder);
     self.Value          =   ko.observable(data.Value).extend(data.Validation);
+    self.Validation		=	ko.observable(data.Validation);
 }
 
 function FormViewModel(data) {
@@ -44,6 +45,14 @@ function FormViewModel(data) {
             return;
         }
     };
+    
+    self.save = function () {
+    	
+    }
+    
+    self.next = function () {
+    	
+    }
 
     self.dirtyFlag = new ko.dirtyFlag(this);
     self.isDirty = ko.computed(function (){

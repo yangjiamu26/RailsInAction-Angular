@@ -146,7 +146,7 @@
 			                      </div>
 			                    </div>
               				</td>
-              				<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailFail">失败原因</a></span></td>
+              				<td><span data-bind="visible: itemState=='CONSTRUCTION_FAILED'"><a href="javascript:void(0)" data-bind="click:$parent.detailVmFail">失败原因</a></span></td>
 						</tr>
 						<tr style="display:none">
 							<td colspan="11">
@@ -507,17 +507,29 @@
               $("#order_manager_").css('display', 'none');//显示订单
               $("#a_order_manager_").css('display', 'none');//显示订单
         }
-	      
+	    
+        //控制页面详情
 		function ViewModel(){
 		    var type_ = args.type;
+		    var items = args.items;
+		    var url ="";
 		    if(type_=="RESOURCE_DELETE"||type_=="RESOURCE_RECYCLE"){
+		        debugger;
 		        $("#orderMessage_").css('display', 'none');//隐藏信息
-		        url = "pages/workflows/resource_recovery_delete2order.html";
+		        if(items=="VM"){
+		            url = "pages/workflows/vm_recovery_delete2order.html";
+		        }else{
+		            url = "pages/workflows/resource_recovery_delete2order.html";
+		        }
 		        $("#orderDetailContent_").load(url);
 		    }else if(type_=="RESOURCE_CHANGE" && items == "VM"){
 		    	url = "pages/workflows/vm_resize_resure.html";
 		    	$("#orderDetailContent_").load(url);
 		    }
+			
+			this.detailVmFail = function(data){
+				alert((data.workFailedMessage()==null||data.workFailedMessage()=="")?"未知异常！":data.workFailedMessage());
+			}
 			
 			this.detailFail = function(data){
 				alert((data.workFailedMessage==null||data.workFailedMessage=="")?"未知异常！":data.workFailedMessage);

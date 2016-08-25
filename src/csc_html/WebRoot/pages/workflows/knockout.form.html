@@ -1,8 +1,8 @@
-<div class="bg-light lter b-b wrapper-sm">
+<div class="bg-light lter b-b wrapper-sm" id="headDiv">
   <ol class="breadcrumb">
     <li>当前位置：</li>
     <li>工作</li>
-    <li class="active">动态表单</li>
+    <li class="active">自定义流程</li>
   </ol>
 </div>
 
@@ -44,6 +44,16 @@
                         </div>
                     </div>
                 <!--/ko-->
+                
+                <!--ko if: Element() === "boolean" -->
+                	<div class="col-sm-9">
+                		<div class="form-inline" >
+	                    <div class="checkbox">
+	                        <input type="checkbox" data-bind="checked: Value, attr: {id:ID, name: Name }, value:Value "></input>
+	                    </div>
+	                    </div>
+                    </div>
+                <!--/ko-->
 
                 <!--ko if: Element() === "input" -->
                     <div class="col-sm-9">
@@ -59,7 +69,7 @@
             </div>
         </form>
 
-        <div class="panel-footer text-center">
+        <div class="panel-footer text-center" id="btnDiv">
             <button class="btn btn-primary" data-bind="click: $root.SaveForm">提交</button>
             <button class="btn btn-danger">取消</button>
         </div>
@@ -68,13 +78,196 @@
 </div>
 <script type="text/javascript">
     var scripts = ["assets/js/knockout.form.js", null];
+    
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-        $.get('pages/workflows/knockout.form.json', function(data){
+        //$.get('pages/workflows/knockout.form.json', function(data){
+        var params = ""; 
+        if(args.processDefinitionId){
+        	params = "processDefinitionId="+args.processDefinitionId;
+        }else{
+        	params = "taskId="+args.taskId;
+        	$("#headDiv").hide();
+        	$("#btnDiv").hide();
+        	$("input").attr("disabled", true);
+        	$("select").attr("disabled", true);
+        }
+        
+        $.get('api/v5.0.0/workflows/form/form-data?'+params, function(data){
             if(typeof(data)=="String"){
                 data = JSON.parse(data)
             }
-            ko.applyBindings(new FormViewModel(data.formElements), $("#knockout-form")[0]);
+            var properties = data.formProperties;
+            
+            var formElements = _.map(data.formProperties, function(item, index){
+            	var element = "";
+            	var type = "";
+            	
+            	switch(item.type){
+            		case "string":
+            			element = "input";
+            			type = "text";
+            			break;
+            		case "long":
+            			element = "input";
+            			type = "number";
+            			break;
+            		case "enum":
+            			element = "select";
+            			type = "enum";
+            			break;
+            		case "boolean":
+            			element = "boolean";
+            			type = "boolean"
+            			break;
+            		case "date":
+            			element = "input";
+            			type = "date";
+            			break;
+            	}
+            	return {
+            		"ID"                : item.id,
+	                "Name"              : item.name,
+	                "Element"           : element,
+	                "Type"              : type,
+ 	                "Options"           : _.pluck(item.enumValues, "name"),
+	                "Placeholder"       : item.name,
+	                "Value"             : formatValue(type, item.value),
+	                "Validation"        : {
+	                    "required"      : item.required
+	                }
+                }
+            })
+
+            var formVO = new FormViewModel(formElements);
+            formVO.SaveForm = function () {
+                if(this.errors().length > 0) {
+                	this.errors.showAllMessages();
+                    return;
+                }else{
+                	var submitFormElements = _.map(ko.toJS(this.Fields), function(item, index){
+                    	var type = "";
+                    	switch(item.Type){
+                    		case "text":
+                    			type = "string";
+                    			break;
+                    		case "number":
+                    			type = "long"
+                    			break;
+                    		case "enum":
+                    			type = "enum";
+                    			break;
+                    		case "boolean":
+                    			type = "boolean";
+                    			break;
+                    		case "date":
+                    			type = "date";
+                    			break;
+                    	}
+                    	return {
+                    		"id"                : item.ID,
+        	                "name"              : item.Name,
+        	                "type"              : type,
+        	                "value"             : formatValue(type, item.Value),
+         	                "enumValues"        : formatItemValue(type, item.Options),
+         	                "required"			: formatRequired(item.Validation)
+                        }
+                    });
+                	
+                	var postBody = {};
+                	postBody.processDefinitionId = args.processDefinitionId;
+                	postBody.businessKey = "custom";
+                	postBody.properties = submitFormElements;
+                	
+                	csc.rest.post('api/v5.0.0/workflows/form/form-data',postBody,function(data){
+		        		alert('提交订单成功！');
+			          	location.href = "#pages/workflows/apply_user";
+	    		    });
+                }
+            };
+            
+            formVO.save = function () {
+            	saveComment(args.taskId,function(){
+           			alert("保存成功！");
+           		});
+            }
+            
+            formVO.next = function () {
+            	if(isLast){
+      			  saveComment(args.taskId,function(){
+      				var databody = {"userId":"","action":"designated"};
+      				csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+      				  alert("审核成功！");
+      				  location.href = "#pages/workflows/tasks?type=work";
+      				},function(){alert("操作失败！")});
+      			  });
+      		  	}else{		  
+      			  showModal("pages/workflows/next.html");
+      		  	}
+            }
+            
+            function formatItemValue(type, value){
+            	if(type != "enum"){
+            		return value;
+            	}
+            	var result = _.map(value, function(item, index){
+            		return {
+            			"id"			: item,
+            			"name"			: item
+            		}
+            	});
+            	return result;
+            }
+            
+            function formatRequired(value){
+            	if(typeof(value) != "undefined"){
+            		return value.required;
+            	}
+            }
+            
+            function formatValue(type, value){
+            	if(type == 'date' && value != null){
+            		value = formatDate(new Date(value), "yyyy-MM-dd");
+            	}
+            	return value;
+            }
+            
+            if(args.processDefinitionId){            	
+	            ko.applyBindings(formVO, $("#knockout-form")[0]);
+            }else{            	
+	            ko.applyBindings(formVO, $("#approveContent")[0]);
+            }
         });
+        
     });
+        
+    function formatDate(date, format) {   
+        if (!date) return;   
+        if (!format) format = "yyyy-MM-dd";   
+        switch(typeof date) {   
+            case "string":   
+                date = new Date(date.replace(/-/, "/"));   
+                break;   
+            case "number":   
+                date = new Date(date);   
+                break;   
+        }    
+        if (!date instanceof Date) return;   
+        var dict = {   
+            "yyyy": date.getFullYear(),   
+            "M": date.getMonth() + 1,   
+            "d": date.getDate(),   
+            "H": date.getHours(),   
+            "m": date.getMinutes(),   
+            "s": date.getSeconds(),   
+            "MM": ("" + (date.getMonth() + 101)).substr(1),   
+            "dd": ("" + (date.getDate() + 100)).substr(1),   
+            "HH": ("" + (date.getHours() + 100)).substr(1),   
+            "mm": ("" + (date.getMinutes() + 100)).substr(1),   
+            "ss": ("" + (date.getSeconds() + 100)).substr(1)   
+        };       
+        return format.replace(/(yyyy|MM?|dd?|HH?|ss?|mm?)/g, function() {   
+            return dict[arguments[0]];   
+        });                   
+    }
     
 </script>

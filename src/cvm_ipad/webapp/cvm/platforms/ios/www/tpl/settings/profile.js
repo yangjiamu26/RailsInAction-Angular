@@ -6,7 +6,7 @@ myApp.onPageInit("settings-profile", function(page) {
 			"account": "", 
 			"roleName": "", 
 			"email":"", 
-			"telephone":""
+			"mobilephone":""
 		});
 		this.loadInfo = function(){
 			RestServiceJs(BASE_URL+"/user").get(USER_INFO.id,{},function(data){

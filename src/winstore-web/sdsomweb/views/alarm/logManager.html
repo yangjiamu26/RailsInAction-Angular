@@ -1,98 +1,93 @@
-<div class="alarm-container div-radius" ng-init="initPage()">
-    <div ng-show="showTab=='log'">
-        <div style="padding:10px;">
-            <button class="btn-add-short" ng-click="goCreateLog()" ng-disabled="logacquire_isclicked">收集</button>
-            <button class="btn-add-short" ng-click="goDeleteLog()" ng-disabled="logacquire_isclicked">清除</button>
-        </div>
-        <table class="table table-bordered" id="no-radius-table">
-            <thead>
-                <tr style="background-color: #253138;">
-                    <th ng-click="checkedAllLog()"><input type="checkbox" ng-checked="allLogIsChecked"></th>
-                    <th>节点名称</th>
-                    <th>IP地址</th>
-                    <th>日志大小</th>
-                    <th>日志名称</th>
-                </tr>
-            </thead>
-                <tr ng-repeat="log in logList" >
-                    <td ng-click="checkedLog(log)"><input type="checkbox" ng-checked="log.$checked"></td>
-                    <td style="color:#f67c05">{{log.hostid}}</td>
-                    <td style="color:#f67c05">{{log.ipaddr}}</td>
-                    <td style="color:#f67c05">{{log.size}}</td>
-                    <td ng-click="downloadLog(log.ipaddr)"><a style="color:#f67c05;cursor: pointer;">{{log.filename}}</a></td>
-                </tr>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+<div class="content-header">
+    <ol class="breadcrumb">
+        <li>系统管理</li>
+        <li class="active">日志</li>
+    </ol>
+    <p class="muted">说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字说明文字，说明文字说明文字说明文字说明文字。</p>
 </div>
-<!-- 提示信息 -->
-<div id="alertModal" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">手工修复</h3>
-    </div>
-    <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
-        <form>
-            <!--label style="color:#000;margin-bottom:20px;">
-                索引：{{resovleIndex}}
-            </label>
-            -->
-            <label>备注：</label>
-            <textarea class="span12" rows="3" ng-model="remark"></textarea>
+<div class="content" ng-init="initPage()">
+    <div class="table-top clearfix">
+        <form class="form-search pull-left">
+            <input type="text" placeholder="搜索" class="form-control" style="width:150px">
+            <button class="btn btn-default btn-flat"><i class="fa fa-search"></i></button>
         </form>
+        <button class="btn btn-success btn-flat pull-right" type="button" ng-click="goCreateLog()" ng-disabled="logacquire_isclicked" role="button">
+            <i class="fa fa-download"></i> 收集
+        </button>
+        <button style="margin-right: 10px" class="btn btn-warning btn-flat pull-right" type="button" ng-click="goDeleteLog()" ng-disabled="logacquire_isclicked" role="button">
+            <i class="fa fa-trash"></i> 清除
+        </button>
     </div>
-    <div class="modal-footer">
-        <button class="btn btn-success" ng-click="resolveAlarm()">确定</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">取消</button>
+    <div class="box">
+        <div class="box-body no-padding">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th ng-click="checkedAllLog()"><input type="checkbox" ng-checked="allLogIsChecked"></th>
+                        <th>节点名称</th>
+                        <th>IP地址</th>
+                        <th>日志大小</th>
+                        <th>日志名称</th>
+                    </tr>
+                </thead>
+                    <tr ng-repeat="log in logList" >
+                        <td ng-click="checkedLog(log)"><input type="checkbox" ng-checked="log.$checked"></td>
+                        <td>{{log.hostid}}</td>
+                        <td>{{log.ipaddr}}</td>
+                        <td>{{log.size}}</td>
+                        <td ng-click="downloadLog(log.ipaddr)"><a>{{log.filename}}</a></td>
+                    </tr>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
 <!-- 收集日志 -->
-<div id="log" class="modal hide fade" style="background-color: #4f97dc;" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
+<div id="log" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabelE" aria-hidden="true">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabelE" style="color:#fff;padding-top:20px;">日志收集</h3>
+        <h4 id="myModalLabelE">日志收集</h4>
     </div>
-    <div class="modal-body" style="background-color:#fff;padding:20px 50px;color:#97acc1;">
+    <div class="modal-body">
         <form>
             <label>节点名称</label>
             <div class="input-append">
-                <input type="text" ng-model="log.hostid" placeholder="请输入节点名称"/>
+                <input class="form-control" type="text" ng-model="log.hostid" placeholder="请输入节点名称"/>
             </div>
             <label>IP地址</label>
             <div class="input-append">
-                <input type="text" ng-model="log.ipaddr" placeholder="请输入IP地址"/>
-                <button class="btn btn-primary" ng-click="addALog()">+ 新增一条</button>
+                <input class="form-control" type="text" ng-model="log.ipaddr" placeholder="请输入IP地址"/>
+                <button class="btn btn-primary" ng-click="addALog()"><i class="fa fa-plus"></i> 新增一条</button>
             </div>
         </form>
-        <div style="height:30px;width:100%;line-height:10px;">
-            日志收集列表<br/>
-        <img src="images/storage/pic_line3.png" style="height:1px;width:100%;">
-        </div>
+        <div class="title">
+            <span>日志收集列表</span>
+        </div>         
         <div ng-repeat="log in log4Create" style="margin:10px 0;border:1px dotted #e14a07;height:25px;line-height:25px;padding:1px 10px;width:80%;color:#e14a07;">
             <span>节点名称：{{log.hostid}}，</span>
             <span>IP地址：{{log.ipaddr}}</span>
             <span style="float:right;color:#e14a07;cursor:pointer;" ng-click="deleteALog(log)">×</span>
         </div>
     </div>
-    <div class="modal-footer" style="text-align:center;">
-        <!-- <button class="btn btn-success">确定</button> -->
-        <button class="btn btn-success" ng-click="sureCreateLog()">确定</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">取消</button>
+    <div class="modal-footer">
+        <button class="btn btn-info btn-flat" ng-click="sureCreateLog()">确定</button>
+        <button class="btn btn-default btn-flat" data-dismiss="modal" aria-hidden="true">取消</button>
     </div>
 </div>
 
-<div id="createLog" class="modal hide fade" style="background-color: #4f97dc;width:380px;left: 55%;"
+<div id="createLog" class="modal hide fade" style="width:380px;left: 55%;"
 tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
             ×
         </button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">
+        <h4 id="myModalLabel">
             收集日志
-        </h3>
+        </h4>
     </div>
-    <div class="modal-body" style="background-color:#fff;">
+    <div class="modal-body">
         <div> 
             下载最近
             <select  ng-model="logTime" style="width:95px; margin-top:3px" >
@@ -111,37 +106,36 @@ tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="collectLog()">
+        <button class="btn btn-info btn-flat" ng-click="collectLog()">
             确定
         </button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">
+        <button class="btn btn-default btn-flat" data-dismiss="modal" aria-hidden="true">
             取消
         </button>
     </div>
 </div>
 
-<div id="deleteLog" class="modal hide fade" style="background-color: #4f97dc;width:380px;left: 50%;"
+<div id="deleteLog" class="modal hide fade" style="width:380px;left: 50%;"
 tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header" style="font-size:15px;">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
             ×
         </button>
-        <h3 id="myModalLabel" style="color:#fff;padding-top:20px;">
+        <h4 id="myModalLabel">
             清除日志
-        </h3>
+        </h4>
     </div>
-    <div class="modal-body" style="background-color:#fff;">
+    <div class="modal-body">
         <p>
             确定清除日志
         </p>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="deleteLog()">
+        <button class="btn btn-info btn-flat" ng-click="deleteLog()">
             确定
         </button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">
+        <button class="btn btn-default btn-flat" data-dismiss="modal" aria-hidden="true">
             取消
         </button>
     </div>
 </div>
-

@@ -7,10 +7,31 @@
 </div>
 <div class='wrapper-md'>
   <div class="bg-white-only b b-blue">
-    <div class="form-inline wrapper">
-      <a class="btn btn-info btn-sm" onclick="showModal('pages/resources/partitions/cutover_batch.html')">批量设置</a>
-      <a class="btn btn-default btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">取消割接</a>
-      <a class="btn btn-success btn-sm pull-right m-r-sm" onclick="$('#resource_business').show().siblings().hide();">确定割接</a>
+    <div class="row wrapper">
+       <div class="col-xs-5">
+        <a class="btn btn-info btn-sm" data-bind="click: multiCutover">批量纳管</a>
+       </div>
+       <div class="col-xs-2">
+          <div class="input-group">
+            <span class="input-group-addon">数据中心</span>
+            <select class="form-control input-sm"></select>
+          </div>
+        </div>
+       <div class="col-xs-2">
+          <div class="input-group">
+            <span class="input-group-addon">云管理平台</span>
+            <select class="form-control input-sm"></select>
+          </div>
+        </div>
+         <div class="col-xs-2">
+          <div class="input-group">
+            <span class="input-group-addon">云主机名称</span>
+            <input type="text" class="input-sm form-control" placeholder="请输入云主机名称" >
+          </div>
+        </div>
+         <div class="col-xs-1">
+          <button class="btn btn-sm btn-default" type="button" >搜索</button>
+        </div>
     </div>
     <div>
       <div class="table-responsive no-height" data-bind="with:table">
@@ -18,82 +39,43 @@
           <thead>
             <th>
               <div class="checkbox">
-                <label class="i-checks">
-                  <input type="checkbox" value="">
-                  <i></i>
-                </label>
-              </div>                    
+		         <label class="i-checks">
+		           <input type="checkbox" data-bind="checked: isSelectedAll">
+		           <i></i>
+		         </label>
+		       </div>                    
             </th>
-            <th>虚拟机名称</th>
+            <th>云主机名称</th>
+            <th>CNware数据中心</th>
+            <th>虚拟化</th>
+            <th>资源池</th>
+            <th>IP池</th>
             <th>IP地址</th>
-            <th>资源区</th>
-            <th>所属VDC</th>
-            <th>业务系统/VPC</th>
-            <th>服务类型</th>
-            <th>申请时长</th>
-            <th>服务产品</th>
-            <th>接管人</th>
             <th>操作</th>
           </thead>
           <tbody>
             <tr data-bind="visible: showNoData">
               <td colspan=5 class="aligncenter">
-                This table has no data.
+                	暂无数据.
               </td>
             </tr>
-            <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
               <td>
                 <div class="checkbox">
-                  <label class="i-checks">
-                    <input type="checkbox" value="">
-                    <i></i>
-                  </label>
-                </div>                    
+		           <label class="i-checks">
+		             <input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems"><i></i>
+		           </label>
+		        </div>                    
               </td>
-              <td data-bind="text:vm">vm-2008</td>
-              <td data-bind="text:ip">176.1.0.5</td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:resource">
-                  <option value="1">资源</option>
-                </select>
-              </td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:VDC">
-                  <option value="1">VDC</option>
-                </select></td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:VPC">
-                  <option value="1">VPC</option>
-                </select>
-              </td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:type">
-                  <option value="1">类型</option>
-                </select>
-              </td>
-              </td>
-              <td>
-                <div class="radio">
-                  <label class="form-inline"><input type="radio" style="top:-2px;" name="optionsRadios0" id="optionsRadios01" value="option1" checked=""> 永久</label>
-                  </div>
-                  <div class="radio disabled">
-                  <label class="form-inline"><input type="radio" class="form-control" style="top:-4px;" name="optionsRadios0" id="optionsRadios03" value="option3">有效期至 <input type="text" style="width:110px" class="form-control" id="resource_business_cutover_date"></label>
-                  </div>
-              </td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:product">
-                  <option value="1">请选择</option>
-                </select>
-              </td>
-              <td>
-                <select class="form-control input-sm w-xs" data-bind="value:manger">
-                  <option value="1">请选择</option>
-                </select>
-              </td>
-              <td><a onclick="confirm('确定移除吗？')">移除</a></td>
+              <td >vm-2008</td>
+              <td >176.1.0.5</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td><a data-bind="click: $root.cutover">纳管</a></td>
             </tr>
-            <!-- /ko -->
+           
           </tbody>
         </table>
       </div>
@@ -121,6 +103,14 @@
     function ViewModel(){
 
       this.table = new DataTable([], {path: 'pages/resources/partitions/business_cutover/index.json'});
+      
+      this.cutover = function(){
+    	  location.href = "#pages/resources/partitions/business_cutover/show";
+      }
+      
+      this.multiCutover = function(){
+    	  location.href = "#pages/resources/partitions/business_cutover/multiseriate";
+      }
     }
 
     ko.applyBindings(new ViewModel(), $('#page-content')[0]);

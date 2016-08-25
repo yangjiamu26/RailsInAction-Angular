@@ -18,7 +18,6 @@ vsanApp.factory("nodeFactory", ["Restangular", function (Restangular) {
 			Restangular.all(urlConfig.get("top3node")).post(queryParams).then(callback);
 		},
 
-
         //集群硬件详细信息
         getNodeStatus:function(data,callBack){
             Restangular.all(urlConfig.get("nodeStatus")).post(data).then(callBack);
@@ -87,9 +86,22 @@ vsanApp.factory("nodeFactory", ["Restangular", function (Restangular) {
         nodeDiskSwapDisk: function(requestParams, callback) {
             Restangular.all(urlConfig.get("swapDisk")).post(requestParams).then(callback);
         },
+        //扫描服务器节点
+        nodeServerScan: function(requestParams, callback) {
+            Restangular.all(urlConfig.get("scanServer")).post(requestParams).then(callback);
+        },
+        //扫描磁盘
+        nodeDiskScan: function(requestParams, callback) {
+            Restangular.all(urlConfig.get("scanDisk")).post(requestParams).then(callback);
+        },
         //添加磁盘扩容
         nodeDiskAddDisk: function(requestParams, callback) {
             Restangular.all(urlConfig.get("addDisk")).post(requestParams).then(callback);
+        },
+        //节点硬盘信息获取
+        nodeDisksGet: function (queryParams, callback) {
+        	Restangular.all(urlConfig.get("getDisk")).post(queryParams).then(callback);
         }
-	}
+	};
+
 }]);

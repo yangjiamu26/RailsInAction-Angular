@@ -72,7 +72,7 @@
             	<div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                     <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
-                        <li data-bind="check_action:'ssh_key_DownLoad'"><a href="#" data-bind="attr:{href:'api/v5.0.0/sshKeys/'+uuid+'/download'}">下载</a></li>
+                        <li data-bind="if: $row.isValidate == true,check_action:'ssh_key_DownLoad'"><a href="#" data-bind="attr:{href:'api/v5.0.0/sshKeys/'+uuid+'/download'}">下载</a></li>
                         <li data-bind="check_action:'ssh_key_CS_Watch'"><a href="#" data-bind="click: $root.bindvmForSecretkey">查看挂载云主机</a></li>
                       	<li data-bind="if: $row.isValidate == true,check_action:'ssh_key_Stop'"><a href="#" data-bind="click: $root.validate">终止</a></li>
                       	<li data-bind="if: $row.isValidate == false,check_action:'ssh_key_Delete'"><a data-bind="click: $root.removeOne">删除</a></li>
@@ -453,7 +453,7 @@
       this.addSecretkey = function(){
     	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
     	  this.currentVO({
-        	  name: ko.observable().extend({required: true}),
+        	  name: ko.observable().extend({required: true, maxLength: 32,cscNameRule:true}),
         	  vdcUuid:ko.observable().extend({required: true}),
           	  azUuid:ko.observable().extend({required: true}),
           	  yearMonth:ko.observable().extend({required: false}),
@@ -496,14 +496,26 @@
           }
       }
       this.changeYearMonthValidateYesOrNot = function(t){
-    	  self.currentVO({
-        	  name: ko.observable(self.currentVO().name()).extend({required: true}),
-        	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
-          	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
-          	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: t}),
-          	  toDate:self.currentVO().toDate,
-          	  remark:self.currentVO().remark
-          });
+    	  if(t){
+    		  self.currentVO({
+            	  name: ko.observable(self.currentVO().name()).extend({required: true, maxLength: 32,cscNameRule:true}),
+            	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
+              	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
+              	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: true,positiveIntegerRule:true}),
+              	  toDate:self.currentVO().toDate,
+              	  remark:self.currentVO().remark
+              });
+    	  }else{
+    		  self.currentVO({
+            	  name: ko.observable(self.currentVO().name()).extend({required: true, maxLength: 32,cscNameRule:true}),
+            	  vdcUuid:ko.observable(self.currentVO().vdcUuid()).extend({required: true}),
+              	  azUuid:ko.observable(self.currentVO().azUuid()).extend({required: true}),
+              	  yearMonth:ko.observable(self.currentVO().yearMonth()).extend({required: false}),
+              	  toDate:self.currentVO().toDate,
+              	  remark:self.currentVO().remark
+              });
+    	  }
+    	 
     	  //重新初始化日期控制，如果不设置清空，具体不明
     	  $('#resource_instance_ssh_limit_option3').val(self.currentVO().toDate).daterangepicker(
  	            {
@@ -613,10 +625,10 @@
 	    	  confirm("您确定要删除该密钥["+object.name+"]吗？",function(){    
 	    		  $.SSH_KEY.deleteSSHKey(object.uuid,function(data){
 	    			  if(data.result == 'success'){
-	    				  alert('删除成功');
+	    				  alert('删除密钥成功！');
 	            		  self.table.refreshData();
 	    			  }else if(data.result == 'faile'){
-	    				  alert('删除底层数据失败');
+	    				  alert('删除底层数据失败！');
 	    			  }else{
 	    				  alert('没有发现密钥！');
 	    			  }
@@ -735,6 +747,7 @@
            ); 
        })
        this.validateTimeVO = ko.validatedObservable({
+    	  metaTime: ko.observable(),
      	  time: ko.observable(),
      	  uuid: ko.observable()
        });
@@ -747,12 +760,18 @@
 	     	  self.isValidateTime(true);
 	     	  self.validateTimeVO().uuid(object.uuid);
 	     	  self.validateTimeVO().time(object.expiryDate);
+	     	  self.validateTimeVO().metaTime(object.expiryDate);
      	  }
        }
        //修改有效期
        this.validateTime = function(){
      	  var putBody = {};
      	  putBody.expiryDate = self.validateTimeVO().time() + " 23:59:59";
+     	  //检查日期相同不发送请求，直接关闭页面
+    	  if(self.validateTimeVO().metaTime() == self.validateTimeVO().time()){
+    		  self.isValidateTime(false);
+    		  return;
+    	  }
      	  csc.rest.put('api/v5.0.0/resourceInstances/'+self.validateTimeVO().uuid(),putBody,function(data){
  		 		systemMsg.alert('SSH密钥修改有效期成功！');
  		 		self.isValidateTime(false);
@@ -811,12 +830,14 @@
        	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
-       	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-       		  if(data.code){
-       			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-     		 		self.isValidateProcess(false);
-       		  }
-       	  });
+	       	csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
+	  		  if(data.taskId){
+	  			systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！');
+	  		  }else if(data.code){
+	  			systemMsg.alert('删除资源申请成功，订单编号：' + data.code + '！');
+	  		  }
+			 	  self.isDeleteProcess(false);
+	  	  });
  		}
        
        //------------------------------------------删除-流程结束--------------------------------

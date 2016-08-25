@@ -25,9 +25,9 @@
 			</div>
 			<div class="col-xs-3">
 				<div class="input-group">
-					<span class="input-group-addon">名称</span> <input type="text"
-						class="input-sm form-control" placeholder="请输入名称"
-						data-bind="value: searchParam().scriptName">
+					<span class="input-group-addon">名称</span> 
+					<input type="text" class="input-sm form-control" placeholder="请输入名称"
+						data-bind="value: searchParam().scriptName" id="script_name_search_input" />
 				</div>
 			</div>
 			<div class="col-xs-1">
@@ -387,6 +387,9 @@
 							<tr data-bind="visible: showNoData">
 								<td colspan=11 class="aligncenter">暂无数据</td>
 							</tr>
+							<tr data-bind="visible: showLoading">
+								<td colspan=11 class="aligncenter">正在加载数据...</td>
+							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td>
@@ -409,8 +412,8 @@
 			</div>
 
 			<div class='modal-footer'>
-				<div style="margin-bottom: 23px;">
-					<div data-bind="with: chooseSoftwareTable">
+				<div style="margin-bottom: 40px;">
+					<div data-bind="with: chooseSoftwareTable, visible: chooseSoftwareTable.pages() > 1">
 						<ul class="pagination">
 							<li data-bind="css: leftPagerClass, click: prevPage"><a
 								href="#">&laquo;</a></li>
@@ -425,7 +428,7 @@
 						</ul>
 					</div>
 				</div>
-				<div style="text-align: left;">
+				<div style="text-align: center;">
 					<input type="button" name="commit" value="确定"
 						class="btn btn-default btn-info"
 						data-bind="click: submitBindSoftware" />
@@ -462,7 +465,13 @@
 						Id : null,
 						uuid : 'N/A',
 						name : ko.observable().extend({
-							required : true
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
 						}),
 						softTypeName : ko.observable().extend({
 							required : true
@@ -492,9 +501,33 @@
 					this.defaultAttrVO = ko.validatedObservable({
 						Id: null, 
 						uuid: null,
-						name: ko.observable().extend({required : true}),
-						code: ko.observable().extend({required : true}),
-						value: ko.observable().extend({required : true}),
+						name: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
+						code: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
+						value: ko.observable().extend({
+							required : true,
+							validation: {
+			               		validator: function (val, someOtherVal) {
+			            	    	return csc.util.invalidValueParam(val);
+				                }, 
+				               	message: '不能包含特殊字符'
+				        	}
+						}),
 						attrTableRow: null
 					});
 					
@@ -518,7 +551,7 @@
 							}
 							
 							if (file.size > 10485760) {
-								systemMsg.alert('文件大小不可超过10');
+								systemMsg.alert('文件大小不可超过10Mb');
 								return false;
 							}
 							
@@ -530,10 +563,8 @@
 			      		self.uploader.on('fileQueued', function(file) {
 			      			var flag = true;
 			      			
-		      				console.log(self.fileTable());
 			      			$.each(self.fileTable(), function(i, val) {
 			      				if (val.name == file.name) {
-			      				console.log(val.name);
 			      					systemMsg.alert('已存在同名文件:' + val.name);
 			      					self.uploader.removeFile(file);
 			      					flag = false;
@@ -620,7 +651,6 @@
 
 					/** 下载脚本文件 **/
 					this.downloadFile = function(object, event) {
-						
 						var href = window.location.href;
 						
 						href = href.substring(0, href.indexOf('index.html'));
@@ -688,9 +718,23 @@
 					this.removeFile = function(object, event) {
 						if (object.path() && !object.Id) {
 							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()+object.name}, function(data) {
+								
+								$.each(self.uploader.getFiles(), function(i, val) {
+									if (object.name == val.name) {
+										self.uploader.removeFile(val);
+									}
+								});
+								
 								self.fileTable.remove(object);
 							});
 						} else {
+							
+							$.each(self.uploader.getFiles(), function(i, val) {
+								if (object.name == val.name) {
+									self.uploader.removeFile(val);
+								}
+							});
+							
 							self.fileTable.remove(object);
 							
 							if (object.progress()) {
@@ -786,7 +830,8 @@
 					/** 查询软件参数 **/
 					this.searchSoftwareParams = ko.observable({
 						softTypeName: '',
-						softwareNm: ''
+						softwareNm: '',
+						withoutSoftwareUuids: ''
 					});
 					
 					/** 加载关联软件数据 **/
@@ -802,7 +847,6 @@
 					
 					/** 选择软件弹窗 **/
 					this.openBindSoftware = function() {
-						
 						if (!self.currentVO().softTypeName()) {
 							systemMsg.alert('请先选择脚本类型');
 							return;
@@ -810,7 +854,16 @@
 						
 						self.searchSoftwareParams().softTypeName = self.currentVO().softTypeName();
 						
-						self.chooseSoftwareTable.params(this.searchSoftwareParams());
+						var withoutSoftwareUuids = '';
+						
+						$.each(self.softwareTable(), function(i, val) {
+							withoutSoftwareUuids += (val.uuid + ',');
+						});
+						
+						self.searchSoftwareParams().withoutSoftwareUuids = 
+							withoutSoftwareUuids.substring(0, withoutSoftwareUuids.length-1);
+						
+						self.chooseSoftwareTable.params(self.searchSoftwareParams());
 						
 						self.isBindSoft(true);
 					};
@@ -838,7 +891,16 @@
 					
 					/** 查询软件 **/
 					this.searchSoftware = function() {
-						this.chooseSoftwareTable.params(this.searchSoftwareParams());
+						var withoutSoftwareUuids = '';
+						
+						$.each(self.softwareTable(), function(i, val) {
+							withoutSoftwareUuids += (val.uuid + ',');
+						});
+						
+						self.searchSoftwareParams().withoutSoftwareUuids = 
+							withoutSoftwareUuids.substring(0, withoutSoftwareUuids.length-1);
+						
+						self.chooseSoftwareTable.params(self.searchSoftwareParams());
 					};
 					
 					// 脚本类型下拉选择
@@ -879,10 +941,9 @@
 						self.attrTable().splice(0, self.attrTable().length);
 						self.softwareTable().splice(0, self.softwareTable().length);
 						
+						ko.validation.group(self.currentVO).showAllMessages(true);
 						self.isAdd(true);
 					};
-					
-					
 					
 					//修改脚本弹窗
 					this.update = function(object, event) {
@@ -910,6 +971,8 @@
 					this.validSubmit = function() {
 						var flag = true;
 						var hasExecScript = false;
+						
+						ko.validation.group(self.currentVO).showAllMessages(true);
 						
 						if (self.currentVO.isValid()) {
 							// 脚本文件列表不能为空
@@ -1066,6 +1129,7 @@
 						softTypeName : "",
 						scriptName : ""
 					});
+					
 					this.search = function() {
 						this.table.params(this.searchParam());
 					};
@@ -1095,6 +1159,12 @@
 						viewModel.loadDefaultAttrData();
 						
 						viewModel.loadBindedSoftware();
+					});
+					
+					$('#script_name_search_input').keyup(function(evt) {
+						if (evt.keyCode == 13) {
+							viewModel.search();
+						}
 					});
 					
 					/** 脚本编辑弹窗关闭回调 **/

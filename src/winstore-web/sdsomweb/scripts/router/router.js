@@ -104,6 +104,24 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
         		}
         	}
         })
+        .state("mainManager.cnwarePool", {
+        	url: "/cnware/pool",
+        	views: {
+        		"top_view": {
+        			templateUrl: "views/cnware/cnwarePool.html",
+        			controller: "cnwarePoolCtrl"
+        		}
+        	}
+        })
+        .state("mainManager.cnwareLun", {
+        	url: "/cnware/lun",
+        	views: {
+        		"top_view": {
+        			templateUrl: "views/cnware/cnwareLun.html",
+        			controller: "cnwareLunCtrl"
+        		}
+        	}
+        })
         .state("mainManager.nodeManager", {
         	url: "/node/manager",
         	views: {
@@ -141,6 +159,24 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
          * 第三期
          ********************************************************
          */
+        .state('mainManager.serverManager', { //服务器管理
+        	url: '/node/server',
+        	views: {
+        		'top_view': {
+        			templateUrl: 'views/node/serverManager.html',
+        			controller: 'serverManagerCtrl'
+        		}
+        	}
+        })
+        .state('mainManager.hddManager', { //服务器管理
+        	url: '/node/hdd',
+        	views: {
+        		'top_view': {
+        			templateUrl: 'views/node/hddManager.html',
+        			controller: 'hddManagerCtrl'
+        		}
+        	}
+        })
         .state('mainManager.ipManager', { //IP修改
         	url: '/node/network',
         	views: {

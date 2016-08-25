@@ -25,18 +25,13 @@
           <div class="input-group">
             <span class="input-group-addon">申请人</span>
             <input class="input-sm form-control" placeholder="请输入申请人" data-bind="value: searchParam().userName">
-          </div>       
+          </div>        
       </div>
       <div class="col-xs-2">
           <button class="btn btn-sm" type="button" data-bind="click: reset">重置</button>
           <button class="btn btn-default btn-sm" data-bind="click: search">搜索</button>     
       </div>
       <div class="col-xs-1">
-        <!-- 
-          <button class="btn btn-info btn-sm" data-bind="click: exporting">导出</button>    
-        
-          <a href="api/v5.0.0/billing/list/export" class="btn btn-sm btn-info">导出a</a>
-           --> 
           <a class="btn btn-sm btn-info" data-bind="attr: {href: exportURL}">导出</a>
       </div>
     </div>    
@@ -48,15 +43,13 @@
             <th>服务名称</th>
             <th>所属VDC</th>
             <th>资源类型</th>
+            <th>实例名称</th>
             <th>服务申请人</th>
             <th>服务开通时间</th>
             <th>服务统计时长</th>
             <th>计费结算日期</th>
             <th>计费周期</th>
             <th>本期计费金额(元)</th>
-             <!--
-            <th>计费单位</th>
-            -->
             <th>计费总金额(元)</th>
           </tr>
         </thead>
@@ -72,34 +65,20 @@
             <td><a data-bind="text: $row.serviceName"></a></td>
             <td><a data-bind="text: $row.vdcName,attr:{href:'#pages/vdcs/vdcs/index?id=' + $row.vdcUuid}"></a></td>
             <td>
-            <span data-bind="visible: resourceType=='VM'">云主机</span>
-			<span data-bind="visible: resourceType=='DISK'">云硬盘</span>
-			<span data-bind="visible: resourceType=='ROUTER'">路由器</span>
-			<span data-bind="visible: resourceType=='PUBLICIP'">公网IP</span>
-			<span data-bind="visible: resourceType=='LOAD_BALANCING'">负载均衡</span>
-			<span data-bind="visible: resourceType=='SECRET_KEY'">SSH密钥对</span>
-			<span data-bind="visible: resourceType=='OBJECT_STORAGE'">对象存储</span>
-			<span data-bind="visible: resourceType=='VDC'">VDC</span>
-          
+              <span  data-bind="translate:{type: 'resourceType', key: $row.resourceType}"></span>
+      
             </td>
+            <td data-bind="text: $row.resourceName"></td>
             <td data-bind="text: $row.userName"></td>
             <td data-bind="text: $row.finishedTime"></td>
             <td data-bind="text: $row.remainTime"></td>
             <td data-bind="text: $row.timestamp"></td>
             <td>
-             <span data-bind="visible:$row.cycle=='DAY'">天</span>
-              <span data-bind="visible:$row.cycle=='MONTH'">月</span>
-              <span data-bind="visible:$row.cycle=='QUARTER'">季</span>
-              <span data-bind="visible:$row.cycle=='YEAR'">年</span>
+              <span  data-bind="translate:{type: 'billCycle', key: $row.cycle}"></span>
+          
             </td>
             
             <td data-bind="text: $row.fee"></td>
-             <!--
-             <td>
-              <span data-bind="visible:$row.priceUnit=='RMB'">元</span>
-              <span data-bind="visible:$row.priceUnit=='USD'">美元</span>
-            </td>
-            -->
             <td data-bind="text: $row.totalFee"></td>
           </tr>
           <!-- /ko -->
@@ -146,14 +125,6 @@
          console.log(this.searchParam())
         this.table.params(this.searchParam());
       };
-    /*   this.exporting = function(){
-       
-         csc.rest.get('api/v5.0.0/billing/list/export', {}, function(data){
-            console.log("exportxxx")
-          //  self.isAdd(false);
-           // self.table.refreshData();
-          })
-      } */
       this.table = new DataTable([], {path: 'api/v5.0.0/billing/list'});
       this.exportURL = ko.observable("api/v5.0.0/billing/list/export");
     }

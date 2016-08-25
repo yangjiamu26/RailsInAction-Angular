@@ -130,7 +130,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-xs-4">
+                  <!-- <div class="col-xs-4">
                     <div class="panel panel-default">
                       <div class="panel-heading">资源变更-对象存储</div>
                       <div class="panel-body">
@@ -138,7 +138,7 @@
                         <div><a class="btn btn-info pull-right" data-url="pages/resources/instances/index?type=2" href="#pages/resources/instances/index?type=2">申请</a></div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                 </div>
                 <div class="row" style="display:none">
                   <div class="col-xs-4">
@@ -174,6 +174,15 @@
                       <div class="panel-body">
                         <div><span class="glyphicon glyphicon-equalizer"></span> 流程图</div>
                         <div><a class="btn btn-info pull-right" data-url="pages/resources/instances/index?type=5" href="#pages/resources/instances/index?type=5">申请</a></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xs-4">
+                    <div class="panel panel-default">
+                      <div class="panel-heading">有效时间变更-SSH密钥</div>
+                      <div class="panel-body">
+                        <div><span class="glyphicon glyphicon-equalizer"></span> 流程图</div>
+                        <div><a class="btn btn-info pull-right" data-url="pages/resources/instances/index?type=4" href="#pages/resources/instances/index?type=4">申请</a></div>
                       </div>
                     </div>
                   </div>
@@ -224,6 +233,15 @@
                       </div>
                     </div>
                   </div>
+                  <div class="col-xs-4">
+                    <div class="panel panel-default">
+                      <div class="panel-heading">资源删除-SSH密钥</div>
+                      <div class="panel-body">
+                        <div><span class="glyphicon glyphicon-equalizer"></span> 流程图</div>
+                        <div><a class="btn btn-info pull-right" data-url="pages/resources/instances/index?type=4" href="#pages/resources/instances/index?type=4">申请</a></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="row" style="display:none">
                   <div class="col-xs-4">
@@ -236,13 +254,13 @@
                     </div>
                   </div>
                 </div>
-                <div class="row" style="display:none">
+                <div class="row" style="display:none" data-bind="foreach: customProcess">
                   <div class="col-xs-4">
                     <div class="panel panel-default">
-                      <div class="panel-heading">自定义流程</div>
+                      <div class="panel-heading" data-bind="text: name"></div>
                       <div class="panel-body">
                         <div><span class="glyphicon glyphicon-equalizer"></span> 流程图</div>
-                         <div><a class="btn btn-info pull-right" data-url="pages/services/service_applies/index?type=6" href="#pages/services/service_applies/index?type=6">申请</a></div>
+                         <div><a class="btn btn-info pull-right" data-bind="attr:{'href':'#pages/workflows/knockout.form?processDefinitionId='+id}">申请</a></div>
                       </div>
                     </div>
                   </div>
@@ -258,14 +276,24 @@
   <script type="text/javascript">
     var scripts = [null, null]
     $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+    	
+    	function ViewModel(){
+  	    	var self = this;
+  	      
+  	    	this.customProcess = ko.observable("");
+	    	csc.rest.get('api/v5.0.0/workflows/process-definitions/custom',function(data){
+	    		console.log(data)
+	    		self.customProcess(data);
+			})
+  	      
+    	}
+    	
       $(".left-list-body tr").click(function(){
         $(this).addClass("active").siblings().removeClass("active");
         var index = $(this).index();
         $(".right-list-body > div.row").eq(index).show().siblings().hide();
       });
-      var ViewModal = function(){
-
-      };
-      ko.applyBindings(new ViewModal(), $('#page-content')[0]);
+      
+      ko.applyBindings(new ViewModel(), $('#page-content')[0]);
     });
   </script>

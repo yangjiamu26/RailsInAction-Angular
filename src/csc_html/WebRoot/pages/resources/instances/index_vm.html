@@ -217,7 +217,7 @@
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">镜像</label>
                       <div class="col-xs-2">
-                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId'"></select>
+                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId',event: {change: $root.onchange_add_images}"></select>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -239,21 +239,20 @@
                        <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm"></span>
                       </div>
-                      <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
-                      <div class="col-xs-2">
-                        <select class="form-control" data-bind="value: currentVO().isBind, options: $root.add_isBinds, optionsText: 'text', optionsValue: 'option', event: {change: $root.onchange_add_isBind}">
-                        </select>
-                      </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                      <div id="resource_instance_vm_add_ssh_switch">
+	                      <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
+	                      <div class="col-xs-2">
+	                        <select class="form-control" data-bind="value: currentVO().isBind, options: $root.add_isBinds, optionsText: 'text', optionsValue: 'option', event: {change: $root.onchange_add_isBind}">
+	                        </select>
+	                      </div>
+	                      <div class="col-xs-1">
+	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+	                      </div>
                       </div>
                       <div id="resource_instance_vm_add_ssh">
 	                      <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
 	                      <div class="col-xs-2">
 	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择密钥',value: currentVO().sshKey, options: $root.add_sshKeys, optionsText: 'name', optionsValue: 'uuid'"></select>
-	                      </div>
-	                      <div class="col-xs-1">
-	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
 	                      </div>
                       </div>
                     </div>
@@ -1075,20 +1074,43 @@
       //可用分区
       this.add_partitions = ko.observableArray([]);
       
-      //可用分区->镜像+SSH+vpc
+      //可用分区->镜像+vpc
       this.onchange_add_partitions = function(){
     	  var azUuid = self.currentVO().partition();
     	  csc.rest.get('api/v5.0.0/images?azUuid='+azUuid,function(data){
+    		  images = data.results;
     		  self.add_images(data.results);
-    	  });
-    	  csc.rest.get('api/v5.0.0/sshKeys?isValidate=true&azUuid='+azUuid,function(data){
-    		  self.add_sshKeys(data.results);
     	  });
     	  self.add_vpcs_def();
       }
       
+      var images = [];
       //镜像
       this.add_images = ko.observableArray([]);
+      
+      //镜像-> SSH
+      this.onchange_add_images = function(){
+    	  var imageUuid = self.currentVO().image();
+    	  var azUuid = self.currentVO().partition();
+    	  var chosenImageOs = "";
+    	  for(var i=0;i<images.length;i++){
+    		  if(images[i].uuid == imageUuid){
+    			  chosenImageOs = images[i].opSysType;
+    			  break;
+    		  }
+    	  }
+    	  if("windows" == chosenImageOs){
+    		  //windows类型的操作系统对应镜像不用设置ssh密钥
+    		  $("#resource_instance_vm_add_ssh_switch").hide();
+    		  $("#resource_instance_vm_add_ssh").hide();
+    	  }else{
+    		  $("#resource_instance_vm_add_ssh_switch").show();
+    		  $("#resource_instance_vm_add_ssh").show();
+	    	  csc.rest.get('api/v5.0.0/sshKeys?byCurrentUser=true&isValidate=true&azUuid='+azUuid,function(data){
+	    		  self.add_sshKeys(data.results);
+	    	  });
+    	  }
+      }
       
       //VPC
       this.add_vpcs = ko.observableArray([]);
@@ -1352,7 +1374,15 @@
 		  self.deleteProcessVO().name(object.name);
 		  self.deleteProcessVO().uuid(object.uuid);
 		  self.deleteProcessVO().vdcUuid(object.vdcUuid);
+		  self.deleteProcessVO().vdcName(object.vdcName);
 		  self.deleteProcessVO().azUuid(object.azUuid);
+		  self.deleteProcessVO().azName(object.azName);
+		  self.deleteProcessVO().vpcName(object.vpcName);
+		  self.deleteProcessVO().vcpu(object.vcpu);
+		  self.deleteProcessVO().memory(object.memory);
+		  self.deleteProcessVO().storage(object.storage);
+		  self.deleteProcessVO().expiryDate(object.expiryDate);
+		  self.deleteProcessVO().ip(object.ip);
 		  var myDate = new Date();
 		  self.deleteProcessVO().time(myDate.toLocaleString());
 		  self.deleteProcessVO().serviceInstanceUuid(object.serviceInstanceUuid);
@@ -1362,7 +1392,15 @@
     	  name: ko.observable(),
     	  uuid: ko.observable(),
     	  vdcUuid: ko.observable(),
+    	  vdcName: ko.observable(),
     	  azUuid: ko.observable(),
+    	  azName: ko.observable(),
+    	  vpcName: ko.observable(),
+    	  vcpu: ko.observable(),
+    	  memory: ko.observable(),
+    	  storage: ko.observable(),
+    	  expiryDate: ko.observable(),
+    	  ip: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable()
@@ -1374,10 +1412,12 @@
             	  orderItem.instanceName = self.deleteProcessVO().name();
             	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
             	  orderItem.resourceType = "VM";
-            	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
+            	  orderItem.metaData =  "{\"resBaseInfo\": {\"vpc\": \""+self.deleteProcessVO().vpcName()+"\",\"cpu\": \""+self.deleteProcessVO().vcpu()+"\",\"memory\": \""+self.deleteProcessVO().memory()+"\",\"storage\": \""+self.deleteProcessVO().storage()+"\",\"ip\": \""+self.deleteProcessVO().ip()+"\",\"expireTime\": \""+self.deleteProcessVO().expiryDate()+"\"}}";
             	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
             	  orderItem.vdcUuid = self.deleteProcessVO().vdcUuid();
+            	  orderItem.vdcName = self.deleteProcessVO().vdcName();
             	  orderItem.azUuid = self.deleteProcessVO().azUuid();
+            	  orderItem.azName = self.deleteProcessVO().azName();
             	  
             	  var orderItems = [];
             	  orderItems.push(orderItem);
@@ -1386,10 +1426,10 @@
             		  var volumes = volumeData.results;
                 	  for(var i=0;i<volumes.length;i++){
                 		  var volumeItem = {};
-                		  volumeItem.instanceName = volumes[i].volumeName();
-                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+                		  volumeItem.instanceName = volumes[i].volumeName;
+                		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid;
                 		  volumeItem.resourceType = "DISK";
-                		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+                		  volumeItem.metaData =  "{\"resBaseInfo\": {\"type\": \"DISK\",\"size\": \""+volumes[i].volumeSize+"\",\"storageName\": \""+volumes[i].storagePoolName+"\"}}";
                 		  volumeItem.vdcUuid = volumes[i].vdcUuid;
                 		  volumeItem.azUuid =  volumes[i].azUuid;
                 		  orderItems.push(volumeItem);
@@ -1487,7 +1527,7 @@
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
     		  if(data.code){
-    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
   		 		self.isAdjustProcess(false);
     		  }
     	  });

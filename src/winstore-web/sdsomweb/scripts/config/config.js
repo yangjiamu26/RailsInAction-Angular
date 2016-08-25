@@ -177,6 +177,12 @@ urlConfig.put("checkoutDisk","api/v1/sds/node/hardware/disk/checkout");
 urlConfig.put("swapDisk","api/v1/sds/node/hardware/disk/swap");
 //添加磁盘扩容
 urlConfig.put("addDisk","api/v1/sds/node/hardware/disk/add");
+//获取已安装磁盘列表
+urlConfig.put("getDisk","api/v1/sds/node/hardware/disk/get");
+//获取已安装服务区列表
+urlConfig.put("scanServer","api/v1/sds/node/hardware/server/scan");
+//扫描服务区上面磁盘
+urlConfig.put("scanDisk","api/v1/sds/node/hardware/disk/scan");
 //获取rebalance时间
 urlConfig.put("getRebalance","api/v1/sds/cluster/setting/rebalance/get");
 //更新rebalance时间
@@ -196,3 +202,8 @@ urlConfig.put("addCephFS", "api/v1/sds/cephfS/addcephfs");
 urlConfig.put("deleteCephFS", "api/v1/sds/cephfS/deletecephfs");
 //查询ceph文件系统和客户端
 urlConfig.put("checkShowflagAndClients", "api/v1/sds/cephfS/checkShowflagAndClients");
+
+//集成cnware相关操作
+urlConfig.put("queryCNwarePool", "api/v1/cnware/pool/query");
+//查询lun
+urlConfig.put("queryCNwareLun", "api/v1/cnware/lun/list");

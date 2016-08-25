@@ -61,7 +61,7 @@
                 </div>
                 <div class="col-xs-1 font-bold">操作系统：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().osVersion"></div>
-                <div class="col-xs-1 font-bold">所属物理机：</div>
+                <div class="col-xs-1 font-bold">所属物理主机：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().ownerHostName"></div>
               </div>
               <div class="row m-b">
@@ -155,7 +155,7 @@
                   <thead>
                     <tr>
                       <th>云硬盘名称</th>
-                      <th>云硬盘类型</th>
+                      <!-- <th>云硬盘类型</th> -->
                       <th>虚拟化类型</th>
                       <th>存储池</th>
                       <th>大小（GB）</th>
@@ -173,7 +173,7 @@
   	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
   	                <tr>
   	                    <td data-bind="text: volumeName"></td>
-  	                    <td ></td>
+  	                    <!-- <td ></td> -->
   	                    <td ></td>
   	                    <td ></td>
   	                    <td data-bind="text: volumeSize"></td>
@@ -258,9 +258,9 @@
 	                      <span class="label label-danger" data-bind="if: status == 2">安装失败</span>
                       </td>
                       <td>
-                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status != 1"><a data-bind="click: $root.doReInstall">重安装</a> | </span>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status == 2"><a data-bind="click: $root.doReInstall">重安装</a> | </span>
                       	<a data-bind="click: $root.doInstallLog">安装日志</a>
-                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE'"> | <a data-bind="click: $root.update">升级</a></span>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status == 1"> | <a data-bind="click: $root.update">升级</a></span>
                       </td>
                     </tr>
                     <!-- /ko -->
@@ -1115,7 +1115,7 @@
      		self.softwareSearchParam().softTypeName = null;
     	}
     	self.vm_software_table.params(self.softwareSearchParam());
-    	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid+'&status=1');
+    	self.vm_software_table.path('api/v5.0.0/install/logs?vmUuid='+self.vmVO().uuid);
     }
     this.softTypeNamePartitions = ko.observableArray([]);
     
@@ -1150,7 +1150,7 @@
     	
     	var postBody = {};
     	postBody.vms = vms;
-    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    	csc.rest.post("api/v5.0.0/install/retry",postBody,function(data){
     		//重安装结束
     		self.isReInstall(false);
     		if(data.message){
@@ -1644,10 +1644,12 @@
         	  orderItem.instanceName = self.deleteProcessVO().name();
         	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
         	  orderItem.resourceType = "VM";
-        	  orderItem.metaData =  "{\"resBaseInfo\": {}}";
+        	  orderItem.metaData =  "{\"resBaseInfo\": {\"vpc\": \""+self.vmVO().vpcName+"\",\"cpu\": \""+self.vmVO().vcpu+"\",\"memory\": \""+self.vmVO().memory+"\",\"storage\": \""+self.vmVO().storage+"\",\"ip\": \""+self.vmVO().ip+"\",\"expireTime\": \""+self.vmVO().expiryDate+"\"}}";
         	  orderItem.resourceUuid = self.deleteProcessVO().uuid();
         	  orderItem.vdcUuid = self.deleteProcessVO().vdcUuid();
+        	  orderItem.vdcName = self.vmVO().vdcName;
         	  orderItem.azUuid = self.deleteProcessVO().azUuid();
+        	  orderItem.azName = self.vmVO().azName;
         	  
         	  var orderItems = [];
         	  orderItems.push(orderItem);
@@ -1656,12 +1658,12 @@
         		  var volumes = volumeData.results;
             	  for(var i=0;i<volumes.length;i++){
             		  var volumeItem = {};
-            		  volumeItem.instanceName = volumes[i].volumeName();
-            		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid();
+            		  volumeItem.instanceName = volumes[i].volumeName;
+            		  volumeItem.serviceInstanceUuid = volumes[i].serviceInstanceUuid;
             		  volumeItem.resourceType = "DISK";
-            		  volumeItem.metaData =  "{\"resBaseInfo\": {}}";
+            		  volumeItem.metaData =  "{\"resBaseInfo\": {\"type\": \"DISK\",\"size\": \""+volumes[i].volumeSize+"\",\"storageName\": \""+volumes[i].storagePoolName+"\"}}";
             		  volumeItem.vdcUuid = volumes[i].vdcUuid;
-            		  volumeItem.azUuid =  volumes[i].azUuid;
+            		   volumeItem.azUuid =  volumes[i].azUuid;
             		  orderItems.push(volumeItem);
             	  }
         	  }
@@ -1704,7 +1706,9 @@
 		  self.adjustProcessVO().targetStorage('');
 		  
 		  self.adjustProcessVO().vdcUuid(self.vmVO().vdcUuid);
+		  self.adjustProcessVO().vdcName(self.vmVO().vdcName);
 		  self.adjustProcessVO().azUuid(self.vmVO().azUuid);
+		  self.adjustProcessVO().busSysName(self.vmVO().busSysName);
       }
   
       this.adjustProcessVO = ko.observable({
@@ -1723,12 +1727,17 @@
     	  targetStorage: ko.observable(),
     	  
     	  vdcUuid: ko.observable(),
-    	  azUuid: ko.observable()
+    	  vdcName: ko.observable(),
+    	  azUuid: ko.observable(),
+    	  busSysName: ko.observable()
       });
       
       //申请
       this.adjustProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  //var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
+    		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
+    		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
     	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.adjustProcessVO().name();
@@ -1751,7 +1760,7 @@
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
     		  if(data.code){
-    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
   		 		self.isAdjustProcess(false);
     		  }
     	  });
@@ -1874,7 +1883,8 @@
       
       //申请 
       this.adjustVolumeProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustVolumeProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustVolumeProcessVO().targetSize()+"\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vmUuid\":\"" + self.adjustVolumeProcessVO().vmUuid() + "\",\"volumeSize\":\""+self.adjustVolumeProcessVO().targetSize()
+    	 	+ "\",\"metaSize\":\""+self.adjustVolumeProcessVO().size()+"\"}}";
     	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.adjustVolumeProcessVO().name();
@@ -1890,13 +1900,14 @@
     	  
     	  var postBody = {};
     	  postBody.resourceType = "DISK";
+    	  postBody.type = "RESOURCE_CHANGE";
     	  postBody.orderItems = orderItems;
     	  postBody.vdcUuid = self.adjustVolumeProcessVO().vdcUuid();
     	  postBody.azUuid = self.adjustVolumeProcessVO().azUuid();
     	  
     	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
     		  if(data.code){
-    			systemMsg.alert('资源变更变更申请成功，订单编号：'+data.code+'！');
+    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
   		 		self.isAdjustVolumeProcess(false);
     		  }
     	  });

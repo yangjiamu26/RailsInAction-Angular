@@ -656,9 +656,9 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
         */
     $scope.checkedOrNot = function (isOrNot) {
         if (isOrNot) {
-            return "url('/sdsomweb/images/storage/btn_fuxuan_select.png') no-repeat left 55%";
+            return "url('/winstore/images/storage/btn_fuxuan_select.png') no-repeat left 55%";
         } else {
-            return "url('/sdsomweb/images/storage/btn_fuxuan_default.png') no-repeat left 55%";
+            return "url('/winstore/images/storage/btn_fuxuan_default.png') no-repeat left 55%";
         }
     };
     /******************************公共函数完********************************************/

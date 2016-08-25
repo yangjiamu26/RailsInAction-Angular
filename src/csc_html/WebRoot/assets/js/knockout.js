@@ -5872,6 +5872,32 @@ ko.constants = {
 			'1': '系统告警',
 			'2': '云主机告警',
 			'3': 'VDC配额告警'
+		},
+		'billCycle': {
+			'DAY': '天',
+			'MONTH': '月',
+			'QUARTER': '季',
+			'YEAR': '年'
+		},
+		'billPriceUnit': {
+			'RMB': '元',
+			'USD': '美元'
+		},
+		'resourceType': {
+			'VM': '云主机',
+			'DISK': '云硬盘',
+			'ROUTER': '路由器',
+			'PUBLICIP': '公网IP',
+			'LOAD_BALANCING': '负载均衡',
+			'SECRET_KEY': 'SSH密钥对',
+			'OBJECT_STORAGE': '对象存储',
+			'VDC': 'VDC',
+			'CPU': 'CPU',
+			'STORAGE': '存储',
+			'VPC': 'VPC',
+			'SECURITY_GROUP': '安全组',
+			'SOFTWARE': '软件',
+			'MEMORY': '内存'
 		}
 }
 ko.bindingHandlers.translate = {
@@ -5908,7 +5934,6 @@ ko.bindingHandlers.check_action = {
 	        		flag = true;
 	        	}
 	        }
-	        flag = true;
 	        if(flag){
 	        	$(element).show();
 	        }else{

@@ -925,6 +925,7 @@
         	
 
        	  self.step(1);
+      	  this.vmOsVersionList = ko.observableArray();
        	  csc.rest.get('api/v5.0.0/service/getServiceInfo/'+serviceUuid, function(data){
        		  loadServiceTree();//加载服务目录树
        		  
@@ -1083,26 +1084,26 @@
                      		  azUuid: vmAz,
                      		  osTypes: vmOsType
                      	  });
-                     	  var vmOsVersion = data.serviceVm.osVersion;
-                     	  var vmOsVersionList = new Array();
+                      var vmOsVersion = data.serviceVm.osVersion;
+
    	                  if(vmOsVersion.indexOf(",") != -1){
-   	                	  vmOsVersionList(vmOsVersion.split(","));
+   	                	  self.vmOsVersionList(vmOsVersion.split(","));
    	          		  }else{
-   	          			  vmOsVersionList.push(vmOsVersion);
+   	          			  self.vmOsVersionList.push(vmOsVersion);
    	          		  }
    	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
    	                  if(self.osType_chosen().length > 0){
    	                	  self.osType_chosen.removeAll();
    	                  }
-                     	  if(self.osVersionList.pagedRows().length > 0 && vmOsVersionList.length > 0){
-                     		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
-                     			  for(var n = 0; n < vmOsVersionList.length; n++){
-                     				  if(self.osVersionList.pagedRows()[m].imageUuid == vmOsVersionList[n]){
-                     					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
-                     				  }
-                     			  }
-                     		  }
-                     	  }
+                   	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
+                   		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
+                   			  for(var n = 0; n < self.vmOsVersionList().length; n++){
+                   				  if(self.osVersionList.pagedRows()[m].imageUuid == self.vmOsVersionList()[n]){
+                   					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
+                   				  }
+                   			  }
+                   		  }
+                   	  }
            		  }else if(data.productId == "PUBLICIP"){//公网IP
            			  //公网IP列表赋值
            			  self.ip_chosen(data.serviceIpRef);

@@ -1,3 +1,14 @@
+<style>
+.capslock{
+	position: absolute;
+	z-index: 10;
+	right: 0;
+	background: #fff;
+	padding: 5px 10px;
+	border: 1px orange solid;
+	top: 34px;
+}
+</style>
 <div class="bg-light lter b-b wrapper-sm">
   <ol class="breadcrumb">
     <li>当前位置：</li>
@@ -95,7 +106,7 @@
 				</div>
 			</div>
                 <!-- 操作云主机  输入用户密码modal -->
-                <div role="dialog" aria-hidden="true" class="modal fade " data-bind="modal: { show: verifyToPass }">
+                <div role="dialog" aria-hidden="true" class="modal fade " id="verifyToPassModal" data-bind="modal: { show: verifyToPass }">
                     <div class='modal-dialog modal-md' role='document'>
                       <div class='modal-content'>
                         <div class='modal-header'>
@@ -104,9 +115,13 @@
                         <div class='modal-body  form-horizontal'>
                           <div class="form-group">
                             <label class="col-xs-3 control-label">请输入密码：</label>
-                            <div class="col-xs-9">
+                            <div class="col-xs-9 input-group">
                               <input type="hidden" class="form-control" id="operation_state_">
-                              <input type="password" class="form-control"  placeholder="" id="password_">
+                              <!-- 
+                              <input type="password" class="form-control"  placeholder="" id="password_" autocomplete="off">
+                               -->
+                              <input name="password" placeholder="请输入密码" class="form-control" type="password" id="password_">
+                            
                               <div>您需要输入当前登录用户的密码才能执行操作</div>
                             </div>
                           </div>
@@ -655,6 +670,7 @@
                          return;
                      }
                      self.operationParam().password=password_;
+                     
                      csc.rest.put("api/v5.0.0/uap/checkUserPassWord",self.operationParam.toJSON(),function(data){
                          var result = data.result;
                          if(result){
@@ -702,6 +718,7 @@
                      self.verifyToPass(true)
                      $("#operation_state_").val("START");
                      $("#password_").val("");
+                     $("#password_").capsLockTip();
                   }
                 /******************开机操作*****************************/
 
@@ -710,6 +727,7 @@
                      self.verifyToPass(true);
                      $("#operation_state_").val("STOP");
                      $("#password_").val("");
+                     $("#password_").capsLockTip();
                  }
                 /******************关机操作*****************************/
 
@@ -718,6 +736,7 @@
                      self.verifyToPass(true);
                      $("#operation_state_").val("RESTART");
                      $("#password_").val("");
+                     $("#password_").capsLockTip();
                   }
                 /******************重启操作*****************************/
         }
@@ -874,4 +893,55 @@
 
     });
     
+    /*--------------------密码输入框增加大写提示 start--------------------*/
+    $.fn.extend({
+        capsLockTip: function() {
+            return this.each(function() {
+                window.capsLockActived = false;
+                var $element = $(this);
+                var showTips = function(isShow,$element){
+            		if(isShow) {
+            		    hideTips();
+            		    $element.after('<div class="capslock">大写锁定已打开</div>');
+            		}else 
+            			hideTips() 
+            	}; 
+            	var hideTips = function(){ 
+            	  $(".capslock").remove(); 
+            	} 
+            	$element.bind("keypress", function (_event) { 
+        			var e = _event || window.event; 
+        			var kc = e.keyCode || e.which; 
+        			var isShift = e.shiftKey || (kc == 16) || false; 
+        			capsLockActived = false; 
+        			if ((kc >= 65 && kc <= 90 && !isShift) || (kc >= 97 && kc <= 122 && isShift)){ 
+        				capsLockActived = true;
+        			}
+        			showTips(capsLockActived,$element); 
+        		}); 
+
+        		$element.bind("keydown", function (_event) { 
+        			var e = _event || window.event; 
+        			var kc = e.keyCode || e.which; 
+        			if (kc == 20 && null != capsLockActived){ 
+        				capsLockActived = !capsLockActived; 
+        				showTips(capsLockActived,$element); 
+        			} 
+        		}); 
+
+        		$element.bind("focus", function (_event) { 
+        			if (null != capsLockActived) 
+        				showTips(capsLockActived,$element); 
+        		}); 
+        		
+        		$element.bind("blur", function (_event) { 
+        		    if (null != capsLockActived) 
+        		        showTips(false,$element); 
+        		});
+            });
+        }
+    });
+    
+	/*--------------------密码输入框增加大写提示 end--------------------*/
+
 </script>
