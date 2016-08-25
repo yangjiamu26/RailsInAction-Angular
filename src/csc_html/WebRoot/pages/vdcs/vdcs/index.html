@@ -16,9 +16,9 @@
           <div class="left-title text-md">VDC列表</div>
           <p></p>
           <div class="left-title text-md">
-            <button class="btn btn-info btn-sm" data-bind="click:createVdc">创建</button>
-            <button class="btn btn-info btn-sm" data-bind="click:deleteVdc,visible:selectVdcVO().type != 'DEFAULT'" >删除</button>
-            <button class="btn btn-info btn-sm" data-bind="click:editVdcGlobalQuota">总配额</button>
+            <button class="btn btn-info btn-sm" data-bind="click:createVdc,check_action:'roleCreat'">创建</button>
+            <button class="btn btn-info btn-sm" data-bind="click:deleteVdc,enable:selectVdcVO().type != 'DEFAULT',check_action:'roleCreat'" >删除</button>
+            <button class="btn btn-info btn-sm" data-bind="click:editVdcGlobalQuota,check_action:'roleCreat'">总配额</button>
           </div>
         </div>
         <div class="row-row">
@@ -379,7 +379,7 @@
                     <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                       <div class="panel-body">
                         <div class="form-inline">
-                          <button class="btn btn-default btn-sm" data-bind="click:modifyVdcQuota">分配配额</button>
+                          <button class="btn btn-default btn-sm" data-bind="click:modifyVdcQuota,check_action:'roleCreat'">分配配额</button>
                         </div>
                         <div class="">
                           <table class="table table-striped">
@@ -567,7 +567,7 @@
                       <div class="panel-body">
                         <div class="row m-b-sm">
                           <div class="col-xs-2">
-                            <a class="btn btn-sm btn-info" data-bind="click:addVdcAZ">添加可用分区</a>
+                            <a class="btn btn-sm btn-info" data-bind="click:addVdcAZ,check_action:'roleCreat'">添加可用分区</a>
                           </div>
                         </div>        
                         <div class="table-responsive no-height">
@@ -577,7 +577,7 @@
                                 <th>云管理平台</th>
                                 <th>虚拟化类型</th>
                                 <th>可用分区</th>
-                                <th>操作</th>
+                                <th data-bind="check_action:'roleCreat'">操作</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -591,7 +591,7 @@
 									<td data-bind="text: $row.cloudPlatform">平台名称</td>
 	                                <td data-bind="text: $row.virtualHypervisor">类型名称</td>
 	                                <td data-bind="text: $row.name"></td>
-	                                <td><a data-bind="click:$root.removeAzRul">移除</a></td>
+	                                <td  data-bind="check_action:'roleCreat'"><a data-bind="click:$root.removeAzRul,check_action:'roleCreat'">移除</a></td>
 								</tr>	
 							    <!-- /ko -->	
                             </tbody>
@@ -758,7 +758,7 @@
                       <div class="panel-body">
                         <div class="row m-b-sm">
                           <div class="col-xs-3">
-                            <a class="btn btn-sm btn-info" data-bind="click:addVdcNetwork">添加网络</a>
+                            <a class="btn btn-sm btn-info" data-bind="click:addVdcNetwork,check_action:'roleCreat'">添加网络</a>
                           </div>
                         </div>        
                         <div class="table-responsive no-height">
@@ -768,7 +768,7 @@
                                 <th>网络名称/IP池</th>
                                 <th>云管理平台</th>
                                 <th>可用分区</th>
-                                <th>操作</th>
+                                <th  data-bind="check_action:'roleCreat'">操作</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -782,7 +782,7 @@
 	                                <td data-bind="text: $row.netWorkName"></td>
 	                                <td data-bind="text: $row.cloudPlatform"></td>
 	                                <td data-bind="text: $row.virtualHypervisor"></td>
-	                                <td><a data-bind="click:$root.removeAzNetworkRul">移除</a></td>
+	                                <td  data-bind="check_action:'roleCreat'" ><a data-bind="click:$root.removeAzNetworkRul,check_action:'roleCreat'">移除</a></td>
 								</tr>	
 							    <!-- /ko -->
                             </tbody>
@@ -979,12 +979,12 @@
 					   </footer>
                         
                         
-                        
+                        <!-- 修改用户窗口 -->
                         <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: editUserModel }" >   
 						   <div class='modal-dialog' role='document'>
 						    <div class='modal-content'>
 						      <div class='modal-header'>
-						        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改角色</h3>
+						        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>修改用户</h3>
 						      </div>
 						      <div class='modal-body'>
 						      	<div class='row'>
@@ -1161,7 +1161,7 @@
    	  };
       //获取用户组织树
 	  function loadOrgTree(){
-		  csc.rest.get('api/v5.0.0/uap/organizations',function(data){  
+		  csc.rest.get('api/v5.0.0/uap/organizations',function(data){
 	          $.fn.zTree.init($("#createVDCTree"), setting, data);
 	      });
 	  }
@@ -1188,19 +1188,19 @@
 	    		
 	    		var intForVdcQuota = {
             			maxLength: 10,
-            			number: {  
+            			number: {
                             params: true,  
                             message: "必须是数字",
                         },
-                        min: { 
+                        min: {
                         	params: -1,
                         	message: "请输入大于等于-1的数字" 
                         },
-                        max: { 
+                        max: {
                         	params: 2147483647,
                         	message: "输入有误，最大值为：2147483647" 
                         },
-                        pattern: {  
+                        pattern: {
 	                        params: /^-?\d+$/g,
 	                        message: "必须是整数"
 	                    }
@@ -1437,7 +1437,7 @@
 								if(!azVo.networks){
 									azVo.networks = [];
 								}
-								azVo.networks.push({"uuid":networkUuid,"networkName":networkName});
+								azVo.networks.push({"uuid":networkUuid,"name":networkName});
 								notFound = false;
 								break;
 							}
@@ -1647,7 +1647,7 @@
 	    		self.vdcVO = ko.validatedObservable({
     			     "name":ko.observable("").extend({required: true,maxLength:32,cscNameRule:true}),
 					 "desc":ko.observable().extend({maxLength:255}),
-					  "uuid":null
+					 "uuid":null
 				});
 	    		
 	    		
@@ -1690,7 +1690,6 @@
 	 	    	        	   var uuid = param.uuid;
 	 	    	        	   param.uuid = null;
 	 		    			   $.VDC.modifyVDC(uuid,param,function(data){
-	 		    				   //console.log(data);
 	 		    				   var selectVdc = self.selectVdcVO();
 	 		    				   selectVdc.name = data.name;
 	 		    				   selectVdc.desc = data.desc;
@@ -1928,7 +1927,7 @@
 	    	    		vdcUuid : self.selectVdcVO().uuid,
 	    	    		userType : "0",
 	    	    		size : "0"
-	    	    	})
+	    	    	});
 	    	    }	    	    
 	    	    
 	    	    //右边的已选择用户
@@ -2017,7 +2016,9 @@
 	    	    	$.VDC.modifyVdcUserByOne(uuid,this.userRolesVO().uuid(),this.userRolesVO.toJSON(),function(data){
 	    	    		self.editUserModel(false);
 	    	    		self.vdcRelUsersListTable.refreshData();
-	    	    		alert("修改成功！");
+	    	    		if (data) {
+	    	    			alert("修改成功！");
+	    	    		}
 	    	    	})
 	    	    }
 	    	    
@@ -2026,7 +2027,9 @@
 	    	    	var uuid = self.selectVdcVO().uuid;
 	    	    	$.VDC.deleteVdcUsers(uuid,obj.uuid,function(data){
 	    	    		self.vdcRelUsersListTable.refreshData();
-	    	    		alert("删除成功！");
+	    	    		if (data) {
+	    	    			alert("删除成功！");
+	    	    		}
 	    	    	})
 	    	    }
 	      }

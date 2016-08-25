@@ -189,7 +189,7 @@
               </div>
             </div>
             <div class='modal-footer'>
-              <input type="submit" name="commit" value="确定" class="btn btn-default btn-primary" data-bind="click: save"/>
+              <input type="submit" name="commit" value="确定" class="btn btn-default btn-primary" data-bind="click: save,attr:{'disabled': saveDisabled}"/>
               <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button></div>
           </div>
         </div>
@@ -350,6 +350,7 @@
 	      this.typeDisable = ko.observable(false);
 	      this.vdcDisable = ko.observable(false);
 	      this.showProducts = ko.observable(false);
+	      this.saveDisabled = ko.observable(false);
 	      this.productVO = ko.validatedObservable({
 	    	  sys: ko.observable(""),
 	    	  vm: ko.observable(""),
@@ -418,10 +419,12 @@
 	      }
 	      
 	      this.loadProducts = function(val){
-	    	  if(val != ''){	    		  
+	    	  self.saveDisabled(false);
+	    	  if(val != '' && val != 'CUSTOM'){	    		  
 		    	  self.showProducts(true);
 	    	  }else{
 	    		  self.showProducts(false);
+	    		  return;
 	    	  }
 		  	  self.hideAllProducts();
 		  	  $("#productData label input").attr("checked",false);
@@ -446,6 +449,7 @@
 		  			}
 		  			if($("#productData label[style='display: none;']").length == 7){
 		  				self.productVO().sys(true);
+		  				self.saveDisabled(true);
 		  			}
 		  		 })
 		  	  }
@@ -507,7 +511,7 @@
 	        		types.push($(this).val());
 	        	});
 	        	if(self.modelVO.toJSON().processType != 'VDC_APPLY' && self.modelVO.toJSON().processType != 'VDC_CHANGE' 
-	        			&& types == ""){
+	        		&& self.modelVO.toJSON().processType != 'CUSTOM' && types == ""){
 	        		alert("请选择产品类型！");
 	        		return;
 	        	}
@@ -584,6 +588,7 @@
 		    	csc.rest.post('api/v5.0.0/workflows/deployments',object,function(data){
 	        		alert('发布成功！');
 		          	self.table.refreshData();
+		          	view2.table.refreshData();
     		    });
 		    });
 	      }
@@ -710,8 +715,9 @@
 	      this.loadProcessTypes();
 	
 	    }
+	    var view2 = new ViewModel_Workflow();
 	
-	    ko.applyBindings(new ViewModel_Workflow(), $('#page-content .tab-pane')[1]); 
+	    ko.applyBindings(view2, $('#page-content .tab-pane')[1]); 
 	
 			$("#taskList a").bind("click",function(){
 				var index = $(this).parents('tr').index();

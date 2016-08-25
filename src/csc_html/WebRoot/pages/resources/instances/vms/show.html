@@ -61,7 +61,7 @@
                 </div>
                 <div class="col-xs-1 font-bold">操作系统：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().osVersion"></div>
-                <div class="col-xs-1 font-bold">所属物理机：</div>
+                <div class="col-xs-1 font-bold">所属物理主机：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().ownerHostName"></div>
               </div>
               <div class="row m-b">
@@ -155,7 +155,7 @@
                   <thead>
                     <tr>
                       <th>云硬盘名称</th>
-                      <th>云硬盘类型</th>
+                      <!-- <th>云硬盘类型</th> -->
                       <th>虚拟化类型</th>
                       <th>存储池</th>
                       <th>大小（GB）</th>
@@ -173,7 +173,7 @@
   	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
   	                <tr>
   	                    <td data-bind="text: volumeName"></td>
-  	                    <td ></td>
+  	                    <!-- <td ></td> -->
   	                    <td ></td>
   	                    <td ></td>
   	                    <td data-bind="text: volumeSize"></td>
@@ -258,9 +258,9 @@
 	                      <span class="label label-danger" data-bind="if: status == 2">安装失败</span>
                       </td>
                       <td>
-                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status != 1"><a data-bind="click: $root.doReInstall">重安装</a> | </span>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status == 2"><a data-bind="click: $root.doReInstall">重安装</a> | </span>
                       	<a data-bind="click: $root.doInstallLog">安装日志</a>
-                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE'"> | <a data-bind="click: $root.update">升级</a></span>
+                      	<span data-bind="if: $root.vmVO().state == 'ACTIVE' && status == 1"> | <a data-bind="click: $root.update">升级</a></span>
                       </td>
                     </tr>
                     <!-- /ko -->
@@ -1150,7 +1150,7 @@
     	
     	var postBody = {};
     	postBody.vms = vms;
-    	csc.rest.post("api/v5.0.0/install",postBody,function(data){
+    	csc.rest.post("api/v5.0.0/install/retry",postBody,function(data){
     		//重安装结束
     		self.isReInstall(false);
     		if(data.message){
@@ -1706,7 +1706,9 @@
 		  self.adjustProcessVO().targetStorage('');
 		  
 		  self.adjustProcessVO().vdcUuid(self.vmVO().vdcUuid);
+		  self.adjustProcessVO().vdcName(self.vmVO().vdcName);
 		  self.adjustProcessVO().azUuid(self.vmVO().azUuid);
+		  self.adjustProcessVO().busSysName(self.vmVO().busSysName);
       }
   
       this.adjustProcessVO = ko.observable({
@@ -1725,12 +1727,17 @@
     	  targetStorage: ko.observable(),
     	  
     	  vdcUuid: ko.observable(),
-    	  azUuid: ko.observable()
+    	  vdcName: ko.observable(),
+    	  azUuid: ko.observable(),
+    	  busSysName: ko.observable()
       });
       
       //申请
       this.adjustProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  //var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
+    		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
+    		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
     	  
     	  var orderItem = {};
     	  orderItem.instanceName = self.adjustProcessVO().name();

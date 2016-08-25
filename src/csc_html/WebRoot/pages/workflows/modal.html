@@ -127,63 +127,67 @@
 			get_task_comment(args.taskId);
 			
 			//加载订单信息
-			csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
-	    		var order = data;
-	    		var flowType = order.type;
-	    		var productType = order.resourceType;
-	    		var url = '';
-	    		if(flowType=='VDC_APPLY'){//VDC申请
-	    			if(state=='UNSUBMIT' || args.type == 'order' || formKey=='approve' || formKey=='resure'){
-	    				url = "pages/workflows/vdc_apply_single.html";
-	    			}else if(formKey=='construct'){
-	    				url = "pages/workflows/vdc_apply_construct.html";
-	    			}
-	    		}else if(flowType=='VDC_CHANGE'){//VDC变更
-	    			if(state=='UNSUBMIT'){
-	    				url = "pages/workflows/vdc_change_unsubmit.html";
-	    			}else if(formKey=='approve' || formKey=='resure'){
-	    				url = "pages/workflows/vdc_change_approve.html";
-	    			}else if(formKey=='construct'){
-	    				url = "pages/workflows/vdc_change_construct.html";
-	    			}
-	    		}else if(flowType=='RESOURCE_APPLY'){
-	    			if(state=='UNSUBMIT'){
-	    				url = setUnsubmitUrl(flowType,productType,isBatch);
-	    			}else if(formKey=='approve'){
-		    			url = setApproveUrl(flowType,productType,isBatch);
-		    		}else if(formKey=='construct'){
-		    			url = setConstructUrl(flowType,productType,isBatch);
-		    		}else if(formKey=='resure'){
-		    			url = setResureUrl(flowType,productType,isBatch);
+			if(args.processType == 'CUSTOM'){
+				$("#orderContent").load("pages/workflows/knockout.form.html");
+			}else{
+				csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+		    		var order = data;
+		    		var flowType = order.type;
+		    		var productType = order.resourceType;
+		    		var url = '';
+		    		if(flowType=='VDC_APPLY'){//VDC申请
+		    			if(state=='UNSUBMIT' || args.type == 'order' || formKey=='approve' || formKey=='resure'){
+		    				url = "pages/workflows/vdc_apply_single.html";
+		    			}else if(formKey=='construct'){
+		    				url = "pages/workflows/vdc_apply_construct.html";
+		    			}
+		    		}else if(flowType=='VDC_CHANGE'){//VDC变更
+		    			if(state=='UNSUBMIT'){
+		    				url = "pages/workflows/vdc_change_unsubmit.html";
+		    			}else if(formKey=='approve' || formKey=='resure'){
+		    				url = "pages/workflows/vdc_change_approve.html";
+		    			}else if(formKey=='construct'){
+		    				url = "pages/workflows/vdc_change_construct.html";
+		    			}
+		    		}else if(flowType=='RESOURCE_APPLY'){
+		    			if(state=='UNSUBMIT'){
+		    				url = setUnsubmitUrl(flowType,productType,isBatch);
+		    			}else if(formKey=='approve'){
+			    			url = setApproveUrl(flowType,productType,isBatch);
+			    		}else if(formKey=='construct'){
+			    			url = setConstructUrl(flowType,productType,isBatch);
+			    		}else if(formKey=='resure'){
+			    			url = setResureUrl(flowType,productType,isBatch);
+			    		}
+		    		}else if(flowType=='RESOURCE_CHANGE'){
+		    			if(state=='UNSUBMIT' || formKey=='approve' || formKey=='construct'){
+		    				if(productType == 'VM'){	    					
+				    			url = "pages/workflows/vm_resize_construct.html";
+		    				}else if(productType == 'DISK'){
+		    					url = "pages/workflows/disk_resize_construct.html";
+		    				}
+		    			}else if(formKey=='resure'){
+		    				if(productType == 'VM'){	    					
+		    					url = "pages/workflows/vm_resize_resure.html";
+		    				}else if(productType == 'DISK'){
+		    					url = "pages/workflows/disk_resize_resure.html";
+		    				}
+		    			}
+		    		}else if(flowType=='RESOURCE_DELETE'||flowType=='RESOURCE_RECYCLE'){
+		    		    if(productType == 'VM'){
+		    		        url = "pages/workflows/vm_recovery_delete.html";
+		    		    }else{
+		    		        url = "pages/workflows/resource_recovery_delete.html";
+		    		    }
+		    		}else if(flowType=='VALIDTIME_CHANGE'){
+		    			url = "pages/workflows/validTime_change.html";
 		    		}
-	    		}else if(flowType=='RESOURCE_CHANGE'){
-	    			if(state=='UNSUBMIT' || formKey=='approve' || formKey=='construct'){
-	    				if(productType == 'VM'){	    					
-			    			url = "pages/workflows/vm_resize_construct.html";
-	    				}else if(productType == 'DISK'){
-	    					url = "pages/workflows/disk_resize_construct.html";
-	    				}
-	    			}else if(formKey=='resure'){
-	    				if(productType == 'VM'){	    					
-	    					url = "pages/workflows/vm_resize_resure.html";
-	    				}else if(productType == 'DISK'){
-	    					url = "pages/workflows/disk_resize_resure.html";
-	    				}
-	    			}
-	    		}else if(flowType=='RESOURCE_DELETE'||flowType=='RESOURCE_RECYCLE'){
-	    		    if(productType == 'VM'){
-	    		        url = "pages/workflows/vm_recovery_delete.html";
-	    		    }else{
-	    		        url = "pages/workflows/resource_recovery_delete.html";
-	    		    }
-	    		}else if(flowType=='VALIDTIME_CHANGE'){
-	    			url = "pages/workflows/validTime_change.html";
-	    		}
-	    		
-	    		if(url != ''){	    			
-					$("#orderContent").load(url);
-	    		}
-	    	},function(){alert('获取订单详情失败！')});
+		    		
+		    		if(url != ''){	    			
+						$("#orderContent").load(url);
+		    		}
+		    	},function(){alert('获取订单详情失败！')});
+			}
 			
 	    },function(){alert('获取任务失败！')});
     }

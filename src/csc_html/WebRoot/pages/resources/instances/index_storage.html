@@ -208,7 +208,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label">扩展后大小(GB)：</label>
                         <div class="col-sm-8">
-                            <input type="email" class="form-control" placeholder="" data-bind="value:newSize"> 可调整范围为：<span data-bind="text:volumeSize"></span>GB至2TB
+                            <input type="email" class="form-control" placeholder="" data-bind="value:newSize"> 可调整范围为：<span data-bind="text:volumeSize()+1"></span>GB至2TB
                         </div>
                     </div>
                 </div>
@@ -600,8 +600,16 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     var targetVms = [];
                     for(var i=0;i<vms.length;i++){
                     	if(csc.util.isNull(vms[i].serviceInstanceUuid)){
-                    		targetVms.push(vms[i]);
+                    		continue;
                     	}
+                    	if(vms[i].state == 'SUSPENDED'){
+                    		continue;
+                    	}
+                    	if(!vms[i].isValidate){
+                    		continue;
+                    	}
+                    	targetVms.push(vms[i]);
+                    	
                     }
                     self.vms(targetVms);
                     //vms加载完成后，触发vms下拉变更事件，加载有效时间 

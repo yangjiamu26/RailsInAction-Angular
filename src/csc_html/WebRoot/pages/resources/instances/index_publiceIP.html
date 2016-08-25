@@ -278,6 +278,9 @@
                 <option value="1">1</option>
               </select>
             </div>
+            <div class="col-xs-1">
+                <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
           </div>
 
         </div>
@@ -309,6 +312,9 @@
               <select class="form-control" data-bind="optionsCaption: '请选择', options:$root.vipList,optionsText:'vmName', value: vip">
                 <option value="1">1</option>
               </select>
+            </div>
+            <div class="col-xs-1">
+               <span class="text-danger inline m-l-n m-t-sm">*</span>
             </div>
           </div>
 
@@ -671,7 +677,7 @@
       this.isShowBindingPage = ko.observable(false);
       this.bindingVo = ko.validatedObservable({
     	  uuid: 	ko.observable(),
-    	  vm: 		ko.observable(),
+    	  vm: 		ko.observable().extend({required: true}),
     	  ip:		ko.observable()
       });
       this.vmList = ko.observableArray();
@@ -679,7 +685,7 @@
            self.isShowBindingPage(true);
            self.disableBindingBtn(false);
            //对当前公网IP对象进行绑定
-           self.bindingVo({
+           self.bindingVo.fromJSON({
         	   uuid: vo.uuid,
         	   vm:	"",
         	   ip:	vo.ip
@@ -701,22 +707,26 @@
     	  if(self.disableBindingBtn()){
     		  return;
     	  }
-    	  self.disableBindingBtn(true);
-    	  var uuid = self.bindingVo().uuid;
-    	  var portId = self.bindingVo().vm.portId;
-    	  var vmUuid = self.bindingVo().vm.vmUuid;
-    	  var vmName = self.bindingVo().vm.vmName;
+    	  ko.validation.group(self.bindingVo).showAllMessages();
+	      if(self.bindingVo.isValid()){
+	    	  self.disableBindingBtn(true);
+	    	  var uuid = self.bindingVo().uuid();
+	    	  var portId = self.bindingVo().vm().portId;
+	    	  var vmUuid = self.bindingVo().vm().vmUuid;
+	    	  var vmName = self.bindingVo().vm().vmName;
+	    	  
+	    	  var p = {
+	    			"portId":portId,
+	    			"vmUuid":vmUuid,
+	    			"vmName":vmName
+	    	  };
+	    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
+					self.publicIpTable.refreshData();
+					self.isShowBindingPage(false);
+					alert("绑定云主机[" + vmName + "]成功！")
+	   		});
+	      }
     	  
-    	  var p = {
-    			"portId":portId,
-    			"vmUuid":vmUuid,
-    			"vmName":vmName
-    	  };
-    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
-				self.publicIpTable.refreshData();
-				self.isShowBindingPage(false);
-				alert("绑定云主机[" + vmName + "]成功！")
-   		});
       };
       
       //绑定负载均衡器
@@ -724,7 +734,7 @@
       this.disableBindingLbBtn = ko.observable(false);
       this.bindingLbVo = ko.validatedObservable({
     	  uuid: 	ko.observable(),
-    	  vip: 		ko.observable(),
+    	  vip: 		ko.observable().extend({required: true}),
     	  ip:		ko.observable()
       });
       this.vipList = ko.observableArray();
@@ -732,7 +742,7 @@
            self.isShowBindingLbPage(true);
            self.disableBindingLbBtn(false);
            //对当前公网IP对象进行绑定
-           self.bindingLbVo({
+           self.bindingLbVo.fromJSON({
         	   uuid: vo.uuid,
         	   vip:	"",
         	   ip:	vo.ip
@@ -754,22 +764,27 @@
     	  if(self.disableBindingLbBtn()){
     		  return;
     	  }
-    	  self.disableBindingLbBtn(true);
-    	  var uuid = self.bindingLbVo().uuid;
-    	  var portId = self.bindingLbVo().vip.portId;
-    	  var vmUuid = self.bindingLbVo().vip.vmUuid; //负载均衡器VIP的uuid
-    	  var vmName = self.bindingLbVo().vip.vmName;  //负载均衡器VIP的名称
+    	  ko.validation.group(self.bindingLbVo).showAllMessages();
+	      if(self.bindingLbVo.isValid()){
+	    	  self.disableBindingLbBtn(true);
+	    	  var uuid = self.bindingLbVo().uuid();
+	    	  var portId = self.bindingLbVo().vip().portId;
+	    	  var vmUuid = self.bindingLbVo().vip().vmUuid; //负载均衡器VIP的uuid
+	    	  var vmName = self.bindingLbVo().vip().vmName;  //负载均衡器VIP的名称
+	    	  
+	    	  var p = {
+	    			"portId":portId,
+	    			"vmUuid":vmUuid,
+	    			"vmName":vmName
+	    	  };
+	    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
+					self.publicIpTable.refreshData();
+					self.isShowBindingLbPage(false);
+					alert("绑定负载均衡器[" + vmName + "]成功！")
+	   		  });
+	    	  
+	      }
     	  
-    	  var p = {
-    			"portId":portId,
-    			"vmUuid":vmUuid,
-    			"vmName":vmName
-    	  };
-    	  $.PUBLIC_IP.bindPublicIp(uuid, p, function(data){
-				self.publicIpTable.refreshData();
-				self.isShowBindingLbPage(false);
-				alert("绑定负载均衡器[" + vmName + "]成功！")
-   		});
       };
       
       

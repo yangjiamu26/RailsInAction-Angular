@@ -387,6 +387,9 @@
 							<tr data-bind="visible: showNoData">
 								<td colspan=11 class="aligncenter">暂无数据</td>
 							</tr>
+							<tr data-bind="visible: showLoading">
+								<td colspan=11 class="aligncenter">正在加载数据...</td>
+							</tr>
 							<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td>
@@ -562,7 +565,6 @@
 			      			
 			      			$.each(self.fileTable(), function(i, val) {
 			      				if (val.name == file.name) {
-			      				console.log(val.name);
 			      					systemMsg.alert('已存在同名文件:' + val.name);
 			      					self.uploader.removeFile(file);
 			      					flag = false;
@@ -649,7 +651,6 @@
 
 					/** 下载脚本文件 **/
 					this.downloadFile = function(object, event) {
-						
 						var href = window.location.href;
 						
 						href = href.substring(0, href.indexOf('index.html'));
@@ -717,9 +718,23 @@
 					this.removeFile = function(object, event) {
 						if (object.path() && !object.Id) {
 							$.SOFT_SCRIPT.deleteScriptFile({filePathStr: object.path()+object.name}, function(data) {
+								
+								$.each(self.uploader.getFiles(), function(i, val) {
+									if (object.name == val.name) {
+										self.uploader.removeFile(val);
+									}
+								});
+								
 								self.fileTable.remove(object);
 							});
 						} else {
+							
+							$.each(self.uploader.getFiles(), function(i, val) {
+								if (object.name == val.name) {
+									self.uploader.removeFile(val);
+								}
+							});
+							
 							self.fileTable.remove(object);
 							
 							if (object.progress()) {
@@ -815,7 +830,8 @@
 					/** 查询软件参数 **/
 					this.searchSoftwareParams = ko.observable({
 						softTypeName: '',
-						softwareNm: ''
+						softwareNm: '',
+						withoutSoftwareUuids: ''
 					});
 					
 					/** 加载关联软件数据 **/
@@ -831,7 +847,6 @@
 					
 					/** 选择软件弹窗 **/
 					this.openBindSoftware = function() {
-						
 						if (!self.currentVO().softTypeName()) {
 							systemMsg.alert('请先选择脚本类型');
 							return;
@@ -839,7 +854,16 @@
 						
 						self.searchSoftwareParams().softTypeName = self.currentVO().softTypeName();
 						
-						self.chooseSoftwareTable.params(this.searchSoftwareParams());
+						var withoutSoftwareUuids = '';
+						
+						$.each(self.softwareTable(), function(i, val) {
+							withoutSoftwareUuids += (val.uuid + ',');
+						});
+						
+						self.searchSoftwareParams().withoutSoftwareUuids = 
+							withoutSoftwareUuids.substring(0, withoutSoftwareUuids.length-1);
+						
+						self.chooseSoftwareTable.params(self.searchSoftwareParams());
 						
 						self.isBindSoft(true);
 					};
@@ -867,7 +891,16 @@
 					
 					/** 查询软件 **/
 					this.searchSoftware = function() {
-						this.chooseSoftwareTable.params(this.searchSoftwareParams());
+						var withoutSoftwareUuids = '';
+						
+						$.each(self.softwareTable(), function(i, val) {
+							withoutSoftwareUuids += (val.uuid + ',');
+						});
+						
+						self.searchSoftwareParams().withoutSoftwareUuids = 
+							withoutSoftwareUuids.substring(0, withoutSoftwareUuids.length-1);
+						
+						self.chooseSoftwareTable.params(self.searchSoftwareParams());
 					};
 					
 					// 脚本类型下拉选择
