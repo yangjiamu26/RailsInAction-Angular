@@ -207,3 +207,14 @@ urlConfig.put("checkShowflagAndClients", "api/v1/sds/cephfS/checkShowflagAndClie
 urlConfig.put("queryCNwarePool", "api/v1/cnware/pool/query");
 //查询lun
 urlConfig.put("queryCNwareLun", "api/v1/cnware/lun/list");
+
+//# free server
+//url(r'^sds/freeserver/list$', sdsom.api.views.v1.FreeServerViewSet.as_view({'post': 'get_all_freeservers'}), name='get_all_freeservers'),
+//url(r'^sds/freeserver/add$', sdsom.api.views.v1.FreeServerViewSet.as_view({'post': 'freeserver_add'}), name='freeserver_add'),
+//url(r'^sds/freeserver/delete$', sdsom.api.views.v1.FreeServerViewSet.as_view({'post': 'freeserver_delete'}), name='freeserver_delete'),
+
+// 获取自由服务器
+urlConfig.put("queryFreeServer", "api/v1/sds/freeserver/list");
+urlConfig.put("addFreeServer", "api/v1/sds/freeserver/add");
+urlConfig.put("deleteFreeServer", "api/v1/sds/freeserver/delete");
+

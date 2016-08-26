@@ -1,7 +1,13 @@
   <div class="row wrapper">
       <div class="col-xs-1">
         <button class="btn btn-sm btn-info" data-bind="click: addvm,check_action:'cloudServerCreate'">创建</button>
-      </div>            
+      </div>  
+       <div class="col-xs-2">
+        <div class="input-group">
+          <span class="input-group-addon">所属VDC</span>
+          <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
+        </div>      
+      </div>             
       <div class="col-xs-3">
         <div class="input-group">
           <span class="input-group-addon">所属可用分区</span>
@@ -19,12 +25,6 @@
           </select>
         </div>      
       </div>        
-      <div class="col-xs-2">
-        <div class="input-group">
-          <span class="input-group-addon">所属VDC</span>
-          <select class="form-control input-sm" data-bind="value: searchParam().vdcUuid, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vdcs}"></select>
-        </div>      
-      </div>       
       <div class="col-xs-2">
         <div class="input-group">
           <span class="input-group-addon">名称</span>
@@ -49,12 +49,12 @@
             <th>所属可用分区</th>
             <th>所属VPC</th>
             <th>服务状态</th>
-            <th>公网IP</th>
+            <!-- <th>公网IP</th> -->
             <th>CPU（个）</th>
             <th>内存（MB）</th>
             <th>存储（GB）</th>                                  
             <th>创建人</th>
-            <th>创建时间</th>
+            <!-- <th>创建时间</th> -->
             <th>操作</th>
           </thead>
           <tbody>
@@ -89,12 +89,12 @@
                 	<span class="label label-success" data-bind="if: isValidate == true">正常</span>
 	                <span class="label label-danger" data-bind="if: isValidate == false">已过期</span>
                 </td>
-                <td data-bind="text: publicIp"></td>
+               <!--  <td data-bind="text: publicIp"></td> -->
                 <td data-bind="text: vcpu"></td>
                 <td data-bind="text: memory"></td>
                 <td data-bind="text: storage"></td>
                 <td data-bind="text: account"></td>
-                <td data-bind="text: createTime"></td>
+<!--                 <td data-bind="text: createTime"></td> -->
                 <td><span data-bind="check_action:'cs_Console'"><a data-bind="click: $root.console">控制台</a> | </span> <span data-bind="check_action:'cs_TimeMidify'"><a href="#" data-bind="click: $root.editValidateTime">有效时间变更</a> |</span>
                   <div class="btn-group">
                     <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -266,14 +266,14 @@
                       </div> -->
                       <label class="col-xs-1 control-label no-padder-h">管理员密码</label>
                       <div class="col-xs-2">
-                        <input type="password" class="form-control" data-bind="value: currentVO().adminPass" placeholder="请输入密码">
+                        <input type="password" class="form-control" data-bind="value: $root.adminPass" placeholder="请输入密码">
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm"></span>
                       </div> 
                       <label class="col-xs-1 control-label no-padder-h">重复密码</label>
                       <div class="col-xs-2">
-                        <input type="password" class="form-control" data-bind="value: currentVO().adminPassReinput" placeholder="请输入密码">
+                        <input type="password" class="form-control" data-bind="value: $root.adminPassReinput" placeholder="请输入密码">
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm"></span>
@@ -875,12 +875,13 @@
     	        vdcUuid: '',
     	        azUuid: ''
     	  })
+    	  self.search();
       }
       
       this.search = function(){
         this.table.params(this.searchParam());
       }
-      this.table = new DataTable([]);
+      this.table = new DataTable([],{perPage:10});
       //获取可用分区数据
       this.partitions = ko.observableArray([]);
       this.loadPartitions = function(){
@@ -1027,6 +1028,19 @@
   			adminPassReinput: ko.observable()
 	  });
       
+      this.adminPass=ko.observable().extend({minLength:6});
+      this.adminPassReinput=ko.observable().extend({equal: { params:this.adminPass ,onlyIf : this.adminPass, message :
+      	(function(_this){  
+				return function(){
+					if(_this.adminPassReinput()!=null && _this.adminPassReinput()!=""){
+						 return "密码不一致";
+					}else if(_this.adminPass() !=null && _this.adminPass() !=""){
+						return  "请再次输入密码";
+					}
+				} 
+		    })(this)
+	  }});
+      
       //是否绑定
       this.add_isBinds = ko.observableArray([]);
       this.isBinds_def = function(){
@@ -1151,7 +1165,7 @@
       //提交创建
       this.save = function(){
     	  ko.validation.group(this.currentVO).showAllMessages();
-	      if(this.currentVO.isValid()){
+	      if(this.currentVO.isValid() && this.adminPassReinput.isValid() && this.adminPass.isValid()){
 	    	  var postBody = {};
 	    	  postBody.name = self.currentVO().name();
 	    	  postBody.vdcUuid = self.currentVO().vdc();
@@ -1226,22 +1240,12 @@
 	    	  }
 	    	  
 	    	  //设置admin用户的密码
-	    	  if(csc.util.isNotNull(self.currentVO().adminPass()) || csc.util.isNotNull(self.currentVO().adminPassReinput())){
-	    		  if(csc.util.isNull(self.currentVO().adminPass()) 
-	    				  || csc.util.isNull(self.currentVO().adminPassReinput()) 
-	    				  || (self.currentVO().adminPass().trim() != self.currentVO().adminPassReinput().trim())){
-	    			  systemMsg.alert('admin用户密码不正确，请检查！');
-		    		  return;
-	    		  }else{
-			    	  postBody.adminPass = self.currentVO().adminPass().trim();
-	    		  }
-	    	  }
+			  postBody.adminPass = self.adminPass().trim();
 	    	  
 	    	  if(!isDiskPass){
 	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
 	    		  return;
 	    	  }
-	    	  
 	    	  csc.rest.post('api/v5.0.0/vms',postBody,function(data){
 			 		systemMsg.alert('创建云主机请求成功，任务ID：'+data.taskId+'！');
 			 		self.isAddvm(false);
@@ -1421,7 +1425,6 @@
             	  
             	  var orderItems = [];
             	  orderItems.push(orderItem);
-            	  
             	  if(volumeData.results){
             		  var volumes = volumeData.results;
                 	  for(var i=0;i<volumes.length;i++){
