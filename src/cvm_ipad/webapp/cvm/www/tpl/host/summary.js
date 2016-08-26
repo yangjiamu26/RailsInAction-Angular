@@ -233,7 +233,7 @@ function initSingleHost_storage_chart(data) {
     this.belongTab = ko.observable(page.query.belongTab);
     this.loadData = function(data){
       var self = this;
-      data.cpuSpeed = Number((Number(data.cpuSpeed)/1024).toFixed(2));
+      data.cpuSpeed = Number((Number(data.cpuSpeed)/1000).toFixed(2));
       self.summary(data);
       RestServiceJs(BASE_URL+"/host/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":data.hypervisor},function(res){
         res.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.totalCpu)).toFixed(2)) : Number((Number(res.totalCpu)/1000).toFixed(2));
