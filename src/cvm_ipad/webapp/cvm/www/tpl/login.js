@@ -44,6 +44,12 @@ myApp.onPageInit("login", function(page) {
         this.dashboard.router.load({url: "tpl/dashboard.html",animatePages: false});
         myApp.popup('.popup-dashboard');
 
+        window.overview_viewModel.loadData();
+        window.overview_viewModel.loadDatacenters();
+        window.overview_viewModel.changeDc('');
+        $$('#backToDasboard').hide();
+
+        window.Assistive_viewModel.setHigh();
         setTimeout(function(){
           $$("#assistive").show();
         },2000);

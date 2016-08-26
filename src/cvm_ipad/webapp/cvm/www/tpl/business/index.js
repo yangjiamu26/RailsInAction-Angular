@@ -259,17 +259,17 @@ function init_storage_chart(data) {
           self.noMore(false);
           if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
-        if(is_loadMore && (data.data.length < PAGE_SIZE)){
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          $$(page.container).find('.infinite-scroll-preloader').remove();
-          self.noMore(true);
-          return;
-        }
         self.projectNum(data.size);
         for(var i=0; i<data.data.length; i++){       
           self.dataList.push(data.data[i]);
         }
         self.page++;
+
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
+        }
       });
 
     }

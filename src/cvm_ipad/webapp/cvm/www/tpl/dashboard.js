@@ -346,7 +346,6 @@ function initTotal_storage_chart(data) {
       });
     };
     this.loadDatacenters = function(){
-      var self = this;
       RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
         self.datacenters(data.data);
       });
