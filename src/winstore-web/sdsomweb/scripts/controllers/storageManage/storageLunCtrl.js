@@ -1303,6 +1303,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
                                 $("#poolModal").modal("hide");
                             } else {
                                 $scope.setStorageErrMsg(response.message);
+                                $scope.getLunList();
                             }
                             $scope.isAdd = false;
                             NProgress.done();

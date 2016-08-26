@@ -1606,9 +1606,8 @@
 		    				
 		    				self.networkRelAzListTable.perPage(100000);//重新加载数据 
 		    			    self.vdcRelUsersListTable.path("api/v5.0.0/vdcs/"+vdc.uuid+"/users");//vdc下用户
-
-		    	    	
-		    				
+		    			    
+		    			    
 		    				self.removeAzRul = function(rowObj){
 		    					var name = rowObj.name;
 		    	    			confirm("确定移除可用分区["+name+"]？",function(arg){
@@ -1885,22 +1884,64 @@
 						 osType.push('aix');
 					 }
 					 metaData.osType=osType;
-					 metaData.resBaseInfo=resBaseInfo;
-					 orderItems.push({
-						 resourceType: "VDC",
-						 instanceName: self.selectVdcVO().name,
-						 metaData: JSON.stringify(metaData),
-						 resourceUuid: self.selectVdcVO().uuid,
-						 serviceInstanceUuid: self.applyChangeVdc().serviceInstanceUuid()
-					 })
-					 orderJson.resourceType = "VDC";
-					 orderJson.type = "VDC_CHANGE";
-					 orderJson.orderItems = orderItems;
 					 
-				 	 csc.rest.post('api/v5.0.0/orders/changeResource',orderJson,function(data){
-					 	alert('成功提交订单！');
-					 	self.isApplyChange(false);
-					 });
+					
+					//获取VDC下网络
+					var networkAry = [];
+					csc.rest.get('api/v5.0.0/vdcs/'+self.selectVdcVO().uuid+'/networks', function(data){
+						if (data && data.results) {
+							var tempNetworkAry = data.results;
+							for (var i = 0; i < tempNetworkAry.length; i++) {
+								var networkItem = tempNetworkAry[i];
+								networkAry.push({
+									azUuid:networkItem.azUuid,
+									netWorkUuid:networkItem.netWorkUuid,
+									uuid:networkItem.uuid,
+									vdcUuid:networkItem.vdcUuid,
+								});
+							}
+							//获取vdc下az
+							var azs = [];
+							csc.rest.get('api/v5.0.0/vdcs/'+self.selectVdcVO().uuid+'/azs', function(data2){
+								if (data2 && data2.results) {
+									var tempAzAry = data2.results;
+									for (var i = 0; i < tempAzAry.length; i++) {
+										var azItem = tempAzAry[i];
+										var tempNetworkAry = new Array();
+										for (var j = 0; j < networkAry.length; j++) {
+											var networkItem = networkAry[j];
+											if (azItem.uuid === networkItem.azUuid) {
+												tempNetworkAry.push({"uuid" : networkItem.netWorkUuid});
+											}
+										}
+										
+										azs.push({uuid:azItem.uuid, networks:tempNetworkAry});
+									}
+									
+									resBaseInfo.azs=azs;
+									metaData.resBaseInfo=resBaseInfo;
+				    				
+									 orderItems.push({
+										 resourceType: "VDC",
+										 instanceName: self.selectVdcVO().name,
+										 metaData: JSON.stringify(metaData),
+										 resourceUuid: self.selectVdcVO().uuid,
+										 serviceInstanceUuid: self.applyChangeVdc().serviceInstanceUuid()
+									 })
+									 orderJson.resourceType = "VDC";
+									 orderJson.type = "VDC_CHANGE";
+									 orderJson.orderItems = orderItems;
+									 
+								 	 csc.rest.post('api/v5.0.0/orders/changeResource',orderJson,function(data){
+									 	alert('成功提交订单！');
+									 	self.isApplyChange(false);
+									 });
+								}
+							});
+						}
+					});
+					
+					
  	    	        }
 	    	    }
 	    	    
