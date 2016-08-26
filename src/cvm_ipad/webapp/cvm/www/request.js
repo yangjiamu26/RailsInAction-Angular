@@ -2,6 +2,7 @@ var requestNUM = 0;
 function backToLogin(res){
   requestNUM = 0;
   myApp.showAssisTime = false;
+  myApp.Login_Again = true;
   myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
   myApp.alert(res.msg,function(){
     myApp.closeModal('.popup.modal-in');
