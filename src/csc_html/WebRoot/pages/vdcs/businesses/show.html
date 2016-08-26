@@ -75,11 +75,27 @@
 				  				<td >
 				  				  <!-- ko if: $root.editMode -->
 				  					<div class="input-append input-append-normal">
-				  					<input style="width: 50px;"  type="text" class="form-control input-sm" data-bind="value:startOrder" maxlength="4" value="0" onkeyup="value=value.replace(/[^\d]/g,'') " />
-					                  <span class="add-on w_numberBtn">
-					                    <i class="w_upBtn" data-bind="click: $root.addCount"><b></b></i>
-					                    <i class="w_downBtn" data-bind="click: $root.decreaseCount"><b></b></i>
-					                  </span>
+					                  <input maxlength="4" max="9999" min="0" style="width: 100px;" value="0" type="number" class="form-control input-sm" data-bind="value:startOrder"  onkeyup="checkNum(this)" />
+				  					   <script type="text/javascript">
+				  					     function checkNum(this_){
+				  					    	try{ 
+				  					    		var value_ = Number(this_.value)
+				  					    		//赋值最小值
+				  					    		if(value_<=-1||isNaN(value_)){
+				  					    		    this_.value=0;
+				  					    		//赋值最大值
+				  					    		}else if(value_>=9999){
+				  					    		    this_.value=9999;
+				  					    		}else{
+				  					    		    this_.value=value_;
+				  					    		}
+				  					    		
+				  					    	}catch (e){ 
+				  					    		this_.value=0;
+				  					    	} 
+				  					    	
+				  					     }
+				  					</script>
 					                 </div>
 					               <!-- /ko -->
 					               <!-- ko ifnot: $root.editMode -->
@@ -89,11 +105,13 @@
 				  				<td >
 					  				 <!-- ko if: $root.editMode -->
 					  					<div class="input-append input-append-normal">
-					  					<input style="width: 50px;" type="text" class="form-control input-sm" data-bind="value:delay" value="0" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'') "/>
+                                            <input maxlength="4" max="9999" min="0" style="width: 100px;" type="number" class="form-control input-sm" data-bind="value:delay" value="0" onkeyup="checkNum(this)" />
+					  					<!-- 
 						                  <span class="add-on w_numberBtn">
 						                    <i class="w_upBtn" data-bind="click: $root.addDelayCount"><b></b></i>
 						                    <i class="w_downBtn" data-bind="click: $root.decreaseDelayCount"><b></b></i>
 						                  </span>
+					  					 -->
 						                 </div>
 						               <!-- /ko -->
 						               <!-- ko ifnot: $root.editMode -->
@@ -605,7 +623,10 @@
     	        	for(var i=0; i<list.length;i++){
     	        		var vm = list[i];
     	        		//数据不满足就返回
-    	        		if(!vm.isValid()) return;
+    	        		if(!vm.isValid()){
+    	        			$("#button_save_set_").removeAttr("disabled");
+    	        			return;
+    	        		}
     	        	}
     	        	self.editVmList().vms(self.vmList);
     	        	
