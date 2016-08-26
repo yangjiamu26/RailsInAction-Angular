@@ -10,11 +10,12 @@ var app = angular.module('app', [
     'ui.load',
     'ui.bootstrap',
     'ngFileUpload',
-    'pagination'
+    'pagination',
+    'monospaced.qrcode'
 ]);
 
-// app.constant("baseUrl","http://10.10.112.226:8095/cvm/v3.0");
-// app.constant("fileUrl","http://10.10.112.226:8095/");
+// app.constant("baseUrl","http://10.10.111.144:8095/cvm/v3.0");
+// app.constant("fileUrl","http://10.10.111.144:8095/");
 app.constant("baseUrl","http://"+window.location.host+"/cvm/v3.0");
 app.constant("fileUrl","http://"+window.location.host+"/");
 // app.constant("baseUrl","http://192.168.208.51:8095/cvm/v3.0");

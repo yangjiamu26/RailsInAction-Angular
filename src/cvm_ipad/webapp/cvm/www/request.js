@@ -77,8 +77,6 @@ function RestServiceJs(newurl) {
       var thisRequest = requestNUM;
       checkNetWork(thisRequest);
 
-      params.client_token = client_token;
-      params.client_account = client_account;
       $.ajax({
           type: 'PUT',  
           url: self.myurl,  
