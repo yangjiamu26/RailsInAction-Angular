@@ -16,9 +16,9 @@
           <div class="left-title text-md">VDC列表</div>
           <p></p>
           <div class="left-title text-md">
-            <button class="btn btn-info btn-sm" data-bind="click:createVdc,check_action:'roleCreat'">创建</button>
-            <button class="btn btn-info btn-sm" data-bind="click:deleteVdc,enable:selectVdcVO().type != 'DEFAULT',check_action:'roleCreat'" >删除</button>
-            <button class="btn btn-info btn-sm" data-bind="click:editVdcGlobalQuota,check_action:'roleCreat'">总配额</button>
+            <button class="btn btn-info btn-sm" data-bind="click:createVdc,check_action:'vdcCreate'">创建</button>
+            <button class="btn btn-info btn-sm" data-bind="click:deleteVdc,enable:selectVdcVO().type != 'DEFAULT',check_action:'vdcCreate'" >删除</button>
+            <button class="btn btn-info btn-sm" data-bind="click:editVdcGlobalQuota,check_action:'vdcCreate'">总配额</button>
           </div>
         </div>
         <div class="row-row">
@@ -230,7 +230,7 @@
             <div class="cell-inner">
               <div class='wrapper-md' id="vdc_summary_id">
                 <div class="row">
-                  <div class="col-xs-12 m-b-xs"> <button class="btn btn-sm btn-info" type="button" data-bind="click: applyChange">申请变更</button>
+                  <div class="col-xs-12 m-b-xs"> <button class="btn btn-sm btn-info" type="button" data-bind="click: applyChange,check_action:'vdcModiAppl'">申请变更</button>
                     <button class="btn btn-sm btn-default" type="button" id="expandAll">展开/收起全部</button>
                   </div>
                 </div>  
@@ -264,74 +264,62 @@
 					                    <th>申请后</th>
 					                  </tr>
 					                </thead>
-					                <tbody data-bind="foreach: quotas">
+					                <tbody>
 					                  <tr>
-					                    <td>
-					                    	<span data-bind="visible: q1.type=='CPU'">CPU(个)</span>
-					                    	<span data-bind="visible: q1.type=='MEMORY'">内存(GB)</span>
-					                    	<span data-bind="visible: q1.type=='STORAGE'">存储(GB)</span>
-					                    	<span data-bind="visible: q1.type=='VPC'">VPC(个)</span>
-					                    	<span data-bind="visible: q1.type=='VM'">云主机(个)</span>
-					                    	<span data-bind="visible: q1.type=='DISK'">云硬盘(个)</span>
-					                    	<span data-bind="visible: q1.type=='PUBLICIP'">公网IP(个)</span>
-					                    	<span data-bind="visible: q1.type=='ROUTER'">路由器(个)</span>
-					                    	<span data-bind="visible: q1.type=='FIREWALL'">防火墙(个)</span>
-					                    	<span data-bind="visible: q1.type=='LOAD_BALANCING'">负载均衡器(个)</span>
-					                    	<span data-bind="visible: q1.type=='SECRET_KEY'">SSH密钥(对)</span>
-					                    	<span data-bind="visible: q1.type=='OBJECT_STORAGE'">对象存储(GB)</span>
-					                    	<span data-bind="visible: q1.type=='SECURITY_GROUP'">安全组(个)</span>
-					                    	<span data-bind="visible: q1.type=='VPN'">VPN(个)</span>
-					                    </td>
-					                    <td data-bind="text: q1.value"></td>
-					                    <td>
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().cpu,visible: q1.type=='CPU'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().memory,visible: q1.type=='MEMORY'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().storage,visible: q1.type=='STORAGE'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vpc,visible: q1.type=='VPC'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vm,visible: q1.type=='VM'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().disk,visible: q1.type=='DISK'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().publicIp,visible: q1.type=='PUBLICIP'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().router,visible: q1.type=='ROUTER'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().firewall,visible: q1.type=='FIREWALL'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().loadBalance,visible: q1.type=='LOAD_BALANCING'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().secretKey,visible: q1.type=='SECRET_KEY'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().objectStorage,visible: q1.type=='OBJECT_STORAGE'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().securityGroup,visible: q1.type=='SECURITY_GROUP'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vpn,visible: q1.type=='VPN'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    </td>
-					                    <td>
-					                    	<span data-bind="visible: q2.type=='CPU'">CPU(个)</span>
-					                    	<span data-bind="visible: q2.type=='MEMORY'">内存(GB)</span>
-					                    	<span data-bind="visible: q2.type=='STORAGE'">存储(GB)</span>
-					                    	<span data-bind="visible: q2.type=='VPC'">VPC(个)</span>
-					                    	<span data-bind="visible: q2.type=='VM'">云主机(个)</span>
-					                    	<span data-bind="visible: q2.type=='DISK'">云硬盘(个)</span>
-					                    	<span data-bind="visible: q2.type=='PUBLICIP'">公网IP(个)</span>
-					                    	<span data-bind="visible: q2.type=='ROUTER'">路由器(个)</span>
-					                    	<span data-bind="visible: q2.type=='FIREWALL'">防火墙(个)</span>
-					                    	<span data-bind="visible: q2.type=='LOAD_BALANCING'">负载均衡器(个)</span>
-					                    	<span data-bind="visible: q2.type=='SECRET_KEY'">SSH密钥(对)</span>
-					                    	<span data-bind="visible: q2.type=='OBJECT_STORAGE'">对象存储(GB)</span>
-					                    	<span data-bind="visible: q2.type=='SECURITY_GROUP'">安全组(个)</span>
-					                    	<span data-bind="visible: q2.type=='VPN'">VPN(个)</span>
-					                    </td>
-					                    <td data-bind="text: q2.value"></td>
-					                    <td>
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().cpu,visible: q2.type=='CPU'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().memory,visible: q2.type=='MEMORY'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().storage,visible: q2.type=='STORAGE'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vpc,visible: q2.type=='VPC'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vm,visible: q2.type=='VM'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().disk,visible: q2.type=='DISK'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().publicIp,visible: q2.type=='PUBLICIP'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().router,visible: q2.type=='ROUTER'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().firewall,visible: q2.type=='FIREWALL'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().loadBalance,visible: q2.type=='LOAD_BALANCING'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().secretKey,visible: q2.type=='SECRET_KEY'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().objectStorage,visible: q2.type=='OBJECT_STORAGE'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().securityGroup,visible: q2.type=='SECURITY_GROUP'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    	<input type="text" class="form-control input-sm" data-bind="value: $root.applyChangeVdc().vpn,visible: q2.type=='VPN'" data-toggle="tooltip" data-placement="right" data-trigger="focus">
-					                    </td>
+					                    <td>CPU(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().cpu()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().cpu" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>内存(GB)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().memory()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().memory" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+					                  <tr>
+					                    <td>存储(GB)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().storage()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().storage" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>VPC(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().vpc()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().vpc" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+					                  <tr>
+					                    <td>云主机(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().vm()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().vm" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>云硬盘(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().disk()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().disk" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+					                  <tr>
+					                    <td>公网IP(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().publicIp()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().publicIp" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>路由器(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().router()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().router" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+					                  <tr>
+					                    <td>防火墙(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().firewall()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().firewall" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>负载均衡器(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().loadBalance()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().loadBalance" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+					                  <tr>
+					                    <td>SSH密钥(对)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().secretKey()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().secretKey" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>对象存储(GB)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().objectStorage()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().objectStorage" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                  </tr>
+									  <tr>
+					                    <td>安全组(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().securityGroup()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().securityGroup" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
+					                    <td>VPN(个)</td>
+					                    <td data-bind="text: applyChangeVdcBefore().vpn()"></td>
+					                    <td><input type="text" class="form-control input-sm" placeholder="不限配额" data-bind="value: applyChangeVdc().vpn" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"></td>
 					                  </tr>
 					                </tbody>
 					              </table>
@@ -379,7 +367,7 @@
                     <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                       <div class="panel-body">
                         <div class="form-inline">
-                          <button class="btn btn-default btn-sm" data-bind="click:modifyVdcQuota,check_action:'roleCreat'">分配配额</button>
+                          <button class="btn btn-default btn-sm" data-bind="click:modifyVdcQuota,check_action:'vdcCreate'">分配配额</button>
                         </div>
                         <div class="">
                           <table class="table table-striped">
@@ -514,16 +502,6 @@
 					        </div>
 					        
 					         <div class="form-group">
-					          <label for="inputEmail3" class="col-xs-3 control-label">云软件(个)：</label>
-					          <div class="col-xs-7">
-					            <input type="text" class="form-control"  placeholder="不限配额" data-bind="value:vdcQuotaVO().SOFTWARE" id="quota_software" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"  />
-					          </div>
-					          <div class="col-xs-1">
-					            <span class="text-danger inline m-l-n m-t-sm">*</span>
-					          </div>
-					        </div>
-					        
-					         <div class="form-group">
 					          <label for="inputEmail3" class="col-xs-3 control-label">VPN(个)：</label>
 					          <div class="col-xs-7">
 					            <input type="text" class="form-control"  placeholder="不限配额" data-bind="value:vdcQuotaVO().VPN" id="quota_vpn" data-toggle="tooltip" data-placement="right" title="-1为该项不限制" data-trigger="focus"  />
@@ -567,7 +545,7 @@
                       <div class="panel-body">
                         <div class="row m-b-sm">
                           <div class="col-xs-2">
-                            <a class="btn btn-sm btn-info" data-bind="click:addVdcAZ,check_action:'roleCreat'">添加可用分区</a>
+                            <a class="btn btn-sm btn-info" data-bind="click:addVdcAZ,check_action:'vdcCreate'">添加可用分区</a>
                           </div>
                         </div>        
                         <div class="table-responsive no-height">
@@ -577,7 +555,7 @@
                                 <th>云管理平台</th>
                                 <th>虚拟化类型</th>
                                 <th>可用分区</th>
-                                <th data-bind="check_action:'roleCreat'">操作</th>
+                                <th data-bind="check_action:'vdcCreate'">操作</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -591,7 +569,7 @@
 									<td data-bind="text: $row.cloudPlatform">平台名称</td>
 	                                <td data-bind="text: $row.virtualHypervisor">类型名称</td>
 	                                <td data-bind="text: $row.name"></td>
-	                                <td  data-bind="check_action:'roleCreat'"><a data-bind="click:$root.removeAzRul,check_action:'roleCreat'">移除</a></td>
+	                                <td  data-bind="check_action:'vdcCreate'"><a data-bind="click:$root.removeAzRul,check_action:'vdcCreate'">移除</a></td>
 								</tr>	
 							    <!-- /ko -->	
                             </tbody>
@@ -758,7 +736,7 @@
                       <div class="panel-body">
                         <div class="row m-b-sm">
                           <div class="col-xs-3">
-                            <a class="btn btn-sm btn-info" data-bind="click:addVdcNetwork,check_action:'roleCreat'">添加网络</a>
+                            <a class="btn btn-sm btn-info" data-bind="click:addVdcNetwork,check_action:'vdcCreate'">添加网络</a>
                           </div>
                         </div>        
                         <div class="table-responsive no-height">
@@ -768,7 +746,7 @@
                                 <th>网络名称/IP池</th>
                                 <th>云管理平台</th>
                                 <th>可用分区</th>
-                                <th  data-bind="check_action:'roleCreat'">操作</th>
+                                <th  data-bind="check_action:'vdcCreate'">操作</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -781,8 +759,8 @@
 								<tr>
 	                                <td data-bind="text: $row.netWorkName"></td>
 	                                <td data-bind="text: $row.cloudPlatform"></td>
-	                                <td data-bind="text: $row.virtualHypervisor"></td>
-	                                <td  data-bind="check_action:'roleCreat'" ><a data-bind="click:$root.removeAzNetworkRul,check_action:'roleCreat'">移除</a></td>
+	                                <td data-bind="text: $row.azName"></td>
+	                                <td  data-bind="check_action:'vdcCreate'" ><a data-bind="click:$root.removeAzNetworkRul,check_action:'vdcCreate'">移除</a></td>
 								</tr>	
 							    <!-- /ko -->
                             </tbody>
@@ -1359,9 +1337,12 @@
 				}
 				
 			    self.addVdcNetworkSearch = function(){
+			    	    $("#availableAzNetworkListTableId").html("");
 						var azUuid = self.addVdcNetworkAzVO().uuid ;
+						if(!azUuid){
+							return;
+						}
 						var name = self.addVdcNetworkSearchParam().name;
-						$("#availableAzNetworkListTableId").html("");
 						$.NETWORK.getNetworks({"azUuid":azUuid,"name":name},function(azNetData){
 							$.VDC.getVdcNetworks(self.selectVdcVO().uuid,null,function(netResult){
 								 var netList = netResult.results;
@@ -1588,7 +1569,7 @@
 			    	    					   tableBody += "</div></div></td></tr>";
 		    	    					   } else {
 		    	    						   tableBodyForUnlimited += "<tr><td>"+csc.util.getResourceText(type)+"("+csc.util.getResourceUnit(type)+")</td><td>"
-		    	    						   	+use+"</td><td></td><td></td></tr>";
+		    	    						   		+use+"</td><td></td><td></td></tr>";
 		    	    					   }
 		    	    					   
 		    	    				  }
@@ -1608,8 +1589,10 @@
 		    					  for(var key in vdcQuotaJSON){
 									  if(self.vdcQuotaVO()[key] && ko.isObservable(self.vdcQuotaVO()[key]) && vdcQuotaJSON[key] != '-1'){
 									    self.vdcQuotaVO()[key](vdcQuotaJSON[key]);
-									  }else if (vdcQuotaJSON[key] != '-1'){
+									  } else if (vdcQuotaJSON[key] != '-1'){
 										  self.vdcQuotaVO()[key] = vdcQuotaJSON[key];
+									  } else {
+										  self.vdcQuotaVO()[key] = "";//不限制时(-1)默认不显示
 									  }
 									}
 		    				   });
@@ -1777,9 +1760,9 @@
 	    	        loadBalance: ko.observable("").extend(intForVdcQuotaEx),
 	    	        secretKey: ko.observable("").extend(intForVdcQuotaEx),
 	    	        objectStorage: ko.observable("").extend(intForVdcQuotaEx),
-	    	        software: ko.observable(""),
-	    	        securityGroup: ko.observable(""),
-	    	  	    vpn: ko.observable(""),
+	    	        software: ko.observable("").extend(intForVdcQuotaEx),
+	    	        securityGroup: ko.observable("").extend(intForVdcQuotaEx),
+	    	  	    vpn: ko.observable("").extend(intForVdcQuotaEx),
 	    	        
 	    	        windows:ko.observable(""),
 	    	        linux:ko.observable(""),
@@ -1791,24 +1774,40 @@
 	    	    	var uuid = self.selectVdcVO().uuid;
 	    	    	$.VDC.getVdcQuota(uuid,"",function(data){
 	    	    		var vdcQuotaList = data.results;
-	    	    		var quotas = [];
-    	    			var quota = {};
-	    	    		var num = 1;
-	    	    		for(var i=vdcQuotaList.length-1;i>=0;i--){
-	    	    			if(vdcQuotaList[i].value == "-1"){
-	    	    				continue;
-	    	    			}
-	    	    			if(num == 1){
-	    	    				quota.q2 = vdcQuotaList[i];
-	    	    				num++;
-	    	    			}else{
-	    	    				quota.q1 = vdcQuotaList[i];
-	    	    				quotas.push(quota);
-	    	    				quota = {};
-	    	    				num = 1;
-	    	    			}
+	    	    		for(var i = 0;i<vdcQuotaList.length;i++){
+	    	    			var quotaValue = (vdcQuotaList[i].value != '-1' ? vdcQuotaList[i].value : '不限制');
+	    	    			if(vdcQuotaList[i].type=='CPU'){
+	    	      				self.applyChangeVdcBefore().cpu(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='MEMORY'){
+	    	      				self.applyChangeVdcBefore().memory(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='STORAGE'){
+	    	      				self.applyChangeVdcBefore().storage(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='VPC'){
+	    	      				self.applyChangeVdcBefore().vpc(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='VM'){
+	    	      				self.applyChangeVdcBefore().vm(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='DISK'){
+	    	      				self.applyChangeVdcBefore().disk(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='PUBLICIP'){
+	    	      				self.applyChangeVdcBefore().publicIp(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='ROUTER'){
+	    	      				self.applyChangeVdcBefore().router(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='FIREWALL'){
+	    	      				self.applyChangeVdcBefore().firewall(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='SECRET_KEY'){
+	    	      				self.applyChangeVdcBefore().secretKey(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='OBJECT_STORAGE'){
+	    	      				self.applyChangeVdcBefore().objectStorage(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='LOAD_BALANCING'){
+	    	      				self.applyChangeVdcBefore().loadBalance(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='SOFTWARE'){
+	    	      				self.applyChangeVdcBefore().software(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='SECURITY_GROUP'){
+	    	      				self.applyChangeVdcBefore().securityGroup(quotaValue);
+	    	      			}else if(vdcQuotaList[i].type=='VPN'){
+	    	      				self.applyChangeVdcBefore().vpn(quotaValue);
+	    	      			}
 	    	    		}
-	    	    		self.quotas(quotas);
 	    	    	});
 	    	    	csc.rest.get('api/v5.0.0/serviceInstances?realResId='+uuid,function(data){
 	    	    		var serviceInstance = data.results[0];

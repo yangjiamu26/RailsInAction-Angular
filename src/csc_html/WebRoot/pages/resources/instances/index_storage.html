@@ -488,8 +488,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             //console.log(this.searchParam());
             this.table.params(this.searchParam());
         }
-        this.table = new DataTable([], {path: 'api/v5.0.0/volumes?type=Disk'});
-
+        this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/volumes?type=Disk'});
+        
 
         /** 下拉级联选择--------------------------------------------START **/
         //查询：下拉选择，加载VDC
@@ -599,17 +599,15 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     //过滤无服务实例云主机
                     var targetVms = [];
                     for(var i=0;i<vms.length;i++){
-                    	if(csc.util.isNull(vms[i].serviceInstanceUuid)){
-                    		continue;
-                    	}
                     	if(vms[i].state == 'SUSPENDED'){
                     		continue;
                     	}
                     	if(!vms[i].isValidate){
                     		continue;
                     	}
-                    	targetVms.push(vms[i]);
-                    	
+                    	if(csc.util.isNull(vms[i].serviceInstanceUuid)){
+                    		targetVms.push(vms[i]);
+                    	}
                     }
                     self.vms(targetVms);
                     //vms加载完成后，触发vms下拉变更事件，加载有效时间 
