@@ -155,7 +155,7 @@
 						<label class="col-xs-3 control-label">计费属性</label>
 						<div class="col-xs-9">
 							<select class="form-control input-sm"
-								data-bind="value: attrType, attr:{disabled:uuid},options:$root.add_factors,optionsText: 'devName', optionsValue: 'key'"></select>
+								data-bind="value:attrType, attr:{disabled:uuid},options:$root.add_factors,optionsText: 'devName', optionsValue: 'key'"></select>
 						</div>
 					</div>
 					<!--
@@ -366,7 +366,14 @@
 						}
 					});
 					this.add = function() {
-						this.loadFactors();
+						this.loadFactors(null);
+						this.loadCycle();
+					 
+						self.isAdd(true);
+						
+					};
+
+					this.loadCycle = function(){
 						self.cycles([ {
 							name : '天',
 							id : 'DAY'
@@ -380,29 +387,31 @@
 							name : '年',
 							id : 'YEAR'
 						} ])
-						/**
-						self.currentVO.fromJSON({
-							uuid : null,
-							name : '',
-							attrType : 'CPU',
-							attrValue : '1',
-							price : '',
-							cycle : 'DAY',
-							priceUnit : 'RMB'
-						})
-						*/
-						self.isAdd(true);
-						
-					};
+					}
 
+
+					this.edit = function(object, event) {
+						console.log(object);
+						self.loadFactors(object);
+						self.currentVO.fromJSON(object);
+						self.loadCycle();
+					
+						self.isAdd(true);
+					};
+					
+					
 					this.add_factors = ko.observableArray([]);
 					//加载计费因子
-					this.loadFactors = function() {
+					this.loadFactors = function(object) {
 						$.BILLING.getBillingFactor({}, function(data) {
 							if (data.results) {
 								console.log(data.results);
 								self.add_factors(data.results);    			  
 							}
+							if(object){
+								self.currentVO.fromJSON(object);
+							}else{
+								
 							self.currentVO.fromJSON({
 								uuid : null,
 								name : '',
@@ -412,27 +421,10 @@
 								cycle : 'DAY',
 								priceUnit : 'RMB'
 							})
+							}
+							
 
 						});
-					};
-
-
-					this.edit = function(object, event) {
-						self.currentVO.fromJSON(object);
-						self.cycles([ {
-							name : '天',
-							id : 'DAY'
-						}, {
-							name : '月',
-							id : 'MONTH'
-						}, {
-							name : '季',
-							id : 'QUARTER'
-						}, {
-							name : '年',
-							id : 'YEAR'
-						} ])
-						self.isAdd(true);
 					};
 
 					this.save = function() {

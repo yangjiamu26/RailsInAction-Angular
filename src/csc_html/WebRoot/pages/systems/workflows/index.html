@@ -145,7 +145,7 @@
               <div class="form-group" data-bind="visible: showVdc">
                 <label for="inputEmail3" class="col-xs-3 control-label">所属VDC</label>
                 <div class="col-xs-8">
-                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', attr: {'disabled': vdcDisable},valueAllowUnset:true">
+                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', attr: {'disabled': vdcDisable},event:{change:$root.loadProducts(modelVO().processType())},valueAllowUnset:true">
                   </select>
                 </div>
               </div>
@@ -154,6 +154,9 @@
                 <div class="col-xs-8 form-checkbox-inline" id="productData">
                   <label class="col-xs-7 control-label" data-bind="visible: productVO().sys">
                     <span>系统默认流程已绑定所有产品.</span>
+                  </label>
+                  <label class="col-xs-7 control-label" data-bind="visible: productVO().vdc">
+                    <span>该VDC流程已绑定所有产品.</span>
                   </label>
                   <label class="checkbox-inline i-checks w-xs" data-bind="visible: productVO().vm">
                     <input type="checkbox" value="VM" name="productTypes">
@@ -353,6 +356,7 @@
 	      this.saveDisabled = ko.observable(false);
 	      this.productVO = ko.validatedObservable({
 	    	  sys: ko.observable(""),
+	    	  vdc: ko.observable(""),
 	    	  vm: ko.observable(""),
 	    	  disk: ko.observable(""),
 	    	  publicIp: ko.observable(""),
@@ -429,27 +433,51 @@
 		  	  self.hideAllProducts();
 		  	  $("#productData label input").attr("checked",false);
 		  	  
-		  	  //如果没选VDC，说明是系统级别流程，需查询该类型的系统流程下的产品选中
-		  	  if(self.showProducts() && self.modelVO.toJSON().vdcId == ''){
-		  		 csc.rest.get('api/v5.0.0/workflows/model/products/'+val,function(data){
+		  	  //查询该类型的流程下的产品选中
+		  	  if(self.showProducts()){
+		  		  if(self.modelVO.toJSON().vdcId == ''){
+		  			self.modelVO.fromJSON({vdcId:"0"});
+		  		  }
+		  		  var params = "processType="+val+"&vdcId="+self.modelVO.toJSON().vdcId;
+		  		  csc.rest.get('api/v5.0.0/workflows/model/products?'+params,function(data){
+		  			var visible = '';
+		  			if(self.modalTitle() == '创建'){
+		  				visible = false
+		  			}else{
+		  				visible = true;
+		  			}
 		  			for(var i=0;i<data.length;i++){
 		  				if(data[i]=='VM'){
-		  					self.productVO().vm(false);
+		  					self.productVO().vm(visible);
 		  			  	}else if(data[i]=='DISK'){
-		  			  		self.productVO().disk(false);
+		  			  		self.productVO().disk(visible);
 		  			  	}else if(data[i]=='PUBLICIP'){
-		  			  		self.productVO().publicIp(false);
+		  			  		self.productVO().publicIp(visible);
 		  			  	}else if(data[i]=='LOAD_BALANCING'){
-		  			  		self.productVO().loadBalance(false);
+		  			  		self.productVO().loadBalance(visible);
 		  			  	}else if(data[i]=='SECRET_KEY'){
-		  			  		self.productVO().secretKey(false);
+		  			  		self.productVO().secretKey(visible);
 		  			  	}else if(data[i]=='OBJECT_STORAGE'){
-		  			  		self.productVO().objectStorage(false);
+		  			  		self.productVO().objectStorage(visible);
 		  			  	}
 		  			}
-		  			if($("#productData label[style='display: none;']").length == 7){
-		  				self.productVO().sys(true);
+		  			if(self.modalTitle() == '创建' && $("#productData label[style='display: none;']").length == 8){
+		  				if(self.modelVO.toJSON().vdcId == '0'){		  					
+			  				self.productVO().sys(true);
+		  				}else{
+		  					self.productVO().vdc(true);
+		  				}
 		  				self.saveDisabled(true);
+		  			}else{
+		  				// 修改模型时，将其他流程已绑定的产品置灰
+		  				var params2 = "processType="+val+"&vdcId="+self.modelVO.toJSON().vdcId
+		  					+"&modelId="+self.modelVO.toJSON().id;
+				  		csc.rest.get('api/v5.0.0/workflows/model/products?'+params2,function(data){
+				  			data.forEach(function(e){
+				  				$("input[name='productTypes'][value="+e+"]").prop('checked', true);
+					        	$("input[name='productTypes'][value="+e+"]").prop('disabled', true);
+				        	});
+				  		})
 		  			}
 		  		 })
 		  	  }
@@ -459,6 +487,7 @@
 	      
 	      this.hideAllProducts = function(){
 	    	  self.productVO().sys(false);
+	    	  self.productVO().vdc(false);
 	    	  self.productVO().vm(false);
 	  		  self.productVO().disk(false);
 	  		  self.productVO().publicIp(false);
