@@ -101,6 +101,18 @@ vsanApp.factory("nodeFactory", ["Restangular", function (Restangular) {
         //节点硬盘信息获取
         nodeDisksGet: function (queryParams, callback) {
         	Restangular.all(urlConfig.get("getDisk")).post(queryParams).then(callback);
+        },
+        // 查询自由服务器列表
+        listFreeServer: function (queryParams, callback) {
+        	Restangular.all(urlConfig.get("queryFreeServer")).post(queryParams).then(callback);
+        },
+        // 添加自由服务器
+        addFreeServer: function (queryParams, callback) {
+        	Restangular.all(urlConfig.get("addFreeServer")).post(queryParams).then(callback);
+        },
+        // 删除自由服务器
+        deleteFreeServer: function (queryParams, callback) {
+        	Restangular.all(urlConfig.get("deleteFreeServer")).post(queryParams).then(callback);
         }
 	};
 

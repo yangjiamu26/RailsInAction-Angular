@@ -90,14 +90,14 @@ vsanApp.controller('hddManagerCtrl', ['$scope', 'nodeFactory', function ($scope,
         // 获取已安装硬盘列表
         $scope.getDiskList();
 
-        //// 查询已安装服务器列表
-        //nodeFactory.nodeServerScan({}, function (res) {
-        //    if (res.success) {
-        //        $scope.servers = res.data;
-        //    } else {
-        //        $scope.showDialog(res.message);
-        //    }
-        //});
+        // 查询已安装服务器列表
+        nodeFactory.nodeServerScan({}, function (res) {
+            if (res.success) {
+                $scope.servers = res.data;
+            } else {
+                $scope.showDialog(res.message);
+            }
+        });
 
         $("#hddtablebody").empty();
     };
