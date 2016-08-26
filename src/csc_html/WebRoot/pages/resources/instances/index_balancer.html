@@ -673,10 +673,13 @@
               </div>
               <div class="form-group">
                 <label class="col-xs-4 control-label">云主机：</label>
-                <div class="col-xs-5">
-                  <select class="form-control" data-bind="optionsCaption: '请选择', options: $root.memberVmList, optionsText:'vmName',value: vm, enable:!$root.isEditMemberFlag()">
+                <div class="col-xs-5" data-bind="visible:!$root.isEditMemberFlag()">
+                  <select class="form-control" data-bind="optionsCaption: '请选择', options: $root.memberVmList, optionsText:'vmName',value: vm">
                     <option value="">VM1</option>
                   </select>
+                </div>
+                <div class="col-xs-5" data-bind="visible:$root.isEditMemberFlag()">
+                  <input class="form-control" type="text" data-bind="value: vmName, enable:!$root.isEditMemberFlag()"/>
                 </div>
                 <div class="col-xs-3">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -1497,6 +1500,7 @@
           		"lbId": self.currentLbVo().originalId,
           		"lbUuid": self.currentLbVo().uuid,
           		"lbName": self.currentLbVo().name,
+          		"vmName": "",
           		"vm":"",
           		"protocolPort":80,
           		"weight":1
@@ -1534,24 +1538,32 @@
         	self.isEditMemberFlag(true);
         	self.disableUpdateMemberBtn(false);
         	
-        	self.memberVmList([]);
-          	var vmList = $.LOAD_BALANCER.getMemberVms;
-          	self.memberVmList(vmList);
-          	
+        	/* self.memberVmList([]);
+        	var p = {
+              	   tenantId: 	self.currentLbVo().tenantId,
+              	   networkUuid:	self.currentLbVo().vpcNetworkUuid,
+              	   lbUuid: 		self.currentLbVo().uuid
+             };
+        	$.PORT.getLbMemberVmList(p, function(data){
+          	    if(data && data.results){
+          		    self.memberVmList(data.results);
+          	    }
+            }) */
+
           	oldEditMember.weight = row.weight;
-          	//将数据行的数据传入currentMemberVo
-          	self.currentMemberVo({
-          		"uuid":			row.uuid,
-          		"vpcUuid": 		row.vpcUuid,
-        		"lbId": 		row.lbId,
-        		"lbUuid": 		row.lbUuid,
-        		"lbName":		row.lbName,
-        		"address":		row.address,
-          		"protocolPort":	row.protocolPort,
-          		"weight":   	row.weight,
-          		"vmName":		row.vmName,
-          		"vm":	{"address":row.address, "vmName": row.vmName}
-          	});
+           	//将数据行的数据传入currentMemberVo
+           	self.currentMemberVo({
+           		"uuid":			row.uuid,
+           		"vpcUuid": 		row.vpcUuid,
+         		"lbId": 		row.lbId,
+         		"lbUuid": 		row.lbUuid,
+         		"lbName":		row.lbName,
+         		"address":		row.address,
+           		"protocolPort":	row.protocolPort,
+           		"weight":   	row.weight,
+           		"vmName":		row.vmName,
+           		"vm":	{"address":row.address, "vmName": row.vmName}
+           	});
         }
         
         this.editMember = function(){
@@ -1559,10 +1571,10 @@
             		"vpcUuid": self.currentMemberVo().vpcUuid,
             		"lbId": 	self.currentMemberVo().lbId,
             		"lbUuid": 	self.currentMemberVo().lbUuid,
-            		"address":	self.currentMemberVo().vm.address,
+            		"address":	self.currentMemberVo().address,
               		"protocolPort":self.currentMemberVo().protocolPort,
               		"weight":   self.currentMemberVo().weight,
-              		"vmName":	self.currentMemberVo().vm.vmName
+              		"vmName":	self.currentMemberVo().vmName
             	};
         	var uuid = self.currentMemberVo().uuid;
         	if(oldEditMember.weight == p.weight){
