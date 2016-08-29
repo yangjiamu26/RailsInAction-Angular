@@ -219,12 +219,30 @@
 
 			</div>
 			<div class='modal-footer' style="text-align: center">
-				<input type="button" name="commit" value="确定"
-					class="btn btn-default btn-info"
-					data-bind="click: upgradeVMConfirm" />
-				<button name="button" type="submit"
-					class="btn btn-default btn btn-default"
-					data-bind="click: upgradeVMCancel">取消</button>
+				<div style="margin-bottom: 40px;">
+					<div data-bind="with: vmTable, visible: vmTable.pages() > 1">
+						<ul class="pagination">
+							<li data-bind="css: leftPagerClass, click: prevPage"><a
+								href="#">&laquo;</a></li>
+							<!-- ko foreach: {data: (new Array(pages()))} -->
+							<li data-bind="css: $parent.pageClass($index() + 1)"><a
+								href="#"
+								data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							</li>
+							<!-- /ko -->
+							<li data-bind="css: rightPagerClass, click: nextPage"><a
+								href="#">&raquo;</a></li>
+						</ul>
+					</div>
+				</div>
+				<div style="text-align: center;">
+					<input type="button" name="commit" value="确定"
+						class="btn btn-default btn-info"
+						data-bind="click: upgradeVMConfirm" />
+					<button name="button" type="submit"
+						class="btn btn-default btn btn-default"
+						data-bind="click: upgradeVMCancel">取消</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -410,7 +428,8 @@
 					
 					/** 待安装云主机列表数据 **/
 					this.vmTable = new DataTable([], {
-						path : 'api/v5.0.0/install/vms'
+						path : 'api/v5.0.0/install/vms',
+						perPage : 7
 						//path : 'pages/softwares/vm.json'
 					});
 					
@@ -439,9 +458,13 @@
 					this.filterVm = function() {
 						var param = self.searchVmParam();
 						
-						param.softTypeName = self.softwareVO().softTypeName;
+						var withoutVmUuids = '';
 						
-						param.ltStorage = self.softwareVO().spaceSize;
+						$.each(self.toUpgradeTable(), function(i, val) {
+							withoutVmUuids += (val.uuid + ',');
+						});
+						
+						param.withoutVmUuids = withoutVmUuids.substring(0, withoutVmUuids.length-1);
 						
 						self.vmTable.params(param);
 					};
@@ -455,7 +478,8 @@
 							vms:[]
 						});
 						
-						self.vmTable.params({softTypeName:object.softTypeName, ltStorage: object.spaceSize});
+						self.searchVmParam().softTypeName = object.softTypeName;
+						self.searchVmParam().ltStorage = object.spaceSize;
 						
 						self.toUpgradeTable([]);
 						
@@ -469,7 +493,19 @@
 					
 					/** 选择云主机弹窗 **/
 					this.upgradeVM = function() {
-						self.toUpgradeTable().splice(0, self.toUpgradeTable().length);
+						self.searchVmParam().vmName = '';
+						self.searchVmParam().vmIp = '';
+						
+						var withoutVmUuids = '';
+						
+						$.each(self.toUpgradeTable(), function(i, val) {
+							withoutVmUuids += (val.uuid + ',');
+						});
+						
+						self.searchVmParam().withoutVmUuids = withoutVmUuids.substring(0, withoutVmUuids.length-1);
+						
+						self.vmTable.params(self.searchVmParam());
+						
 						self.isUpgradeVM(true);
 					};
 					
@@ -629,7 +665,9 @@
 							setTimeout(function () {
 								window.location.href = '#pages/softwares/logs';
 							}, 1000);
-						});
+						}, function(XMLHttpRequest, textStatus, errorThrown) {
+							systemMsg.alert(XMLHttpRequest.responseText);
+					    });
 					};
 					
 					this.loadTypes({});

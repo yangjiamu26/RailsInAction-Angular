@@ -73,6 +73,7 @@
 													</th>
 													<th>软件名称</th>
 													<th>软件版本</th>
+													<th>安装类型</th>
 													<th>上传进度</th>
 													<th>软件类型</th>
 													<th>适用架构</th>
@@ -100,6 +101,7 @@
 													</td>
 													<td data-bind="text: $row.name"></td>
 													<td data-bind="text: $row.version"></td>
+													<td data-bind="text: $row.installType"></td>
 													<td data-bind="text: $row.progress, attr: {id: $row.uuid}"></td>
 													<td data-bind="text: $row.softTypeName"></td>
 													<td data-bind="text: $row.cpuArchName"></td>
@@ -251,7 +253,7 @@
 								data-bind="value: currentVO().osType">
 								<option selected="selected"></option>
 								<option value="linux">linux</option>
-								<option value="window">windows</option>
+								<option value="windows">windows</option>
 								<option value="aix">aix</option>
 							</select>
 						</div>
@@ -814,7 +816,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			$.each(treeNodes, function(i, val) {
 				if (val.name == self.searchParam().softTypeName()) {
 					treeObj.selectNode(val, false);
-					return;
+					return false;
+				} else if(typeof(self.searchParam().softTypeName()) == 'undefined') {
+					treeObj.selectNode(treeNodes[0], false);
+					return false;
 				}
 			});
 		};
@@ -906,10 +911,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 			self.uploader.on('startUpload', function() {
 				
+				$('#' + uuid).html('0%');
+				
 				var intervalId = setInterval(function() {
 
 					$.SOFTWARE.getProgress(uuid, function(data) {
-						$('#' + uuid).html('');
 
 						if (data.progress.indexOf('%') != -1) {
 							$('#' + uuid).html(data.progress);
@@ -1153,6 +1159,12 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 		$.SOFT_TYPE.loadSoftTypeTree(function(data) {
 			$.fn.zTree.init($("#serverDefinitionsTree"), viewModel.treeSetting, data);
+			
+			var treeObj = $.fn.zTree.getZTreeObj('serverDefinitionsTree');
+			
+			var treeNodes = treeObj.transformToArray(treeObj.getNodes());
+			
+			treeObj.selectNode(treeNodes[0], false);
 		});
 
 		$("#softwareModal").on("shown.bs.modal", function() {

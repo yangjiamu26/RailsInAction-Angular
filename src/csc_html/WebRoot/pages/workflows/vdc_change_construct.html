@@ -427,8 +427,8 @@
 	  	    vpn: ko.observable("")
   	      });
 	  	  
-		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-	   	     var processInstanceId = data.taskInfo[0].processInstanceId;
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(dataTask){
+	   	     var processInstanceId = dataTask.taskInfo[0].processInstanceId;
 			 //获取订单数据
 	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
 	      		var orderData = data;
@@ -466,8 +466,8 @@
 	    		}
 	    		self.quotas(quotas);
 	    		
-	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(data){
-	      			var vdcQuotaList = data.results;
+	      		$.VDC.getVdcQuota(itemListData[0].resourceUuid,"",function(dataVdc){
+	      			var vdcQuotaList = dataVdc.results;
 	      			for(var i=0;i<vdcQuotaList.length;i++){	      				
 		      			if(vdcQuotaList[i].type=='CPU'){
 		      				self.applyChangeVdc().cpu(vdcQuotaList[i].value);
@@ -501,7 +501,7 @@
 	      			}
 		    	})
 	      		
-	      		for(var i=0;i<osType.length;i++){
+	      		for(var i = 0; i < osType.length; i++){
 	      			if(osType[i]=='windows'){
 	      				self.windows(true);
 	      			}else if(osType[i]=='linux'){
@@ -513,18 +513,22 @@
 	      		
 	      		var azList = [];
 	      		var networks = [];
-	      		if(azs != undefined){	      			
-		      		for(var i=0;i<azs.length;i++){
-		      			$.VDC.getAvailableToVdc({uuid:azs[i].uuid},function(data){
-			      			azList.push(data.results[0]);
+	      		if(azs != undefined){
+		      		for(var i = 0;i < azs.length; i++){
+		      			$.VDC.getAvailableToVdc({uuid:azs[i].uuid},function(dataAz){
+		      				if (dataAz && dataAz.results) {
+		      					var azVdc = dataAz.results;
+		      					for (var k = 0; k < azVdc.length; k++) {
+		      						azList.push(azVdc[k])
+		      					}
+		      				}
 			      			self.azs(azList);
 		      			});
 		      			var nwUuids = azs[i].networks;
-		      			for(var j=0;j<nwUuids.length;j++){
-		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
-		      					console.log(data);
-			      				networks.push({'networkName':data.name,'azName':data.azName,'cloudPlatformName':data.cloudPlatformName,
-			      					'networkUuid':data.uuid,'azUuid':data.azUuid});
+		      			for(var j = 0; j < nwUuids.length; j++){
+		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(dataNetwork){
+			      				networks.push({'networkName':dataNetwork.name,'azName':dataNetwork.azName,'cloudPlatformName':dataNetwork.cloudPlatformName,
+			      					'networkUuid':dataNetwork.uuid,'azUuid':dataNetwork.azUuid});
 			      				self.networks(networks);
 		   					});
 		      			}

@@ -132,7 +132,7 @@
     <div class="col-xs-3">
       <div class="input-group">
         <span class="input-group-addon">名称</span>
-        <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value:objectSearchParam().name">
+        <input type="text" class="input-sm form-control" placeholder="请输入名称" onkeydown="keyDown()"  data-bind="value:objectSearchParam().name">
       </div>
     </div>
     <div class="col-xs-2">
@@ -474,13 +474,13 @@
       this.createDisk = function(){
     	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
     	  this.currentVO({
-        	  name: ko.observable().extend({required: true, maxLength: 32,cscNameRule:true}),
+        	  name: ko.observable().extend({required: true, maxLength: { params: 30, message: "名称最大长度为30个字符" },cscNameRule:true}),
         	  vdcUuid:ko.observable().extend({required: true}),
           	  azUuid:ko.observable().extend({required: true}),
           	  applySize:ko.observable().extend({required: true,positiveIntegerRule:true}),
           	  yearMonth:ko.observable().extend({required: false}),
           	  toDate:'',
-          	  remark:''
+          	  remark:ko.observable().extend({required: false, maxLength: { params: 255, message: "名称最大长度为255个字符" }})
           });
     	//---------------------------弹出添加页面时加载-----------------------------------
           
@@ -844,7 +844,7 @@
     	}
       
       this.cancelUpload = function(){
-    	  
+    	  //self.uploader.stop(true);
     	  if(self.uploader.isInProgress()){//正在上传中，也可以用(self.progressText()!='0%' &&self.progressText()!='100%')判断在上传中 
     		  //先暂停
     		  //self.uploader.stop(true);
@@ -869,10 +869,10 @@
     					  self.showUploadDialog(false);
     				  }
     			  });
-    		  },function(){
+    		   },function(){
     			  //继续上传
     			  //self.uploader.upload();
-    		  });
+    		  }); 
     	  }else{
     		  self.showUploadDialog(false);
     	  }
@@ -912,7 +912,24 @@
         });
         this.table.params({});
       }
-          
+      this.keyDown = function(){
+    	  
+    	  var x;
+    	  if(window.event) // IE8 以及更早版本
+    	  	{
+    	  	x=event.keyCode;
+    	  	}
+    	  else if(event.which) // IE9/Firefox/Chrome/Opera/Safari
+    	  	{
+    	  	x=event.which;
+    	  	}
+    	  var ev= window.event||e;
+
+    	//13是键盘上面固定的回车键
+    	  if (xev.keyCode == 13){
+    		  self.search();
+    	  }
+      }   
       //搜索
       this.search = function(){
     	  var p = {

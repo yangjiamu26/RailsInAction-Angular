@@ -216,11 +216,29 @@
 				</div>
 			</div>
 			<div class='modal-footer' style="text-align: center">
-				<input type="button" name="commit" value="选择"
-					class="btn btn-default btn-info"
-					data-bind="click: installVMConfirm" />
-				<button name="button" class="btn btn-default btn btn-default"
-					data-bind="click: installVMCancel">取消</button>
+				<div style="margin-bottom: 40px;">
+					<div data-bind="with: vmTable, visible: vmTable.pages() > 1">
+						<ul class="pagination">
+							<li data-bind="css: leftPagerClass, click: prevPage"><a
+								href="#">&laquo;</a></li>
+							<!-- ko foreach: {data: (new Array(pages()))} -->
+							<li data-bind="css: $parent.pageClass($index() + 1)"><a
+								href="#"
+								data-bind="text: $index() + 1, click: $parent.gotoPage($index() + 1)"></a>
+							</li>
+							<!-- /ko -->
+							<li data-bind="css: rightPagerClass, click: nextPage"><a
+								href="#">&raquo;</a></li>
+						</ul>
+					</div>
+				</div>
+				<div style="text-align: center;">
+					<input type="button" name="commit" value="选择"
+						class="btn btn-default btn-info"
+						data-bind="click: installVMConfirm" />
+					<button name="button" class="btn btn-default btn btn-default"
+						data-bind="click: installVMCancel">取消</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -404,7 +422,8 @@
 
 					/** 待安装云主机列表数据 **/
 					this.vmTable = new DataTable([], {
-						path : 'api/v5.0.0/install/vms'
+						path : 'api/v5.0.0/install/vms',
+						perPage : 7
 						//path : 'pages/softwares/vm.json'
 					});
 					
@@ -424,13 +443,16 @@
 					
 					/** 过滤云主机 **/
 					this.filterVm = function() {
+						
 						var param = self.searchVmParam();
 						
-						param.notSoftwareUuid = self.softwareVO().uuid;
+						var withoutVmUuids = '';
 						
-						param.ltStorage = self.softwareVO().spaceSize;
+						$.each(self.toInstallTable(), function(i, val) {
+							withoutVmUuids += (val.uuid + ',');
+						});
 						
-						param.includeOs = self.softwareVO().osName;
+						param.withoutVmUuids = withoutVmUuids.substring(0, withoutVmUuids.length-1);
 						
 						self.vmTable.params(param);
 					};
@@ -450,7 +472,9 @@
 							vms:[]
 						});
 						
-						self.vmTable.params({notSoftwareUuid:object.uuid, ltStorage: object.spaceSize, includeOs: object.osName});
+						self.searchVmParam().notSoftwareUuid = object.uuid;
+						self.searchVmParam().ltStorage = object.spaceSize;
+						self.searchVmParam().includeOs = object.osName;
 						
 						self.toInstallTable([]);
 						
@@ -464,7 +488,19 @@
 					
 					/** 选择云主机弹窗 **/
 					this.installVM = function() {
-						self.toInstallTable().splice(0, self.toInstallTable().length);
+						
+						self.searchVmParam().vmName = '';
+						self.searchVmParam().vmIp = '';
+						
+						var withoutVmUuids = '';
+						
+						$.each(self.toInstallTable(), function(i, val) {
+							withoutVmUuids += (val.uuid + ',');
+						});
+						
+						self.searchVmParam().withoutVmUuids = withoutVmUuids.substring(0, withoutVmUuids.length-1);
+						
+						self.vmTable.params(self.searchVmParam());
 						
 						self.isInstallVM(true);
 					};
@@ -625,7 +661,10 @@
 							setTimeout(function () {
 								window.location.href = '#pages/softwares/logs';
 							}, 1000);
-						});
+						}, function(XMLHttpRequest, textStatus, errorThrown) {
+					    	systemMsg.alert(XMLHttpRequest.responseText);
+					    	self.installVO().vms.splice(0, self.installVO().vms.length);
+					    });
 					};
 					
 					this.loadTypes({});
