@@ -48,10 +48,6 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
                 'top_view':{
                     templateUrl: "views/storageManage/storageTop.html",
                     controller:'storageTopCtrl'
-                },
-                'bot_view':{
-                    templateUrl: "views/main/mainPageBot.html",
-                    controller:'mainPageBotCtrl'
                 }
             }
         })
@@ -104,6 +100,17 @@ vsanApp.config(function ($stateProvider, $urlRouterProvider) {
         		}
         	}
         })
+
+		.state("mainManager.cnwareManage",{
+            url:'/cnwareManage',
+            views:{
+                'top_view':{
+                    templateUrl: "views/cnware/cnwareMainTop.html",
+                    controller:'cnwareMainCtrl'
+                }
+            }
+        })
+
         .state("mainManager.cnwarePool", {
         	url: "/cnware/pool",
         	views: {

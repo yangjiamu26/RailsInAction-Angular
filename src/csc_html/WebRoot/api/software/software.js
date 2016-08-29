@@ -188,6 +188,8 @@
 			installSoft: function (params, callback, errorCallback) {
 				csc.rest.post('api/v5.0.0/install', params, function(data) {
 				     callback(data);
+			    }, function(XMLHttpRequest, textStatus, errorThrown) {
+			    	errorCallback(XMLHttpRequest, textStatus, errorThrown);
 			    }); 
 			},
 			
@@ -197,7 +199,9 @@
 			retryInstall: function (params, callback, errorCallback) {
 				csc.rest.post('api/v5.0.0/install/retry', params, function(data) {
 					callback(data);
-				});
+				}, function(XMLHttpRequest, textStatus, errorThrown) {
+			    	errorCallback(XMLHttpRequest, textStatus, errorThrown);
+			    });
 			},
 			
 			/**

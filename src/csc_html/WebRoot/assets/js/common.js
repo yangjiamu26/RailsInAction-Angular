@@ -460,7 +460,29 @@ csc.util = {
 				csc.util.trimRequestParams(params[key]);
 			}
 		}
-	}
+	},
+	dateDiff : function(time){
+    	if(!csc.util.isNotNull(time)) return "";
+    	try{
+    		var myDate = new Date();
+    		var diff = (myDate.getTime()/1000 - time).toFixed(0);
+    		var _s = 24 * 60 * 60;
+    		var _h = 60 * 60;
+    		
+    		var day = parseInt(diff/_s);
+    		var h = parseInt(diff%_s/_h);
+    		var m = parseInt(diff%_s%_h/60);
+    		var s = diff%_s%_h%60;
+    		//天 小时 分钟 秒
+    		return day + "天"
+    				   + h + "小时"
+    				   + m + "分钟"
+    				   + s + " 秒";  
+    		
+    	}catch(e){
+    		return "";
+    	}
+    }
 }
 
 // 全局上传
