@@ -39,14 +39,14 @@ myApp.onPageInit("vm-index", function(page) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
-          self.noMore(false);
-          if(data.data.length < PAGE_SIZE) self.noMore(true);
 
-          self.vmNum(data.size);
           var os = [data.winVm,data.linuxVm,data.othersVm], status = [data.okStateVm,data.stoppeStatedVm,data.otherStatedVm];
-          
           initVm_os_chart(os);
           initVm_status_chart(status);
+          self.vmNum(data.size);
+
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
           var reg1 = /windows/i,

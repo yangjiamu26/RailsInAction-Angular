@@ -3,7 +3,7 @@ myApp.onPageInit("host-summary", function(page) {
 function initSingleHost_cpu_chart(data) {
   var unit = "GHz";
   if(viewModel.summary().hypervisor=="PowerVM") unit = "核";
-  $('#singleHost_cpu_chart').highcharts({
+  $('#singleHost_cpu_chart'+viewModel.belongTab()).highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -74,7 +74,7 @@ function initSingleHost_cpu_chart(data) {
 }
 // 单个资源池-内存占比图
 function initSingleHost_memory_chart(data) {
-    $('#singleHost_memory_chart').highcharts({
+    $('#singleHost_memory_chart'+viewModel.belongTab()).highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -145,7 +145,7 @@ function initSingleHost_memory_chart(data) {
 }
 // 单个资源池-存储占比图
 function initSingleHost_storage_chart(data) {
-    $('#singleHost_storage_chart').highcharts({
+    $('#singleHost_storage_chart'+viewModel.belongTab()).highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -230,13 +230,14 @@ function initSingleHost_storage_chart(data) {
       "memory":'',
       "storage":''
     });
+    this.belongTab = ko.observable(page.query.belongTab);
     this.loadData = function(data){
       var self = this;
-      data.cpuSpeed = Number((Number(data.cpuSpeed)/1024).toFixed(2));
+      data.cpuSpeed = Number((Number(data.cpuSpeed)/1000).toFixed(2));
       self.summary(data);
       RestServiceJs(BASE_URL+"/host/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":data.hypervisor},function(res){
-        res.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.totalCpu)).toFixed(2)) : Number((Number(res.totalCpu)/1024).toFixed(2));
-        res.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.availCpu)).toFixed(2)) : Number((Number(res.availCpu)/1024).toFixed(2));
+        res.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.totalCpu)).toFixed(2)) : Number((Number(res.totalCpu)/1000).toFixed(2));
+        res.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.availCpu)).toFixed(2)) : Number((Number(res.availCpu)/1000).toFixed(2));
         res.memory = Number((Number(res.memory)/1024).toFixed(2));
         res.availMemory = Number((Number(res.availMemory)/1024).toFixed(2));
         res.storage = Number((Number(res.storage)/1024).toFixed(2));

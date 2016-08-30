@@ -233,8 +233,8 @@ function initSinglePool_storage_chart(data) {
       RestServiceJs(BASE_URL+"/resPool").get(page.query.id,{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolName":page.query.resourcePoolName},function(data){
       //$.ajax("tpl/pool/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
-        data.cpu = data.hypervisor == 'PowerVM' ? Number(Number(data.cpu).toFixed(2)) : Number((Number(data.cpu)/1024).toFixed(2));
-        data.availCpu = data.hypervisor == 'PowerVM' ? Number(Number(data.availCpu).toFixed(2)) : Number((Number(data.availCpu)/1024).toFixed(2));
+        data.cpu = data.hypervisor == 'PowerVM' ? Number(Number(data.cpu).toFixed(2)) : Number((Number(data.cpu)/1000).toFixed(2));
+        data.availCpu = data.hypervisor == 'PowerVM' ? Number(Number(data.availCpu).toFixed(2)) : Number((Number(data.availCpu)/1000).toFixed(2));
         data.memory = Number((Number(data.memory)/1024).toFixed(2));
         data.availMemory = Number((Number(data.availMemory)/1024).toFixed(2));
         if(Number(data.storage)>1023){

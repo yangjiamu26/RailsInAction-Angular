@@ -29,6 +29,7 @@ myApp.onPageInit("vm-summary2", function(page) {
         self.showShare('false');
       }
       myApp.pullToRefreshDone();
+      data.memory = (Number(data.memory)/1024).toFixed(2);
       self.summary(data);  
     };
   }
