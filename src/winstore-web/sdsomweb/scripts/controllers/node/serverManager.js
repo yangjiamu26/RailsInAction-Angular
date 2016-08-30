@@ -120,8 +120,9 @@ vsanApp.controller('serverManagerCtrl', ['$scope', 'nodeFactory', function ($sco
             $scope.setHddErrMsg("主机IP重复");
             return;
         }
+        $scope.isAdd = true;
+        spinner.show();
         NProgress.start();
-
         var fLen = serverList.length;
         var count = 0;
         for (var i = 0; i < fLen; i++) {
@@ -133,6 +134,8 @@ vsanApp.controller('serverManagerCtrl', ['$scope', 'nodeFactory', function ($sco
                 ip: serverIp
             };
             nodeFactory.addFreeServer(params, function (response) {
+                spinner.hide();
+                $scope.isAdd = false;
                 if (response.success) {
                     count++;
                     // 获取已安装硬盘列表
@@ -148,6 +151,23 @@ vsanApp.controller('serverManagerCtrl', ['$scope', 'nodeFactory', function ($sco
                 }
             });
         }
+    };
+
+    $scope.rmServer = function (serverIp) {
+        NProgress.start();
+        var params = {
+            ip: serverIp
+        };
+        nodeFactory.deleteFreeServer(params, function (response) {
+            if (response.success) {
+                // 查询节点IP
+                $scope.getServerList();
+                NProgress.done();
+            } else {
+                $scope.setHddErrMsg(response.message);
+            }
+            NProgress.done();
+        });
     };
 
 }]);
