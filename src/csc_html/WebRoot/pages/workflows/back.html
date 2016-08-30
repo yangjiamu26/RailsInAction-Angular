@@ -11,7 +11,7 @@
                 <div class="form-inline">
                     选择回退节点：
                     <select class="form-control" id="backPoint">
-                    	<option value="applyPoint">申请节点</option>
+                    	<option value="applyPoint" id="applyPoint">申请节点</option>
                     </select>
                 </div>
                 <p class="text-danger">回退操作会导致施工成功的资源被删除！</p>
@@ -31,8 +31,13 @@
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  taskId = args.taskId;
 	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+		var taskInfo = data.taskInfo[0];
+		var processType = taskInfo.processType;
+		if(processType == 'CUSTOM'){
+			$("#applyPoint").remove();
+		}
+		  
    		var activity = data.taskActivity[0];
-   		
    		if(activity.outgoings!=''){
 		  var fallbacks = activity.fallbacks;
 		  var firstNode;
@@ -44,6 +49,7 @@
 		  }
 		  
 		}
+   		
       },function(){alert('获取任务失败！')});
   });
   
