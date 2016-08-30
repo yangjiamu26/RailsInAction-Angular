@@ -143,7 +143,7 @@
                 </thead>
                 <tbody data-bind="foreach: networks">
                 	<tr>
-                		<input type="hidden" data-bind="value: networkUuid,attr:{azUuid:azUuid}" name="networkUuid">
+                		<input type="hidden" data-bind="value: networkUuid,attr:{azUuid:azUuid,networkName:networkName,cloudPlatformName:cloudPlatformName,azName:azName}" name="networkUuid">
                 		<td data-bind="text: networkName"></td>
                 		<td data-bind="text: cloudPlatformName"></td>
                 		<td data-bind="text: azName"></td>
@@ -434,7 +434,6 @@
 	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
 	      		var orderData = data;
 	      		var itemListData = data.orderItems;
-	      		console.log(itemListData)
 	      		var metaData = JSON.parse(itemListData[0].metaData);
 	      		var resBaseInfo = JSON.parse(metaData.resBaseInfo);
 	      		var osType = metaData.osType;
@@ -516,7 +515,6 @@
 		      			var nwUuids = azs[i].networks;
 		      			for(var j=0;j<nwUuids.length;j++){
 		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
-		      					console.log(data);
 			      				networks.push(data);
 		   					});
 		      			} */
@@ -660,6 +658,7 @@
 				var networkName =  $(this).attr("networkName");
 				var azName =  $(this).attr("azName");
 				var cloudPlatformName =  $(this).attr("cloudPlatformName");
+				
 				var networkUuid = $(this).val();
 			    var notFound = true;
 			    
@@ -679,6 +678,7 @@
 						break;
 					}
 				}
+				
 				if(notFound){
 					azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid,"name":networkName}]});
 					net = {"azUuid":azUuid,"networkName":networkName,"azName":azName,
@@ -698,7 +698,6 @@
 			var meta = {"osType":osType,"resBaseInfo":{"limitQuota":limitQuota,"vdcQuotaList":vdcQuotaList,"azs":azs}};
 			meta = JSON.stringify(meta);
 		    var itemResults = {"metaData":meta};
-		    //console.log(itemResults)
 			
 		    self.itemResults(itemResults); */
 		    self.addVdcNetworkModel(false);
@@ -717,6 +716,10 @@
 				$("input[name='networkUuid']").each(function(){					
 	          		var azUuid = $(this).attr("azuuid");
 					var networkUuid = $(this).val();
+					
+					var networkName = $(this).attr("networkName");
+					var azName = $(this).attr("azName");
+					var cloudPlatformName = $(this).attr("cloudPlatformName");
 				    var notFound = true;
 				    
 					for(var az in azs){
@@ -725,13 +728,14 @@
 							if(!azVo.networks){
 								azVo.networks = [];
 							}
-							azVo.networks.push({"uuid":networkUuid});
+							azVo.networks.push({"uuid":networkUuid, "name":networkName, "azName":azName, "cloudPlatformName":cloudPlatformName});
+							
 							notFound = false;
 							break;
 						}
 					}
 					if(notFound){
-						azs.push({"uuid":azUuid,networks:[{"uuid":networkUuid}]});
+						azs.push({"uuid":azUuid, networks:[{"uuid":networkUuid, "name":networkName, "azName":azName, "cloudPlatformName":cloudPlatformName}]});
 					}
 				})
 				var metaData = self.metaData();
@@ -739,7 +743,6 @@
 				var resBaseInfo = JSON.parse(metaData.resBaseInfo);
 				var limitQuota = resBaseInfo.limitQuota;
 				var vdcQuotaList = resBaseInfo.vdcQuotaList;
-				
 				var meta = {"osType":osType,"resBaseInfo":{"vdcQuotaList":self.vdcQuotas(),"azs":azs}};
 				meta = JSON.stringify(meta);
 			    var itemResults = {"metaData":meta};

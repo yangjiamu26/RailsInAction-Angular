@@ -21,67 +21,35 @@
 					<div class="bg-light b-t b-b wrapper-sm text-nowarp">
 						<div class="row m-b">
 							<div class="col-xs-1 font-bold">云主机名称：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().name"></div>
 							<div class="col-xs-1 font-bold">虚拟化：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().hypervisor"></div>
 							<div class="col-xs-1 font-bold">IP池：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().ipPool"></div>
 						</div>
 						<div class="row m-b">
 							<div class="col-xs-1 font-bold">操作系统：</div>
-							<div class="col-xs-3"></div>
-							<div class="col-xs-1 font-bold">内存：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().osVersion"></div>
+							<div class="col-xs-1 font-bold">内存(GB)：</div>
+							<div class="col-xs-3" data-bind="text: currentVO().memory"></div>
 							<div class="col-xs-1 font-bold">所属物理机：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().ownerHost"></div>
 						</div>
 						<div class="row m-b">
 							<div class="col-xs-1 font-bold">CNware数据中心：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().cnDatacenter"></div>
 							<div class="col-xs-1 font-bold">资源池：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().resourcePool"></div>
 							<div class="col-xs-1 font-bold">IP地址：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().ip"></div>
 						</div>
 						<div class="row m-b">
 							<div class="col-xs-1 font-bold">CPU：</div>
-							<div class="col-xs-3"></div>
-							<div class="col-xs-1 font-bold">存储：</div>
-							<div class="col-xs-3"></div>
+							<div class="col-xs-3" data-bind="text: currentVO().cpu"></div>
+							<div class="col-xs-1 font-bold">存储(GB)：</div>
+							<div class="col-xs-3" data-bind="text: currentVO().storage"></div>
 							<div class="col-xs-1 font-bold">状态：</div>
-							<div class="col-xs-3"></div>
-						</div>
-					</div>
-				</div>
-				<div class="wrapper">
-					<div class="clear">
-						<h5 class="pull-left text-black">
-							<i class="fa fa-minus fa-rotate-90 text-info"></i>挂载云硬盘
-						</h5>
-					</div>
-					<div id='instance_storages'>
-						<div class='table-responsive no-height'>
-							<table class='table table-striped'>
-								<thead>
-									<tr>
-										<th>云硬盘名称</th>
-										<th>总大小（GB）</th>
-										<th>服务产品</th>
-										<th>套餐</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr data-bind="visible: showNoData">
-										<td colspan=4 class="aligncenter">暂无数据.</td>
-									</tr>
-									<tr>
-										<td>xx</td>
-										<td>10</td>
-										<td></td>
-										<td></td>
-									</tr>
-								</tbody>
-							</table>
+							<div class="col-xs-3" data-bind="text: currentVO().state"></div>
 						</div>
 					</div>
 				</div>
@@ -95,8 +63,8 @@
 					<div class="row padder-v">
 						<div class="col-xs-3 form-group ">
 							<div class="input-group w">
-								<span class="input-group-addon">所属VDC</span> <select
-									class="form-control input-sm">
+								<span class="input-group-addon">所属VDC</span> 
+								<select class="form-control input-sm" data-bind="options:vdcList,optionsText:'name',optionsValue:'uuid',value: selected_vdc, event:{'change':changeVdcValue}">
 								</select>
 							</div>
 							<div class="not-null">
@@ -105,10 +73,8 @@
 						</div>
 						<div class="col-xs-3">
 							<div class="input-group w">
-								<span class="input-group-addon">可用分区</span> <select
-									class="form-control input-sm">
-									<option value="1">1</option>
-									<option value="2">2</option>
+								<span class="input-group-addon">可用分区</span> 
+								<select class="form-control input-sm" data-bind="options: azList,optionsText: 'name',optionsValue: 'uuid',value: selected_az">
 								</select>
 							</div>
 							<div class="not-null">
@@ -117,10 +83,8 @@
 						</div>
 						<div class="col-xs-3">
 							<div class="input-group w">
-								<span class="input-group-addon">服务产品</span> <select
-									class="form-control input-sm">
-									<option value="1">1</option>
-									<option value="2">2</option>
+								<span class="input-group-addon">服务产品</span> 
+								<select class="form-control input-sm" data-bind="options: serviceList,optionsText: 'name',optionsValue: 'uuid',value: selected_service, event:{'change':changeServiceValue}">
 								</select>
 							</div>
 							<div class="not-null">
@@ -131,32 +95,29 @@
 					<div class="row padder-v">
 						<div class="col-xs-3 form-inline">
 							<div class="input-group w">
-								<span class="input-group-addon">套餐</span> <select
-									class="form-control input-sm">
-									<option value="1">1</option>
-									<option value="2">2</option>
+								<span class="input-group-addon">套餐</span> 
+								<select class="form-control input-sm" data-bind="options: feeList,optionsText: 'name',optionsValue: 'value',value: selected_fee, event:{'change':changeFeeValue}">
 								</select>
 							</div>
-							<span>100元/月 </span>
+							<span data-bind="text: fee_price"></span>
 							<div class="not-null" style="right: 20px;">
 								<span class="text-danger inline m-l-n m-t-sm">*</span>
 							</div>
 						</div>
 						<div class="col-xs-3">
 							<div class="input-group w">
-								<span class="input-group-addon">业务系统</span> <select
-									class="form-control input-sm">
-									<option value="1">1</option>
-									<option value="2">2</option>
+								<span class="input-group-addon">业务系统</span> 
+								<select class="form-control input-sm" data-bind="options: busList,optionsText: 'name',optionsValue: 'uuid',value: selected_bus">
 								</select>
+							</div>
+							<div class="not-null">
+								<span class="text-danger inline m-l-n m-t-sm">*</span>
 							</div>
 						</div>
 						<div class="col-xs-3">
 							<div class="input-group w">
-								<span class="input-group-addon">接管人</span> <select
-									class="form-control input-sm">
-									<option value="1">1</option>
-									<option value="2">2</option>
+								<span class="input-group-addon">接管人</span> 
+								<select class="form-control input-sm" data-bind="options: userList,optionsText: 'account',optionsValue: 'account',value: selected_user">
 								</select>
 							</div>
 							<div class="not-null">
@@ -168,15 +129,15 @@
 						<div class="col-xs-1 font-bold " style="line-height: 32px;">申请时长:</div>
 						<div class="col-xs-6">
 							<div class="radio">
-								<label class="form-inline"> <input type="radio"
-									name="optionsRadios" id="optionsRadios1" value="1" checked
-									data-bind="checked: serviceVO().validTimeType"> 永久
+								<label class="form-inline"> 
+								<input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked
+									data-bind="checked: currentVO().validTimeType"> 永久
 								</label>
 							</div>
 							<div class="radio">
 								<label class="form-inline"> 
-								<input type="radio" class="form-control" style="top: 2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: serviceVO().validTimeType"> 
-									<select class="form-control" data-bind="value: serviceVO().validTimeNum">
+								<input type="radio" class="form-control" style="top: 2px;" name="optionsRadios" id="optionsRadios2" value="2" data-bind="checked: currentVO().validTimeType"> 
+									<select class="form-control" data-bind="value: currentVO().validTimeNum">
 										<option value="1">1</option>
 										<option value="2">2</option>
 									</select> 个月
@@ -184,8 +145,8 @@
 							</div>
 							<div class="radio disabled">
 								<label class="form-inline"> 
-									<input type="radio" class="form-control" style="top: 2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: serviceVO().validTimeType"> 
-									<input type="text" style="width: 206px" class="form-control" id="cutover_datePicker" data-bind="value: serviceVO().rangeTime">
+									<input type="radio" class="form-control" style="top: 2px;" name="optionsRadios" id="optionsRadios3" value="3" data-bind="checked: currentVO().validTimeType"> 
+									<input type="text" style="width: 206px" class="form-control" id="cutover_datePicker" data-bind="value: currentVO().rangeTime">
 								</label>
 							</div>
 						</div>
@@ -193,10 +154,48 @@
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
 						</div>
 					</div>
-					<div class="row padder-v" style="text-align: center;">
-						<a class="btn btn-default btn-info">确定</a> 
-						<a class="btn btn-default btn btn-default">取消</a>
+					
+				</div>
+				
+				<div class="wrapper">
+					<div class="clear">
+						<h5 class="pull-left text-black">
+							<i class="fa fa-minus fa-rotate-90 text-info"></i>挂载云硬盘
+						</h5>
 					</div>
+					<div id='instance_storages'>
+						<div class='table-responsive no-height'>
+							<table class='table table-striped' data-bind="with:table">
+								<thead>
+									<tr>
+										<th>云硬盘名称</th>
+										<th>总大小（GB）</th>
+										<th>服务产品</th>
+										<th>套餐</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- <tr data-bind="visible: showNoData">
+										<td colspan=4 class="aligncenter">暂无数据.</td>
+									</tr> -->
+									 <!-- ko foreach: {data: pagedRows, as: '$row'} -->
+									<tr>
+										<td>xx</td>
+										<td>10</td>
+										<!-- <td><select class="form-control" data-bind="options:$root.serviceDiskList,optionsText:'name',optionsValue:'uuid',value: $root.selected_diskService, event:{'change':$root.changeDiskServiceValue}, attr:{id: 'aa'+$index()}"></select></td> -->
+										<td><select class="form-control" data-bind="options:$root.serviceDiskList,optionsText:'name',optionsValue:'uuid', event:{'change':$root.changeDiskServiceValue}, attr:{id: $index()}"></select></td>
+										<!-- <td><select class="form-control" data-bind="options:$root.diskFeeList,optionsText:'name',optionsValue:'value',value: $root.selected_diskFee, attr:{id: 'bb'+$index()}"></select></td> -->
+										<td><select class="form-control" data-bind="options:$root.diskFeeList,optionsText:'name',optionsValue:'value',attr:{id: 'bb'+$index()}"></select></td>
+									</tr>
+									<!-- /ko -->
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="row padder-v" style="text-align: center;">
+					<a class="btn btn-default btn-info" data-bind="click: saveCutOver">确定</a> 
+					<a class="btn btn-default btn btn-default" href="#pages/resources/partitions/business_cutover/index">取消</a>
 				</div>
 			</div>
 		</div>
@@ -207,19 +206,259 @@
 <script type="text/javascript">
 	//var scripts = [null, "assets/lib/highcharts/highstock.js"]
 	var scripts = [ null, "assets/lib/moment/moment.js",
-			"assets/lib/bootstrap-daterangepicker/daterangepicker.js",
+			"assets/lib/bootstrap-daterangepicker/daterangepicker.js","assets/lib/bootstrap-daterangepicker/date.js",
 			"assets/lib/highcharts/highstock.js" ];
 	$('.page-content-area').ace_ajax('loadScripts',scripts,function(args) {
 		
-		$('#cutover_datePicker').val(self.currentVO().toDate).daterangepicker({
+		var id = args.id;
+		
+		var diskFeeId;
+		var booldiskFee;
+		
+		$('#cutover_datePicker').val(moment().subtract( 29, 'days').format('YYYY-MM-DD')).daterangepicker({
 			format : 'YYYY/MM/DD',
 			minDate : moment(),
+			startDate: moment().subtract( 29, 'days'),
 			singleDatePicker : true
 		});
+		//获取VDC列表
+		function loadVdcList(){
+			csc.rest.get('api/v5.0.0/vdcs',function(data){
+				detailModel.vdcList(data.results);
+	        });
+		}
+		loadVdcList();
+		//获取az列表
+		function loadAzList(vdcUuid){
+			csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
+				detailModel.azList(data.results);
+	        });
+		}
+		//获取业务系统列表
+		function loadBusList(vdcUuid){
+			csc.rest.get('api/v5.0.0/bussys?vdcUuid='+vdcUuid,function(data){
+				detailModel.busList(data.results);
+	        });
+		}
+		//获取用户列表
+		function loadUserList(vdcUuid){
+			csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/users',function(data){
+				detailModel.userList(data.results);
+	        });
+		}
+		//获取服务列表
+		function loadServiceList(vdcUuid,type){
+			if(type == "VM"){
+				csc.rest.get('api/v5.0.0/service/getVdcService/'+vdcUuid+'/'+type,function(data){
+					detailModel.serviceList(data.results);
+		        });
+			}else{
+				csc.rest.get('api/v5.0.0/service/getVdcService/'+vdcUuid+'/'+type,function(data){
+					detailModel.serviceDiskList(data.results);
+		        });
+			}
+		}
+		//获取套餐列表
+		function loadCycleList(serviceUuid, type){
+			if(type == "VM"){
+				csc.rest.get('api/v5.0.0/cart/getCartSelectList?serviceUuid='+serviceUuid,function(data){
+					detailModel.feeList(formatCharge(data.chargeList));
+		        });
+			}else{
+				csc.rest.get('api/v5.0.0/cart/getCartSelectList?serviceUuid='+serviceUuid,function(data){
+					if(booldiskFee){
+						var aa = formatCharge(data.chargeList);
+						var bb = "";
+						aa.forEach(function(f){
+							bb+= "<option value='"+f.value+"'>"+f.name+"</option>"
+						})
+						$("#bb"+diskFeeId).html("");
+						$("#bb"+diskFeeId).append(bb);
+						diskFeeId;
+					}else{
+						detailModel.diskFeeList(formatCharge(data.chargeList));
+					}
+					
+					debugger
+		        });
+			}
+			
+		}
+		//套餐列表转换
+		function formatCharge(attr){
+	    	var arrayCharge = [];
+	    	if(attr !=null){
+	    		for(var i=0;i<attr.length;i++){
+		    		if(attr[i]=="DAY"){
+		    			arrayCharge.push({name:"按天",value:"DAY"});
+		    		}else if(attr[i]=="MONTH"){
+		    			arrayCharge.push({name:"按月",value:"MONTH"});
+		    		}else if(attr[i]=="QUARTER"){
+		    			arrayCharge.push({name:"按季度",value:"QUARTER"});
+		    		}else{
+		    			arrayCharge.push({name:"按年",value:"YEAR"});
+		    		}
+		    	}
+	    	}
+	    	return arrayCharge;
+	    }
+		
+		//获取费用
+		function loadFee(serviceUuid,cycle){
+			csc.rest.get("api/v5.0.0/billing/rules/calculate?serviceUuid="+serviceUuid+"&cycle="+cycle, function(result){
+ 	    		var price = 0;
+ 	    		var type = detailModel.selected_fee();
+ 	    		var cpu = detailModel.currentVO().cpu();
+ 	    		var memory = detailModel.currentVO().memory();
+ 	    		var storage = detailModel.currentVO().storage();
+ 	    		result.ruleList.forEach(function(e){
+ 	    			if(e.attrType=='CPU'){
+ 	    				price += cpu * e.unitPrice;
+ 	    			}else if(e.attrType=='MEMORY'){
+ 	    				price += memory * e.unitPrice;
+ 	    			}else if(e.attrType=='STORAGE'){
+ 	    				price += storage * e.unitPrice;
+ 	    			}/* else if(e.attrType=='DISK'){
+ 	    				price += size * e.unitPrice;
+ 	    			}else if(e.attrType=='LOAD_BALANCING'){
+ 	    				price +=e.unitPrice;
+ 	    			}else if(e.attrType=='SECRET_KEY'){
+ 	    				price +=e.unitPrice;
+ 	    			}else if(e.attrType=='OBJECT_STORAGE'){
+ 	    				price += size * e.unitPrice;
+ 	    			}else if(e.attrType=='PUBLICIP'){
+ 	    				price +=e.unitPrice;
+ 	    			} */
+ 	    		});
+ 	    		
+ 	    		if(parseInt(price)!=price){
+ 	    			price = price.toFixed(2);
+ 	    		}
+ 	    		if(type=="DAY"){
+ 	    			price+="元/天";
+ 	    		}else if(type=="MONTH"){
+ 	    			price+="元/月";
+ 	    		}else if(type=="QUARTER"){
+ 	    			price+="元/季度";
+ 	    		}else{
+ 	    			price+="元/年";
+ 	    		}
+ 	    		detailModel.fee_price(price);
+ 	    	});	
+		}
+		
+		//获取数据详情
+		function loadInitData(detailModel){
+			detailModel.currentVO.fromJSON({
+				name: "vm-2008",
+				hypervisor: "POWER",
+				ipPool: "资源池1",
+				osVersion: "windows 2008",
+				memory: "4",
+				ownerHost: "物理机1",
+				cnDatacenter: "数据中心1",
+				resourcePool: "资源池1",
+				ip: "192.1.1.1",
+				cpu: "4",
+				storage: "128",
+				state: "运行中",
+				validTimeType: "2",
+	    	    validTimeNum: "2",
+	    	    rangeTime: ""
+			})
+		}
 		
 		function ViewModel() {
-			this.currentVO = ko.validatedObservable({});
+			var self = this;
+			
+			this.table = new DataTable([], {path: 'pages/resources/partitions/business_cutover/index.json'});
+			
+			this.currentVO = ko.validatedObservable({
+				name: ko.observable(),
+				hypervisor: ko.observable(),
+				ipPool: ko.observable(),
+				osVersion: ko.observable(),
+				memory: ko.observable(),
+				ownerHost: ko.observable(),
+				cnDatacenter: ko.observable(),
+				resourcePool: ko.observable(),
+				ip: ko.observable(),
+				cpu: ko.observable(),
+				storage: ko.observable(),
+				state: ko.observable(),
+				validTimeType: ko.observable("1"),
+	    	    validTimeNum: ko.observable(),
+	    	    rangeTime: ko.observable()
+			});
+			
+			//vdc列表
+			this.vdcList = ko.observableArray();
+			this.selected_vdc = ko.observable().extend({required : true});
+			//az列表
+			this.azList = ko.observableArray();
+			this.selected_az = ko.observable().extend({required : true});
+			//业务系统列表
+			this.busList = ko.observableArray();
+			this.selected_bus = ko.observable().extend({required : true});
+			//用户列表
+			this.userList = ko.observableArray();
+			this.selected_user = ko.observable().extend({required : true});
+			//云主机服务列表
+			this.serviceList = ko.observableArray();
+			this.selected_service = ko.observable().extend({required : true});
+			//云主机套餐列表
+			this.feeList = ko.observableArray();
+			this.selected_fee = ko.observable().extend({required : true});
+			//费用价格
+			this.fee_price = ko.observable();
+			//云盘服务列表
+			this.serviceDiskList = ko.observableArray();
+			this.selected_diskService = ko.observable().extend({required : true});
+			//云盘套餐列表
+			this.diskFeeList = ko.observableArray();
+			this.selected_diskFee = ko.observable().extend({required : true});
+			//VDC选择事件
+	        this.changeVdcValue = function(viewModel, event){
+	        	loadAzList(viewModel.selected_vdc());
+	        	loadBusList(viewModel.selected_vdc());
+	        	loadUserList(viewModel.selected_vdc());
+	        	loadServiceList(viewModel.selected_vdc(),"VM");
+	        	loadServiceList(viewModel.selected_vdc(),"DISK");
+	        }
+			
+	        //云主机服务选择事件
+	        this.changeServiceValue = function(viewModel, event){
+	        	loadCycleList(viewModel.selected_service(),"VM");
+	        }
+	        
+	        //套餐选择事件
+	        this.changeFeeValue = function(viewModel, event){
+	        	loadFee(viewModel.selected_service(),viewModel.selected_fee());
+	        }
+	      	//云盘服务选择事件
+	        this.changeDiskServiceValue = function(viewModel, event){
+	        	diskFeeId = event.currentTarget.id;
+	        	booldiskFee = event.bubbles;
+/* 	        	loadCycleList(self.selected_diskService(),"DISK");
+ */
+				 debugger
+				 if(event.bubbles){
+				 	loadCycleList($("#"+event.currentTarget.id).val(),"DISK");
+				 }else{
+					 loadCycleList($("#"+event.currentTarget.id).val(),"DISK");
+				 }
+	        }
+	      	
+	      	//保存
+	      	this.saveCutOver = function(){
+	      		debugger
+	      		$("#aa0").val();
+	      	}
+	      	
+	      	loadInitData(self);
 		}
-		ko.applyBindings(new ViewModel(),$('#page-content')[0]);
+		
+		var detailModel = new ViewModel(); 
+		ko.applyBindings(detailModel, $('#page-content')[0]);
 	});
 </script>

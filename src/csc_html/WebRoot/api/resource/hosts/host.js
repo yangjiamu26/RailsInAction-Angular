@@ -28,7 +28,7 @@
 				var param = csc.util.httpQueryParamConvert(param);
 				csc.rest.get('api/v5.0.0/hosts/'+ id + '/resourceStatics?'+param, function(data){
 					callback(data);
-	    		}); 
+	    		}, errorCallback, null, true); 
 			},
 			
 			/**

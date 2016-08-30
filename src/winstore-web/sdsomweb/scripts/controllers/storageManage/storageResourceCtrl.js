@@ -913,8 +913,8 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                 var height = (response.data.length) * 38 ;
                 $("#ShowInitiatorTr").show().css({height: 113 + height});
                 $scope.initiators = response.data;
-                var i = 0; length = response.data.length ;
-                for (i = 0; i < length; i++){
+                var length = response.data.length ;
+                for (var i = 0; i < length; i++){
                     if (response.data[i].approved == "yes") {
                         $scope.initiatorList.push(response.data[i].name);
                     } else {

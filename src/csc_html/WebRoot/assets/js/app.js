@@ -71,7 +71,7 @@ function hideModalThir(){
 
 if ($(".modal-draggable").length > 0) {
 	$(".modal-draggable").on("shown.bs.modal",function(){
-		$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+		$(this).find('.modal-dialog').draggable({ handle:'.modal-header',containment :'parent'});
 	})
 };
 if ($(".modal").length > 0) {
@@ -89,7 +89,7 @@ function systemMessage(){
 		var msgId = id_prefix+'_systemMessageAlertModal';
 		
 		$("body").append('<div class="modal fade" id="'+msgId+'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
-  							'<div class="modal-dialog modal-sm" role="document">' +
+  							'<div class="modal-dialog modal-sm" role="document"> ' +
 							    '<div class="modal-content">' +
 							      '<div class="modal-header">' +
 							        '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
@@ -107,7 +107,7 @@ function systemMessage(){
 		var modal = $("#"+msgId);
 		modal.modal('show');
 		modal.on("shown.bs.modal",function(){
-			modal.find('.modal-dialog').draggable({ handle:'.modal-header'});
+			modal.find('.modal-dialog').draggable({ handle:'.modal-header',containment :'parent'});
 		})
 		modal.on("hidden.bs.modal",function(){
 			modal.remove();
@@ -134,7 +134,7 @@ function systemMessage(){
 		var modal = $("#systemMessageConfirmModal");
 		modal.modal('show');
 		modal.on("shown.bs.modal",function(){
-			modal.find('.modal-dialog').draggable({ handle:'.modal-header'});
+			modal.find('.modal-dialog').draggable({ handle:'.modal-header',containment :'parent'});
 		})
 		modal.on("hidden.bs.modal",function(){
 			modal.remove();

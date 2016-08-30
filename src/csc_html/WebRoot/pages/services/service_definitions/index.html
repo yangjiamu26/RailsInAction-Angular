@@ -108,6 +108,7 @@
 												<th>服务目录</th>
 												<th>创建人</th>
 												<th>生效时间</th>
+												<th>失效时间</th>
 												<th>操作</th>
 											</thead>
 											<tbody>
@@ -126,6 +127,7 @@
 													<td data-bind="text: $row.dirName"></td>
 													<td data-bind="text: $row.createUser"></td>
 													<td data-bind="text: $row.effectTime"></td>
+													<td data-bind="text: $row.expireTime"></td>
 													<td><a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.release">发布&nbsp;&nbsp;</a> 
 													 <a data-bind="if: $row.state == 0 || $row.state == 2,click: $root.editService">修改&nbsp;&nbsp;</a>
 													 <a data-bind="if: $row.state == 0,click: $root.deleteService">删除 &nbsp;&nbsp;</a>
@@ -738,7 +740,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       
       <!-- 云主机start -->
       //虚拟化类型选择事件
-      this.changeVirtualValue = function(viewModel, event){      	  
+/*       this.changeVirtualValue = function(viewModel, event){      	  
          if(viewModel.selected_product()=='VM'){
 			 if(event.bubbles){
 				  //当选择不同的虚拟化时得清空初始化数据，重新加载
@@ -751,18 +753,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 			 	  if(viewModel.osType_chosen().length > 0){
 						  viewModel.osType_chosen.removeAll();
 				  }
-			 	 
+			 	 //初始化虚拟机操作系统类型数据        	 
+			 	 loadVmOsType(true);
+			 	 //初始化可用分区数据
+			 	 loadVmAzs(true); 
 			 }
-			//初始化虚拟机操作系统类型数据        	 
-		 	 loadVmOsType(true);
-		 	 //初始化可用分区数据
-		 	 loadVmAzs(true);
+			
          }else if(viewModel.selected_product()=='VDC'){
             
          }else{
       	   
          }
-      } 
+      }  */
       
     //云主机可用分区和操作系统类型change事件
       this.changeCheckBoxValue = function(data, event){
@@ -997,7 +999,22 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
          		 	  loadVmOsType(false);
          		 	  //初始化可用分区数据
          		 	  loadVmAzs(false);
-                	  
+         		 	  //清除CPU的值
+         		 	  if(self.cpuCheckList().length > 0){
+            			 self.cpuCheckList.removeAll();
+            		  }
+         		 	  //清除内存的值
+         		 	  if(self.memoryCheckList().length > 0){
+            			 self.memoryCheckList.removeAll();
+            		  }
+         		 	  //清除操作系统类型的值
+         		 	  if(self.osTypeCheckList().length > 0){
+            			 self.osTypeCheckList.removeAll();
+            		  }
+         		 	  //清除可用分区的值
+         		 	  if(self.azUuidList().length > 0){
+            			 self.azUuidList.removeAll();
+            		  }
                 	  //CPU赋值
                 	  var vmCpu = data.serviceVm.cpu;
                 	  if(vmCpu.indexOf(",") != -1){
@@ -1039,7 +1056,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                   		  osTypes: vmOsType
                   	  });
                   	  var vmOsVersion = data.serviceVm.osVersion;
-                  	  
+                  	  if(self.vmOsVersionList().length > 0){
+                  		self.vmOsVersionList.removeAll();
+                  	  }
+//                  	  self.vmOsVersionList.removeAll();
 	                  if(vmOsVersion.indexOf(",") != -1){
 	                	  self.vmOsVersionList(vmOsVersion.split(","));
 	          		  }else{
@@ -1049,6 +1069,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	                  if(self.osType_chosen().length > 0){
 	                	  self.osType_chosen.removeAll();
 	                  }
+	                  
                   	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
                   		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
                   			  for(var n = 0; n < self.vmOsVersionList().length; n++){
@@ -1082,9 +1103,39 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     		  if(startDate != "" && endDate != ""){
     			  $('#addServer_daterange').data('daterangepicker').setStartDate(startDate);
     			  $('#addServer_daterange').data('daterangepicker').setEndDate(endDate);
-    		  }        	  
+    		  }
+    		  
+    		  
+    	      //虚拟化类型选择事件
+    	      self.changeVirtualValue = function(viewModel, event){      	  
+    	         if(viewModel.selected_product()=='VM'){
+    				 if(event.bubbles){
+    					  //当选择不同的虚拟化时得清空初始化数据，重新加载
+    					  if(viewModel.azUuidList().length > 0){
+    					  	viewModel.azUuidList.removeAll();
+    				  	  }
+    				  	  if(viewModel.osTypeCheckList().length > 0){
+    						  viewModel.osTypeCheckList.removeAll();
+    					  }
+    				 	  if(viewModel.osType_chosen().length > 0){
+    							  viewModel.osType_chosen.removeAll();
+    					  }
+    				 	 //初始化虚拟机操作系统类型数据        	 
+    				 	 loadVmOsType(true);
+    				 	 //初始化可用分区数据
+    				 	 loadVmAzs(true); 
+    				 }
+    				
+    	         }else if(viewModel.selected_product()=='VDC'){
+    	            
+    	         }else{
+    	      	   
+    	         }
+    	      } 
           });
       }
+      //虚拟化类型选择事件
+      this.changeVirtualValue = ko.observable();
       
       <!-- 创建服务弹窗 -->
       //创建服务弹窗
@@ -1127,6 +1178,45 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        	format:'YYYY-MM-DD HH:mm:ss'
 	        }
 	      });
+   		  if(viewModel.azUuidList().length > 0){
+			  viewModel.azUuidList.removeAll();
+	  	  }
+	  	  if(viewModel.osTypeCheckList().length > 0){
+			  viewModel.osTypeCheckList.removeAll();
+		  }
+	 	  if(viewModel.osType_chosen().length > 0){
+			  viewModel.osType_chosen.removeAll();
+		  }
+		//初始化虚拟机操作系统类型数据        	 
+	 	 loadVmOsType(true);
+	 	 //初始化可用分区数据
+	 	 loadVmAzs(true);
+		 	 
+    	  //虚拟化类型选择事件
+	      self.changeVirtualValue = function(viewModel, event){      	  
+	         if(viewModel.selected_product()=='VM'){
+				 //if(event.bubbles){
+					  //当选择不同的虚拟化时得清空初始化数据，重新加载
+					  if(viewModel.azUuidList().length > 0){
+					  	viewModel.azUuidList.removeAll();
+				  	  }
+				  	  if(viewModel.osTypeCheckList().length > 0){
+						  viewModel.osTypeCheckList.removeAll();
+					  }
+				 	  if(viewModel.osType_chosen().length > 0){
+						  viewModel.osType_chosen.removeAll();
+					  }
+				 //}
+				//初始化虚拟机操作系统类型数据        	 
+			 	 loadVmOsType(true);
+			 	 //初始化可用分区数据
+			 	 loadVmAzs(true);
+	         }else if(viewModel.selected_product()=='VDC'){
+	            
+	         }else{
+	      	   
+	         }
+    	  }
     	  
       }      
       //获取公网IP列表的azuuid
