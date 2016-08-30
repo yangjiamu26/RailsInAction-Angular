@@ -2,7 +2,7 @@ myApp.onPageInit("storage-summary", function(page) {
 
 // 单个存储池-使用率占比图
 function initsingleStorage_use_chart(data) {
-    $('#singleStorage_use_chart').highcharts({
+    $('#singleStorage_use_chart'+viewModel.belongTab()).highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -73,7 +73,7 @@ function initsingleStorage_use_chart(data) {
 
 // 单个存储池-分配率占比图
 function initsingleStorage_assigned_chart(data) {
-    $('#singleStorage_assigned_chart').highcharts({
+    $('#singleStorage_assigned_chart'+viewModel.belongTab()).highcharts({
       chart: {
           marginTop: 0,
           plotBackgroundColor: null,
@@ -152,6 +152,7 @@ function initsingleStorage_assigned_chart(data) {
       "path":'',
       "shared":''
     });
+    this.belongTab = ko.observable(page.query.belongTab);
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.loadData = function(){
       var self = this;

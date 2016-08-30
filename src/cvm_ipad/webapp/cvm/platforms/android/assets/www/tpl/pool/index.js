@@ -120,12 +120,12 @@ function initPool_cpu_chart(data) {
           name: 'CPU',
           data: [{
                   name: '已用',
-                  y: (data.X86CpuTotal-data.X86AvailCpu)/1024,
+                  y: (data.X86CpuTotal-data.X86AvailCpu)/1000,
                   color:"#ffd800"
               },
               {
                   name: '可用',
-                  y: (data.X86AvailCpu)/1024,
+                  y: (data.X86AvailCpu)/1000,
                   color:"#59cb5c"
               }
           ]
@@ -235,7 +235,7 @@ function initPool_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -306,7 +306,7 @@ function initPool_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>G',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -373,10 +373,7 @@ function initPool_storage_chart(data) {
           myApp.pullToRefreshDone();
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
-          self.noMore(false);
-          if(data.data.length < PAGE_SIZE) self.noMore(true);
 
-          self.pools_count(data.data.length);
           if(self.hypervisor()==''){
             initPool_vtype_chart(data);
             initPool_cpu_chart2(data);
@@ -388,6 +385,17 @@ function initPool_storage_chart(data) {
           }
           initPool_memory_chart(data);
           initPool_storage_chart(data);
+
+          var dataLength
+          if(!data.data){
+            dataLength = 0;
+          }else{
+            dataLength = data.data.length;
+          }
+          self.pools_count(dataLength);
+          
+          self.noMore(false);
+          if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){       
           self.dataList.push(data.data[i]);

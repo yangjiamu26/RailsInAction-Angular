@@ -33,7 +33,7 @@ myApp.onPageInit("vm-show", function(page) {
           window.vm_summary_viewModal.loadData(data);
         }else{
           window.vm_summary2_viewModal.loadData(data);
-          window.vm_performance_viewModel.memory(data.memory);
+          window.vm_performance_viewModel.vcpu(data.vcpu);
         }
       });
       

@@ -4,6 +4,7 @@ myApp.onPageInit("vm-list", function(page) {
     this.dataList = ko.observableArray([]);
     this.fromPage = ko.observable();
     this.hypervisor = ko.observable(page.query.hypervisor);
+    this.belongTab = ko.observable(page.query.belongTab);
 
     this.loading = false;
     this.page = 1;
@@ -29,7 +30,7 @@ myApp.onPageInit("vm-list", function(page) {
         case "host":
           this.fromPage("host");
           url=BASE_URL+"/host/"+page.query.id+"/vm";
-          resourcePoolId=page.query.resourcePoolId
+          resourcePoolId=page.query.resourcePoolId==0?'':page.query.resourcePoolId;
           break;
       }
       RestServiceJs(url).query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor || '',"resourcePoolId":resourcePoolId,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){

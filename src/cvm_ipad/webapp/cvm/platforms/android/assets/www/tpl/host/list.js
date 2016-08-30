@@ -4,6 +4,7 @@ myApp.onPageInit("host-list", function(page) {
     this.dataList = ko.observableArray([]);
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
+    this.belongTab = ko.observable(page.query.belongTab);
 
     this.loading = false;
     this.page = 1;

@@ -54,6 +54,8 @@ myApp.onPageInit("login", function(page) {
 
         setTimeout(function(){
           $$("#assistive").show();
+          clearInterval(intervalCheckNte);
+          startCheckNet();
         },2000);
       }
 
@@ -65,7 +67,8 @@ myApp.onPageInit("login", function(page) {
       Storage.setItem("baseNet",this.network());
       BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
       
-      $.ajax({
+      checkNetWork(1,function(){
+        $.ajax({
           type: 'POST',  
           url: BASE_URL+"/user/login",  
           data: JSON.stringify({
@@ -79,7 +82,6 @@ myApp.onPageInit("login", function(page) {
             goLogin(data);
           },  
           error: function(req, status, ex){
-            console.log(req);
             if(req){
               if(req.responseText){
                 if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
@@ -87,15 +89,19 @@ myApp.onPageInit("login", function(page) {
                 }else{
                   myApp.alert(JSON.parse(req.responseText).exception);
                 }
+              }else if(req.statusText=='timeout'){
+                myApp.alert('请求超时！');
               }else{
                 myApp.alert('请检查服务器环境是否启动/网络地址填写是否正确！');
               }
             }else{
-              myApp.alert('请求超时！');
+              myApp.alert('未知错误！');
             }
           },  
           timeout:60000  
-      });  
+        });
+      });
+        
       
     }
   }

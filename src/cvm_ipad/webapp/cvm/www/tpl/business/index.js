@@ -72,7 +72,6 @@ function init_cpu_chart(data) {
 }
 // 资源池-内存占比图
 function init_memory_chart(data) {
-  console.log(data)
     $('#business_memory_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -104,7 +103,7 @@ function init_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -176,7 +175,7 @@ function init_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {

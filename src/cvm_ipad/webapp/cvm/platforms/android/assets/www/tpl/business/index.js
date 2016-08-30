@@ -72,7 +72,6 @@ function init_cpu_chart(data) {
 }
 // 资源池-内存占比图
 function init_memory_chart(data) {
-  console.log(data)
     $('#business_memory_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -104,7 +103,7 @@ function init_memory_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -176,7 +175,7 @@ function init_storage_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y}</b>GB',
+        labelFormat: '{name}：<b>{y:.2f}</b>GB',
       },
       plotOptions: {
           pie: {
@@ -259,17 +258,17 @@ function init_storage_chart(data) {
           self.noMore(false);
           if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
-        if(is_loadMore && (data.data.length < PAGE_SIZE)){
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          $$(page.container).find('.infinite-scroll-preloader').remove();
-          self.noMore(true);
-          return;
-        }
         self.projectNum(data.size);
         for(var i=0; i<data.data.length; i++){       
           self.dataList.push(data.data[i]);
         }
         self.page++;
+
+        if(is_loadMore && (data.data.length < PAGE_SIZE)){
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          $$(page.container).find('.infinite-scroll-preloader').remove();
+          self.noMore(true);
+        }
       });
 
     }

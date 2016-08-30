@@ -20,16 +20,18 @@ var myApp = new Framework7({
 
 var pageInitNUM = 0;
 $$(document).on('pageInit', function (e) {
-  pageInitNUM = pageInitNUM+1;
-  if(pageInitNUM>1) return;
-  if(navigator.onLine!=true){
-    if(thisRequest==1){
-      myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
-        pageInitNUM = 0;
-      });
-    }
-    return;
+  var page = e.detail.page;
+  if (page.name === 'login') {
+    myApp.isInLoginPage = true;
+  }else{
+    myApp.isInLoginPage = false;
   }
+
+  // pageInitNUM = pageInitNUM+1;
+  // if(pageInitNUM>1) return;
+  // checkNetWork(1,function(){
+  //   pageInitNUM = 0;
+  // })
 })
 var getTheTime = function(minseconds){
   var seconds = minseconds/1000;
@@ -63,6 +65,8 @@ $(function(){
     setTimeout(function(){
       if(myApp.showAssisTime){
         $$("#assistive").show();
+        clearInterval(intervalCheckNte);
+        startCheckNet();
       }
     },2000);
   }else{

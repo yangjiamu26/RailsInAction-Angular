@@ -116,7 +116,7 @@ function initcpuUse_chart2(data,xAxis) {
 function initDiskUse_chart(data,xAxis) {
     $('#diskUse_chart'+viewModel.belongTab()).highcharts({
         title: {
-            text: '磁盘使用率(GB)',
+            text: '磁盘使用率(kb/s)',
         },
         credits:{
           enabled: false,
@@ -137,7 +137,7 @@ function initDiskUse_chart(data,xAxis) {
             },
         },        
         tooltip: {
-            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}GB</b>'
+            pointFormat:'<span style="color:{series.color}">\u25CF</span> {series.name}: <b>{point.y:.2f}kb/s</b>'
         },
         legend: {
             layout: 'vertical',
@@ -193,7 +193,7 @@ function initNetwork_chart(data,xAxis) {
     this.name = ko.observable(page.query.name);
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.isShowCharts = ko.observable(true);
-    this.memory = ko.observable('');
+    this.vcpu = ko.observable('');
     this.belongTab = ko.observable(page.query.belongTab);
 
     this.timeItems = ko.observableArray(['最近十分钟','最近一小时','最近一天','最近一周','最近一个月','最近一年','自定义']);
@@ -295,6 +295,7 @@ function initNetwork_chart(data,xAxis) {
           var disks = [];
           var networks = [];
           var memoryIndex = 0;
+          var memoryFreeIndex = 0;
           var diskIndex = [];
           var networkIndex = [];
           $.each(data.meta.legend,function(index,val){
@@ -322,28 +323,36 @@ function initNetwork_chart(data,xAxis) {
               });
               networkIndex.push(index);
             }
-            if(items[items.length-1].indexOf('memory')>-1){
+            if(items[items.length-1].indexOf('memory')>-1&&items[items.length-1].indexOf('memory_internal_free')<0){
               memoryIndex = index;
+            }
+            if(items[items.length-1].indexOf('memory_internal_free')>-1){
+              memoryFreeIndex = index;
             }
           });
           for(var i=data.data.length-1;i>-1;i--){
-            memory.data.push(Number(data.data[i].v[memoryIndex])/Number(self.memory())/10);
+            var mem_total = Number(data.data[i].v[memoryIndex])/1024;
+            var mem_free = Number(data.data[i].v[memoryFreeIndex]);
+            memory.data.push((mem_total-mem_free)/mem_total*100);
             xAxis.push(getDates(data.data[i].t, isDay));
             cpu.data[i] = 0;
             $.each(cpus,function(index,val){
               cpus[index].data.push(Number(data.data[i].v[index])*100);
               cpu.data[i] = cpu.data[i] + Number(data.data[i].v[index])*100;
             });
-            cpu.data[i] = cpu.data[i]/cpus.length;
+            cpu.data[i] = cpu.data[i]/Number(self.vcpu());
             $.each(disks,function(index,val){
               var thisIndex = diskIndex[index];
-              disks[index].data.push(Number(data.data[i].v[thisIndex])/1024/1024);
+              disks[index].data.push(Number(data.data[i].v[thisIndex]));
             });
             $.each(networks,function(index,val){
               var thisIndex = networkIndex[index];
               networks[index].data.push(Number(data.data[i].v[thisIndex])/1024);
             });
           }
+          cpu.data.reverse();
+          cpus.reverse();
+          cpus = cpus.slice(0,Number(self.vcpu()));
           initMemoryUse_chart(memory,xAxis);
           initcpuUse_chart1(cpu,xAxis);
           initcpuUse_chart2(cpus,xAxis);
