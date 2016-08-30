@@ -99,7 +99,6 @@ function initHost_status_chart(nums) {
       if(!is_loadMore) self.page = 1;
 
       RestServiceJs(BASE_URL+"/host").query({"dcId":CVM_PAD.dcId,"resPoolId":this.resPoolId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
-      //$.ajax("tpl/host/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
@@ -108,20 +107,22 @@ function initHost_status_chart(nums) {
 
           self.hostSize(data.size);
           var nums = [0,0,0,0];
-          for(var i=0; i<data.data.length; i++){
-            switch(data.data[i].state){
-              case 'OK':
-                nums[0]++;
-                break;
-              case 'RESTART':
-                nums[1]++;
-                break;
-              case 'DISCONNECT':
-                nums[2]++;
-                break;
-              case 'MAINTAIN':
-                nums[3]++;
-                break;
+          if(data.data){
+            for(var i=0; i<data.data.length; i++){
+              switch(data.data[i].state){
+                case 'OK':
+                  nums[0]++;
+                  break;
+                case 'RESTART':
+                  nums[1]++;
+                  break;
+                case 'DISCONNECT':
+                  nums[2]++;
+                  break;
+                case 'MAINTAIN':
+                  nums[3]++;
+                  break;
+              }
             }
           }
           initHost_status_chart(nums);
@@ -129,6 +130,7 @@ function initHost_status_chart(nums) {
           if(data.data.length < PAGE_SIZE) self.noMore(true);
         }
         for(var i=0; i<data.data.length; i++){
+          data.data[i].memoryGB = (Number(data.data[i].memory)/1024).toFixed(2);
           switch(data.data[i].state){
             case 'OK':
               data.data[i].state='运行中';

@@ -1,17 +1,10 @@
 myApp.onPageInit("vm-show", function(page) {
-  var url;
-  if(page.query.hypervisor=="PowerVM"){
-    url = 'tpl/vm/summary.html';
-  }else{
-    url = 'tpl/vm/summary2.html'
-  }
-  myApp.addView('#view_vm_summary', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: url+"?hypervisor="+page.query.hypervisor,animatePages: false});
-  myApp.addView('#view_vm_performance',      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html?hypervisor='+page.query.hypervisor+'&id='+page.query.id+'&state='+page.query.state,animatePages: false});
-  myApp.addView('#view_vm_volumn', {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html?fromPage=vm&hypervisor='+page.query.hypervisor+'&id='+page.query.id,animatePages: false});
+  
   function ViewModel(){
     var self = this;
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.name = ko.observable(page.query.name);
+    this.belongTab = ko.observable(page.query.belongTab);
     this.summary = ko.observable({
       "ip": '',
       "state":'',
@@ -21,7 +14,15 @@ myApp.onPageInit("vm-show", function(page) {
       "hostName":''
     })
 
-    this.loadData = function(){
+    this.loadData = function(){var url;
+      if(page.query.hypervisor=="PowerVM"){
+        url = 'tpl/vm/summary.html';
+      }else{
+        url = 'tpl/vm/summary2.html'
+      }
+      myApp.addView('#view_vm_summary'+self.belongTab(), {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: url+"?hypervisor="+page.query.hypervisor+'&belongTab='+self.belongTab(),animatePages: false});
+      myApp.addView('#view_vm_performance'+self.belongTab(),      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html?hypervisor='+page.query.hypervisor+'&id='+page.query.id+'&state='+page.query.state+'&belongTab='+self.belongTab(),animatePages: false});
+      myApp.addView('#view_vm_volumn'+self.belongTab(), {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html?fromPage=vm&hypervisor='+page.query.hypervisor+'&id='+page.query.id+'&belongTab='+self.belongTab(),animatePages: false});
       RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
         data.state = page.query.state;
         data.stateCss = page.query.stateCss;
