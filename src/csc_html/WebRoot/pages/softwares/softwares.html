@@ -112,9 +112,11 @@
 														data-bind="text: $row.statusName, attr: {class: $root.statusCss($row)}"></span>
 													</td>
 													<td data-bind="text: $row.createTime"></td>
-													<td><a data-bind="click: $root.edit">修改</a> | <a
-														data-bind="click: $root.removeSingle">删除</a></td>
-
+													<td>
+														<a data-bind="visible: ($row.progress == '上传失败'), click: $root.showErrLog">上传失败信息 | </a> 
+														<a data-bind="click: $root.edit">修改</a> | 
+														<a data-bind="click: $root.removeSingle">删除</a>
+													</td>
 												</tr>
 												<!-- /ko -->
 											</tbody>
@@ -233,13 +235,15 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-xs-3 control-label"> 磁盘空间要求 </label>
+						<div class="col-xs-3" style="text-align: right;">
+							<label class="control-label"> 磁盘空间要求 </label> 
+							<label class="control-label">
+								( GB )
+							</label>
+						</div>
 						<div class="col-xs-8">
-							<div class="input-group">
-								<input type="text" class="input-sm form-control"
-									placeholder="最低要求值" data-bind="value: currentVO().spaceSize">
-								<span class="input-group-addon">GB</span>
-							</div>
+							<input type="text" class="input-sm form-control"
+								placeholder="最低要求值" data-bind="value: currentVO().spaceSize" />
 						</div>
 						<div class="col-xs-1">
 							<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -378,8 +382,8 @@
 								<tr>
 									<td>
 										<div class="checkbox">
-											<label class="i-checks"> <input type="checkbox"
-												data-bind="checkedValue: $data, checked: $parent.chosenItems">
+											<label class="i-checks"> 
+												<input type="checkbox" data-bind="checkedValue: $data, checked: $parent.chosenItems">
 												<i></i>
 											</label>
 										</div>
@@ -714,6 +718,11 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			self.isAdd(true);
 		};
 
+		/** 显示上传失败消息 **/
+		this.showErrLog = function(object, event) {
+			systemMsg.alert(object.errLog);
+		};
+		
 		/**修改软件**/
 		this.edit = function(object, event) {
 			self.osNameOptions().splice(0, self.osNameOptions().length);
@@ -913,8 +922,10 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 				
 				$('#' + uuid).html('0%');
 				
+				console.log($('#' + uuid).html());
+				
 				var intervalId = setInterval(function() {
-
+					
 					$.SOFTWARE.getProgress(uuid, function(data) {
 
 						if (data.progress.indexOf('%') != -1) {
@@ -922,19 +933,23 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 						}
 
 						//clearInterval(intervalId);
-						if ((data.progress == 'success' || data.progress == 'N/A')) {
+						if ((data.progress == 'success' || data.progress == 'err' 
+								|| data.progress == 'N/A')) {
 							if (!self.uploader.isInProgress()) {
 								var timeout = setTimeout(function() {
 									if (!self.uploader.isInProgress()) {
 										clearInterval(intervalId);
 										self.table.refreshData();
 										clearTimeout(timeout);
+										console.log(intervalId + '-- end');
 									}
 								}, 3500);
 							}
 						}
 					});
 				}, 3500);
+				
+				console.log(intervalId + '-- begin');
 			});
 
 			/* self.uploader.on('uploadProgress', function(file, percentage) {
@@ -945,11 +960,12 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 			self.uploader.on('uploadFinished', function() {
 				csc.uploader.unbind(uuid);
 			});
-
+			 
 			self.uploader.on('uploadSuccess', function(file, response) {
 				if (response.message) {
 					systemMsg.alert(response.message);
 				}
+				
 				self.table.refreshData();
 			});
 

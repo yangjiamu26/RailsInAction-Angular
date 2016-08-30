@@ -600,11 +600,11 @@
 					<div class="col-xs-3">          
             <div class="input-group">
               <span class="input-group-addon">名称</span>
-              <input type="text" class="input-sm form-control" placeholder="请输入名称" >
+              <input type="text" class="input-sm form-control" data-bind="value: searchVpnParam().name" placeholder="请输入名称" >
             </div>
           </div>
           <div class="col-xs-1">
-            <button class="btn btn-sm btn-default" type="button" >搜索</button>
+            <button class="btn btn-sm btn-default" type="button" data-bind="click:searchVpn">搜索</button>
           </div>
 				</div>	
 				<table class="table table-striped" data-bind="with: VPNList">
@@ -1205,6 +1205,7 @@
 	    ko.applyBindings(new secretGroupViewModel(), $("#page-content .tab-pane")[3]);
 	    /******************************secretGroup*************************************/
 
+	    /**********vpn**********/
 	  var VPNViewModel = function(){
 		var self = this;
 	  	this.isAddVPN = ko.observable(false);
@@ -1275,7 +1276,15 @@
 					 self.vdcList(data.results);
 				 }
 			});
-	  	}	  	
+	  	}
+	  	
+	  	this.searchVpnParam = ko.observable({
+	        name: ""
+	    })
+	    
+	    this.searchVpn = function(){
+	      self.VPNList.params(this.searchVpnParam());
+	    }
 	  	
 	  	this.VPNList = new DataTable([], {path: 'api/v5.0.0/vpns?orderBy=createTime:desc'});
 	  	//删除vpn
@@ -1304,7 +1313,10 @@
 	  			})
 	  		}
 	  	}
+	  	
 	  };
+	  
+	  /**********vpn**********/
 
 	  ko.applyBindings(new VPNViewModel(), $("#page-content .tab-pane")[4]);
 	  

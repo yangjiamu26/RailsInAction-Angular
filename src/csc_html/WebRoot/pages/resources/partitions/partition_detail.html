@@ -20,7 +20,7 @@
         <a aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>存储池</a></li>
       <li role='presentation'>
         <a aria-controls='partition_images' data-toggle='tab' id="iso_tab" href='#partition_images' role='tab'>镜像</a></li>
-      <li role='presentation'>
+      <li role='presentation' data-bind="visible:activeTab() == 'OpenStack'">
         <a aria-controls='partition_network_externals' data-toggle='tab' id="network_tab" href='#partition_network_externals' role='tab'>网络</a></li>
       <!-- <li role='presentation'>
         <a aria-controls='partition_network_externals_topo' data-toggle='tab' href='#partition_network_externals_topo' role='tab'>拓扑</a></li> -->
@@ -420,7 +420,7 @@
                       </div>
                       <div class="row m-b">
                         <div class="col-xs-2 font-bold text-nowrap">云管理平台：</div>
-                        <div class="col-xs-4" data-bind="text: cloudPlatform">winserver6.0</div>
+                        <div class="col-xs-4" data-bind="text: cloudPlatform">WinServer6.0</div>
                         <div class="col-xs-2 font-bold text-nowrap">可用分区：</div>
                         <div class="col-xs-4" data-bind="text: azName">XX可用分区</div>
                       </div>
@@ -491,7 +491,7 @@
                       <div class="inline m-a text-left l-h-2x">
                       	已用：<span data-bind="text: usedMemory_"></span>GB<br/>
                       	未用：<span data-bind="text: availMemory_"></span>GB<br/>
-                      	<div data-bind="if: virtualHypervisor=='winserver'">
+                      	<div data-bind="if: virtualHypervisor=='WinServer'">
                       		已分配：<span data-bind="text: allocatedMemory_"></span>GB
                       	</div>
                       </div>
@@ -519,7 +519,7 @@
                       <div class="inline m-a text-left l-h-2x">
                       	已用：<span data-bind="text: usedStorage_"></span>TB<br/>
                       	未用：<span data-bind="text: availStorage_"></span>TB<br/>
-                      	<div data-bind="if: virtualHypervisor=='winserver'">
+                      	<div data-bind="if: virtualHypervisor=='WinServer'">
                       		已分配：<span data-bind="text: allocatedStorage_"></span>GB
                       	</div>
                       </div>
@@ -547,6 +547,7 @@
                 <div class="input-group w-sm" data-bind="visible: isCNware">
                   <span class="input-group-addon">状态</span>
                   <select class="form-control input-sm" data-bind="value: searchParam().state">
+                    <option value="">全部</option>
                     <option value="OK">运行中</option>
                     <option value="DISCONNECT">未运行</option>
                     <option value="RESTART">重启中</option>
@@ -556,7 +557,7 @@
               </div>
               <div class="col-xs-3">
                 <div class="input-group">
-                  <input type="text" class="input-sm form-control" placeholder="请输入名称"  data-bind="value: searchParam().hostNameLike, enterKey: search">
+                  <input type="text" class="input-sm form-control" placeholder="请输入名称"  data-bind="value: searchParam().nameLike, enterKey: search">
                   <span class="input-group-btn">
                     <button class="btn btn-sm btn-default" type="button" data-bind="click: search">搜索</button>
                   </span>
@@ -576,19 +577,19 @@
                     <th>cpu(颗)</th>
                     <th>内存(GB)</th>
                     <th>存储(GB)</th>
-                    <th data-bind="if: $root.isCNware">操作</th>
+                    <!-- <th data-bind="if: $root.isCNware">操作</th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr data-bind="visible: showNoData">
-                  <td colspan=9 class="aligncenter">
+                  <td colspan=8 class="aligncenter">
                      	暂无数据
                   </td>
               </tr>
               <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
                   <tr>
                     <td>
-                      <a href="#" data-bind="click: $root.showDetailFun"><span data-bind="text: $row.hostName"></span></a>
+                      <a href="#" data-bind="click: $root.showDetailFun"><span data-bind="text: $row.name"></span></a>
                     </td>
                     <td data-bind="text: $row.ip"></td>
                     <td data-bind="text: $row.azName"></td><!-- 可用分区 -->
@@ -600,23 +601,23 @@
                     </td>
                     <td data-bind="visible: $root.isCNware, text: $row.resourcePoolName"></td>
                     <td data-bind="text: $row.sockets"></td>
-                    <td data-bind="text: $row.totalMemory"></td>
+                    <td data-bind="text: $row.totalMemoryGB"></td>
                     <td data-bind="text: $row.totalStorage"></td>
-                    <td data-bind="if: $row.cloudPlatform=='CNware'&&($row.virtualHypervisor=='winserver'||$row.virtualHypervisor=='VMware')">
-                      <a href="#" data-bind="visible: ($row.virtualHypervisor=='winserver'||$row.virtualHypervisor=='VMware')&&$row.state=='OK'">进入维护模式</a>
-                      <a href="#" data-bind="visible: ($row.virtualHypervisor=='winserver'||$row.virtualHypervisor=='VMware')&&$row.state=='MAINTAIN'">退出维护模式</a>
+                    <!-- <td data-bind="if: $row.cloudPlatform=='CNware'&&($row.virtualHypervisor=='WinServer'||$row.virtualHypervisor=='VMware')">
+                      <a href="#" data-bind="visible: ($row.virtualHypervisor=='WinServer'||$row.virtualHypervisor=='VMware')&&$row.state=='OK'">进入维护模式</a>
+                      <a href="#" data-bind="visible: ($row.virtualHypervisor=='WinServer'||$row.virtualHypervisor=='VMware')&&$row.state=='MAINTAIN'">退出维护模式</a>
                       
-                      <div class="btn-group" data-bind="if: $row.cloudPlatform=='CNware'&&$row.virtualHypervisor=='winserver'">
+                      <div class="btn-group" data-bind="if: $row.cloudPlatform=='CNware'&&$row.virtualHypervisor=='WinServer'">
                         <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">更多<span class="fa fa-caret-down"></span></a>
                         <ul style="right:0;min-width:50px;left:auto;" class="dropdown-menu">
                           <li>
-                            <a href="#" data-bind="visible: $row.virtualHypervisor=='winserver'">开机</a>
-                            <a href="#" data-bind="visible: $row.virtualHypervisor=='winserver'">关机</a>
-                            <a href="#" data-bind="visible: $row.virtualHypervisor=='winserver'">重启</a>
+                            <a href="#" data-bind="visible: $row.virtualHypervisor=='WinServer'">开机</a>
+                            <a href="#" data-bind="visible: $row.virtualHypervisor=='WinServer'">关机</a>
+                            <a href="#" data-bind="visible: $row.virtualHypervisor=='WinServer'">重启</a>
                           </li>
                         </ul>
                       </div>
-                    </td>
+                    </td> -->
                    </tr>
                    <!-- /ko -->
                 </tbody>
@@ -667,7 +668,7 @@
                   </div>
                   <div class="row m-b">
                     <div class="col-xs-5 font-bold text-nowrap">名称：</div>
-                    <div class="col-xs-7" data-bind="text: hostName"></div>
+                    <div class="col-xs-7" data-bind="text: name"></div>
                   </div>
                   <div class="row m-b">
                     <div class="col-xs-5 font-bold text-nowrap">虚拟机数：</div>
@@ -723,7 +724,54 @@
                   </div>
                  </div>                          
               </div>
-              <div class="col-xs-6">
+              <div class="col-xs-3" data-bind="visible: !$root.isCNware()">
+              	<h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>资源总量</h5>
+              	<div class="bg-light b-t b-b wrapper-sm">
+              	  <div class="row m-b">
+                    <div class="col-xs-12 font-bold text-nowrap resource-host">
+                    	<img src="/assets/img/resource/resource-cpu.png" />
+                    	<span class="font-bold" style="margin-left:5px;font-size: 20px;line-height: 20px;">cpu</span>
+                    </div>
+                  </div>
+              	  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">总量：</div>
+                    <div class="col-xs-6" data-bind="text: totalCpu_"></div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">已分配：</div>
+                    <div class="col-xs-6" data-bind="text: usedCpu_"></div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-12 font-bold text-nowrap resource-host">
+                    	<img src="/assets/img/resource/resource-memory.png" />
+                    	<span class="font-bold" style="margin-left:5px;font-size: 20px;line-height: 20px;">内存</span>
+                    </div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">总量：</div>
+                    <div class="col-xs-6" data-bind="text: totalMemory_"></div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">已分配：</div>
+                    <div class="col-xs-6" data-bind="text: usedMemory_"></div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-12 font-bold text-nowrap resource-host">
+                    	<img src="/assets/img/resource/resource-storage.png" />
+                    	<span class="font-bold" style="margin-left:5px;font-size: 20px;line-height: 20px;">存储</span>
+                    </div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">总量：</div>
+                    <div class="col-xs-6" data-bind="text: totalStorage_"></div>
+                  </div>
+                  <div class="row m-b">
+                    <div class="col-xs-6 font-bold text-nowrap">已分配：</div>
+                    <div class="col-xs-6" data-bind="text: usedStorage_"></div>
+                  </div>
+              	</div>
+              </div>
+              <div class="col-xs-6"  data-bind="visible: $root.isCNware()">
                 <div class="row text-center">
                   <div class="col-xs-4">
                     <h3>CPU</h3>
@@ -801,7 +849,8 @@
                     </div>               
                   </div>
                 </div>
-
+                <!-- 与需求确认，暂时隐藏 -->
+				<!-- 
                 <div class="wrapper m-t-lg" data-bind="if: $root.isCNware">
                   <div class="row">
                     <div class="col-xs-12">
@@ -809,14 +858,19 @@
                         <span class="pull-right h4 text-danger" data-bind="text: vmUsedMemoryPer_"></span>
                         <span class="h4">虚拟机内存使用比率</span>
                       </div>
-                      <div class="progress progress-xxs m-t-sm">
-                      	<div data-bind="visible: vmUsedMemoryPer<50">
+                      
+                      <div data-bind="visible: vmUsedMemoryPer<50">
+                      	<div class="progress progress-xxs m-t-sm">
                       		<div class="progress-bar progress-bar-success" data-bind="style: {width: vmUsedMemoryPer_}"></div>
                       	</div>
-                      	<div data-bind="visible: vmUsedMemoryPer>=50&&vmUsedMemoryPer<80">
+                      </div>
+                      <div data-bind="visible: vmUsedMemoryPer>=50&&vmUsedMemoryPer<80">
+                      	<div class="progress progress-xxs m-t-sm">
                       		<div class="progress-bar progress-bar-warning" data-bind="style: {width: vmUsedMemoryPer_}"></div>
                       	</div>
-                      	<div data-bind="visible: vmUsedMemoryPer>=80">
+                      </div>
+                      <div data-bind="visible: vmUsedMemoryPer>=80">
+                      	<div class="progress progress-xxs m-t-sm">
                       		<div class="progress-bar progress-bar-danger" data-bind="style: {width: vmUsedMemoryPer_}"></div>
                       	</div>
                       </div>
@@ -827,7 +881,7 @@
                     </div>
                   </div>
                 </div> 
-                           
+                            -->
               </div>
             </div>
           </div>
@@ -2016,7 +2070,7 @@
   		//列表
   		this.respoolTable = new DataTable([], {
             perPage: 10,
-            path: 'api/v5.0.0/resourcePools?azUuid=' + azUuid,
+            
             loader: function(result){
             	
             	//cpu
@@ -2055,6 +2109,13 @@
             	return result;
             }
   		});
+  		self.loadTableData = function(){
+  			if(cloudPlatform == "CNware"){
+  			  self.respoolTable.path('api/v5.0.0/resourcePools?azUuid=' + azUuid);
+  			}
+  		}();
+  		
+  		
   		//定义搜索参数
         self.searchParam = ko.observable({
             azUuid: azUuid,
@@ -2081,15 +2142,17 @@
       //显示物理主机详情页面
       var resourceStaticsFun =  function(result){
     		//CPU资源统计
-        	result.totalCpu_ = result.totalCpu + "GHz";
-           	result.availCpu_ = result.availCpu + "GHz";
-           	result.usedCpu = (result.totalCpu-result.availCpu)<0?0:(result.totalCpu-result.availCpu).toFixed(2);
-           	result.usedCpu_ = result.usedCpu + 	 "GHz";
+        	result.totalCpu_ = (result.totalCpu/1000.0).toFixed(2) + "GHz";
+           	result.availCpu_ = (result.availCpu/1000.0).toFixed(2) + "GHz";
+           	var usedCpu = result.totalCpu-result.availCpu;
+           	result.usedCpu = usedCpu == 'NaN' || usedCpu<=0?0:usedCpu;
+           	result.usedCpu_ = (result.usedCpu/1000.0).toFixed(2) + "GHz";
             result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
             result.usedCpuPer_ = result.usedCpuPer + "%";
       
           	//内存资源统计
-          	result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
+          	result.totalMemoryGB = (result.totalMemory/1024).toFixed(2)
+	        result.totalMemory_ = result.totalMemoryGB + "GB";
           	result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
           	result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
           	result.usedMemoryPer = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
@@ -2118,8 +2181,8 @@
           	var p = {
           		azUuid: azUuid
           	}
-          	if(row.virtualHypervisor == "winserver" || row.virtualHypervisor == "VMware"){
-          		$.HOST.getResourceStatics(row.hostId, p, function(data){
+          	if(row.virtualHypervisor == "WinServer" || row.virtualHypervisor == "VMware"){
+          		$.HOST.getResourceStatics(row.id, p, function(data){
           			row.totalCpu = data.totalCpu;
           			row.availCpu = data.availCpu;
           			row.usedCpu = data.usedCpu;
@@ -2142,7 +2205,7 @@
         this.searchParam = ko.observable({
             azUuid: azUuid,
             state: "",
-            hostNameLike: ""
+            nameLike: ""
         });
         
       //是否CNware云管理平台
@@ -2172,7 +2235,8 @@
 	                result.usedCpuPer_ = result.usedCpuPer + "%";
 	            
 	                //内存资源统计
-	                result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
+	                result.totalMemoryGB = (result.totalMemory/1024).toFixed(2)
+	                result.totalMemory_ = result.totalMemoryGB + "GB";
 	                result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
 	                result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
 	                result.usedMemoryPer = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
@@ -2196,7 +2260,8 @@
 	              	result.runningTime = csc.util.dateDiff(result.startRunTime);//运行时长
 	              	
 	              	//内存资源统计
-	                result.totalMemory_ = (result.totalMemory/1024).toFixed(2) + "GB";
+	                result.totalMemoryGB = (result.totalMemory/1024).toFixed(2)
+	                result.totalMemory_ = result.totalMemoryGB + "GB";
 	                result.usedMemory_  = (result.usedMemory/1024).toFixed(2) + "GB";
 	                result.availMemory_ = (result.availMemory/1024).toFixed(2) + "GB";
 	                result.usedMemoryPer = (result.usedMemory/result.totalMemory * 100.0).toFixed(2);
@@ -2210,10 +2275,14 @@
 	              	
 	              	//CPU资源统计
               		if(result.virtualHypervisor == "PowerVM"){
+              			result.runningTime = "-";
+              			result.vendor = "-";
+              			result.usedVcpu = "-";
+              			
               			result.totalCpu_ = result.totalCpu + "颗";
     	              	result.availCpu_ = result.availCpu + "颗";
-    	              	result.usedCpu = (result.totalCpu-result.availCpu)<0?0:(result.totalCpu-result.availCpu) + "GHz";
-    	              	result.usedCpu_ = result.usedCpu + 	 "颗";
+    	              	result.usedCpu = result.totalCpu-result.availCpu;
+    	              	result.usedCpu_ = result.usedCpu == 'NaN'?0:result.usedCpu +  "颗";
     	                result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
     	                result.usedCpuPer_ = result.usedCpuPer + "%";
     	                
@@ -2226,12 +2295,15 @@
     	              	result.vmUsedMemoryPer_ = result.vmUsedMemoryPer + "%";
     	              	
               		}else if(result.virtualHypervisor == "VMware"){
-              			result.totalCpu_ = result.totalCpu + "GHz";
-    	              	result.availCpu_ = result.availCpu + "GHz";
-    	              	result.usedCpu = (result.totalCpu-result.availCpu)<0?0:(result.totalCpu-result.availCpu) + "GHz";
-    	              	result.usedCpu_ = result.usedCpu + 	 "GHz";
-    	                result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
-    	                result.usedCpuPer_ = result.usedCpuPer + "%";
+              			result.usedVcpu = "-";
+              			
+              			result.totalCpu_ = (result.totalCpu/1000.0).toFixed(2) + "GHz";
+                       	result.availCpu_ = (result.availCpu/1000.0).toFixed(2) + "GHz";
+                       	var usedCpu = result.totalCpu-result.availCpu;
+                       	result.usedCpu = usedCpu == 'NaN' || usedCpu<=0?0:usedCpu;
+			           	result.usedCpu_ = (result.usedCpu/1000.0).toFixed(2) + "GHz";
+                        result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
+                        result.usedCpuPer_ = result.usedCpuPer + "%";
     	                
     	              	//vm已使用内存
     	              	//hostUsedMemory为主机消耗的内存（已使用内存 - vm使用内存）
@@ -2242,12 +2314,13 @@
     	              	result.vmUsedMemoryPer_ = result.vmUsedMemoryPer + "%";
               		}else{
               			//WinServer
-              			result.totalCpu_ = result.totalCpu + "GHz";
-    	              	result.availCpu_ = result.availCpu + "GHz";
-    	              	result.usedCpu = (result.totalCpu-result.availCpu)<0?0:(result.totalCpu-result.availCpu) + "GHz";
-    	              	result.usedCpu_ = result.usedCpu + 	 "GHz";
-    	                result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
-    	                result.usedCpuPer_ = result.usedCpuPer + "%";
+              			result.totalCpu_ = (result.totalCpu/1000.0).toFixed(2) + "GHz";
+			           	result.availCpu_ = (result.availCpu/1000.0).toFixed(2) + "GHz";
+			           	var usedCpu = result.totalCpu-result.availCpu;
+			           	result.usedCpu = usedCpu == 'NaN' || usedCpu<=0?0:usedCpu;
+			           	result.usedCpu_ = (result.usedCpu/1000.0).toFixed(2) + "GHz";
+			            result.usedCpuPer = result.totalCpu==0?0.00:(result.usedCpu/result.totalCpu * 100.0).toFixed(2);
+			            result.usedCpuPer_ = result.usedCpuPer + "%";
     	                
     	              	//vm已使用内存
     	              	//hostUsedMemory为主机消耗的内存（已使用内存 - vm使用内存）
@@ -2312,14 +2385,23 @@
         
         this.subnetTable = new DataTable([], {  
               perPage:10,
-              path: 'api/v5.0.0/subnets?azUuid='+azUuid,
               loader: function(result){
                 $('#resource_network_subnet').show().siblings().hide();               
                 return result;
               } 
-            });
+        });
+        this.loadSubnetTable = function(){
+  			if(cloudPlatform == "OpenStack"){
+  			  self.subnetTable.path('api/v5.0.0/subnets?azUuid=' + azUuid);
+  			}
+  		}();
         
-        this.networkTable = new DataTable([], {path: 'api/v5.0.0/networks?azUuid='+azUuid});
+        this.networkTable = new DataTable([], {});
+        this.loadNetworkTable = function(){
+  			if(cloudPlatform == "OpenStack"){
+  			  self.networkTable.path('api/v5.0.0/networks?azUuid=' + azUuid);
+  			}
+  		}();
       };
 
       ko.applyBindings(new NetworkViewModel(), $('#partition_network_externals')[0]);//绑定网络的区域
@@ -2718,6 +2800,29 @@
     	      return date;
     	    }
       }
+      
+      //开机
+      this.powerOn = function(){
+    	  confirm("是否执行开机操作？", function(arg){
+    		  var p = {
+    				  azUuid: azUuid
+    		  };
+			  $.HOST.powerOnHost(vo.uuid, function(data){
+				self.hostTable.refreshData();
+				alert("物理主机正在开机！")
+	     	  });
+		  });
+      }
+      
+      //关机
+      
+      //重启
+      
+      //进入维护模式
+      
+      //退出维护模式
+      
+      
       ko.applyBindings(new ViewModel_Task(), $('#partition_task')[0]);
       /****************************调度任务 END*********************************/
       

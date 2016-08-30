@@ -301,110 +301,29 @@ csc.util = {
         return billTxt;
 	}, 
 	getResourceText:function(resourceType){
-		var text = "";
-	    switch (resourceType) {
-		case "VM":
-			text = "云主机";
-			break;
-		case "DISK":
-			text  = "云硬盘";
-			break;
-		case "ROUTER":
-			text = "路由器";
-			break;
-		case "PUBLICIP":
-			text = "公网IP";
-			break;
-		case "LOAD_BALANCING":
-			text =  "负载均衡";
-			break;
-		case "SECRET_KEY":
-			text =  "密钥";
-			break;
-		case "OBJECT_STORAGE":
-			text =  "对象存储";
-			break;
-		case "CPU":
-			text  =  "CPU";
-			break;
-		case "MEMORY":
-			text  =  "内存";
-			break;
-		case "STORAGE":
-			text =  "存储";
-			break;
-		case "FIREWALL":
-			text =  "防火墙";
-			break;
-		case "VPC":
-			text  =  "VPC";
-			break;
-		case "VPN":
-			text =  "VPN";
-			break;
-		case "SECURITY_GROUP":
-			text =  "安全组";
-			break;
-		case "SOFTWARE":
-			text =  "云软件";
-			break;
-		default:
-			break;
+		var textArray = new Array("云主机","云硬盘","路由器",  "公网IP",  "负载均衡",       "SSH密钥",   "对象存储",
+			"CPU","内存",   "存储",   "防火墙",  "VPC", "VPN", "安全组",        "云软件");
+			
+		var typeArray = new Array("VM",    "DISK",  "ROUTER", "PUBLICIP","LOAD_BALANCING","SECRET_KEY","OBJECT_STORAGE",
+			"CPU","MEMORY","STORAGE","FIREWALL","VPC", "VPN", "SECURITY_GROUP","SOFTWARE");
+		for (var i = 0; i < typeArray.length; i++) {
+			if (resourceType === typeArray[i]) {
+				return textArray[i];
+			}
 		}
-        return text;
+        return "";
 	},
 	getResourceUnit:function(resourceType){
-		var text = "";
-	    switch (resourceType) {
-		case "VM":
-			text = "个";
-			break;
-		case "DISK":
-			text  = "个";
-			break;
-		case "ROUTER":
-			text = "个";
-			break;
-		case "PUBLICIP":
-			text = "个";
-			break;
-		case "LOAD_BALANCING":
-			text = "个";
-			break;
-		case "SECRET_KEY":
-			text =  "个";
-			break;
-		case "OBJECT_STORAGE":
-			text =  "GB";
-			break;
-		case "CPU":
-			text  =  "个";
-			break;
-		case "MEMORY":
-			text  =  "GB";
-			break;
-		case "STORAGE":
-			text =  "GB";
-			break;
-		case "FIREWALL":
-			text =  "个";
-			break;
-		case "VPC":
-			text  =  "个";
-			break;
-		case "VPN":
-			text =  "个";
-			break;
-		case "SECURITY_GROUP":
-			text =  "个";
-			break;
-		case "SOFTWARE":
-			text =  "个";
-			break;
-		default:
-			break;
+		var unitArray = new Array("个", "个",    "个",      "个",      "个",            "对",        "GB", 
+			"个", "GB",    "GB",      "个",      "个", "个",   "个",            "个");
+		var typeArray = new Array("VM", "DISK",  "ROUTER", "PUBLICIP","LOAD_BALANCING","SECRET_KEY","OBJECT_STORAGE",
+			"CPU","MEMORY","STORAGE","FIREWALL","VPC", "VPN", "SECURITY_GROUP","SOFTWARE");
+		for (var i = 0; i < typeArray.length; i++) {
+			if (resourceType === typeArray[i]) {
+				return unitArray[i];
+			}
 		}
-        return text;
+		return "";
 	},
     invalidValueParam : function(val){
 //    	var telReg = /[。~!@#$%\^\+\*&\\\/\?\|:\.<>{}【】';="]+/;
