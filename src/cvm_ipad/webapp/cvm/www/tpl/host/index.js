@@ -9,6 +9,11 @@ function initHost_status_chart(nums) {
             plotShadow: false,
             backgroundColor: "none"
         },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+            valueSuffix: ' 台',
+            shared: true
+        },
         title: {
             text: ''
         },
