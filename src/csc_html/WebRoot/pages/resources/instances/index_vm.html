@@ -186,21 +186,21 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">CPU(个)</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control" data-bind="value: currentVO().vcpu" placeholder="请输入CPU"/>
+                        <input type="text" maxlength="9" class="form-control" data-bind="value: currentVO().vcpu" placeholder="请输入CPU"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">内存(MB)</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control" data-bind="value: currentVO().memory" placeholder="请输入内存"/>
+                        <input type="text" maxlength="9" class="form-control" data-bind="value: currentVO().memory" placeholder="请输入内存"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                       <label class="col-xs-1 control-label no-padder-h">存储(GB)</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control" data-bind="value: currentVO().storage" placeholder="请输入存储"/>
+                        <input type="text" maxlength="9" class="form-control" data-bind="value: currentVO().storage" placeholder="请输入存储"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -433,7 +433,7 @@
                 </div> -->
               </div>
               <div class='modal-footer' style="text-align:center;">
-                <a class="btn btn-default btn-info" data-bind="click:save">确定</a>
+                <a class="btn btn-default btn-info" data-bind="click:initSave">确定</a>
                 <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
               </div>
             </div>
@@ -479,19 +479,19 @@
                 <div class="form-group">
                   <label class="col-sm-3 control-label">VCPU数：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" data-bind="value: adjustmentVO().vcpu">
+                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().vcpu">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-3 control-label">内存(MB)：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
+                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().memory">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-3 control-label">存储(GB)：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" data-bind="value: adjustmentVO().storage">
+                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().storage">
                   </div>
                 </div>
               </div>
@@ -633,17 +633,17 @@
 			              <tr>
 			                <td>CPU(个)</td>
 			                <td data-bind="text: adjustProcessVO().vcpu"></td>
-			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetVcpu" /></td>
+			                <td><input maxlength="9" class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetVcpu" /></td>
 			              </tr>
 			              <tr>
 			                <td>内存(MB)</td>
 			                <td data-bind="text: adjustProcessVO().memory"></td>
-			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetMemory"/></td>
+			                <td><input maxlength="9" class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetMemory"/></td>
 			              </tr>
 			              <tr>
 			                <td>存储(GB)</td>
 			                <td data-bind="text: adjustProcessVO().storage"></td>
-			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetStorage"/></td>
+			                <td><input maxlength="9" class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetStorage"/></td>
 			              </tr>
 			            </tbody>
 			         </table> 
@@ -777,8 +777,8 @@
     	self.cnwareCurrentVO = ko.validatedObservable({
     		host: ko.observable().extend({required: true}),
     	    storagePool: ko.observable().extend({required: true}),
-    	    ipPool: ko.observable().extend({required: true}),
-    	    ip: ko.observable().extend({required: true})
+    	    ipPool: ko.observable().extend(),
+    	    ip: ko.observable().extend()
       	});
     	
     	//初始化自定义参数
@@ -1082,8 +1082,8 @@
       this.cnwareCurrentVO = ko.validatedObservable({
     	    host: ko.observable().extend({required: true}),
     	    storagePool: ko.observable().extend({required: true}),
-    	    ipPool: ko.observable().extend({required: true}),
-    	    ip: ko.observable().extend({required: true})
+    	    ipPool: ko.observable().extend(),
+    	    ip: ko.observable().extend()
       });
       
       //自定义参数
@@ -1155,13 +1155,13 @@
     		  //根据可用分区虚拟化平台不同展示不同参数
     		  if(cloudPlatform == "OpenStack"){
     			  $("#add_vm_params_openstack").show();
-        		  self.add_images_def();
             	  self.add_vpcs_def();
         	  }else if(cloudPlatform == "CNware"){
         		  $("#add_vm_params_cnware").show();
         		  self.add_ipPools_def_cn();
         	  }
     	  });
+    	  self.add_images_def();
       }
       
       //镜像
@@ -1175,14 +1175,26 @@
     	  });
       }
       
+      var chosenImage = {};
       //镜像-> SSH + 物理主机
       this.onchange_add_images = function(){
-    	  var imageUuid = self.currentVO().image();
-    	  var azUuid = self.currentVO().partition();
+    	  var imageId = self.currentVO().image();
+    	  for(var i=0;i<images.length;i++){
+    		  if(images[i].imageId == imageId){
+		    	  chosenImage = images[i];
+    			  break;
+    		  }
+    	  }
     	  //根据不同云管理平台处理不同事务
     	  if(cloudPlatform == "OpenStack"){
     		  self.add_sshKeys_def();
     	  }else if(cloudPlatform == "CNware"){
+    		  //填写模板推荐的资源数值
+    		  self.currentVO().vcpu(chosenImage.vcpu);
+	    	  self.currentVO().memory(chosenImage.memory);
+	    	  self.currentVO().storage(chosenImage.minDisk);
+/* 	    	  console.log(chosenImage);
+	    	  return; */
     		  self.add_hosts_def_cn();
     	  }
       }
@@ -1190,15 +1202,8 @@
       //SSH
       this.add_sshKeys = ko.observableArray([]);
       this.add_sshKeys_def = function(){
-    	  var imageUuid = self.currentVO().image();
     	  var azUuid = self.currentVO().partition();
-    	  var chosenImageOs = "";
-    	  for(var i=0;i<images.length;i++){
-    		  if(images[i].uuid == imageUuid){
-    			  chosenImageOs = images[i].opSysType;
-    			  break;
-    		  }
-    	  }
+    	  var chosenImageOs = chosenImage.opSysType;
     	  if("windows" == chosenImageOs){
     		  //windows类型的操作系统对应镜像不用设置ssh密钥
     		  $("#resource_instance_vm_add_ssh_switch").hide();
@@ -1218,8 +1223,16 @@
       //物理主机
       this.add_hosts_cn = ko.observableArray([]);
       this.add_hosts_def_cn = function(){
-    	  //TODO 根据所选镜像获取可部署的目标物理主机
-    	  self.add_hosts_cn([]);
+    	  var imageId = self.currentVO().image();
+    	  if(csc.util.isNotNull(imageId)){
+	    	  // 根据所选镜像获取可部署的目标物理主机
+	    	  var azUuid = self.currentVO().partition();
+	    	  csc.rest.get('api/v5.0.0/images/targetHosts?azUuid='+azUuid+'&imageId='+imageId,function(hostData){
+		    	  self.add_hosts_cn(hostData.results);
+	    	  });
+    	  }else{
+    		  self.add_hosts_cn([]);
+    	  }
       }
       
       //物理主机 -> 存储池
@@ -1230,8 +1243,17 @@
       //存储池
       this.add_storagePools_cn = ko.observableArray([]);
       this.add_storagePools_def_cn = function(){
-    	  //TODO 根据所选物理主机获取可使用的目标存储池
-    	  self.add_storagePools_cn([]);
+    	  var hostId = self.cnwareCurrentVO().host();
+    	  if(csc.util.isNotNull(hostId)){
+	    	  var azUuid = self.currentVO().partition();
+	    	  csc.rest.get('api/v5.0.0/storagePools/targetStoragePools?azUuid='+azUuid+'&hostId='+hostId,function(storagePoolData){
+		    	  //根据所选物理主机获取可使用的目标存储池
+		    	  self.add_storagePools_cn(storagePoolData.results);
+	    	  });
+    		  
+    	  }else{
+    		  self.add_storagePools_cn([]);
+    	  }
       }
       this.onchange_add_storagePools_cn = function(){
       }
@@ -1296,17 +1318,9 @@
       
       //----------------------------OpenStack-END
       
-      
-      
-      
       //提交创建
-      this.save = function(){
-    	  //初始化提示信息
-    	  ko.validation.group(this.currentVO).showAllMessages();
-    	  ko.validation.group(this.openstackCurrentVO).showAllMessages();
-    	  ko.validation.group(this.cnwareCurrentVO).showAllMessages();
-	      if(this.openstackCurrentVO.isValid() && this.currentVO.isValid() && this.adminPassReinput.isValid() && this.adminPass.isValid()){
-	    	  var postBody = {};
+      this.save = function(postBody){
+    	  	//通用参数
 	    	  postBody.name = self.currentVO().name();
 	    	  postBody.vdcUuid = self.currentVO().vdc();
 	    	  postBody.azUuid = self.currentVO().partition();
@@ -1314,23 +1328,6 @@
 	    	  postBody.vcpu = self.currentVO().vcpu();
 	    	  postBody.memory = self.currentVO().memory();
 	    	  postBody.storage = self.currentVO().storage();
-	    	  postBody.vpcUuid = self.openstackCurrentVO().vpc();
-	    	  var networkList= [];
-	    	  var networkInfo = {};
-	    	  if(csc.util.isNotNull(self.openstackCurrentVO().ip())){
-	    		  for(var n=0;n<network.length;n++){
-	    			  if(network[n].uuid == self.openstackCurrentVO().network()){
-	    				  networkInfo.subNetworkId = network[n].originalSubId;
-	    				  break;
-	    			  }
-	    		  }
-	    		  networkInfo.ip = self.openstackCurrentVO().ip();
-	    	  }
-		      networkInfo.networkId = self.openstackCurrentVO().network();
-		      networkList.push(networkInfo);
-		      postBody.networkList = networkList;
-	    	  postBody.sshKeyUuid = self.openstackCurrentVO().sshKey();
-	    	  
 	    	  var expiryTime = "";
 	    	  var temp = document.getElementsByName("inlineRadioOptions");
 	    	  for(var i=0;i<temp.length;i++)
@@ -1379,12 +1376,6 @@
 	    		  }
 	    	  }
 	    	  
-	    	  //设置admin用户的密码
-	    	  if(csc.util.isNotNull(self.adminPass())){
-				  postBody.adminPass = self.adminPass().trim();
-	    	  }
-	    	  
-	    	  
 	    	  if(!isDiskPass){
 	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
 	    		  return;
@@ -1394,15 +1385,77 @@
 			 		self.isAddvm(false);
 		        	self.table.refreshData();
 			  });
-	      }
+      }
+      
+      //准备提交参数
+      this.initSave = function(){
+    	  
+    	  //初始化提示信息
+    	  ko.validation.group(this.currentVO).showAllMessages();
+    	  ko.validation.group(this.openstackCurrentVO).showAllMessages();
+    	  ko.validation.group(this.cnwareCurrentVO).showAllMessages();
+    	  
+    	  if(cloudPlatform == "OpenStack"){
+    		  if(self.openstackCurrentVO.isValid() && self.currentVO.isValid() && self.adminPassReinput.isValid() && self.adminPass.isValid()){
+    			  var postBody = {};
+    			  //vpc
+    			  postBody.vpcUuid = self.openstackCurrentVO().vpc();
+    			  //network
+    	    	  var networkList= [];
+    	    	  var networkInfo = {};
+    	    	  if(csc.util.isNotNull(self.openstackCurrentVO().ip())){
+    	    		  for(var n=0;n<network.length;n++){
+    	    			  if(network[n].uuid == self.openstackCurrentVO().network()){
+    	    				  networkInfo.subNetworkId = network[n].originalSubId;
+    	    				  break;
+    	    			  }
+    	    		  }
+    	    		  networkInfo.ip = self.openstackCurrentVO().ip();
+    	    	  }
+    		      networkInfo.networkId = self.openstackCurrentVO().network();
+    		      networkList.push(networkInfo);
+    		      postBody.networkList = networkList;
+    		      //ssh
+    	    	  postBody.sshKeyUuid = self.openstackCurrentVO().sshKey();
+    	    	  //设置admin用户的密码
+    	    	  if(csc.util.isNotNull(self.adminPass())){
+    				  postBody.adminPass = self.adminPass().trim();
+    	    	  }
+    		      self.save(postBody);
+    		  }
+    	  }else if(cloudPlatform == "CNware"){
+    		  if(self.cnwareCurrentVO.isValid() && self.currentVO.isValid()){
+    			  var postBody = {};
+    			  //host
+    			  postBody.hostPlatformId = self.cnwareCurrentVO().host();
+    			  //network
+    			  var networkList= [];
+    	    	  var networkInfo = {};
+    	    	  if(csc.util.isNotNull(self.cnwareCurrentVO().ip())){
+    	    		  networkInfo.ip = self.cnwareCurrentVO().ip();
+    	    	  }
+    	    	  networkList.push(networkInfo);
+    	    	  postBody.networkList = networkList;
+    	    	  //storagePool
+    	    	  postBody.storagePoolPlatformId = self.cnwareCurrentVO().storagePool();
+    	    	  self.save(postBody);
+    		  }
+    	  }
+    	  
       }
       //------------------------------------------创建结束------------------------------
       
       //------------------------------------------调整配置开始------------------------------
       this.adjustmentVO = ko.validatedObservable({
-    	  vcpu: ko.observable(),
-    	  memory: ko.observable(),
-    	  storage: ko.observable(),
+    	  vcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  memory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  storage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  vmUuid: ko.observable(),
     	  name: ko.observable()
       });
@@ -1424,16 +1477,19 @@
       
       //调整资源
       this.adjust = function(){
-    	  var putBody = {};
-    	  putBody.operationType = "RESIZE";
-    	  putBody.vcpu = self.adjustmentVO().vcpu();
-    	  putBody.memory = self.adjustmentVO().memory();
-    	  putBody.storage = self.adjustmentVO().storage();
-    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
-		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
-		 		self.isVmAdjustment(false);
-		 		self.table.refreshData();
-		  });
+    	  ko.validation.group(this.adjustmentVO).showAllMessages();
+    	  if(self.adjustmentVO.isValid()){
+	    	  var putBody = {};
+	    	  putBody.operationType = "RESIZE";
+	    	  putBody.vcpu = self.adjustmentVO().vcpu();
+	    	  putBody.memory = self.adjustmentVO().memory();
+	    	  putBody.storage = self.adjustmentVO().storage();
+	    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
+			 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.isVmAdjustment(false);
+			 		self.table.refreshData();
+			  });
+    	  }
       }
       //------------------------------------------调整配置结束------------------------------
       
@@ -1625,20 +1681,32 @@
 		  self.adjustProcessVO().busSysName(object.busSysName);
       }
   
-      this.adjustProcessVO = ko.observable({
+      this.adjustProcessVO = ko.validatedObservable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
     	  
-    	  vcpu: ko.observable(),
-    	  memory: ko.observable(),
-    	  storage: ko.observable(),
+    	  vcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  memory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  storage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  
-    	  targetVcpu: ko.observable(),
-    	  targetMemory: ko.observable(),
-    	  targetStorage: ko.observable(),
+    	  targetVcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  targetMemory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  targetStorage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  
     	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
@@ -1648,35 +1716,38 @@
       
       //申请
       this.adjustProcessPost = function(){
-    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
+    	  ko.validation.group(this.adjustProcessVO).showAllMessages();
+    	  if(self.adjustProcessVO.isValid()){
+    		  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
     		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
     		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
     	  
-    	  var orderItem = {};
-    	  orderItem.instanceName = self.adjustProcessVO().name();
-    	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
-    	  orderItem.resourceType = "VM";
-    	  orderItem.metaData = metaData;
-    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
-    	  orderItem.vdcUuid = self.adjustProcessVO().vdcUuid();
-    	  orderItem.azUuid = self.adjustProcessVO().azUuid();
-    	  
-    	  var orderItems = [];
-    	  orderItems.push(orderItem);
-    	  
-    	  var postBody = {};
-    	  postBody.resourceType = "VM";
-    	  postBody.type = "RESOURCE_CHANGE";
-    	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
-    	  postBody.azUuid = self.adjustProcessVO().azUuid();
-    	  postBody.orderItems = orderItems;
-    	  
-    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
-    		  if(data.code){
-    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
-  		 		self.isAdjustProcess(false);
-    		  }
-    	  });
+	    	  var orderItem = {};
+	    	  orderItem.instanceName = self.adjustProcessVO().name();
+	    	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
+	    	  orderItem.resourceType = "VM";
+	    	  orderItem.metaData = metaData;
+	    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+	    	  orderItem.vdcUuid = self.adjustProcessVO().vdcUuid();
+	    	  orderItem.azUuid = self.adjustProcessVO().azUuid();
+	    	  
+	    	  var orderItems = [];
+	    	  orderItems.push(orderItem);
+	    	  
+	    	  var postBody = {};
+	    	  postBody.resourceType = "VM";
+	    	  postBody.type = "RESOURCE_CHANGE";
+	    	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
+	    	  postBody.azUuid = self.adjustProcessVO().azUuid();
+	    	  postBody.orderItems = orderItems;
+	    	  
+	    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+	    		  if(data.code){
+	    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
+	  		 		self.isAdjustProcess(false);
+	    		  }
+	    	  });
+    	  }
       }
       //------------------------------------------资源变更-流程结束--------------------------------
       

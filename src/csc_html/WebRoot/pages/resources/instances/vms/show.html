@@ -602,19 +602,19 @@
 				<div class="form-group">
                   <label class="col-sm-3 control-label">VCPU数：</label>
                   <div class="col-sm-8">
-                    <input type="email" class="form-control" data-bind="value: adjustmentVO().vcpu">
+                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().vcpu">
                   </div>
                 </div>
 				<div class="form-group">
 	                  <label class="col-sm-3 control-label">内存(MB)：</label>
 	                  <div class="col-sm-8">
-	                    <input type="email" class="form-control" data-bind="value: adjustmentVO().memory">
+	                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().memory">
 	                  </div>
 				</div>
 				<div class="form-group">
 	                  <label class="col-sm-3 control-label">存储(GB)：</label>
 	                  <div class="col-sm-8">
-	                    <input type="email" class="form-control" data-bind="value: adjustmentVO().storage">
+	                    <input type="email" maxlength="9" class="form-control" data-bind="value: adjustmentVO().storage">
 	                  </div>
 				</div>
 			</div>
@@ -1126,6 +1126,7 @@
   	this.doReInstall = function(object,event){
     	self.isReInstall(true);
     	self.reInstallVO().uuid(object.uuid);
+    	self.reInstallVO().softwareUuid(object.softwareUuid);
     	self.reInstallVO().userName('');
     	self.reInstallVO().password('');
     }
@@ -1133,6 +1134,7 @@
     
     this.reInstallVO = ko.observable({
     	uuid: ko.observable(),
+    	softwareUuid: ko.observable(),
     	userName: ko.observable(),
     	password: ko.observable()
     })
@@ -1143,8 +1145,8 @@
     	vm.uuid = self.vmVO().uuid;
     	vm.userName = self.reInstallVO().userName();
     	vm.userPwd = self.reInstallVO().password();
-    	vm.softwareUuid = self.reInstallVO().uuid();
-    		
+    	vm.softwareUuid = self.reInstallVO().softwareUuid();
+    	vm.logUuid = self.reInstallVO().uuid();
     	var vms = [];
     	vms.push(vm);
     	
@@ -1519,9 +1521,15 @@
       
       //------------------------------------------调整配置开始------------------------------
       this.adjustmentVO = ko.validatedObservable({
-    	  vcpu: ko.observable(),
-    	  memory: ko.observable(),
-    	  storage: ko.observable(),
+    	  vcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  memory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  storage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  vmUuid: ko.observable(),
     	  name: ko.observable()
       });
@@ -1543,16 +1551,19 @@
       
       //调整资源
       this.adjust = function(){
-    	  var putBody = {};
-    	  putBody.operationType = "RESIZE";
-    	  putBody.vcpu = self.adjustmentVO().vcpu();
-    	  putBody.memory = self.adjustmentVO().memory();
-    	  putBody.storage = self.adjustmentVO().storage();
-    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
-		 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
-		 		self.isVmAdjustment(false);
-		 		self.reloadVmInfo();
-		  });
+    	  ko.validation.group(this.adjustmentVO).showAllMessages();
+    	  if(self.adjustmentVO.isValid()){
+	    	  var putBody = {};
+	    	  putBody.operationType = "RESIZE";
+	    	  putBody.vcpu = self.adjustmentVO().vcpu();
+	    	  putBody.memory = self.adjustmentVO().memory();
+	    	  putBody.storage = self.adjustmentVO().storage();
+	    	  csc.rest.put('api/v5.0.0/vms/'+self.adjustmentVO().vmUuid(),putBody,function(data){
+			 		systemMsg.alert('云主机调整资源请求成功，调度任务ID：'+data.taskId+'！');
+			 		self.isVmAdjustment(false);
+			 		self.reloadVmInfo();
+			  });
+    	  }
       }
       //------------------------------------------调整配置结束------------------------------
       
@@ -1711,20 +1722,32 @@
 		  self.adjustProcessVO().busSysName(self.vmVO().busSysName);
       }
   
-      this.adjustProcessVO = ko.observable({
+      this.adjustProcessVO = ko.validatedObservable({
     	  name: ko.observable(),
     	  uuid: ko.observable(),
     	  time: ko.observable(),
     	  user: ko.observable(),
     	  serviceInstanceUuid: ko.observable(),
     	  
-    	  vcpu: ko.observable(),
-    	  memory: ko.observable(),
-    	  storage: ko.observable(),
+    	  vcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  memory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  storage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  
-    	  targetVcpu: ko.observable(),
-    	  targetMemory: ko.observable(),
-    	  targetStorage: ko.observable(),
+    	  targetVcpu: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  targetMemory: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
+    	  targetStorage: ko.observable().extend({required: true,
+				min: { params: 1, message: "请输入大于1的整数" }
+		  }),
     	  
     	  vdcUuid: ko.observable(),
     	  vdcName: ko.observable(),
@@ -1734,36 +1757,39 @@
       
       //申请
       this.adjustProcessPost = function(){
-    	  //var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
-    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
-    		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
-    		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
-    	  
-    	  var orderItem = {};
-    	  orderItem.instanceName = self.adjustProcessVO().name();
-    	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
-    	  orderItem.resourceType = "VM";
-    	  orderItem.metaData = metaData;
-    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
-    	  orderItem.vdcUuid = self.adjustProcessVO().vdcUuid();
-    	  orderItem.azUuid = self.adjustProcessVO().azUuid();
-    	  
-    	  var orderItems = [];
-    	  orderItems.push(orderItem);
-    	  
-    	  var postBody = {};
-    	  postBody.resourceType = "VM";
-    	  postBody.type = "RESOURCE_CHANGE";
-    	  postBody.orderItems = orderItems;
-    	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
-    	  postBody.azUuid = self.adjustProcessVO().azUuid();
-    	  
-    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
-    		  if(data.code){
-    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
-  		 		self.isAdjustProcess(false);
-    		  }
-    	  });
+    	  ko.validation.group(this.adjustProcessVO).showAllMessages();
+    	  if(self.adjustProcessVO.isValid()){
+	    	  //var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()+"\"}}";
+	    	  var metaData = "{\"resBaseInfo\":{\"vcpu\": \""+self.adjustProcessVO().targetVcpu()+"\",\"memory\": \""+self.adjustProcessVO().targetMemory()+"\",\"storage\": \""+self.adjustProcessVO().targetStorage()
+	    		  +"\",\"metaVcpu\": \""+self.adjustProcessVO().vcpu()+"\",\"metaMemory\": \""+self.adjustProcessVO().memory()+"\",\"metaStorage\": \""+self.adjustProcessVO().storage()
+	    		  +"\",\"vdcName\": \""+self.adjustProcessVO().vdcName()+"\",\"busSysName\": \""+self.adjustProcessVO().busSysName()+"\"}}";
+	    	  
+	    	  var orderItem = {};
+	    	  orderItem.instanceName = self.adjustProcessVO().name();
+	    	  orderItem.serviceInstanceUuid = self.adjustProcessVO().serviceInstanceUuid();
+	    	  orderItem.resourceType = "VM";
+	    	  orderItem.metaData = metaData;
+	    	  orderItem.resourceUuid = self.adjustProcessVO().uuid();
+	    	  orderItem.vdcUuid = self.adjustProcessVO().vdcUuid();
+	    	  orderItem.azUuid = self.adjustProcessVO().azUuid();
+	    	  
+	    	  var orderItems = [];
+	    	  orderItems.push(orderItem);
+	    	  
+	    	  var postBody = {};
+	    	  postBody.resourceType = "VM";
+	    	  postBody.type = "RESOURCE_CHANGE";
+	    	  postBody.orderItems = orderItems;
+	    	  postBody.vdcUuid = self.adjustProcessVO().vdcUuid();
+	    	  postBody.azUuid = self.adjustProcessVO().azUuid();
+	    	  
+	    	  csc.rest.post("api/v5.0.0/orders/changeResource",postBody,function(data){
+	    		  if(data.code){
+	    			systemMsg.alert('资源变更申请成功，订单编号：'+data.code+'！');
+	  		 		self.isAdjustProcess(false);
+	    		  }
+	    	  });
+    	  }
       }
       //------------------------------------------资源变更-流程结束--------------------------------
       
