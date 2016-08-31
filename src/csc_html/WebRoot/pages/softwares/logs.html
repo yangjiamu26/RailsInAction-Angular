@@ -468,13 +468,17 @@
 					$('#'+vo.uuid).hide();
 					$('#status_'+vo.uuid).html('安装中');
 					
-					if (vo.progress.indexOf('%') != -1) {
-						vo.progress = vo.progress.replace('%', '');
-					}
+					var vmVo = {
+						userName: vo.userName,
+						userPwd: vo.userPwd,
+						logUuid: vo.uuid, // 安装日志uuid
+						uuid: vo.vmUuid, // 云主机uuid
+						softwareUuid: vo.softwareUuid
+					};
 					
-					arr.push(vo);
+					arr.push(vmVo);
 					
-					$.INSTALL.retryInstall(arr, function (data) {
+					$.INSTALL.retryInstall({vms:arr}, function (data) {
 						self.table.refreshData();
 					}, function(XMLHttpRequest, textStatus, errorThrown) {
 						systemMsg.alert(XMLHttpRequest.responseText);

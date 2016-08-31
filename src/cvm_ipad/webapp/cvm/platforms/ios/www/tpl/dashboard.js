@@ -1,13 +1,18 @@
 myApp.onPageInit("dashboard", function(page) {
   // 首页cpu占比图
-function initTotal_cpu_chart(data) {
-    $('#total_cpu_chart').highcharts({
+var initTotal_cpu_chart = function(data) {
+    $(page.container).find('#total_cpu_chart').highcharts({
       chart: {
           marginTop: 10,
           plotBackgroundColor: null,
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GHz',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -72,14 +77,19 @@ function initTotal_cpu_chart(data) {
       }]
     });   
 }
-function initTotal_cpu_chart2(data) {
-    $('#total_cpu_chart2').highcharts({
+var initTotal_cpu_chart2 = function(data) {
+    $(page.container).find('#total_cpu_chart2').highcharts({
       chart: {
           marginTop: 10,
           plotBackgroundColor: null,
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' 核',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -145,14 +155,19 @@ function initTotal_cpu_chart2(data) {
     });   
 }
 // 首页内存占比图
-function initTotal_memory_chart(data) {
-    $('#total_memory_chart').highcharts({
+var initTotal_memory_chart = function(data) {
+    $(page.container).find('#total_memory_chart').highcharts({
       chart: {
           marginTop: 10,
           plotBackgroundColor: null,
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -215,16 +230,21 @@ function initTotal_memory_chart(data) {
     });   
 }
 // 首页存储占比图
-function initTotal_storage_chart(data) {
+var initTotal_storage_chart = function(data) {
   var init = 'GB';
   if(data.isTB) init = 'TB';
-    $('#total_storage_chart').highcharts({
+    $(page.container).find('#total_storage_chart').highcharts({
       chart: {
           marginTop: 10,
           plotBackgroundColor: null,
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false

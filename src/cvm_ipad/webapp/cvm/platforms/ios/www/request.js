@@ -1,6 +1,7 @@
 var requestNUM = 0;
 var errerNUM = [0,0,0,0,0];
 var intervalCheckNte = null;
+var interAlert = false;
 
 function startCheckNet(){
     intervalCheckNte = setInterval(function(){
@@ -14,7 +15,14 @@ function backToLogin(res){
   myApp.Login_Again = true;
   if(!myApp.isInLoginPage) myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
   clearInterval(intervalCheckNte);
+  interAlert = false;
   $$("#assistive").hide();
+  if(res&&res.tokenCheck==false){
+    myApp.alert('您的登陆已过期，请重新登陆！',function(){
+      myApp.closeModal('.popup.modal-in');
+      return myApp.loginScreen();
+    });
+  }
   if(res&&res.msg){
     myApp.alert(res.msg,function(){
       myApp.closeModal('.popup.modal-in');
@@ -27,16 +35,20 @@ function backToLogin(res){
 }
 function checkNetWork(thisRequest,callback){
   if(callback){
-    if(navigator.onLine){
-      callback();
-    }else{
-      if(thisRequest>1) return;
-      myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
-        return backToLogin();
-      });
-    }
+    setTimeout(function(){
+      if(navigator.onLine){
+        callback();
+      }else{
+        if(thisRequest>1||interAlert) return;
+        myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
+          return backToLogin();
+        });
+      }
+    },200);
   }else{
     if(!navigator.onLine){
+      if(interAlert) return;
+      interAlert = true;
       myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
         return backToLogin();
       });
@@ -44,46 +56,49 @@ function checkNetWork(thisRequest,callback){
   }
 }
 function alertErrer(req, status, ex){
-  if(req){
-    if(req.responseText){
-      if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
-        errerNUM[0]++;
-        if(errerNUM[0]==1){
-          myApp.alert('请检查CSC服务是否正常！',function(){
-            errerNUM[0]=0;
+  checkNetWork(1,function(){
+    if(req){
+      if(req.responseText){
+        if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+          errerNUM[0]++;
+          if(errerNUM[0]==1){
+            myApp.alert('请检查CSC服务是否正常！',function(){
+              errerNUM[0]=0;
+            });
+          }
+        }else{
+          errerNUM[1]++;
+          if(errerNUM[1]==1){
+            myApp.alert(JSON.parse(req.responseText).exception,function(){
+              errerNUM[1]=0;
+            });
+          }
+        }
+      }else if(req.statusText=='timeout'){
+        errerNUM[2]++;
+        if(errerNUM[2]==1){
+          myApp.alert('请求超时！',function(){
+            errerNUM[2]=0;
           });
         }
       }else{
-        errerNUM[1]++;
-        if(errerNUM[1]==1){
-          myApp.alert(JSON.parse(req.responseText).exception,function(){
-            errerNUM[1]=0;
+        errerNUM[3]++;
+        if(errerNUM[3]==1){
+          myApp.alert('服务器异常或停止运行！',function(){
+            errerNUM[3]=0;
           });
         }
       }
-    }else if(req.statusText=='timeout'){
-      errerNUM[2]++;
-      if(errerNUM[2]==1){
-        myApp.alert('请求超时！',function(){
-          errerNUM[2]=0;
-        });
-      }
     }else{
-      errerNUM[3]++;
-      if(errerNUM[3]==1){
-        myApp.alert('服务器异常或停止运行！',function(){
-          errerNUM[3]=0;
+      errerNUM[4]++;
+      if(errerNUM[4]==1){
+        myApp.alert('未知错误！',function(){
+          errerNUM[4]=0;
         });
       }
     }
-  }else{
-    errerNUM[4]++;
-    if(errerNUM[4]==1){
-      myApp.alert('未知错误！',function(){
-        errerNUM[4]=0;
-      });
-    }
-  }
+  });
+  
 }
 function RestServiceJs(newurl) {
   requestNUM = requestNUM+1;
@@ -247,3 +262,4 @@ function RestServiceJs(newurl) {
 
   return self;
 }
+

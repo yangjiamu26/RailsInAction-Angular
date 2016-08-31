@@ -82,21 +82,28 @@ myApp.onPageInit("login", function(page) {
             goLogin(data);
           },  
           error: function(req, status, ex){
-            if(req){
-              if(req.responseText){
-                if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
-                  myApp.alert('请检查CSC服务是否正常！');
-                }else{
-                  myApp.alert(JSON.parse(req.responseText).exception);
-                }
-              }else if(req.statusText=='timeout'){
-                myApp.alert('请求超时！');
-              }else{
-                myApp.alert('请检查服务器环境是否启动/网络地址填写是否正确！');
+            checkNetWork(1,function(){
+              alert(navigator.onLine);
+              if(!navigator.onLine){
+                myApp.alert('当前网络不可用，请检查您的网络设置！');
+                return;
               }
-            }else{
-              myApp.alert('未知错误！');
-            }
+              if(req){
+                if(req.responseText){
+                  if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                    myApp.alert('请检查CSC服务是否正常！');
+                  }else{
+                    myApp.alert(JSON.parse(req.responseText).exception);
+                  }
+                }else if(req.statusText=='timeout'){
+                  myApp.alert('请求超时！');
+                }else{
+                  myApp.alert('请检查服务器环境是否启动/网络地址填写是否正确！');
+                }
+              }else{
+                myApp.alert('未知错误！');
+              }
+            });
           },  
           timeout:60000  
         });

@@ -9,6 +9,11 @@ function initPool_vtype_chart(data) {
             plotShadow: false,
             backgroundColor: "none"
         },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+            valueSuffix: ' 个',
+            shared: true
+        },
         title: {
             text: ''
         },
@@ -71,6 +76,11 @@ function initPool_cpu_chart(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GHz',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -94,7 +104,7 @@ function initPool_cpu_chart(data) {
           fontWeight: 'normal',
           fontSize:'12px'
         },
-        labelFormat: '{name}：<b>{y:.2f}</b>Ghz',
+        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
       },
       plotOptions: {
           pie: {
@@ -140,6 +150,11 @@ function initPool_cpu_chart2(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' 核',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -212,6 +227,11 @@ function initPool_memory_chart(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -282,6 +302,11 @@ function initPool_storage_chart(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false

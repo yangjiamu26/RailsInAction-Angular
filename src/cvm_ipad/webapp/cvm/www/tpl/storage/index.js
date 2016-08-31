@@ -10,6 +10,11 @@ function initStorage_share_chart(share, total) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' TB',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -84,6 +89,11 @@ function initStorage_use_chart(free, total) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' TB',
+          shared: true
       },
       exporting:{
           enabled: false

@@ -53,6 +53,10 @@ function FormViewModel(data) {
     self.next = function () {
     	
     }
+    
+    self.back = function () {
+    	
+    }
 
     self.dirtyFlag = new ko.dirtyFlag(this);
     self.isDirty = ko.computed(function (){

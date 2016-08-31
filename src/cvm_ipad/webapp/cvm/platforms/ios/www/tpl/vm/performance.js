@@ -193,7 +193,7 @@ function initNetwork_chart(data,xAxis) {
     this.name = ko.observable(page.query.name);
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.isShowCharts = ko.observable(true);
-    this.memory = ko.observable('');
+    this.vcpu = ko.observable('');
     this.belongTab = ko.observable(page.query.belongTab);
 
     this.timeItems = ko.observableArray(['最近十分钟','最近一小时','最近一天','最近一周','最近一个月','最近一年','自定义']);
@@ -250,6 +250,10 @@ function initNetwork_chart(data,xAxis) {
     }
     this.loadData = function(type,start,end){
       RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"type":type,"startTime":start||"","endTime":end||""},function(data){
+        if(data.exceptionMessage){
+          myApp.alert(data.exceptionMessage);
+          return;
+        }
         var startTime = new Date(Number(data.meta.start+"000"));
         var endTime = new Date(Number(data.meta.end+"000"));
         var timeRange = endTime - startTime;
@@ -340,10 +344,10 @@ function initNetwork_chart(data,xAxis) {
               cpus[index].data.push(Number(data.data[i].v[index])*100);
               cpu.data[i] = cpu.data[i] + Number(data.data[i].v[index])*100;
             });
-            cpu.data[i] = cpu.data[i]/cpus.length;
+            cpu.data[i] = cpu.data[i]/Number(self.vcpu());
             $.each(disks,function(index,val){
               var thisIndex = diskIndex[index];
-              disks[index].data.push(Number(data.data[i].v[thisIndex]));
+              disks[index].data.push(Number(data.data[i].v[thisIndex])/1024);
             });
             $.each(networks,function(index,val){
               var thisIndex = networkIndex[index];
@@ -351,6 +355,8 @@ function initNetwork_chart(data,xAxis) {
             });
           }
           cpu.data.reverse();
+          cpus.reverse();
+          cpus = cpus.slice(0,Number(self.vcpu()));
           initMemoryUse_chart(memory,xAxis);
           initcpuUse_chart1(cpu,xAxis);
           initcpuUse_chart2(cpus,xAxis);
