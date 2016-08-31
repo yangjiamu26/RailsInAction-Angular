@@ -87,6 +87,11 @@ function initTotal_cpu_chart_home(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GHz',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -159,6 +164,11 @@ function initTotal_cpu_chart_home2(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' 核',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -181,9 +191,6 @@ function initTotal_cpu_chart_home2(data) {
           
           fontWeight: 'normal'
         },
-        // labelFormatter: function() {  
-        //             return this.name + '：' + '<span style="{color}">'+ this.y + 'GHz' + '</span>';  
-        // }, 
         labelFormat: '{name}：<b>{y:.2f}</b>核',
       },
       plotOptions: {
@@ -231,6 +238,11 @@ function initTotal_memory_chart_home(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -303,6 +315,11 @@ function initTotal_storage_chart_home(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false

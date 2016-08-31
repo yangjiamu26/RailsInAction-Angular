@@ -15,7 +15,9 @@ var myApp = new Framework7({
   cacheDuration: 0,//1000 * 60 * 1,
   cacheIgnoreGetParameters: true,
   allowDuplicateUrls: true,
-  pushState: false
+  pushState: false,
+  modalButtonOk:"确定",
+  modalButtonCancel:"取消"
 });
 
 var pageInitNUM = 0;

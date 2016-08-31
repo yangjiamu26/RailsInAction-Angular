@@ -17,9 +17,11 @@
   	<!-- 解决接口跨域的问题 -->
 	<script src="api/v5.0.0/uap/register"></script>
 	<!-- 解决js跨域的问题 -->
-	<script src="api/register.js"></script>  
+	<!-- <script src="api/register.js"></script> -->  
 	<!-- 解决调用servlet跨域问题 -->
 	<script src="api/file/uploadServlet"></script>
+	<script src="api/userStrategyServlet"></script>
+	<script src="api/logoutServlet"></script>
     </head>
     
   
@@ -149,7 +151,7 @@
                 </li>
                 <li class='divider'></li>
                 <li>
-                  <div class="padder"><a href="api/logoutServlet" class="btn btn-danger btn-xs"><i class='fa fa-power-off'></i> 退出系统</a></div></li>
+                  <div class="padder"><a href="javascript:loginout();" class="btn btn-danger btn-xs"><i class='fa fa-power-off'></i> 退出系统</a></div></li>
               </ul>
               <!-- / dropdown --></li>
           </ul>
@@ -159,10 +161,11 @@
       <!-- aside -->
       
       <aside class='app-aside hidden-xs bg-dark' id='aside'>
-        <!-- ko if: roleVO().platForm()=='operate' -->
+        
         <div class='aside-wrap'>
           <div class='navi-wrap'>
             <nav class='navi clearfix' ui-nav=''>
+              <!-- ko if: roleVO().platForm()=='operate' -->
               <ul class='nav navbox'>
                 <li data-bind="check_action:'firstPage'">
                   <a data-url="pages/welcome/index" data-url-params="role" href="#pages/welcome/index">
@@ -424,15 +427,9 @@
                   </ul>
                 </li>
               </ul>
-            </nav>
-          </div>
-        </div>
-        <!-- /ko -->
+              <!-- /ko -->
         
-        <!-- ko if: roleVO().platForm()=='self' -->
-        <div class='aside-wrap'>
-          <div class='navi-wrap'>
-            <nav class='navi clearfix' ui-nav=''>
+              <!-- ko if: roleVO().platForm()=='self' -->
               <ul class='nav navbox'>
                 <li data-bind="check_action:'firstPage'">
                   <a data-url="pages/welcome/index" data-url-params="role" href="#pages/welcome/index">
@@ -627,10 +624,12 @@
                     <span class='text-base'>报表统计</span></a>
                 </li>                                                      
               </ul>
+              <!-- /ko -->
+              
             </nav>
           </div>
         </div>
-        <!-- /ko -->
+        
       </aside>
       
       <!-- / aside -->
@@ -998,6 +997,47 @@
 	    	ko.applyBindings(frameViewModel,$('.app-header')[0]);
 	    	ko.applyBindings(frameViewModel,$('.app-aside')[0]);
 	    })
+	    
+	    function loginout() {
+	    	var cookie = document.cookie;
+	    	//cookie是个字符串型的  判断其长度
+	    	if(cookie.length != 0 ){
+	    		$.ajax({
+	                //提交数据的类型 POST GET
+	                type:"POST",
+	                //提交的网址
+	                url:"api/logoutServlet",
+	                //提交的数据
+	                data:{},
+	                //成功返回之后调用的函数             
+	                success:function(data){
+	                	window.location.href = data;
+	                }         
+	             });
+	    		//
+	    	} else {
+	    		location.reload();
+	    	}
+	    }
+	    
+	    //登录的策略，定时器
+    	setInterval(chat, "30000");
+    	function chat() {
+    		$.ajax({
+                //提交数据的类型 POST GET
+                type:"POST",
+                //提交的网址
+                url:"api/userStrategyServlet",
+                //提交的数据
+                data:{},
+                //成功返回之后调用的函数             
+                success:function(data){
+                	if (data != null && data != "") {
+                		window.location.href = data;
+                	}
+                }         
+             });
+    	}
     </script>
   </body>
 
