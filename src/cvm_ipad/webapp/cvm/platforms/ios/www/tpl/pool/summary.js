@@ -11,6 +11,11 @@ function initSinglePool_cpu_chart(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: unit,
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -81,6 +86,11 @@ function initSinglePool_memory_chart(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false
@@ -154,6 +164,11 @@ function initSinglePool_storage_chart(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: init,
+          shared: true
       },
       exporting:{
           enabled: false

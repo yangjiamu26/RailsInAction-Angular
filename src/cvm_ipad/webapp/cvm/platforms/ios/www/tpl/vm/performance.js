@@ -250,6 +250,10 @@ function initNetwork_chart(data,xAxis) {
     }
     this.loadData = function(type,start,end){
       RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"type":type,"startTime":start||"","endTime":end||""},function(data){
+        if(data.exceptionMessage){
+          myApp.alert(data.exceptionMessage);
+          return;
+        }
         var startTime = new Date(Number(data.meta.start+"000"));
         var endTime = new Date(Number(data.meta.end+"000"));
         var timeRange = endTime - startTime;
@@ -343,7 +347,7 @@ function initNetwork_chart(data,xAxis) {
             cpu.data[i] = cpu.data[i]/Number(self.vcpu());
             $.each(disks,function(index,val){
               var thisIndex = diskIndex[index];
-              disks[index].data.push(Number(data.data[i].v[thisIndex]));
+              disks[index].data.push(Number(data.data[i].v[thisIndex])/1024);
             });
             $.each(networks,function(index,val){
               var thisIndex = networkIndex[index];

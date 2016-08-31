@@ -10,6 +10,11 @@ function initsingleStorage_use_chart(data) {
           plotShadow: false,
           backgroundColor: "none"
       },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
+      },
       exporting:{
           enabled: false
       },
@@ -80,6 +85,11 @@ function initsingleStorage_assigned_chart(data) {
           plotBorderWidth: null,
           plotShadow: false,
           backgroundColor: "none"
+      },
+      tooltip: {
+          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
+          valueSuffix: ' GB',
+          shared: true
       },
       exporting:{
           enabled: false
