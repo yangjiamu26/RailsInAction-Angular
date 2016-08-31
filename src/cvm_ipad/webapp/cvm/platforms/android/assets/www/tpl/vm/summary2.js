@@ -8,11 +8,11 @@ myApp.onPageInit("vm-summary2", function(page) {
       "type":'',
       "osVersion":''
     });
-    this.showShare = ko.observable('false');
+    this.showShare = ko.observable();
     this.loadData = function(data){
       var self = this;
       if(page.query.hypervisor=='winserver'){
-        self.showShare('true');
+        self.showShare(true);
         if(data.memoryType=='shared'){
           data.memoryType = '共享';
         }
@@ -26,7 +26,7 @@ myApp.onPageInit("vm-summary2", function(page) {
           data.memoryType = '自定义调整';
         }
       }else{
-        self.showShare('false');
+        self.showShare(false);
       }
       myApp.pullToRefreshDone();
       data.memory = (Number(data.memory)/1024).toFixed(2);

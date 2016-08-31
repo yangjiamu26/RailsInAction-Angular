@@ -39,6 +39,7 @@ myApp.onPageInit("home-index", function(page) {
       RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceSummary").query({},function(data){
         myApp.pullToRefreshDone();
         data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
+        data.storageSize = Number((Number(data.storageSize)/1024).toFixed(2));
         self.infos(data);
       });
       RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat").query({},function(data){
@@ -340,7 +341,6 @@ function initTotal_storage_chart_home(data) {
         backgroundColor:"none",
         borderColor:"none",
         itemStyle: {
-          
           fontWeight: 'normal'
         },
         labelFormat: '{name}：<b>{y:.2f}</b>'+init,
