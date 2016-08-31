@@ -301,7 +301,7 @@ csc.util = {
         return billTxt;
 	}, 
 	getResourceText:function(resourceType){
-		var textArray = new Array("云主机","云硬盘","路由器",  "公网IP",  "负载均衡",       "SSH密钥",   "对象存储",
+		var textArray = new Array("云主机","云硬盘","路由器",  "公网IP",  "负载均衡器",       "SSH密钥",   "对象存储",
 			"CPU","内存",   "存储",   "防火墙",  "VPC", "VPN", "安全组",        "云软件");
 			
 		var typeArray = new Array("VM",    "DISK",  "ROUTER", "PUBLICIP","LOAD_BALANCING","SECRET_KEY","OBJECT_STORAGE",
@@ -314,7 +314,7 @@ csc.util = {
         return "";
 	},
 	getResourceUnit:function(resourceType){
-		var unitArray = new Array("个", "个",    "个",      "个",      "个",            "对",        "GB", 
+		var unitArray = new Array("台", "个",    "个",      "个",      "个",            "对",        "GB", 
 			"个", "GB",    "GB",      "个",      "个", "个",   "个",            "个");
 		var typeArray = new Array("VM", "DISK",  "ROUTER", "PUBLICIP","LOAD_BALANCING","SECRET_KEY","OBJECT_STORAGE",
 			"CPU","MEMORY","STORAGE","FIREWALL","VPC", "VPN", "SECURITY_GROUP","SOFTWARE");
