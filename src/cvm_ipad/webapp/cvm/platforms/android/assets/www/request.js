@@ -22,12 +22,6 @@ function backToLogin(res){
       myApp.closeModal('.popup.modal-in');
       return myApp.loginScreen();
     });
-  }
-  if(res&&res.msg){
-    myApp.alert(res.msg,function(){
-      myApp.closeModal('.popup.modal-in');
-      return myApp.loginScreen();
-    });
   }else{
     myApp.closeModal('.popup.modal-in');
     return myApp.loginScreen();
@@ -98,9 +92,15 @@ function alertErrer(req, status, ex){
       }
     }
   });
-  
 }
+var loadingNum = 0;
+var isLoading = false;
 function RestServiceJs(newurl) {
+  if(!isLoading) {
+    myApp.showPreloader();
+    isLoading = true;
+  }
+  loadingNum = loadingNum+1;
   requestNUM = requestNUM+1;
   var url = newurl;
   if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
@@ -135,7 +135,14 @@ function RestServiceJs(newurl) {
             },  
             error: error ? error : function(req, status, ex) {
               alertErrer(req, status, ex);
-            },  
+            },
+            complete:function(){
+              loadingNum = loadingNum-1;
+              if(loadingNum == 0){
+                myApp.hidePreloader();
+                isLoading = false;
+              }
+            },
             timeout:60000  
         });
       });
@@ -163,7 +170,14 @@ function RestServiceJs(newurl) {
           },  
           error: error ? error : function(req, status, ex) {
             alertErrer(req, status, ex);
-          },  
+          },
+          complete:function(){
+            loadingNum = loadingNum-1;
+            if(loadingNum == 0){
+              myApp.hidePreloader();
+              isLoading = false;
+            }
+          },
           timeout:60000  
         });  
       });
@@ -197,7 +211,14 @@ function RestServiceJs(newurl) {
             },  
             error: error ? error : function(req, status, ex) {
               alertErrer(req, status, ex);
-            }, 
+            },
+            complete:function(){
+              loadingNum = loadingNum-1;
+              if(loadingNum == 0){
+                myApp.hidePreloader();
+                isLoading = false;
+              }
+            },
             timeout:60000
         });
       });
@@ -226,7 +247,14 @@ function RestServiceJs(newurl) {
             },  
             error: error ? error : function(req, status, ex) {
               alertErrer(req, status, ex);
-            }, 
+            },
+            complete:function(){
+              loadingNum = loadingNum-1;
+              if(loadingNum == 0){
+                myApp.hidePreloader();
+                isLoading = false;
+              }
+            },
             timeout:60000
         });  
       });
