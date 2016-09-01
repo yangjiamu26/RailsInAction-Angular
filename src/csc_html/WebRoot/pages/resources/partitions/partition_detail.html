@@ -1402,7 +1402,7 @@
                 </div>
               </div>
             </div>             
-            <div class='table-responsive'>
+            <div class='table-responsive' data-bind="with: IpPoolTable">
               <table class='table table-striped table-hover'>
                 <thead>
                   <tr>
@@ -1411,10 +1411,26 @@
                     <th>结束地址</th>
                     <th>子网掩码</th>
                     <th>IP数量</th>
-                    <th>可用分区</th>
                   </tr>
                 </thead>
+                
                 <tbody>
+                  <tr data-bind="visible: showNoData">
+		            <td colspan=7 class="aligncenter">
+		             	 暂无数据
+		            </td>
+		          </tr>
+		          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+                  <tr>
+                    <td data-bind="text: $row.name"></td>
+                    <td data-bind="text: $row.segment"></td>
+                    <td data-bind="text: $row.segment"></td>
+                    <td data-bind="text: $row.netmask"></td>
+                    <td data-bind="text: $row.total"></td>
+                  </tr>
+                  <!-- /ko -->
+                </tbody>
+              <!--   <tbody>
                   <tr>
                     <td>ip池1</td>
                     <td>192.168.1.1</td>
@@ -1422,10 +1438,10 @@
                     <td>255.255.255.0</td>
                     <td>2</td>
                     <td>openstackServer</td></tr>
-                </tbody>
+                </tbody> -->
               </table>
             </div>
-            <footer class='panel-footer'>
+            <footer class='panel-footer' data-bind="with: IpPoolTable, visible: IpPoolTable.pages() > 1">
               <ul class="pagination">
                 <li class="page active">
                   <a href="#pages/javascript:void(0)">1</a></li>
@@ -2406,6 +2422,40 @@
 
       ko.applyBindings(new NetworkViewModel(), $('#partition_network_externals')[0]);//绑定网络的区域
       /***********************Network end*****************************/
+      
+      
+      /***********************IP Start*****************************///IP ViewModel
+    	function IpPoolViewModel(){
+    		var self = this;
+    		
+    		//列表
+    		console.log("11111111111111111");
+    		this.IpPoolTable = new DataTable([], {
+              perPage: 10,
+              
+    		});
+      		self.loadTableData = function(){
+      			console.log("22222222222222222");
+      			if(cloudPlatform == "CNware"){
+      				console.log("333333333333333333");
+      			  self.IpPoolTable.path('api/v5.0.0/ipPools?azUuid=' + azUuid);
+      			}
+      		}();
+    		//定义搜索参数
+          self.searchParam = ko.observable({
+              azUuid: azUuid,
+              nameLike: ""
+          });
+    		//搜索操作
+          this.search = function(){
+              var p = self.searchParam();
+              self.IpPoolTable.params(p);
+          };
+    	}
+    	ko.applyBindings(new IpPoolViewModel(), $("#partition_ip_pools")[0]);
+      
+      /***********************IP end*****************************/
+      
       
       
       /****************************可用分区 摘要START*********************************/

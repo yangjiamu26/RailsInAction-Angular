@@ -26,7 +26,7 @@
 			});
 
 			$element.on("shown.bs.modal",function(){
-				$(this).find('.modal-dialog').draggable({ handle:'.modal-header'});
+				$(this).find('.modal-dialog').draggable({ handle:'.modal-header',containment :'parent'});
 			});
 
 //			$(document).on("keyup", function(e) {
