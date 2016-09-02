@@ -237,7 +237,13 @@
 		//获取az列表
 		function loadAzList(vdcUuid){
 			csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
-				detailModel.azList(data.results);
+//				var newAzList
+				data.results.forEach(function(e){
+					if(e.cloudPlatform == 'CNware'){
+						detailModel.azList.push(e);
+					}
+				})
+//				detailModel.azList(data.results);
 	        });
 		}
 		//获取业务系统列表
@@ -280,7 +286,6 @@
 						})
 						$("#bb"+diskFeeId).html("");
 						$("#bb"+diskFeeId).append(bb);
-						diskFeeId;
 					}else{
 						detailModel.diskFeeList(formatCharge(data.chargeList));
 					}
@@ -470,12 +475,41 @@
 
 	      	//保存
 	      	this.saveCutOver = function(){
-	      		debugger
-	      		$("#aa0").val();
+	      		var isTrue = true;
+	      		if(self.selected_vdc() == null || self.selected_vdc() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(self.selected_az() == null || self.selected_az() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(self.selected_service() == null || self.selected_service() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(self.selected_fee() == null || self.selected_fee() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(self.selected_bus() == null || self.selected_bus() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(self.selected_user() == null || self.selected_user() == ""){
+	      			isTrue = false;
+	      		}
+	      		if(!isTrue){
+	      			alert("请检查必填项！");
+	      			return;
+	      		}
 	      		
 	      		var diskList = self.table.pagedRows();
 	      		var newDiskList = [];
+	      		var isDiskTrue = true;
 	      		for(var i = 0;i < diskList.length; i++){
+	      			if($("#"+i).val() == null || $("#"+i).val() == ""){
+	      				isDiskTrue = false;
+		      		}
+	      			if($("#bb"+i).val() == null || $("#bb"+i).val() == ""){
+	      				isDiskTrue = false;
+		      		}
+	      			
 	      			var disk = {
 	      				serviceUuid	: $("#"+i).val(),
 	      				volumeName : diskList[i].name,
@@ -488,7 +522,10 @@
 	      			}
 	      			newDiskList.push(disk);
 	      		}
-	      		
+	      		if(!isDiskTrue){
+	      			alert("请检查必填项！");
+	      			return;
+	      		}
 	      		
 	      		var state = self.currentVO().state();
 	      		if(state == "OK"){
@@ -518,6 +555,7 @@
 	      			validTimeType : self.currentVO().validTimeType(),
 	      			validTimeNum : self.currentVO().validTimeNum(),
 	      			billCycle : self.selected_fee(),
+	      			originalId : self.currentVO().originalId(),
 	      			diskList : newDiskList
 	      		}
 	      		

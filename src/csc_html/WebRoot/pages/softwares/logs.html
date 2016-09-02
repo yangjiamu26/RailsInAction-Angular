@@ -113,6 +113,52 @@
 
 <!-- 安装日志弹窗   start -->
 <div role="dialog" aria-hidden="true" class="modal fade" id="logTextModal"
+	 data-bind="modal: { show: isLogText }"> 
+	<div class='modal-dialog' role='document' style="width: 760px;"> 
+    	<div class='modal-content'> 
+			<div class='modal-header'> 
+				<button type="button" class="close" data-dismiss="modal"> 
+					<span aria-hidden="true">&times;</span> 
+				</button> 
+				<h3 class='modal-title'>安装日志</h3> 
+            </div> 
+			<div class='modal-body form-horizontal'> 
+				<div class="panel panel-info">
+			        <div class="panel-heading">基本信息</div>
+			        <div class="panel-body">
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>软件名称：</strong><span data-bind="text: logVO().softwareName"></span></p>
+			                </div>
+			                <div class="col-xs-6">
+			                    <p><strong>云主机名称：</strong><span data-bind="text: logVO().vmName"></span></p>
+			                </div>
+			            </div>
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>安装时间：</strong><span data-bind="text: logVO().installTime"></span></p>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+            	<div class="panel panel-info">
+			        <div class="panel-heading">日志信息</div>
+					<div class="panel-body">
+						<textarea class="form-control" style="height: 220px;"
+								 data-bind="value: logTextVal" id="logTextArea">
+						</textarea>
+		            </div>
+               </div>
+				<div class='modal-footer' style="text-align: center"> 
+					<button name="button" type="submit" 
+						class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button> 
+				</div> 
+			</div> 
+		</div> 
+	</div> 
+</div> 
+
+<!-- <div role="dialog" aria-hidden="true" class="modal fade" id="logTextModal"
 	data-bind="modal: { show: isLogText }">
 
 	<div class='modal-dialog' role='document' style="width: 760px;">
@@ -137,7 +183,7 @@
 			</div>
 		</div>
 	</div>
-</div>
+</div> -->
 <!-- 安装日志弹窗   end -->
 
 <!-- 静默安装属性弹窗   start -->
@@ -292,7 +338,7 @@
 			this.logTextVal = ko.observable("");
 			
 			// 获取日志详情调度器
-			this.getLogTextInterval;
+			this.getLogTextInterval = {};
 			
 			// 是否显示安装属性编辑弹窗
 			this.isEditAttr = ko.observable(false);
@@ -320,6 +366,14 @@
 				value: ko.observable().extend({required : true}),
 				installLogUuid: null,
 				attrTableRow: null
+			});
+			
+			// 日志信息
+			this.logVO = ko.observable({
+				uuid: '',
+				softwareName: '',
+				vmName: '',
+				installTime: ''
 			});
 			
 			this.searchParam = ko.observable({
@@ -371,14 +425,15 @@
 				$.INSTALL.getLogDetail(uuid, {withStatus: 'Y'}, function (data) {
 					self.logTextVal(data.logText);
 					
-					if (!self.getLogTextInterval && data.status == '0') {
-						self.getLogTextInterval = setInterval(function(){
+					if (!self.getLogTextInterval[uuid] && data.status == '0') {
+						self.getLogTextInterval[uuid] = setInterval(function(){
 							self.getLogText(uuid);
 						}, 5000);
 					} else {
 						if (data.status != '0') {
-							clearInterval(self.getLogTextInterval);
-							self.getLogTextInterval = null;
+							clearInterval(self.getLogTextInterval[uuid]);
+							self.getLogTextInterval[uuid] = null;
+							delete self.getLogTextInterval[uuid];
 						}
 					}
 				});
@@ -386,6 +441,11 @@
 			
 			//显示安装日志
 			this.showLogText = function(object, event) {
+				self.logVO().uuid = object.uuid;
+				self.logVO().softwareName = object.softwareName;
+				self.logVO().vmName = object.vmName;
+				self.logVO().installTime = object.installTime;
+				
 				self.getLogText(object.uuid);
 				self.isLogText(true);
 			};
@@ -505,7 +565,8 @@
 			
 			$("#logTextModal").on("hidden.bs.modal", function() {
 				if (viewModel.getLogTextInterval) {
-					clearInterval(viewModel.getLogTextInterval);
+					clearInterval(viewModel.getLogTextInterval[viewModel.logVO().uuid]);
+					delete viewModel.getLogTextInterval[viewModel.logVO().uuid];
 				}
 			});
 			

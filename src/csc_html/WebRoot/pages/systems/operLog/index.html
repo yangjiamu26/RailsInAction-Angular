@@ -42,7 +42,7 @@
           <button class="btn btn-default btn-sm" type="submit" data-bind="click: search">搜索</button>
       </div>
 	  <div class="col-xs-1">
-          <a class="btn btn-sm btn-info" data-bind="attr: {href: exportURL}">导出</a>
+          <a class="btn btn-sm btn-info" data-bind="click: exportURL">导出</a>
       </div>
     </div>  
 	<!-- 操作日志列表 -->
@@ -51,8 +51,8 @@
         <thead>
           <tr>
             <th>日志编号</th>
-            <th>操作任务</th>
             <th>类型</th>
+            <th>操作任务</th>
             <th>操作对象</th>
             <th>任务状态</th>
             <th>操作人</th>
@@ -69,8 +69,8 @@
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
             <td><a data-bind="click: $root.detail, text: $row.id"></a></td><!-- 操作日志ID -->
-            <td data-bind="text: $row.type"></td><!-- 操作任务,模块名称 -->
-            <td data-bind="text: $row.targetType"></td><!-- 操作类型：做了什么操作 -->
+            <td data-bind="text: $row.type"></td><!-- 操作类型,模块名称 -->
+            <td data-bind="text: $row.targetType"></td><!-- 操作任务：做了什么操作 -->
             <td data-bind="text: $row.targetName"></td><!-- 操作对象：对什么东西进行操作 -->
             <td data-bind="html: $row.state_"></td><!-- 任务状态 -->
             <td data-bind="text: $row.account"></td><!-- 操作人 -->
@@ -124,9 +124,9 @@
               <td>日志编号：</td>
               <td data-bind="text: $root.currentVO().id">27</td>
               <td>操作任务：</td>
-              <td data-bind="text: $root.currentVO().type">操作任务</td>
+              <td data-bind="text: $root.currentVO().targetType">操作任务</td>
               <td>类型：</td>
-              <td data-bind="text: $root.currentVO().targetType">操作类型</td>
+              <td data-bind="text: $root.currentVO().type">操作类型</td>
             </tr>
             <tr>
               <td>操作时间：</td>
@@ -149,17 +149,25 @@
         <h3>日志详情</h3>
         <table class="table">
           <tbody>
+          	<tr>
+              <td width="120px">请求对象参数：</td>
+              <td style="word-break:break-all;" data-bind="text: $root.currentVO().targetParam"></td>
+            </tr>
             <tr>
-              <td>请求地址：</td>
+              <td width="120px">请求地址：</td>
               <td style="word-break:break-all;" data-bind="text: $root.currentVO().reqUrl"></td>
             </tr>
             <tr>
-              <td>请求参数：</td>
+              <td width="120px">请求参数：</td>
               <td style="word-break:break-all;" data-bind="text: $root.currentVO().reqParams"></td>
             </tr>
             <tr>
-              <td>请求BODY：</td>
+              <td width="120px">请求BODY：</td>
               <td style="word-break:break-all;" data-bind="text: $root.currentVO().reqBody"></td>
+            </tr>
+            <tr>
+              <td width="120px">请求结果：</td>
+              <td style="word-break:break-all;" data-bind="text: $root.currentVO().respBody"></td>
             </tr>
           </tbody>
         </table>
@@ -168,6 +176,9 @@
         <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button></div>
     </div>
   </div>
+</div>
+<div>
+	<div id="exportHrefDiv"></div>
 </div>
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
@@ -269,8 +280,25 @@
 	            return result;
 	        }
       	});
+	    
+	    this.exportURL = function(){
+	    	var p = self.searchParam();
+	    	if(csc.util.isNotNull(p.timeRange)){
+	    		  var t = p.timeRange.split('至');
+	    		  if(t.length == 2){
+	    			  p.startTime = t[0] + " 00:00:00";
+	    			  p.endTime = t[1] + " 23:59:59";
+	    			  delete p.timeRange;
+	    		  }
+	    	}
+	    	var queryStr = csc.util.httpQueryParamConvertWithoutNull(p);
+	    	var reqUrl = "api/v5.0.0/operLogs/export?" + queryStr;
+	    	var s="<a href='" + reqUrl + "' id='a_operLogReport'></a>";
+			$("#exportHrefDiv").append(s);	
+			document.getElementById("a_operLogReport").click();
+			$("#exportHrefDiv").html("");
+	   };
     }
-    this.exportURL = ko.observable("api/v5.0.0/operLogs/export");
     
     ko.applyBindings(new OperLogViewModel(), $('#page-content')[0]);  
 

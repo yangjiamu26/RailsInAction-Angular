@@ -981,7 +981,7 @@ kv.rules['cscNameRule'] = {
 
 kv.rules['positiveIntegerRule'] = {//正整数校验
 		  validator: function (val, params) {
-	  	        if(/^[1-9]\d*$/.test(val)){
+	  	        if(!val || /^[1-9]\d*$/.test(val)){
 	  	        	return true;
 	  	        }	
 	  	        return false;
