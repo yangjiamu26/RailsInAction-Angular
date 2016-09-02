@@ -13,17 +13,16 @@ myApp.onPageInit("vm-summary2", function(page) {
       var self = this;
       if(page.query.hypervisor=='winserver'){
         self.showShare(true);
-        if(data.memoryType=='shared'){
+        if(data.memoryType&&data.memoryType=='shared'){
           data.memoryType = '共享';
-        }
-        if(data.memoryType=='privilege'){
+        }else if(data.memoryType&&data.memoryType=='privilege'){
           data.memoryType = '专享';
-        }
-        if(data.memoryType=='reservation'){
+        }else if(data.memoryType&&data.memoryType=='reservation'){
           data.memoryType = '预留';
-        }
-        if(data.memoryType=='custom'){
+        }else if(data.memoryType&&data.memoryType=='custom'){
           data.memoryType = '自定义调整';
+        }else{
+          data.memoryType = '未知';
         }
       }else{
         self.showShare(false);
@@ -38,6 +37,6 @@ myApp.onPageInit("vm-summary2", function(page) {
   window.vm_summary2_viewModal = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(viewModel.summary());
   });
 });

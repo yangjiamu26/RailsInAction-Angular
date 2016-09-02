@@ -18,7 +18,7 @@ function backToLogin(res){
   interAlert = false;
   $$("#assistive").hide();
   if(res&&res.tokenCheck==false){
-    myApp.alert('您的登陆已过期，请重新登陆！',function(){
+    myApp.alert('您的登录已过期，请重新登录！',function(){
       myApp.closeModal('.popup.modal-in');
       return myApp.loginScreen();
     });
