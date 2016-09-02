@@ -12,7 +12,6 @@ myApp.onPageInit("business-summary", function(page) {
       RestServiceJs(BASE_URL+"/project").get(page.query.id,{},function(data){
         myApp.pullToRefreshDone();
         self.summary(data);
-
       });      
     };
   }

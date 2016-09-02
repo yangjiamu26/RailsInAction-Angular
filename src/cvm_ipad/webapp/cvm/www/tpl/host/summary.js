@@ -251,6 +251,7 @@ function initSingleHost_storage_chart(data) {
       data.cpuSpeed = Number((Number(data.cpuSpeed)/1000).toFixed(2));
       self.summary(data);
       RestServiceJs(BASE_URL+"/host/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":data.hypervisor},function(res){
+        myApp.pullToRefreshDone();
         res.totalCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.totalCpu)).toFixed(2)) : Number((Number(res.totalCpu)/1000).toFixed(2));
         res.availCpu = data.hypervisor == 'PowerVM' ? Number((Number(res.availCpu)).toFixed(2)) : Number((Number(res.availCpu)/1000).toFixed(2));
         res.memory = Number((Number(res.memory)/1024).toFixed(2));
@@ -270,6 +271,6 @@ function initSingleHost_storage_chart(data) {
   window.HostIndex_Summary_details_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData(self.summary());
+    viewModel.loadData(viewModel.summary());
   });
 });
