@@ -152,6 +152,23 @@ csc.util = {
 		}
 		return paramString;
 	},
+	httpQueryParamConvertWithoutNull : function(params) {
+		if (typeof (params) == "object" && params != null) {
+			var paramString = "";
+			for ( var index in params) {
+				if(csc.util.isNotNull(params[index])){
+					if (paramString == "") {
+						paramString += index + "="
+								+ encodeURIComponent(params[index]);
+					} else {
+						paramString += "&" + index + "="
+								+ encodeURIComponent(params[index]);
+					}
+				}
+			}
+		}
+		return paramString;
+	},
 	segGetMask : function(segmentValue) {
 		var mask = segmentValue.split("/")[1];
 		var bit = "";

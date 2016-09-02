@@ -58,7 +58,7 @@
         </thead>
         <tbody>
           <tr data-bind="visible: showNoData">
-            <td colspan=13 class="aligncenter">
+            <td colspan=15 class="aligncenter">
              	 暂无数据
             </td>
           </tr>
@@ -152,7 +152,7 @@
               <div class="form-group">
                 <label class="col-sm-4 control-label">负载均衡器名称</label>
                 <div class="col-sm-7">
-                  <input type="text" class="form-control"  placeholder="负载均衡器名称" data-bind="value: name">
+                  <input type="text" class="form-control" maxlength="32" placeholder="负载均衡器名称" data-bind="value: name">
                 </div>
                 <div class="col-sm-1">
                   <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -243,7 +243,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">备注</label>
                 <div class="col-sm-8">
-                  <textarea class="form-control" data-bind="text: remark"></textarea>
+                  <textarea maxlength="255" class="form-control" data-bind="text: remark"></textarea>
                 </div>
               </div>
             </div>
@@ -323,7 +323,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">VIP名称</label>
             <div class="col-xs-8">
-              <input type="text" class="form-control" data-bind="value: name">
+              <input type="text" class="form-control" maxlength="32" data-bind="value: name">
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -385,9 +385,9 @@
             </div>
           </div>
           <div class="form-group" data-bind="visible: sessionPersistenceType()=='APP_COOKIE'">
-            <label class="col-xs-3 control-label">APP_COOKIE</label>
+            <label class="col-xs-3 control-label">Cookie名称</label>
             <div class="col-xs-8">
-              <input type="text" class="form-control" data-bind="value: cookieName">
+              <input type="text" class="form-control"  maxlength="32" data-bind="value: cookieName">
             </div>
           </div>
           <div class="form-group">
@@ -402,7 +402,7 @@
           <div class="form-group">
             <label class="col-xs-3 control-label">备注</label>
             <div class="col-xs-8">
-              <textarea class="form-control" data-bind="value: desc"></textarea>
+              <textarea class="form-control" maxlength="255" data-bind="value: desc"></textarea>
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm"></span>
@@ -486,7 +486,12 @@
             </div>
             <div class="row m-b">
               <div class="col-xs-1 font-bold">状态：</div>
-              <div class="col-xs-3"><span class="label label-success" data-bind="text: state">运行中</span></div>
+              <div class="col-xs-3">
+              	<span class="label label-success" data-bind="if: state == 'ACTIVE'">运行中</span>
+	            <span class="label label-danger" data-bind="if: state == 'ERROR'">异常</span>
+	            <span class="label label-warning" data-bind="if: state == 'PENDING_CREATE'">正在创建</span>
+	            <span class="label label-warning" data-bind="if: state == 'PENDING_UPDATE'">正在修改</span>
+              </div>
               <div class="col-xs-1 font-bold">创建人：</div>
               <div class="col-xs-3" data-bind="text: account">admin</div>
             </div>
@@ -498,7 +503,7 @@
         </div>
         
         <div class="row wrapper detail-others">
-          <div class="col-xs-4">
+          <div class="col-xs-3">
             <div class="clear bg-success wrapper">
               <div class="detail-others-img img-serverinfo">服务信息</div>
               <div class="detail-others-text h-xs" data-bind="with: $root.currentLbVo">
@@ -512,33 +517,36 @@
               </div> 
             </div>             
           </div>
-          <div class="col-xs-8" data-bind="visible: isShowVipInfo()">
+          <div class="col-xs-9" data-bind="visible: isShowVipInfo()">
             <div class="clear bg-primary wrapper" data-bind="with: $root.currentVipVo">
               <div class="detail-others-img img-settings">VIP信息</div>
               <div class="detail-others-text h-xs" style="width:85%">
                 <div class="row">
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>VIP名称：<span data-bind="text: lbName">负载均衡器1</span></p>
                   </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>网络：<span data-bind="text: networkName">208</span></p>
                   </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>IP地址：<span data-bind="text: address">192.1.1.1</span></p>
                   </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>协议：<span data-bind="text: protocol">TCP</span></p>
                   </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>协议端口：<span data-bind="text: protocolPort">8080</span></p>
                   </div>
-                  <div class="col-xs-6">
-                    <p>会话持久性：<span data-bind="text: sessionPersistenceType()">是</span></p>
-                  </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
                     <p>连接限制：<span data-bind="text: connectionLimit">5000</span></p>
                   </div>
-                  <div class="col-xs-6">
+                  <div class="col-xs-4">
+                    <p>会话持久性：<span data-bind="text: sessionPersistenceType()">是</span></p>
+                  </div>
+                  <div class="col-xs-4">
+                    <p>Cookie名称：<span data-bind="text: cookieName">是</span></p>
+                  </div>
+                  <div class="col-xs-12">
                     <p>备注：<span data-bind="text: desc">XXXX</span></p>
                   </div>
                 </div>
@@ -582,7 +590,12 @@
                 <tr>
                   <td data-bind="text: $row.vmName">VM1</td>
                   <td data-bind="text: $row.address">192.169.22.56</td>
-                  <td><span class="label label-success" data-bind="text: $row.state">运行中</span></td>
+                  <td>
+	                  <span class="label label-success" data-bind="if: $row.state == 'ACTIVE'">运行中</span>
+		              <span class="label label-danger" data-bind="if: $row.state == 'ERROR'">异常</span>
+		              <span class="label label-warning" data-bind="if: $row.state == 'PENDING_CREATE'">正在创建</span>
+		              <span class="label label-warning" data-bind="if: $row.state == 'PENDING_UPDATE'">正在修改</span>
+                  </td>
                   <td data-bind="text: $row.protocolPort">8080</td>
                   <td data-bind="text: $row.weight">20</td>
                   <td data-bind="text: $row.lbName">负载均衡器1</td>
