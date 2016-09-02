@@ -396,7 +396,7 @@ function initNetwork_chart(data,xAxis) {
             }
             if(item.indexOf('VIRTUAL_DISK_READING')>-1){
               $.each(data.data[item],function(index,val){
-                data.data[item][index] = Number(val)/1024;
+                data.data[item][index] = Number(val);
               });
               disks.push({
                 'name':item.split('&')[1]+'读取',
@@ -405,7 +405,7 @@ function initNetwork_chart(data,xAxis) {
             }
             if(item.indexOf('VIRTUAL_DISK_WRITING')>-1){
               $.each(data.data[item],function(index,val){
-                data.data[item][index] = Number(val)/1024;
+                data.data[item][index] = Number(val);
               });
               disks.push({
                 'name':item.split('&')[1]+'写入',

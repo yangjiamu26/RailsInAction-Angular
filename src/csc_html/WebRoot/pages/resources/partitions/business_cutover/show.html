@@ -49,7 +49,11 @@
 							<div class="col-xs-1 font-bold">存储(GB)：</div>
 							<div class="col-xs-3" data-bind="text: currentVO().storage"></div>
 							<div class="col-xs-1 font-bold">状态：</div>
-							<div class="col-xs-3" data-bind="text: currentVO().state"></div>
+							<div class="col-xs-3">
+								<span class="label label-success" data-bind="visible: currentVO().state() == 'OK'">运行中</span>
+				                <span class="label label-danger" data-bind="visible: currentVO().state() == 'STOPPED'">已关机</span>
+				                <span class="label label-info" data-bind="visible: currentVO().state() == 'SUSPENDED'">已挂起</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -180,8 +184,8 @@
 									</tr> -->
 									 <!-- ko foreach: {data: pagedRows, as: '$row'} -->
 									<tr>
-										<td>xx</td>
-										<td>10</td>
+										<td data-bind="text: $row.name"></td>
+										<td data-bind="text: $row.size"></td>
 										<!-- <td><select class="form-control" data-bind="options:$root.serviceDiskList,optionsText:'name',optionsValue:'uuid',value: $root.selected_diskService, event:{'change':$root.changeDiskServiceValue}, attr:{id: 'aa'+$index()}"></select></td> -->
 										<td><select class="form-control" data-bind="options:$root.serviceDiskList,optionsText:'name',optionsValue:'uuid', event:{'change':$root.changeDiskServiceValue}, attr:{id: $index()}"></select></td>
 										<!-- <td><select class="form-control" data-bind="options:$root.diskFeeList,optionsText:'name',optionsValue:'value',value: $root.selected_diskFee, attr:{id: 'bb'+$index()}"></select></td> -->
@@ -210,7 +214,9 @@
 			"assets/lib/highcharts/highstock.js" ];
 	$('.page-content-area').ace_ajax('loadScripts',scripts,function(args) {
 		
-		var id = args.id;
+		var vmId = args.id;
+		var hypervisor = args.hypervisor;
+		var cloudUuid = args.cloudUuid;
 		
 		var diskFeeId;
 		var booldiskFee;
@@ -278,8 +284,6 @@
 					}else{
 						detailModel.diskFeeList(formatCharge(data.chargeList));
 					}
-					
-					debugger
 		        });
 			}
 			
@@ -347,31 +351,10 @@
  	    	});	
 		}
 		
-		//获取数据详情
-		function loadInitData(detailModel){
-			detailModel.currentVO.fromJSON({
-				name: "vm-2008",
-				hypervisor: "POWER",
-				ipPool: "资源池1",
-				osVersion: "windows 2008",
-				memory: "4",
-				ownerHost: "物理机1",
-				cnDatacenter: "数据中心1",
-				resourcePool: "资源池1",
-				ip: "192.1.1.1",
-				cpu: "4",
-				storage: "128",
-				state: "运行中",
-				validTimeType: "2",
-	    	    validTimeNum: "2",
-	    	    rangeTime: ""
-			})
-		}
-		
 		function ViewModel() {
 			var self = this;
 			
-			this.table = new DataTable([], {path: 'pages/resources/partitions/business_cutover/index.json'});
+			this.table = new DataTable([]);
 			
 			this.currentVO = ko.validatedObservable({
 				name: ko.observable(),
@@ -379,9 +362,14 @@
 				ipPool: ko.observable(),
 				osVersion: ko.observable(),
 				memory: ko.observable(),
+				memoryMB: ko.observable(),
 				ownerHost: ko.observable(),
+				ownerHostId: ko.observable(),
 				cnDatacenter: ko.observable(),
 				resourcePool: ko.observable(),
+				originalId: ko.observable(),
+				hypervisor: ko.observable(),
+				platform: ko.observable(),
 				ip: ko.observable(),
 				cpu: ko.observable(),
 				storage: ko.observable(),
@@ -439,23 +427,105 @@
 	        this.changeDiskServiceValue = function(viewModel, event){
 	        	diskFeeId = event.currentTarget.id;
 	        	booldiskFee = event.bubbles;
-/* 	        	loadCycleList(self.selected_diskService(),"DISK");
- */
-				 debugger
+
 				 if(event.bubbles){
 				 	loadCycleList($("#"+event.currentTarget.id).val(),"DISK");
 				 }else{
 					 loadCycleList($("#"+event.currentTarget.id).val(),"DISK");
+					 /* loadCycleList(self.selected_diskService(),"DISK"); */
 				 }
 	        }
 	      	
+	      	loadInitData();
+	      	
+	      	//获取数据详情
+			function loadInitData(){
+				csc.rest.get('api/v5.0.0/nanotubes/getVmInfo?vmId='+vmId+'&hypervisor='+hypervisor+'&cloudUuid='+cloudUuid,function(data){
+					self.currentVO.fromJSON({
+						name: data.name,
+						hypervisor: data.platform,
+						ipPool: data.ips,
+						osVersion: data.osType,
+						memory: data.memory/1024,
+						memoryMB: data.memory,
+						ownerHost: data.hostName,
+						ownerHostId: data.hostId,
+						originalId: data.originalId,
+						cnDatacenter: "",
+						resourcePool: data.poolName,
+						hypervisor: data.hypervisor,
+						platform: data.platform,
+						ip: data.ip,
+						cpu: data.vcpu,
+						storage: data.storage,
+						state: data.state,
+						validTimeType: "1",
+			    	    validTimeNum: "",
+			    	    rangeTime: ""
+					});
+					self.table.pagedRows(data.volumeInfo);
+					
+		        });
+			}	      	
+
 	      	//保存
 	      	this.saveCutOver = function(){
 	      		debugger
 	      		$("#aa0").val();
+	      		
+	      		var diskList = self.table.pagedRows();
+	      		var newDiskList = [];
+	      		for(var i = 0;i < diskList.length; i++){
+	      			var disk = {
+	      				serviceUuid	: $("#"+i).val(),
+	      				volumeName : diskList[i].name,
+	      				volumeSize : diskList[i].size+"",
+	      				description : diskList[i].desc,
+	      				volumeStatus : diskList[i].state=="MOUNT"?"in-use":"",
+	      				vdcUuid : self.selected_vdc(),
+	      				azUuid : self.selected_az(),
+	      				billCycle : $("#bb"+i).val()
+	      			}
+	      			newDiskList.push(disk);
+	      		}
+	      		
+	      		
+	      		var state = self.currentVO().state();
+	      		if(state == "OK"){
+	      			state = "ACTIVE";
+	      		}else if(state == "STOPPED"){
+	      			state = "SHUTOFF";
+	      		}
+	      		var detailInfo = {
+	      			state : state,
+	      			ownerHostName : self.currentVO().ownerHost(),
+	      			ownerHostUuid : self.currentVO().ownerHostId()+"",
+	      			vcpu : self.currentVO().cpu(),
+	      			memory : self.currentVO().memoryMB(),
+	      			storage : self.currentVO().storage(),
+	      			ip : self.currentVO().ip(),
+	      			osVersion : self.currentVO().osVersion(),
+	      			name : self.currentVO().name(),
+	      			serviceUuid : self.selected_service(),
+	      			type : "VM",
+	      			azUuid : self.selected_az(),
+	      			vdcUuid : self.selected_vdc(),
+	      			account : self.selected_user(),
+	      			busSysUuid : self.selected_bus(),
+	      			virtualHypervisor : self.currentVO().platform(),
+	      			cloudPlatform : "CNware",
+	      			dataTime : self.currentVO().rangeTime(),
+	      			validTimeType : self.currentVO().validTimeType(),
+	      			validTimeNum : self.currentVO().validTimeNum(),
+	      			billCycle : self.selected_fee(),
+	      			diskList : newDiskList
+	      		}
+	      		
+	      		csc.rest.post('api/v5.0.0/nanotubes',detailInfo,function(data){
+					alert("纳管成功！");
+					location.href = "#pages/resources/partitions/business_cutover/index";
+		        });
 	      	}
-	      	
-	      	loadInitData(self);
 		}
 		
 		var detailModel = new ViewModel(); 
