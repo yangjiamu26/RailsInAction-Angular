@@ -3,7 +3,7 @@ angular.module('app')
 .controller('loginCtrl', ['$scope', '$rootScope', '$state', '$stateParams', '$modal', '$timeout', 'baseUrl', 'goLogin', 'ipCookie', function($scope, $rootScope, $state, $stateParams, $modal, $timeout, baseUrl, goLogin, ipCookie) {
 	$scope.user = {};
 	$scope.iosQR = 'https://itunes.apple.com/cn/app/cvm-ke-shi-hua-guan-li-xi-tong/id1137842082?mt=8';
-	$scope.androidQR = document.location.href.split('#')[0].replace('index.html','')+'assets/apk/cvm.apk';
+	$scope.androidQR = document.location.href.split('#')[0].replace('index.html','')+'assets/apk/cvm-android-pad.apk';
 	
 	$scope.keyup = function(e){
         var keycode = window.event?e.keyCode:e.which;
