@@ -28,7 +28,7 @@ myApp.onPageInit("settings-password", function(page) {
 	var client_token = USER_INFO.token;
   	var client_account = USER_INFO.tokenKey
 	this.saveNow = function(oldPassword, password){
-		RestServiceJs(BASE_URL+"/user/"+USER_INFO.id+"?client_token="+client_token+"&client_account="+client_account).put({"password":password,"oldPassword":oldPassword},function(data){
+		RestServiceJs.put(BASE_URL+"/user/"+USER_INFO.id+"?client_token="+client_token+"&client_account="+client_account,{"password":password,"oldPassword":oldPassword},function(data){
 			myApp.alert('恭喜，密码修改成功!');
 			self.info({
 				"oldPassword": "", 

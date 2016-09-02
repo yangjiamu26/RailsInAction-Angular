@@ -36,13 +36,13 @@ myApp.onPageInit("home-index", function(page) {
     });
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceSummary").query({},function(data){
+      RestServiceJs.query(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceSummary",{},function(data){
         myApp.pullToRefreshDone();
         data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
         data.storageSize = Number((Number(data.storageSize)/1024).toFixed(2));
         self.infos(data);
       });
-      RestServiceJs(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat").query({},function(data){
+      RestServiceJs.query(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
         data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));

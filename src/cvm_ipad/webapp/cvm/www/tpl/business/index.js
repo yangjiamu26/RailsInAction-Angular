@@ -243,7 +243,7 @@ function init_storage_chart(data) {
         this.busdomainNum(window.indexFilter_busdomain_viewModel.busdomain.busdomainNum);
       }
       
-      RestServiceJs(BASE_URL+"/busdomain/projects").query({"dcId":CVM_PAD.dcId,"vdcId":this.busdomainId(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(BASE_URL+"/busdomain/projects",{"dcId":CVM_PAD.dcId,"vdcId":this.busdomainId(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
         if(id&&name){
           init_cpu_chart(data.busdomain);
           init_memory_chart(data.busdomain);

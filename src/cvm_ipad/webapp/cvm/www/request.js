@@ -95,30 +95,26 @@ function alertErrer(req, status, ex){
 }
 var loadingNum = 0;
 var isLoading = false;
-function RestServiceJs(newurl) {
-  if(!isLoading) {
-    myApp.showPreloader();
-    isLoading = true;
-  }
-  loadingNum = loadingNum+1;
-  requestNUM = requestNUM+1;
-  var url = newurl;
-  if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
+var RestServiceJs = (function() {
   var self = {};
-  self.myurl = url;  
   
-  var client_token = "";
-  var client_account = "";
-  if(USER_INFO.token) client_token = USER_INFO.token;
-  if(USER_INFO.tokenKey) client_account = USER_INFO.tokenKey
-  self.post = function(params, callback, error) {
+  self.post = function(newurl, params, callback, error) {
+      if(!isLoading) {
+        myApp.showPreloader();
+        isLoading = true;
+      }
+      loadingNum = loadingNum+1;
+      requestNUM = requestNUM+1;
+      var url = newurl;
+      if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
+
       var thisRequest = requestNUM;
       checkNetWork(thisRequest,function(){
-        params.client_token = client_token;
-        params.client_account = client_account;
+        params.client_token = USER_INFO.token || '';
+        params.client_account = USER_INFO.tokenKey || '';
         $.ajax({
             type: 'POST',  
-            url: self.myurl,  
+            url: url,  
             data: JSON.stringify(params),
             processData: false,  
             dataType: 'json',
@@ -148,12 +144,21 @@ function RestServiceJs(newurl) {
       });
   };  
    
-  self.put= function(params, callback, error) {
+  self.put= function(newurl, params, callback, error) {
+      if(!isLoading) {
+        myApp.showPreloader();
+        isLoading = true;
+      }
+      loadingNum = loadingNum+1;
+      requestNUM = requestNUM+1;
+      var url = newurl;
+      if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
+
       var thisRequest = requestNUM;
       checkNetWork(thisRequest,function(){
         $.ajax({
           type: 'PUT',  
-          url: self.myurl,  
+          url: url,  
           data: JSON.stringify(params), 
           processData: false,  
           dataType: 'json',
@@ -183,19 +188,28 @@ function RestServiceJs(newurl) {
       });
   };  
    
-  self.get = function(id, params, callback, error) {
+  self.get = function(newurl, id, params, callback, error) {
+      if(!isLoading) {
+        myApp.showPreloader();
+        isLoading = true;
+      }
+      loadingNum = loadingNum+1;
+      requestNUM = requestNUM+1;
+      var url = newurl;
+      if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
+
       var thisRequest = requestNUM;
       checkNetWork(thisRequest,function(){
         var end = '';
-        if(self.myurl.indexOf('demoapi')>-1){
-          self.myurl = self.myurl.replace('.json','');
+        if(url.indexOf('demoapi')>-1){
+          url = url.replace('.json','');
           end = '.json';
         }
-        params.client_token = client_token;
-        params.client_account = client_account;
+        params.client_token = USER_INFO.token || '';
+        params.client_account = USER_INFO.tokenKey || '';
         $.ajax({
             type: 'GET',  
-            url: self.myurl + '/' + id +end,
+            url: url + '/' + id +end,
             data: params, 
             dataType: 'json',
             contentType: 'application/json',  
@@ -224,14 +238,23 @@ function RestServiceJs(newurl) {
       });
   };
    
-  self.query = function(params, callback, error) {
+  self.query = function(newurl, params, callback, error) {
+      if(!isLoading) {
+        myApp.showPreloader();
+        isLoading = true;
+      }
+      loadingNum = loadingNum+1;
+      requestNUM = requestNUM+1;
+      var url = newurl;
+      if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
+
       var thisRequest = requestNUM;
       checkNetWork(thisRequest,function(){
-        params.client_token = client_token;
-        params.client_account = client_account;
+        params.client_token = USER_INFO.token || '';
+        params.client_account = USER_INFO.tokenKey || '';
         $.ajax({
             type: 'GET',  
-            url: self.myurl,
+            url: url,
             data: params, 
             dataType: 'json',
             contentType: 'application/json',  
@@ -259,35 +282,7 @@ function RestServiceJs(newurl) {
         });  
       });
   };  
-   
-  // self.del = function(id, callback, error) {
-  //     var thisRequest = requestNUM;
-  //     checkNetWork(thisRequest,function(){
-  //       params.client_token = client_token;
-  //       params.client_account = client_account;
-  //       $.ajax({
-  //           type: 'DELETE',  
-  //           url: self.myurl + '/' + id,  
-  //           dataType: 'json',
-  //           contentType: 'application/json',  
-  //           success: function(res){
-  //             if(res.tokenCheck == false){
-  //               if(thisRequest==1){
-  //                 backToLogin(res);
-  //               }
-  //             }else{
-  //               requestNUM = 0;
-  //               callback(res);
-  //             }
-  //           },  
-  //           error: error ? error : function(req, status, ex) {
-  //             alertErrer(req, status, ex);
-  //           }, 
-  //           timeout:60000  
-  //       });  
-  //     });
-  // };
 
   return self;
-}
+})();
 

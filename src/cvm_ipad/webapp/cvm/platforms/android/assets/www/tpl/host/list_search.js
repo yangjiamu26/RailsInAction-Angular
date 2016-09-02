@@ -28,7 +28,7 @@ myApp.onPageInit("host-list-search", function(page) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/host").query({"dcId":CVM_PAD.dcId,"hypervisor":self.hypervisor(),"resPoolId":self.resPoolId(),"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(BASE_URL+"/host",{"dcId":CVM_PAD.dcId,"hypervisor":self.hypervisor(),"resPoolId":self.resPoolId(),"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$.ajax("tpl/host/list_search.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){

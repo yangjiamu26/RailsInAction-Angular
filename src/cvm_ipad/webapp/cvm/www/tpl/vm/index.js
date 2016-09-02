@@ -163,7 +163,7 @@ function initVm_status_chart(states) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/vm").query({"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(BASE_URL+"/vm",{"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"ownerHostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$$.getJSON("tpl/vm/index.json?id="+page.query.id+"&page="+self.page,function(data){
         self.loading = false;
         if(!is_loadMore){

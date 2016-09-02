@@ -13,7 +13,7 @@ myApp.onPageInit("host-show", function(page) {
     this.loadData = function(){
       var self = this;
 
-      RestServiceJs(BASE_URL+"/host/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"resPoolId":page.query.resourcePoolId,"hypervisor":page.query.hypervisor},function(data){
+      RestServiceJs.query(BASE_URL+"/host/"+page.query.id+"/summary",{"dcId":CVM_PAD.dcId,"resPoolId":page.query.resourcePoolId,"hypervisor":page.query.hypervisor},function(data){
         //$.ajax("tpl/host/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
         data.runTime = getTheTime(new Date() - new Date(data.runTime*1000));

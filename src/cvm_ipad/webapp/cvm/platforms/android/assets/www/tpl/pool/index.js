@@ -390,7 +390,7 @@ function initPool_storage_chart(data) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs().query(BASE_URL+"/resPool",{"dcId":CVM_PAD.dcId,"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
         //$.ajax("tpl/pool/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
 
         self.loading = false;

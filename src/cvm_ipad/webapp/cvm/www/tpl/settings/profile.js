@@ -9,7 +9,7 @@ myApp.onPageInit("settings-profile", function(page) {
 			"mobilephone":""
 		});
 		this.loadInfo = function(){
-			RestServiceJs(BASE_URL+"/user").get(USER_INFO.id,{},function(data){
+			RestServiceJs.get(BASE_URL+"/user",USER_INFO.id,{},function(data){
 				self.info(data);
 			})
 		}
