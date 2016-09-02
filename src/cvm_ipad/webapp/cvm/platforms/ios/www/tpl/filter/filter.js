@@ -34,7 +34,7 @@ myApp.onPageInit("indexFilter-business", function(page) {
       window.business_index_viewModel.loadData(false,busId,busName);
     }
     this.getBusinessDomains = function(){
-      RestServiceJs(BASE_URL+"/busdomain").query({"dcId":CVM_PAD.dcId},function(data){
+      RestServiceJs.query(BASE_URL+"/busdomain",{"dcId":CVM_PAD.dcId},function(data){
         self.busdomain.busdomainNum=data.busdomainNum;
         self.busdomain.projectNum=data.projectNum;
         for(var i=0;i<data.data.length;i++){
@@ -88,17 +88,17 @@ myApp.onPageInit("indexFilter-host", function(page) {
       self.hosts.WinServerList.removeAll();
       self.hosts.VMwareList.removeAll();
       self.hosts.PowerVMList.removeAll();
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"winserver"},function(data){
+      RestServiceJs.query(BASE_URL+"/resPool",{"dcId":CVM_PAD.dcId,"hypervisor":"winserver"},function(data){
         for(var i=0;i<data.data.length;i++){
           self.hosts.WinServerList.push(data.data[i]);
         }
       });
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"VMware"},function(data){
+      RestServiceJs.query(BASE_URL+"/resPool",{"dcId":CVM_PAD.dcId,"hypervisor":"VMware"},function(data){
         for(var i=0;i<data.data.length;i++){
           self.hosts.VMwareList.push(data.data[i]);
         }
       });
-      RestServiceJs(BASE_URL+"/resPool").query({"dcId":CVM_PAD.dcId,"hypervisor":"PowerVM"},function(data){
+      RestServiceJs.query(BASE_URL+"/resPool",{"dcId":CVM_PAD.dcId,"hypervisor":"PowerVM"},function(data){
         for(var i=0;i<data.data.length;i++){
           self.hosts.PowerVMList.push(data.data[i]);
         }

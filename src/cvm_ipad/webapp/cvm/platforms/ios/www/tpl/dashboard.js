@@ -330,7 +330,7 @@ var initTotal_storage_chart = function(data) {
       //在这里实现总览数据的加载
       if(this.loading) return;
       this.loading = true;
-      RestServiceJs(BASE_URL+"/overallDetails/resourceSummary").query({},function(data){
+      RestServiceJs.query(BASE_URL+"/overallDetails/resourceSummary",{},function(data){
         self.infos(data);
         self.loading = false;
         if(data.isDemo){
@@ -342,7 +342,7 @@ var initTotal_storage_chart = function(data) {
         }
       })
       
-      RestServiceJs(BASE_URL+"/overallDetails/resourceStat").query({},function(data){
+      RestServiceJs.query(BASE_URL+"/overallDetails/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
         data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
@@ -366,7 +366,7 @@ var initTotal_storage_chart = function(data) {
       });
     };
     this.loadDatacenters = function(){
-      RestServiceJs(BASE_URL+"/datacenters").query({},function(data){
+      RestServiceJs.query(BASE_URL+"/datacenters",{},function(data){
         self.datacenters(data.data);
       });
     }

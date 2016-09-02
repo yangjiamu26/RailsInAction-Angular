@@ -245,7 +245,7 @@ function initSinglePool_storage_chart(data) {
     });
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/resPool").get(page.query.id,{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolName":page.query.resourcePoolName},function(data){
+      RestServiceJs.get(BASE_URL+"/resPool",page.query.id,{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"resourcePoolName":page.query.resourcePoolName},function(data){
       //$.ajax("tpl/pool/summary.json?id="+page.query.id).done(function(data){
         myApp.pullToRefreshDone();
         data.cpu = data.hypervisor == 'PowerVM' ? Number(Number(data.cpu).toFixed(2)) : Number((Number(data.cpu)/1000).toFixed(2));

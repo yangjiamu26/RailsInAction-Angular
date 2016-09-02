@@ -249,7 +249,7 @@ function initNetwork_chart(data,xAxis) {
       }
     }
     this.loadData = function(type,start,end){
-      RestServiceJs(BASE_URL+"/vm/"+page.query.id+"/statics").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"type":type,"startTime":start||"","endTime":end||""},function(data){
+      RestServiceJs.query(BASE_URL+"/vm/"+page.query.id+"/statics",{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"type":type,"startTime":start||"","endTime":end||""},function(data){
         if(data.exceptionMessage){
           myApp.alert(data.exceptionMessage);
           return;
