@@ -29,6 +29,6 @@ myApp.onPageInit("vm-summary", function(page) {
   window.vm_summary_viewModal = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(viewModel.summary());
   });
 });
