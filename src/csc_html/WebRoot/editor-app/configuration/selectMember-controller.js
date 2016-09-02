@@ -24,11 +24,9 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 				nodeId = node.id;
 				userType = node.userType;
 				usersArr = [];
-				var param ="userType="+userType;
+				var param ="userType="+userType+"&size=0&state=0";
 				if(node.code!='0' && node.code!='-1'){
 					param+="&orgId="+node.code;
-				}else{
-					param+="&size=0";
 				}
 				var userUrl = KISBPM.URL.getUsers(param);
 				$http({method: 'GET', url: userUrl}).

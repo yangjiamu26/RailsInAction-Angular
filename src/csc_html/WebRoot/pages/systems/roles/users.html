@@ -176,6 +176,7 @@
         var roleId = args.roleId;
 		function ViewModel() {
 			var start = 0;
+			var state = 0;
 			var size = 0;
 			var orgId = '';
 			var userType = '';
@@ -203,6 +204,7 @@
 			    		nameLike : this.searchParamL().name,
 			    		systemId : "csc5.0",
 			    		start : start,
+			    		state : state,
 			    		size : size,
 			    		userType : userType
 			    		};
@@ -222,6 +224,7 @@
 			    		nameLike : this.searchParamR().name,
 			    		systemId : "csc5.0",
 			    		start : start,
+			    		state : state,
 			    		size : size,
 			    		userType : userType
 			    		};
@@ -229,8 +232,8 @@
 				//alert(this.searchParamR().name)
 			}
 			
-			this.searchParamLeft = {start:0, size:0, roleId: roleId, systemId: "csc5.0"}
-			this.searchParamRight = {start:0, size:0, roleId: roleId, systemId: "csc5.0"};
+			this.searchParamLeft = {start:0, size:0, roleId: roleId, systemId: "csc5.0", state:0}
+			this.searchParamRight = {start:0, size:0, roleId: roleId, systemId: "csc5.0", state:0};
 
 			function search(event, treeId, treeNode) {
 				if(treeNode.code == '0'){
@@ -239,6 +242,7 @@
 				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
@@ -247,6 +251,7 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -256,6 +261,7 @@
 				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
@@ -264,6 +270,7 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -273,6 +280,7 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 							};
@@ -281,6 +289,7 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
+				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -301,7 +310,7 @@
 			this.addRoleUsers = function() {
 				var param = {};
 				var leftUsers = self.tableLeft.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&systemId='+userType, function(data) {
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&systemId='+userType+'&state='+state, function(data) {
 						var rightUsers = _.pluck(data.results, 'id');
 						var users = rightUsers.concat(leftUsers);
 						
@@ -319,7 +328,7 @@
 			this.removeRoleUsers = function() {
 				var param = {};
 				var leftUsers = self.tableRight.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType,function(data) {
+					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&state='+state,function(data) {
 					    var rightUsers = _.pluck(data.results, 'id');
 					    var users = _.difference(rightUsers, leftUsers); 
 					    param.id = users.join(",");
@@ -360,7 +369,7 @@
 			this.tableLeft = new DataTable([], {enabled: false,perPage:8});
             this.loadTableLeft = function(){
             	var params = this.searchParamLeft;
-            	csc.rest.get('/csc/api/v5.0.0/uap/roleUsers?start='+params.start+'&size='+params.size
+            	csc.rest.get('/csc/api/v5.0.0/uap/roleUsers?start='+params.start+'&size='+params.size+'&state='+params.state
             			+(params.roleId ? '&roleId='+ params.roleId:'')
             			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
             			+(params.orgId ? '&orgId='+params.orgId:'')
@@ -373,7 +382,7 @@
 			this.tableRight = new DataTable([], {enabled: false,perPage:8});
 			this.loadTableRight = function(){
 				var params = this.searchParamRight;
-				csc.rest.get('/csc/api/v5.0.0/uap/users?start='+params.start+'&size='+params.size
+				csc.rest.get('/csc/api/v5.0.0/uap/users?start='+params.start+'&size='+params.size+'&state='+params.state
             			+(params.roleId ? '&roleId='+ params.roleId:'')
             			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
             			+(params.orgId ? '&orgId='+params.orgId:'')

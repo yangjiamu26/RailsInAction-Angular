@@ -797,12 +797,12 @@
 					                            </div>
 											</div>
 											<div style="height:400px; overflow:auto;">
-												<table class="table table-striped">
+												<table class="table table-striped" data-bind="with: networkTable">
 													<thead>
 														<th>
 										                  <div class="checkbox">
 										                    <label class="i-checks">
-										                      <input type="checkbox" value="">
+										                      <input type="checkbox" data-bind="checked: isSelectedAll">
 										                      <i></i>
 										                    </label>
 										                  </div>
@@ -810,26 +810,40 @@
 														<th>可用分区</th>
 														<th>外部网络/IP池</th>
 													</thead>
-													<tbody id="availableAzNetworkListTableId">
+													
+													<tbody>
+													<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+														<tr>
+															<td>
+																<div class="checkbox">
+																	<label class="i-checks">
+																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: $row.uuid}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
+																	</label>
+																</div>
+															</td>
+															<td style="white-space: nowrap;" data-bind="text: $row.azName"></td>
+															<td style="white-space: nowrap;" data-bind="text: $row.name"></td>
+														</tr>
+													<!-- /ko -->
 													</tbody>
 												</table>
 											</div>
 										</div>
 										<div class="col-xs-1">
-											<button class="btn btn-block btn-default" id="addNetwork2PreAddList" style="margin-top:150px">&gt;&gt;</button>
-											<button class="btn btn-block btn-default" id="removeNetwork2PreAddList" >&lt;&lt;</button>
+											<button class="btn btn-block btn-default" data-bind="click: addNetworkAzRel" style="margin-top:150px">&gt;&gt;</button>
+											<button class="btn btn-block btn-default" data-bind="click: removeNetworkAzRel" >&lt;&lt;</button>
 										</div>
 										<div class="col-xs-5" style="width:380px" >
 										    <div class="form-inline text-right" style="margin-bottom:10px;height:30px">
 											</div>
 											<p>已选择：</p>
 										   <div style="height:400px; overflow:auto;">
-												<table class="table table-striped">
+												<table class="table table-striped" data-bind="with: selectedNetworkTable">
 													<thead>
 														<th>
 										                  <div class="checkbox">
 										                    <label class="i-checks">
-										                      <input type="checkbox" value="">
+										                      <input type="checkbox" data-bind="checked: isSelectedAll">
 										                      <i></i>
 										                    </label>
 										                  </div> 
@@ -838,6 +852,19 @@
 														<th>外部网络/IP池</th>
 													</thead>
 													<tbody id="preAddAzNetworkListTableId">
+													<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+														<tr>
+															<td>
+																<div class="checkbox">
+																	<label class="i-checks">
+																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: $row.uuid}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
+																	</label>
+																</div>
+															</td>
+															<td style="white-space: nowrap;" data-bind="text: $row.azName"></td>
+															<td style="white-space: nowrap;" data-bind="text: $row.name"></td>
+														</tr>
+													<!-- /ko -->
 													</tbody>
 												</table>
 											</div>
@@ -1162,24 +1189,24 @@
 			
 	    		
 	    		var intForVdcQuota = {
-            			maxLength: 10,
-            			number: {
-                            params: true,  
-                            message: "必须是数字",
-                        },
-                        min: {
-                        	params: -1,
-                        	message: "请输入大于等于-1的数字" 
-                        },
-                        max: {
-                        	params: 2147483647,
-                        	message: "输入有误，最大值为：2147483647" 
-                        },
-                        pattern: {
-	                        params: /^-?\d+$/g,
-	                        message: "必须是整数"
-	                    }
-            		};
+           			maxLength: 10,
+           			number: {
+                           params: true,  
+                           message: "必须是数字",
+                       },
+                       min: {
+                       	params: -1,
+                       	message: "请输入大于等于-1的数字" 
+                       },
+                       max: {
+                       	params: 2147483647,
+                       	message: "输入有误，最大值为：2147483647" 
+                       },
+                       pattern: {
+                        params: /^-?\d+$/g,
+                        message: "必须是整数"
+                    }
+           		};
 	    		self.vdcQuotaVO = ko.validatedObservable({
  		             "VM":ko.observable().extend(intForVdcQuota),
 			         "DISK" :ko.observable().extend(intForVdcQuota),
@@ -1317,10 +1344,8 @@
 				self.addVdcNetworkModel = ko.observable(false);
 				
 				self.addVdcNetworkAzList = ko.observableArray();
-				self.addVdcNetworkAzVO = ko.observable({"uuid":""})
-				self.addVdcNetworkSearchParam = ko.observable({
-	        	        name: ""
-	        	    })
+				self.addVdcNetworkAzVO = ko.observable({"uuid":""});
+				self.addVdcNetworkSearchParam = ko.observable({ name: "" });
 	        	self.addVdcNetworkAzList([]);
 				
 				self.removeAzNetworkRul = function(rowObj){
@@ -1331,85 +1356,103 @@
 							alert("移除网络["+name+"]成功！")
 						});
 	    			 });
+				
+
 				}
 				
+				
+	    		self.networkTable = new DataTable([]);
+	    		self.selectedNetworkTable = new DataTable([]);
+	    		
 			    self.addVdcNetworkSearch = function(){
-			    	    $("#availableAzNetworkListTableId").html("");
-						var azUuid = self.addVdcNetworkAzVO().uuid ;
-						if(!azUuid){
-							return;
-						}
-						var name = self.addVdcNetworkSearchParam().name;
-						$.NETWORK.getNetworks({"azUuid":azUuid,"name":name},function(azNetData){
-							$.VDC.getVdcNetworks(self.selectVdcVO().uuid,null,function(netResult){
-								 var netList = netResult.results;
-							     var tableBody = "";
-							     if(azNetData && azNetData.results){
-								   for(var i=0;i<azNetData.results.length;i++){
-								       var network = azNetData.results[i];
-									   if(netList){
-										   var existNet = false;
-										   for(var j=0;j<netList.length;j++){
-											   var existNetVO = netList[j];
-											   if(existNetVO.netWorkUuid == network.uuid && existNetVO.azUuid == network.azUuid){
-												   existNet = true;
-											   }
-										   }
-										   if(existNet){
-											   continue;
-										   }
-									   }
-									   tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" az=\""+ network.azUuid +"\" networkName=\""+network.name+"\" value=\""+network.uuid+"\"><i></i></label></div>";
-	                                   tableBody += "</td><td style=\"white-space: nowrap;\">"+network.azName+"</td><td style=\"white-space: nowrap;\">"+network.name+"</td>/tr>"
-								   }
-								 }
-								 $("#availableAzNetworkListTableId").html(tableBody);
-							});
-						});
-		       	    }
-				
-				self.addVdcNetwork = function(){
+					var azUuid = self.addVdcNetworkAzVO().uuid ;
+					if(!azUuid){
+						return;
+					}
+					var name = self.addVdcNetworkSearchParam().name;
 					
-					$("#availableAzNetworkListTableId").html("");
-					$("#preAddAzNetworkListTableId").html("");
-				
+					self.networkTable.path("api/v5.0.0/networks/" + self.selectVdcVO().uuid + "?azUuid=" + azUuid + "&name=" + name);
+	       	    }
+			    
+				self.addVdcNetwork = function(){
+					self.selectedNetworkTable.pagedRows([]);
+					self.networkTable.pagedRows([]);
+					
 					$.VDC.getVdcAzs(self.selectVdcVO().uuid,{},function(data){
-						console.log(data);
 					   if(data && data.results){
 						   self.addVdcNetworkAzList(data.results);
 					   }
 					   self.addVdcNetworkSearch();
 					});
 					
-					
-					self.addVdcNetworkModel(true)
-					
-						
-					$("#addNetwork2PreAddList").bind("click",function(data){
-					    $("#availableAzNetworkListTableId input[type='checkbox']").each(function(){
-					        if($(this).prop("checked")){
-					    	   $("#preAddAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
-					    	   $(this).parents("tr").remove();
-					        } 
-					    })
-					})
-					
-					$("#removeNetwork2PreAddList").bind("click",function(data){
-						$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
-						   if($(this).prop("checked")){
-							  $("#availableAzNetworkListTableId").append($(this).parents("tr").prop("outerHTML")) 
-							  $(this).parents("tr").remove()
-						    }
-					    })
-					})
+					self.addVdcNetworkModel(true);
 				}
+				
+				//添加network(>>)
+				self.addNetworkAzRel = function() {
+					//左侧待添加
+					var chosenItemList = self.networkTable.chosenItems();
+					var networkList = self.networkTable.pagedRows();
+					
+					//左侧剩余
+					var filterNetworkList = new DataTable([]).pagedRows();
+					//右侧已添加					
+					var selectedNetworkList = self.selectedNetworkTable.pagedRows();
+					
+					if (chosenItemList != null && chosenItemList.length > 0) {
+						for (var j = 0; j < networkList.length; j++) {
+							var exists = true;
+							for (var i = 0; i < chosenItemList.length; i++) {
+								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid) {
+									selectedNetworkList.push(chosenItemList[i]);
+									exists = false;
+									break;
+								}
+							}
+							
+							if (exists) {
+								filterNetworkList.push(networkList[j]);
+							}
+						}
+						self.selectedNetworkTable.pagedRows(selectedNetworkList);
+						self.networkTable.pagedRows(filterNetworkList);
+					}
+				}
+				
+				//移除network(<<)
+				self.removeNetworkAzRel = function(){
+					var chosenItemList = self.selectedNetworkTable.chosenItems();
+					var networkList = self.selectedNetworkTable.pagedRows();
+					
+					var filterNetworkList = new DataTable([]).pagedRows();
+					var selectedNetworkList = self.networkTable.pagedRows();
+					
+					if (chosenItemList != null && chosenItemList.length > 0) {
+						for (var j = 0; j < networkList.length; j++) {
+							var exists = true;
+							for (var i = 0; i < chosenItemList.length; i++) {
+								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid) {
+									selectedNetworkList.push(chosenItemList[i]);
+									exists = false;
+									break;
+								}
+							}
+							
+							if (exists) {
+								filterNetworkList.push(networkList[j]);
+							}
+						}
+						self.selectedNetworkTable.pagedRows(filterNetworkList);
+						self.networkTable.pagedRows(selectedNetworkList);
+					}
+	    	    }
 				
 				self.confirmVdcAddNetwork = function(){
 					var azs = [];
 					$("#preAddAzNetworkListTableId input[type='checkbox']").each(function(){
 						var azUuid = $(this).attr("az");
-						var networkName =  $(this).attr("networkName");
-						var networkUuid = $(this).val();
+						var networkName = $(this).attr("networkName");
+						var networkUuid = $(this).attr("networkUuid");;
 					    var notFound = true;
 						for(var az in azs){
 							var azVo = azs[az];
@@ -2118,5 +2161,3 @@
     });
 
   </script>
-  
-

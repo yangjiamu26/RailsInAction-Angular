@@ -26,11 +26,11 @@
          <div class="col-xs-2">
           <div class="input-group">
             <span class="input-group-addon">云主机名称</span>
-            <input type="text" class="input-sm form-control" placeholder="请输入云主机名称" >
+            <input type="text" class="input-sm form-control" placeholder="请输入云主机名称" data-bind="value: vmName">
           </div>
         </div>
          <div class="col-xs-1">
-          <button class="btn btn-sm btn-default" type="button" >搜索</button>
+          <button class="btn btn-sm btn-default" type="button" data-bind="click: searchParam">搜索</button>
         </div>
     </div>
     <div>
@@ -55,7 +55,7 @@
           </thead>
           <tbody>
             <tr data-bind="visible: showNoData">
-              <td colspan=5 class="aligncenter">
+              <td colspan="8" class="aligncenter">
                 	暂无数据.
               </td>
             </tr>
@@ -68,11 +68,11 @@
 		           </label>
 		        </div>                    
               </td>
-              <td data-bind="text: $row.vmName"></td>
+              <td data-bind="text: $row.name"></td>
               <td data-bind="text: $row.dcName"></td>
               <td data-bind="text: $row.platformName"></td>
               <td data-bind="text: $row.poolName"></td>
-              <td data-bind="text: $row.ipPool"></td>
+              <td data-bind="text: $row.ips"></td>
               <td data-bind="text: $row.ip"></td>
               <td><a data-bind="click: $root.cutover">纳管</a></td>
             </tr>
@@ -128,16 +128,16 @@
 	function loadCloudPlatform(dcUuid){
 		csc.rest.get('api/v5.0.0/cloudPlatforms?dataCenterUUID='+dcUuid,function(data){
 			modelView.cloudPlatformList(data.results);
+			modelView.table.path('api/v5.0.0/nanotubes/getCscVmListByCloudUuid/'+modelView.selected_cloudPlatform());
         });
 	}
 	  
     function ViewModel(){
 		  var self = this;
-		  //获取列表的值
-	      this.table = new DataTable([], {path: 'pages/resources/partitions/business_cutover/index.json'});
+		  
 	      //纳管
 	      this.cutover = function(obj){
-	    	  location.href = "#pages/resources/partitions/business_cutover/show?id="+obj.id+"&dcId="+self.selected_dataCenter()+"&cloud="+self.selected_cloudPlatform();
+	    	  location.href = "#pages/resources/partitions/business_cutover/show?id="+obj.vmId+"&hypervisor="+obj.hypervisor+"&cloudUuid="+self.selected_cloudPlatform();
 	      }
 	      //批量纳管
 	      this.multiCutover = function(){
@@ -161,8 +161,18 @@
 	    	  viewModel.cloudPlatformList.removeAll();
 	    	  
 	    	  loadCloudPlatform(viewModel.selected_dataCenter());
+	    	  
 	      }
 	      
+	      this.vmName = ko.observable();
+	      this.searchParam = function(){
+	    	  self.table.params({
+	    		  name: self.vmName()
+	    	  })
+	      }
+	      
+	      //获取列表的值
+	      this.table = new DataTable([]);
     }
 	var modelView = new ViewModel(); 
     ko.applyBindings(modelView, $('#page-content')[0]);
