@@ -13,6 +13,7 @@ function backToLogin(res){
   requestNUM = 0;
   myApp.showAssisTime = false;
   myApp.Login_Again = true;
+  reSetAllRequets();
   if(!myApp.isInLoginPage) myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
   clearInterval(intervalCheckNte);
   interAlert = false;
@@ -227,11 +228,11 @@ var RestServiceJs = (function() {
               alertErrer(req, status, ex);
             },
             complete:function(){
+              loadingNum = loadingNum-1;
               if(dontShowLoading){
                 myApp.hidePreloader();
                 isLoading = false;
               }else{
-                loadingNum = loadingNum-1;
                 if(loadingNum == 0){
                   myApp.hidePreloader();
                   isLoading = false;
@@ -243,7 +244,7 @@ var RestServiceJs = (function() {
       });
   };
    
-  self.query = function(newurl, params, callback, error) {
+  self.query = function(newurl, params, callback, error, dontShowLoading) {
       if(!isLoading) {
         myApp.showPreloader();
         isLoading = true;
@@ -278,9 +279,14 @@ var RestServiceJs = (function() {
             },
             complete:function(){
               loadingNum = loadingNum-1;
-              if(loadingNum == 0){
+              if(dontShowLoading){
                 myApp.hidePreloader();
                 isLoading = false;
+              }else{
+                if(loadingNum == 0){
+                  myApp.hidePreloader();
+                  isLoading = false;
+                }
               }
             },
             timeout:60000

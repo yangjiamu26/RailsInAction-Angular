@@ -164,3 +164,55 @@ $(function(){
   });
 
 });
+
+
+var clickedBusness = false;
+function clickBusness(){
+    window.indexFilter_viewModel.changePage('business');
+    if(clickedBusness) return;
+    window.indexFilter_busdomain_viewModel.getBusinessDomains();
+    clickedBusness = true;
+}
+var clickedPool = false;
+function clickPool(){
+    window.indexFilter_viewModel.changePage('pool');
+    if(clickedPool) return;
+    window.pool_index_viewModel.loadData();
+    clickedPool = true;
+}
+var clickedHost = false;
+function clickHost(){
+    window.indexFilter_viewModel.changePage('host');
+    if(clickedHost) return;
+    window.indexFilter_host_viewModel.getResPools();
+    clickedHost = true;
+}
+var clickedVm = false;
+function clickVm(){
+    window.indexFilter_viewModel.changePage('vm');
+    if(clickedVm) return;
+    window.vm_index_viewModel.loadData();
+    clickedVm = true;
+}
+var clickedStorage = false;
+function clickStorage(){
+    window.indexFilter_viewModel.changePage('storage');
+    if(clickedStorage) return;
+    window.storage_index_viewModel.loadData();
+    clickedStorage = true;
+}
+var clickedSetting = false;
+function clickSetting(){
+    if(clickedSetting) return;
+    window.settings_profile_viewModel.loadInfo();
+    clickedSetting = true;
+}
+
+function reSetAllRequets(){
+  clickedBusness = false;
+  clickedPool = false;
+  clickedHost = false;
+  clickedVm = false;
+  clickedStorage = false;
+  clickedSetting = false;
+}

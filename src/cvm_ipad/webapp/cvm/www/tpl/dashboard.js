@@ -11,6 +11,7 @@ myApp.onPageInit("dashboard", function(page) {
       Storage.setItem("userInfo",JSON.stringify(USER_INFO));
       myApp.closeModal('.popup.modal-in');
       $$("#assistive").hide();
+      reSetAllRequets();
       myApp.loginScreen();
     });
   });
@@ -355,7 +356,7 @@ var initTotal_storage_chart = function(data) {
               popoverClose();
             },0)
         }
-      })
+      },true);
       
       RestServiceJs.query(BASE_URL+"/overallDetails/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));

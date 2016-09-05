@@ -11,6 +11,7 @@ myApp.onPageInit("settings-index", function(page) {
       Storage.setItem("userInfo",JSON.stringify(USER_INFO));
 	    myApp.closeModal('.popup.modal-in');
       $$("#assistive").hide();
+      reSetAllRequets();
 	    myApp.loginScreen();
   	});
   });

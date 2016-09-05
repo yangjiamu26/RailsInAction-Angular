@@ -20,11 +20,13 @@ myApp.onPageInit("host-show", function(page) {
         self.summary(data);
 
         var thisInterval = setInterval(function(){
-          if(window.HostIndex_Summary_details_viewModel&&window.HostIndex_Summary_details_viewModel.loadData){
-            clearInterval(thisInterval);
-            window.HostIndex_Summary_details_viewModel.loadData(data);
+          if(window.HostIndex_Summary_details_viewModel){
+            if(window.HostIndex_Summary_details_viewModel.loadData){
+              clearInterval(thisInterval);
+              window.HostIndex_Summary_details_viewModel.loadData(data);
+            }
           }
-        },50);
+        },200);
 
       });
       var links = page.query.linksView ? page.query.linksView : 'view-host';
