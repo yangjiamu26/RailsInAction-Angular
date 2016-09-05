@@ -10,6 +10,7 @@ myApp.onPageInit("dashboard", function(page) {
       USER_INFO.tokenKey = '';
       Storage.setItem("userInfo",JSON.stringify(USER_INFO));
       myApp.closeModal('.popup.modal-in');
+      $$("#assistive").hide();
       myApp.loginScreen();
     });
   });

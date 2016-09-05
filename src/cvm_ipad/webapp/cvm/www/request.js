@@ -1,12 +1,12 @@
 var requestNUM = 0;
 var errerNUM = [0,0,0,0,0];
-var intervalCheckNte = null;
+var intervalCheckNte;
 var interAlert = false;
 
 function startCheckNet(){
     intervalCheckNte = setInterval(function(){
       checkNetWork(1);
-    },500);
+    },1000);
 }
 
 function backToLogin(res){
@@ -29,14 +29,16 @@ function backToLogin(res){
 }
 function checkNetWork(thisRequest,callback){
   if(callback){
-    if(navigator.onLine){
-      callback();
-    }else{
-      if(thisRequest>1||interAlert) return;
-      myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
-        return backToLogin();
-      });
-    }
+    setTimeout(function(){
+      if(navigator.onLine){
+        callback();
+      }else{
+        if(thisRequest>1||interAlert) return;
+        myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
+          return backToLogin();
+        });
+      }
+    },200);
   }else{
     if(!navigator.onLine){
       if(interAlert) return;
