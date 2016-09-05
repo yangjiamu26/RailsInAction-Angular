@@ -188,7 +188,7 @@ var RestServiceJs = (function() {
       });
   };  
    
-  self.get = function(newurl, id, params, callback, error) {
+  self.get = function(newurl, id, params, callback, error, dontShowLoading) {
       if(!isLoading) {
         myApp.showPreloader();
         isLoading = true;
@@ -227,10 +227,15 @@ var RestServiceJs = (function() {
               alertErrer(req, status, ex);
             },
             complete:function(){
-              loadingNum = loadingNum-1;
-              if(loadingNum == 0){
+              if(dontShowLoading){
                 myApp.hidePreloader();
                 isLoading = false;
+              }else{
+                loadingNum = loadingNum-1;
+                if(loadingNum == 0){
+                  myApp.hidePreloader();
+                  isLoading = false;
+                }
               }
             },
             timeout:60000

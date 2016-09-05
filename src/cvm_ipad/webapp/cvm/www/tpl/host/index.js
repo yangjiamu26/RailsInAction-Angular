@@ -169,8 +169,6 @@ function initHost_status_chart(nums) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.HostIndex_viewModel = viewModel;
 
-  window.indexFilter_host_viewModel.getResPools();
-
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(), viewModel.hostId());
   });

@@ -284,8 +284,6 @@ function init_storage_chart(data) {
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true,viewModel.busdomainId(),viewModel.busdomainName());
   });
-
-  window.indexFilter_busdomain_viewModel.getBusinessDomains();
 });
 
 

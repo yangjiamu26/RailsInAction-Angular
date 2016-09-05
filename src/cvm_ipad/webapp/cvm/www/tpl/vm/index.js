@@ -285,8 +285,6 @@ function initVm_status_chart(states) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.vm_index_viewModel = viewModel;
 
-  viewModel.loadData();
-
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());
   });
