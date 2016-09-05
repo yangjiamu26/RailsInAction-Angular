@@ -200,7 +200,7 @@ function initStorage_use_chart(free, total) {
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs(BASE_URL+"/storagePool").query({"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"hostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(BASE_URL+"/storagePool",{"dcId":CVM_PAD.dcId,"resourcePoolId":this.resPoolId(),"hostId":this.hostId(),"hypervisor":this.hypervisor(), "firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$$.getJSON("tpl/storage/index.json?id="+page.query.id+"&page="+self.page,function(data){
         data.totalSize = Number((Number(data.totalSize)/1024).toFixed(2));
         data.sharedSize = Number(data.sharedSize/1024);

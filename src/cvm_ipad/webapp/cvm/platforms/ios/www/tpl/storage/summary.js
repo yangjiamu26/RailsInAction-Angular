@@ -166,7 +166,7 @@ function initsingleStorage_assigned_chart(data) {
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.loadData = function(){
       var self = this;
-      RestServiceJs(BASE_URL+"/storagePool/"+page.query.id+"/summary").query({"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
+      RestServiceJs.query(BASE_URL+"/storagePool/"+page.query.id+"/summary",{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
       //$$.getJSON("tpl/storage/summary.json?id="+page.query.id, function(data){
         myApp.pullToRefreshDone();
         switch(data.type){
