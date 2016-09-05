@@ -268,7 +268,6 @@ function initSingleHost_storage_chart(data) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.HostIndex_Summary_details_viewModel = viewModel;
-  window.HostIndex_Summary_viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData(viewModel.summary());
