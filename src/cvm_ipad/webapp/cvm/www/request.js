@@ -29,16 +29,14 @@ function backToLogin(res){
 }
 function checkNetWork(thisRequest,callback){
   if(callback){
-    setTimeout(function(){
-      if(navigator.onLine){
-        callback();
-      }else{
-        if(thisRequest>1||interAlert) return;
-        myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
-          return backToLogin();
-        });
-      }
-    },200);
+    if(navigator.onLine){
+      callback();
+    }else{
+      if(thisRequest>1||interAlert) return;
+      myApp.alert('当前网络不可用，请检查您的网络设置！',function(){
+        return backToLogin();
+      });
+    }
   }else{
     if(!navigator.onLine){
       if(interAlert) return;
@@ -97,7 +95,7 @@ var loadingNum = 0;
 var isLoading = false;
 var RestServiceJs = (function() {
   var self = {};
-  
+
   self.post = function(newurl, params, callback, error) {
       if(!isLoading) {
         myApp.showPreloader();

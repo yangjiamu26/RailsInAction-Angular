@@ -248,7 +248,6 @@ function initSingleHost_storage_chart(data) {
     this.belongTab = ko.observable(page.query.belongTab);
     this.loadData = function(data){
       var self = this;
-      data.cpuSpeed = Number((Number(data.cpuSpeed)/1000).toFixed(2));
       self.summary(data);
       RestServiceJs.query(BASE_URL+"/host/"+page.query.id+"/statics",{"dcId":CVM_PAD.dcId,"hypervisor":data.hypervisor},function(res){
         myApp.pullToRefreshDone();

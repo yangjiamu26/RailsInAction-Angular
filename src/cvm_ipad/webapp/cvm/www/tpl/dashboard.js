@@ -1,5 +1,5 @@
 myApp.onPageInit("dashboard", function(page) {
-  $$('#logout').on('click', function (){
+  $$('.dashboardlogout').on('click', function (){
     myApp.confirm('确定退出当前用户吗？',function(){
       myApp.Login_Again = true;
       myApp.showAssisTime = false;

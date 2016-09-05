@@ -1,5 +1,5 @@
 myApp.onPageInit("settings-index", function(page) {
-  $$('#logout').on('click', function (){
+  $$('.settinglogout').on('click', function (){
     myApp.confirm('确定退出当前用户吗？',function(){
     	myApp.Login_Again = true;
     	myApp.showAssisTime = false;
