@@ -261,7 +261,7 @@ function initSingleHost_storage_chart(data) {
         initSingleHost_cpu_chart(res);
         initSingleHost_memory_chart(res);
         initSingleHost_storage_chart(res);
-      });
+      },null,true);
       
     };
   }
