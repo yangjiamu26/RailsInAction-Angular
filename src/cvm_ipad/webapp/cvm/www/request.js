@@ -14,6 +14,7 @@ function backToLogin(res){
   myApp.showAssisTime = false;
   myApp.Login_Again = true;
   reSetAllRequets();
+  window.overview_viewModel.whichDc('');
   if(!myApp.isInLoginPage) myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
   clearInterval(intervalCheckNte);
   interAlert = false;
@@ -100,10 +101,14 @@ var RestServiceJs = (function() {
   var self = {};
 
   self.post = function(newurl, params, callback, error) {
-      if(!isLoading) {
-        myApp.showPreloader();
-        isLoading = true;
-      }
+      var needLoading = true;
+      setTimeout(function(){
+        if(!isLoading&&needLoading) {
+          myApp.showPreloader();
+          isLoading = true;
+        }
+      },300);
+
       loadingNum = loadingNum+1;
       requestNUM = requestNUM+1;
       var url = newurl;
@@ -134,6 +139,7 @@ var RestServiceJs = (function() {
               alertErrer(req, status, ex);
             },
             complete:function(){
+              needLoading = false;
               loadingNum = loadingNum-1;
               if(loadingNum == 0){
                 myApp.hidePreloader();
@@ -146,10 +152,14 @@ var RestServiceJs = (function() {
   };  
    
   self.put= function(newurl, params, callback, error) {
-      if(!isLoading) {
-        myApp.showPreloader();
-        isLoading = true;
-      }
+      var needLoading = true;
+      setTimeout(function(){
+        if(!isLoading&&needLoading) {
+          myApp.showPreloader();
+          isLoading = true;
+        }
+      },300);
+
       loadingNum = loadingNum+1;
       requestNUM = requestNUM+1;
       var url = newurl;
@@ -178,6 +188,7 @@ var RestServiceJs = (function() {
             alertErrer(req, status, ex);
           },
           complete:function(){
+            needLoading = false;
             loadingNum = loadingNum-1;
             if(loadingNum == 0){
               myApp.hidePreloader();
@@ -190,11 +201,15 @@ var RestServiceJs = (function() {
   };  
    
   self.get = function(newurl, id, params, callback, error, dontShowLoading) {
-      if(!isLoading) {
-        myApp.showPreloader();
-        isLoading = true;
-      }
-      loadingNum = loadingNum+1;
+      var needLoading = true;
+      setTimeout(function(){
+        if(!isLoading&&needLoading) {
+          myApp.showPreloader();
+          isLoading = true;
+        }
+      },300);
+
+      if(!dontShowLoading) loadingNum = loadingNum+1;
       requestNUM = requestNUM+1;
       var url = newurl;
       if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
@@ -228,11 +243,9 @@ var RestServiceJs = (function() {
               alertErrer(req, status, ex);
             },
             complete:function(){
-              loadingNum = loadingNum-1;
-              if(dontShowLoading){
-                myApp.hidePreloader();
-                isLoading = false;
-              }else{
+              needLoading = false;
+              if(!dontShowLoading){
+                loadingNum = loadingNum-1;
                 if(loadingNum == 0){
                   myApp.hidePreloader();
                   isLoading = false;
@@ -245,11 +258,15 @@ var RestServiceJs = (function() {
   };
    
   self.query = function(newurl, params, callback, error, dontShowLoading) {
-      if(!isLoading) {
-        myApp.showPreloader();
-        isLoading = true;
-      }
-      loadingNum = loadingNum+1;
+      var needLoading = true;
+      setTimeout(function(){
+        if(!isLoading&&needLoading) {
+          myApp.showPreloader();
+          isLoading = true;
+        }
+      },300);
+      
+      if(!dontShowLoading) loadingNum = loadingNum+1;
       requestNUM = requestNUM+1;
       var url = newurl;
       if(newurl&&newurl.indexOf('demoapi')>-1) url = url+'.json';
@@ -278,11 +295,9 @@ var RestServiceJs = (function() {
               alertErrer(req, status, ex);
             },
             complete:function(){
-              loadingNum = loadingNum-1;
-              if(dontShowLoading){
-                myApp.hidePreloader();
-                isLoading = false;
-              }else{
+              needLoading = false;
+              if(!dontShowLoading){
+                loadingNum = loadingNum-1;
                 if(loadingNum == 0){
                   myApp.hidePreloader();
                   isLoading = false;

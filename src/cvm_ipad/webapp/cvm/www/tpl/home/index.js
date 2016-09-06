@@ -41,7 +41,7 @@ myApp.onPageInit("home-index", function(page) {
         data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
         data.storageSize = Number((Number(data.storageSize)/1024).toFixed(2));
         self.infos(data);
-      },null,true);
+      });
       RestServiceJs.query(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
         data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
@@ -64,7 +64,7 @@ myApp.onPageInit("home-index", function(page) {
         initTotal_cpu_chart_home2(data);
         initTotal_memory_chart_home(data);
         initTotal_storage_chart_home(data);
-      });
+      },null,true);
     }
   }
   var viewModel = new ViewModel();

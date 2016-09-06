@@ -11,6 +11,7 @@ myApp.onPageInit("dashboard", function(page) {
       Storage.setItem("userInfo",JSON.stringify(USER_INFO));
       myApp.closeModal('.popup.modal-in');
       $$("#assistive").hide();
+      window.overview_viewModel.whichDc('');
       reSetAllRequets();
       myApp.loginScreen();
     });
@@ -356,7 +357,7 @@ var initTotal_storage_chart = function(data) {
               popoverClose();
             },0)
         }
-      },null,true);
+      });
       
       RestServiceJs.query(BASE_URL+"/overallDetails/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
@@ -379,7 +380,7 @@ var initTotal_storage_chart = function(data) {
         initTotal_cpu_chart2(data);
         initTotal_memory_chart(data);
         initTotal_storage_chart(data);
-      });
+      },null,true);
     };
     this.loadDatacenters = function(){
       RestServiceJs.query(BASE_URL+"/datacenters",{},function(data){
