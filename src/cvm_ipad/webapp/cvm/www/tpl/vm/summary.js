@@ -18,9 +18,6 @@ myApp.onPageInit("vm-summary", function(page) {
     });
     this.loadData = function(data){
       myApp.pullToRefreshDone();
-      data.memory = (Number(data.memory)/1024).toFixed(2);
-      data.maxMemory = (Number(data.maxMemory)/1024).toFixed(2);
-      data.minMemory = (Number(data.minMemory)/1024).toFixed(2);
       self.summary(data);
     };
   }

@@ -167,6 +167,7 @@ angular.module('app')
     }
 
     $scope.buildCpoto = function(obj){
+    debugger
       var nodes = [{
           "id": "1001",
           "label": $scope.selected_dc,
@@ -184,19 +185,20 @@ angular.module('app')
         var edge1 = {"target": arr1.id,"source": "1001"};
         nodes.push(arr1);
         edges.push(edge1);
-        if(obj.resPools[i].hosts.length<1) return;
-        for(var j=0;j<obj.resPools[i].hosts.length;j++){
-          $scope.addAlarms(obj.resPools[i].hosts[j].alarmLevel);//增加告警数量
-          var arr2 = {
-              "id": "300"+i+"0"+j,
-              "label": obj.resPools[i].hosts[j].hostIp,
-              "size": 44,
-              "type": 3,
-              "level":obj.resPools[i].hosts[j].alarmLevel
-          };
-          var edge2 = {"target": arr2.id,"source": arr1.id};
-          nodes.push(arr2);
-          edges.push(edge2);
+        if(obj.resPools[i].hosts.length>0){
+          for(var j=0;j<obj.resPools[i].hosts.length;j++){
+            $scope.addAlarms(obj.resPools[i].hosts[j].alarmLevel);//增加告警数量
+            var arr2 = {
+                "id": "300"+i+"0"+j,
+                "label": obj.resPools[i].hosts[j].hostIp,
+                "size": 44,
+                "type": 3,
+                "level":obj.resPools[i].hosts[j].alarmLevel
+            };
+            var edge2 = {"target": arr2.id,"source": arr1.id};
+            nodes.push(arr2);
+            edges.push(edge2);
+          }
         }
       }
       if(obj.freeHosts.length>0){
@@ -300,5 +302,4 @@ angular.module('app')
       };
 
     }
-    
 });

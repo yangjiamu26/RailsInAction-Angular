@@ -20,7 +20,8 @@ myApp.onPageInit("vm-show", function(page) {
       "hostName":''
     })
 
-    this.loadData = function(){var url;
+    this.loadData = function(){
+      var url;
       if(page.query.hypervisor=="PowerVM"){
         url = 'tpl/vm/summary.html';
       }else{
@@ -37,8 +38,12 @@ myApp.onPageInit("vm-show", function(page) {
         data.type = page.query.type;
         self.summary(data);
         if(self.hypervisor()=='PowerVM'){
+          data.memory = (Number(data.memory)/1024).toFixed(2);
+          data.maxMemory = (Number(data.maxMemory)/1024).toFixed(2);
+          data.minMemory = (Number(data.minMemory)/1024).toFixed(2);
           window.vm_summary_viewModal.loadData(data);
         }else{
+          data.memory = (Number(data.memory)/1024).toFixed(2);
           window.vm_summary2_viewModal.loadData(data);
           window.vm_performance_viewModel.vcpu(data.vcpu);
         }
