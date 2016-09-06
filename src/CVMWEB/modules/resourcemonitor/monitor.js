@@ -167,7 +167,6 @@ angular.module('app')
     }
 
     $scope.buildCpoto = function(obj){
-    debugger
       var nodes = [{
           "id": "1001",
           "label": $scope.selected_dc,

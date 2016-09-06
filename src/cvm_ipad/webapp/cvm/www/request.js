@@ -203,7 +203,7 @@ var RestServiceJs = (function() {
   self.get = function(newurl, id, params, callback, error, dontShowLoading) {
       var needLoading = true;
       setTimeout(function(){
-        if(!isLoading&&needLoading) {
+        if(!isLoading&&needLoading&&!dontShowLoading) {
           myApp.showPreloader();
           isLoading = true;
         }
@@ -260,7 +260,7 @@ var RestServiceJs = (function() {
   self.query = function(newurl, params, callback, error, dontShowLoading) {
       var needLoading = true;
       setTimeout(function(){
-        if(!isLoading&&needLoading) {
+        if(!isLoading&&needLoading&&!dontShowLoading) {
           myApp.showPreloader();
           isLoading = true;
         }
