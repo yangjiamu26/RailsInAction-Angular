@@ -356,7 +356,7 @@ var initTotal_storage_chart = function(data) {
               popoverClose();
             },0)
         }
-      },true);
+      },null,true);
       
       RestServiceJs.query(BASE_URL+"/overallDetails/resourceStat",{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
