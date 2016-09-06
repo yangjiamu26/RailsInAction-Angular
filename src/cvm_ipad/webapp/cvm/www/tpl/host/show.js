@@ -1,4 +1,6 @@
 myApp.onPageInit("host-show", function(page) {
+  vmListclicks.host = false;
+  storageListclicks.host = false;
   
   function ViewModel(){
     var self = this;

@@ -1,10 +1,16 @@
 myApp.onPageInit("vm-show", function(page) {
-  
+  diskListclicks.vm = false;
+  vmPerformanceClicked = false;
+
   function ViewModel(){
     var self = this;
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.name = ko.observable(page.query.name);
     this.belongTab = ko.observable(page.query.belongTab);
+    this.perforClick = function(){
+      innerTabclick_performance(page.query.hypervisor,self.summary().state);
+    }
+    this.isDisable = ko.observable(true);
     this.summary = ko.observable({
       "ip": '',
       "state":'',
@@ -24,6 +30,7 @@ myApp.onPageInit("vm-show", function(page) {
       myApp.addView('#view_vm_performance'+self.belongTab(),      {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/vm/performance.html?hypervisor='+page.query.hypervisor+'&id='+page.query.id+'&state='+page.query.state+'&belongTab='+self.belongTab(),animatePages: false});
       myApp.addView('#view_vm_volumn'+self.belongTab(), {dynamicNavbar: false,domCache: true,linksView:'#view-vm'}).router.load({url: 'tpl/volumn/list.html?fromPage=vm&hypervisor='+page.query.hypervisor+'&id='+page.query.id+'&belongTab='+self.belongTab(),animatePages: false});
       RestServiceJs.query(BASE_URL+"/vm/"+page.query.id+"/summary",{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor},function(data){
+        self.isDisable(false);
         data.state = page.query.state;
         data.stateCss = page.query.stateCss;
         data.runningTime = getTheTime(data.runningTime);

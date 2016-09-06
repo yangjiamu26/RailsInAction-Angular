@@ -81,8 +81,7 @@ myApp.onPageInit("volumn-list", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-
-  viewModel.loadData();
+  window.diskList_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();

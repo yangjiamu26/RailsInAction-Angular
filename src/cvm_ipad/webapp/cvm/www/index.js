@@ -165,7 +165,7 @@ $(function(){
 
 });
 
-
+/*菜单tab页加载机制 start*/
 var clickedBusness = false;
 function clickBusness(){
     window.indexFilter_viewModel.changePage('business');
@@ -216,3 +216,105 @@ function reSetAllRequets(){
   clickedStorage = false;
   clickedSetting = false;
 }
+/*菜单tab页加载机制 end*/
+
+/*内容tab页加载机制 start*/
+var hostListclicked = false;
+function innerTabclick_host(){
+  if(hostListclicked) return;
+  hostListclicked = true;
+  window.hostList_viewModel.loadData(false);
+}
+var vmListclicks = {
+  "pool":false,
+  "host":false,
+  "business":false
+}
+function innerTabclick_vm(page){
+  var clicked;
+  switch(page){
+    case 'pool':
+      clicked = vmListclicks.pool;
+      break;
+    case 'host':
+      clicked = vmListclicks.host;
+      break;
+    case 'business':
+      clicked = vmListclicks.business;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'pool':
+      vmListclicks.pool = true;
+      break;
+    case 'host':
+      vmListclicks.host = true;
+      break;
+    case 'business':
+      vmListclicks.business = true;
+      break;
+  }
+  window.vmList_viewModel.loadData(false);
+}
+var storageListclicks = {
+  "pool":false,
+  "host":false
+}
+function innerTabclick_storage(page){
+  var clicked;
+  switch(page){
+    case 'pool':
+      clicked = storageListclicks.pool;
+      break;
+    case 'host':
+      clicked = storageListclicks.host;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'pool':
+      storageListclicks.pool = true;
+      break;
+    case 'host':
+      storageListclicks.host = true;
+      break;
+  }
+  window.storageList_viewModel.loadData();
+}
+var diskListclicks = {
+  "vm":false,
+  "storage":false
+}
+function innerTabclick_disk(page){
+  var clicked;
+  switch(page){
+    case 'vm':
+      clicked = diskListclicks.vm;
+      break;
+    case 'storage':
+      clicked = diskListclicks.storage;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'vm':
+      diskListclicks.vm = true;
+      break;
+    case 'storage':
+      diskListclicks.storage = true;
+      break;
+  }
+  window.diskList_viewModel.loadData();
+}
+var vmPerformanceClicked = false
+function innerTabclick_performance(hypervisor,state){
+  if(vmPerformanceClicked) return;
+  vmPerformanceClicked = true;
+  if(hypervisor == 'PowerVM'||state!='运行中'){
+    window.vm_performance_viewModel.isShowCharts(false);
+  }else{
+    window.vm_performance_viewModel.setTimeSelected('最近一小时');
+  }
+}
+/*内容tab页加载机制 end*/

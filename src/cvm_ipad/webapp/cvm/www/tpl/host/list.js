@@ -71,14 +71,12 @@ myApp.onPageInit("host-list", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-
-  viewModel.loadData(false);
+  window.hostList_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData(false,viewModel.hypervisor(),viewModel.resPoolId());
   });
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
-          console.log(1)
     viewModel.loadData(true,viewModel.hypervisor(),viewModel.resPoolId());
   });  
 
