@@ -12,6 +12,7 @@ myApp.onPageInit("dashboard", function(page) {
       myApp.closeModal('.popup.modal-in');
       $$("#assistive").hide();
       window.overview_viewModel.whichDc('');
+      myApp.hidePreloader();
       reSetAllRequets();
       myApp.loginScreen();
     });

@@ -14,6 +14,7 @@ function backToLogin(res){
   myApp.showAssisTime = false;
   myApp.Login_Again = true;
   reSetAllRequets();
+  myApp.hidePreloader();
   window.overview_viewModel.whichDc('');
   if(!myApp.isInLoginPage) myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
   clearInterval(intervalCheckNte);
