@@ -17,5 +17,7 @@ myApp.onPageInit("settings-profile", function(page) {
 	var viewModel = new ViewModel();
 	ko.applyBindings(viewModel, $$(page.container)[0]);
 	window.settings_profile_viewModel = viewModel;
-
+	if(clickedSetting){
+		viewModel.loadInfo();
+	}
 });
