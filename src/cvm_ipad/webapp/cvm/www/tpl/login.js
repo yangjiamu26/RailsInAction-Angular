@@ -54,8 +54,6 @@ myApp.onPageInit("login", function(page) {
 
         setTimeout(function(){
           $$("#assistive").show();
-          clearInterval(intervalCheckNte);
-          startCheckNet();
         },2000);
       }
 

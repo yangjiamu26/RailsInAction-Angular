@@ -1,13 +1,6 @@
 var requestNUM = 0;
 var errerNUM = [0,0,0,0,0];
-var intervalCheckNte;
 var interAlert = false;
-
-function startCheckNet(){
-    intervalCheckNte = setInterval(function(){
-      checkNetWork(1);
-    },1000);
-}
 
 function backToLogin(res){
   requestNUM = 0;
@@ -17,7 +10,6 @@ function backToLogin(res){
   myApp.hidePreloader();
   window.overview_viewModel.whichDc('');
   if(!myApp.isInLoginPage) myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
-  clearInterval(intervalCheckNte);
   interAlert = false;
   $$("#assistive").hide();
   if(res&&res.tokenCheck==false){

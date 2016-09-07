@@ -67,8 +67,6 @@ $(function(){
     setTimeout(function(){
       if(myApp.showAssisTime){
         $$("#assistive").show();
-        clearInterval(intervalCheckNte);
-        startCheckNet();
       }
     },2000);
   }else{
