@@ -117,6 +117,8 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
         $("initiatorTabDiv").hide();
         $("#ShowInitiatorTr").remove();
         $scope.initiators = [];
+        var _this = $("#poolTr"+num);
+        $(".fa-caret-up",_this.parents('table')).removeClass("fa-caret-up");
         if ($scope.pool != 'none' && $scope.initiatorShow ) {
             if ($scope.initiatorShow) {
                 $scope.pool = 'none';
@@ -127,6 +129,7 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
             $scope.pool = pool;
             $scope.initiatorShow = true;
         }
+        $(".fa-caret-client",_this).addClass('fa-caret-up');
         var _this = angular.element("#poolTr"+num);
         var content = "<tr id='ShowInitiatorTr' ng-show='snapshotShow'><td colspan=6 class='subtdbg' style='height:113px;'></td></tr>"
         _this.after(content);
@@ -1324,6 +1327,7 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
     $scope.dblClick = function (id, pool) {
         $scope.hideAclSet();
         var _this = $("#poolTr"+id);
+        $(".fa-caret-up",_this.parents('table')).removeClass("fa-caret-up");
         if ($scope.poolTrIdTemp) {
             var _that = $(".rrr");
             if ($scope.poolTrIdTemp == id && _that.length > 0) {
@@ -1333,12 +1337,13 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
             }
             _that.remove();
         }
-        var content = "<tr class=rrr><td colspan=9 class='subtdbg' style='height:430px;'></td></tr>";
+        $(".fa-caret",_this).addClass('fa-caret-up');
+        var content = "<tr class=rrr><td colspan=9 class='subtdbg' style='height:370px;'></td></tr>";
         _this.after(content);
         $("#chartDiv").show().css({left: _this.offset().left, top: _this.offset().top + 37, width: _this.width()});
         $scope.poolOrLun = pool;
         $scope.poolTrIdTemp = id;
-        $("#chartDiv").height(430);
+        $("#chartDiv").height(370);
         setTimeout($scope.canvas, 10);
     };
     /**
@@ -1517,10 +1522,9 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                     type : 'category',
                     boundaryGap: true,
                     axisLine: {
-                        show: true,
                         lineStyle: { //x轴线样式
                             color: '#728092',
-                            width: 0
+                            width: 1
                         }
                     },
                     axisTick: { //x坐标轴小标记
@@ -1530,14 +1534,10 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                             color: '#728092',
                             width: 1
                         }
-                    },
+                    },                    
                     axisLabel: { //坐标轴文本标签选项
-                        show: true,
-                        interval: interval || 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
@@ -1562,18 +1562,13 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                         }
                     },
                     axisLabel: {
-                        show: true,
-                        interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
-                        show: true,
                         lineStyle: {
-                            color: '#728092'
+                            color: '#e2e2e2'
                         }
                     }
                 }
@@ -1582,14 +1577,16 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                 {
                     type:'line',
                     data:values,
+                    smooth:true,
                     symbol:'none',
                     itemStyle: {
                         normal: {
-                            color:'#04CA4F',
-                            areaStyle: {
-                                color:'#537172',
-                                type: 'default'
-                            }
+                            color:'#458ed3',
+                            lineStyle: {
+                                type: 'solid',
+                                width: 0.9,
+                            },
+                            areaStyle: {color:'#d2e1f0',type: 'default'},
                         }
                     }
                 }
@@ -1617,10 +1614,9 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                     type : 'category',
                     boundaryGap : true,
                     axisLine: {
-                        show: true,
                         lineStyle: { //x轴线样式
                             color: '#728092',
-                            width: 0
+                            width: 1
                         }
                     },
                     axisTick: { //x坐标轴小标记
@@ -1630,14 +1626,10 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                             color: '#728092',
                             width: 1
                         }
-                    },
+                    },                    
                     axisLabel: { //坐标轴文本标签选项
-                        show: true,
-                        interval: interval || 0, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
@@ -1663,18 +1655,13 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                         }
                     },
                     axisLabel: {
-                        show: true,
-                        interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
-                        show: true,
                         lineStyle: {
-                            color: '#728092'
+                            color: '#e2e2e2'
                         }
                     }
                 }
@@ -1686,11 +1673,12 @@ vsanApp.controller("storageResourceCtrl", ["$scope", "storageFactory", "mainFact
                     symbol:'none',
                     itemStyle: {
                         normal: {
-                            color:'#00ACFF',
-                            areaStyle: {
-                                color:'#305977',
-                                type: 'default'
-                            }
+                            color:'#4dc6d1',
+                            lineStyle: {
+                                type: 'solid',
+                                width: 0.9,
+                            },
+                            areaStyle: {color:'#d4ecef',type: 'default'},
                         }
                     }
                 }

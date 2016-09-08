@@ -279,10 +279,9 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                     type : 'category',
                     boundaryGap: true,
                     axisLine: {
-                        show: true,
                         lineStyle: { //x轴线样式
                             color: '#728092',
-                            width: 0
+                            width: 1
                         }
                     },
                     axisTick: { //x坐标轴小标记
@@ -292,14 +291,10 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                             color: '#728092',
                             width: 1
                         }
-                    },
+                    },                    
                     axisLabel: { //坐标轴文本标签选项
-                        show: true,
-                        //interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
@@ -331,18 +326,13 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                         }
                     },
                     axisLabel: {
-                        show: true,
-                        interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
-                        show: true,
                         lineStyle: {
-                            color: '#728092'
+                            color: '#e2e2e2'
                         }
                     }
                 }
@@ -351,29 +341,33 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                 {
                     name:'read',
                     type:'line',
+                    smooth:true,
                     symbol:'none',
                     data:values,
                     itemStyle: {
                         normal: {
-                            color:'#04CA4F',
+                            color:'#458ed3',
                             lineStyle: {
                                 type: 'solid',
                                 width: 0.9,
                             },
+                            areaStyle: {type: 'default'},
                         }
                     }
                 },{
                     name:'write',
                     type:'line',
+                    smooth:true,
                     symbol:'none',
                     data:values2,
                     itemStyle: {
                         normal: {
-                            color:'#FFCF00',
+                            color:'#f39c11',
                             lineStyle: {
                                 type: 'solid',
                                 width: 0.9,
                             },
+                            areaStyle: {type: 'default'},
                         }
                     }
                 }
@@ -445,10 +439,9 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                     type : 'category',
                     boundaryGap : true,
                     axisLine: {
-                        show: true,
                         lineStyle: { //x轴线样式
                             color: '#728092',
-                            width: 0
+                            width: 1
                         }
                     },
                     axisTick: { //x坐标轴小标记
@@ -458,14 +451,10 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                             color: '#728092',
                             width: 1
                         }
-                    },
+                    },                    
                     axisLabel: { //坐标轴文本标签选项
-                        show: true,
-                        //interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
@@ -498,18 +487,13 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                         }
                     },
                     axisLabel: {
-                        show: true,
-                        interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
-                        show: true,
                         lineStyle: {
-                            color: '#728092'
+                            color: '#e2e2e2'
                         }
                     }
                 }
@@ -518,29 +502,33 @@ mainFactory.queryPerf({'from':'-1h','target':'mbps.rw'},function(datas){
                 {
                     name:'read',
                     type:'line',
+                    smooth:true,
                     symbol:'none',
                     data:values,
                     itemStyle: {
                         normal: {
-                            color:'#00ACFF',
+                            color:'#458ed3',
                             lineStyle: {
                                 type: 'solid',
                                 width: 0.9,
                             },
+                            areaStyle: {type: 'default'},
                         }
                     }
                 },{
                     name:'write',
                     type:'line',
+                    smooth:true,
                     symbol:'none',
                     data:values2,
                     itemStyle: {
                         normal: {
-                            color:'#FFCF00',
+                            color:'#f39c11',
                             lineStyle: {
                                 type: 'solid',
                                 width: 0.9,
                             },
+                            areaStyle: {type: 'default'},
                         }
                     }
                 }

@@ -151,6 +151,8 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
         $("#snapTableDiv").hide();
         $('#ShowSnapshotTr').remove();
         $scope.snapshots = [];
+        var __this = $("#lunTr"+num);
+        $(".fa-caret-up",__this.parents('table')).removeClass("fa-caret-up");
         if($scope.snapLun != 'none' && snapLun.poolId===$scope.snapLun.poolId && snapLun.lunId===$scope.snapLun.lunId && $scope.snapshotShow){
             if($scope.snapshotShow){
                 $scope.snapLun = 'none';
@@ -165,6 +167,7 @@ vsanApp.controller("storageLunCtrl", ["$scope", "storageFactory", "mainFactory",
             $scope.snapshotShow = true;//显示快照列表
         };
         $scope.NoSnapErrMsg = "正在加载中...";
+        $(".fa-caret",__this).addClass('fa-caret-up');
         var _this = angular.element('#lunTr'+num);
         var content = "<tr id='ShowSnapshotTr' ng-show='snapshotShow'><td colspan=5 class='subtdbg' style='height:113px;'></td></tr>";
         _this.after(content);

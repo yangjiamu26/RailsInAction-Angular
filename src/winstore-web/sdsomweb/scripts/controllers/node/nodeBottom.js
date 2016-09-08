@@ -182,10 +182,9 @@ vsanApp.controller("nodeBottomCtrl", ["$scope","nodeFactory","$rootScope",functi
                     type : 'category',
                     boundaryGap: true,
                     axisLine: {
-                        show: true,
                         lineStyle: { //x轴线样式
                             color: '#728092',
-                            width: 0
+                            width: 1
                         }
                     },
                     axisTick: { //x坐标轴小标记
@@ -195,14 +194,10 @@ vsanApp.controller("nodeBottomCtrl", ["$scope","nodeFactory","$rootScope",functi
                             color: '#728092',
                             width: 1
                         }
-                    },
+                    },                    
                     axisLabel: { //坐标轴文本标签选项
-                        show: true,
-                        //interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
@@ -234,18 +229,13 @@ vsanApp.controller("nodeBottomCtrl", ["$scope","nodeFactory","$rootScope",functi
                         }
                     },
                     axisLabel: {
-                        show: true,
-                        interval: 3, //坐标轴显示全部
-                        rotate: 0, //坐标轴顺时针45°显示
                         textStyle: {
                             color: '#728092',
-                            fontSize:10
                         }
                     },
                     splitLine: {
-                        show: true,
                         lineStyle: {
-                            color: '#728092'
+                            color: '#e2e2e2'
                         }
                     }
                 }
@@ -253,15 +243,17 @@ vsanApp.controller("nodeBottomCtrl", ["$scope","nodeFactory","$rootScope",functi
             series : [
                 {
                     type:'line',
+                    smooth:true,
                     data:values,
                     symbol:'none',
                     itemStyle: {
                         normal: {
-                            color:'#F5824C',
-                            areaStyle: {
-                                color:'#78747C',
-                                type: 'default'
-                            }
+                            color:'#458ed3',
+                            lineStyle: {
+                                type: 'solid',
+                                width: 0.9,
+                            },
+                            areaStyle: {type: 'default'},
                         }
                     }
                 }
