@@ -72,6 +72,7 @@ function initHost_status_chart(nums) {
 }
   
   function ViewModel(){
+    var self = this;
     this.hypervisor = ko.observable("");
     this.resPoolId = ko.observable("");
     this.hostId = ko.observable("");
@@ -82,6 +83,7 @@ function initHost_status_chart(nums) {
     this.loading = false;
     this.page = 1;
     this.noMore = ko.observable();
+    self.isInit = true;
     this.loadData = function(is_loadMore,hypervisor,resPoolId,hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -98,7 +100,6 @@ function initHost_status_chart(nums) {
       }else{
         this.hostId("");
       }
-      var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
@@ -107,8 +108,10 @@ function initHost_status_chart(nums) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          if(!self.isInit){
+            myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          }
+          self.isInit = false;
           self.dataList.removeAll();
 
           self.hostSize(data.size);

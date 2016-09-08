@@ -9,6 +9,7 @@ myApp.onPageInit("vm-list", function(page) {
     this.loading = false;
     this.page = 1;
     this.noMore = ko.observable();
+    self.isInit = true;
     this.loadData = function(is_loadMore){
       var self = this;
       if (self.loading) return;
@@ -37,8 +38,10 @@ myApp.onPageInit("vm-list", function(page) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
-          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          if(!self.isInit){
+            myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          }
+          self.isInit = false;
           self.dataList.removeAll();
           self.noMore(false);
           if(data.data.length < PAGE_SIZE) self.noMore(true);
