@@ -896,30 +896,30 @@
 							return
 						}
 					}
-				 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+name_i+'&vdcUuid='+vdcUuid,function(result){
+				 	csc.rest.get('api/v5.0.0/cart/nameCheck?type='+type+'&name='+encodeURIComponent(name_i)+'&vdcUuid='+vdcUuid,function(result){
 				 		 if(result.isExist==true){
 				 			  alert("该VDC下已存在名称为"+result.name+"的购物车申请");
 							  callback(false);
 						  }else{
-							 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+result.name+'&vdcUuid='+vdcUuid,function(result1){	
-							 		if(result1.isExist==true){
-										  alert("该VDC下已存在名称为"+result1.instanceName+"的订单申请");
-										  callback(false);
-									  }else{
-										   orderCount = orderCount+1;
-										 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+result1.instanceName+"&vdcUuid="+result1.vdcUuid,function(result2){	
-										 		if(result2.isExist=="true"){
-													  alert("该VDC下已存在名称为"+result2.name+"的资源实例");
-													  callback(false);
-												  }else{
-													  instanceCount = instanceCount+1;
-													  if((instanceCount==jsonArray.length)&&(orderCount==jsonArray.length)){
-														  callback(true);
-													  }
-												  }
-										    });
+						 	csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType='+type+'&instanceName='+encodeURIComponent(result.name)+'&vdcUuid='+vdcUuid,function(result1){	
+						 	  if(result1.isExist==true){
+								  alert("该VDC下已存在名称为"+result1.instanceName+"的订单申请");
+								  callback(false);
+							  }else{
+							   orderCount = orderCount+1;
+							 	csc.rest.get('api/v5.0.0/resourceInstances/hasSameName?type='+type+'&name='+encodeURIComponent(result1.instanceName)+"&vdcUuid="+result1.vdcUuid,function(result2){	
+							 	  if(result2.isExist=="true"){
+									  alert("该VDC下已存在名称为"+result2.name+"的资源实例");
+									  callback(false);
+								  }else{
+									  instanceCount = instanceCount+1;
+									  if((instanceCount==jsonArray.length)&&(orderCount==jsonArray.length)){
+										  callback(true);
 									  }
+								  }
 							    });
+							  }
+						    });
 						  }
 				    });	
 				}
@@ -942,7 +942,7 @@
 								  }else{
 									csc.rest.get('api/v5.0.0/orders/items/checkName?resourceType=VDC&instanceName='+value.name,function(result1){	
 								 		if(result1.isExist==true){
-											  alert("已存在名称为"+result1.name+"的订单申请");
+											  alert("已存在名称为[" + value.name + "]的订单申请");
 										  }else{
 											     var orderJson={};
 												 var orderItems = [];
@@ -2341,11 +2341,41 @@
 		  	}
 		  	
 		    this.table_VDC = new DataTable([], {path: 'api/v5.0.0/service/getServiceList/VDC',perPage:6});
+		    
+		    this.selectedAllOsType = function() {
+		    	var ckbOsTypeList = $("input[name=_ckb_osTypeItem]");
+		    	if ($("#_ckb_selectedAllOsType")[0].checked) {
+		    		for (var i = 0; i < ckbOsTypeList.length; i++) {
+		    			ckbOsTypeList[i].checked = true;
+		    		}
+		    	} else {
+		    		for (var i = 0; i < ckbOsTypeList.length; i++) {
+		    			ckbOsTypeList[i].checked = false;
+		    		}
+		    	}
+		    	return true;
+		    }
+		    
+		    
+			this.changeCheckBoxValue = function(data, event){
+				var ckbOsTypeList = $("input[name=_ckb_osTypeItem]");
+				var isSelectedAll = true;
+	    		for (var i = 0; i < ckbOsTypeList.length; i++) {
+	    			if (!ckbOsTypeList[i].checked) {
+	    				isSelectedAll = false;
+	    			}
+	    		}
+		    	
+	    		$("#_ckb_selectedAllOsType")[0].checked = isSelectedAll;
+			}
 		  //################## VDC end ##################
 		  
 //################################################# 云主机 start ################################################## 
             
             /************************************ 云主机 vo定义  ************************************/
+            var _self_ = this;
+            _self_.isCNwareFlag = ko.observable(true);//openstack、CNware判断,true(openstack)/false(CNware)
+		  
             this.model_VM = ko.validatedObservable({
 		    	vmCartInfo: ko.observableArray([])
 		    });
@@ -2487,10 +2517,10 @@
 	            this.cloudPlatform = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.azList(), {uuid: this.azUuid()});
 	            	if(item!=null){
-	            		return item.cloudPlatform == 'OpenStack' && this.osType()!='windows' ?true:false;
-	            	}else{
-	            		return false;
+	            		_self_.isCNwareFlag(item.cloudPlatform == 'OpenStack');
+	            		return item.cloudPlatform == 'OpenStack' && this.osType()!='windows';
 	            	}
+	            	return false;
 	            }, this);
 	            
 	            //分区
@@ -2708,7 +2738,7 @@
             /************************************ 云主机 服务列表  ************************************/
 
             /************************************ 云主机 单个申请  ************************************/
-		    this.isAdd_VMSingle = ko.observable(false);
+            this.isAdd_VMSingle = ko.observable(false);
             this.isViewPartition = ko.observable(false);//显示系统盘分区
 		    this.isAdd_VM = ko.observable(false);
 		    var editObject;
@@ -2832,7 +2862,7 @@
 		    this.getAzForVdcChange = function(data){
 		    	if(data.serviceUuid!=null && data.vdcUuid != null){
 		    		csc.rest.get("api/v5.0.0/cart/getAzList/"+data.serviceUuid()+"/"+data.vdcUuid(), function(result){
-			        	data.azList(result);
+		    			data.azList(result);
 			        	if(data.bussyList!=null){
 				        	csc.rest.get("api/v5.0.0/bussys?vdcuuid="+data.vdcUuid(),function(result2){
 					        	data.bussyList(result2.results);
@@ -2849,7 +2879,6 @@
 		    	if(data.vpcList !=null){
 		    		data.vpcList.removeAll();
 		    	}
-		    	
 		    };
 		    this.getOsVersionForOsTypeChange = function(data){
 		    	if(data.serviceUuid!=null && data.azUuid!=null && data.osType){
@@ -2996,7 +3025,6 @@
 			    	
 	                csc.rest.get("api/v5.0.0/script/defaultAttrs?scriptUuid="+e.scriptUuid, function(attrList) {
 	                	var attrArray = attrList.results;
-	                	console.log(attrArray);
 	                	attrArray.forEach(function (f){
 	                		var attrVo = new SoftwareAttrVO();
 	                		attrVo.softwareUuid(e.softwareUuid);
@@ -3010,7 +3038,6 @@
 	                });
 	                
 		    		editObject.softwares.push(vo);
-		    		console.log(editObject.softwares());
 		    		
 		    	});
 		    	
@@ -3059,7 +3086,6 @@
 	        
 	        this.saveSoftwareAttr = function(){
 	        	var item = this;
-	        	console.log(editObject)
 	        	editObject.softwareParams(self.attrList_VM());
 	        	self.showSoftwareAttr(false);
 	        	alert('保存成功');
@@ -4031,16 +4057,24 @@
             <input type="text" class="form-control col-sm-5" placeholder="请输入名称" data-bind="value:model_VDC().name">
           </div>
         </div>
+        
         <div class="form-group">
           <label class="col-sm-3 control-label">支持操作系统<i style="color:red">*</i></label>
-            <div class="col-sm-8 form-inline" data-bind="foreach:osTypeArray">
+            <div class="col-sm-8 form-inline">
+           		<div class="checkbox">
+                 <label>
+                   <input type="checkbox" id="_ckb_selectedAllOsType" data-bind="click: selectedAllOsType"> 全选
+                 </label>
+               </div>
+              <!-- ko foreach : osTypeArray -->
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" data-bind="checked: $parent.model_VDC().osTypesSelelct,value:$data"><span data-bind="text:$data"></span>
+                  <input type="checkbox" name="_ckb_osTypeItem" data-bind="checked: $parent.model_VDC().osTypesSelelct,value:$data,event:{'change':$root.changeCheckBoxValue}"><span data-bind="text:$data"></span>
                 </label>
               </div>
+              <!-- /ko -->
             </div>
-        </div>     
+        </div>
         <div>
 	        <div class="form-group col-sm-4" >
 	          <div >
@@ -4293,7 +4327,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-4" data-bind="visible: $root.isCNwareFlag">
               <div class="row">
                 <label class="col-xs-5 control-label">网络名称<i style="color:red">*</i></label>
                 <div class="col-xs-7">
@@ -4309,7 +4343,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-3">
+            <div class="form-group col-md-3" data-bind="visible: $root.isCNwareFlag">
               <div class="row">
                 <label class="col-xs-5 control-label">密码：</label>
                 <div class="col-xs-7">
@@ -4317,7 +4351,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-md-4" data-bind="visible: $root.isCNwareFlag">
               <div class="row">
                 <label class="col-xs-5 control-label">重复密码：</label>
                 <div class="col-xs-7">
@@ -4589,7 +4623,7 @@
 			                  <th>云主机名称</th>
 			                  <th>操作系统类型<i style="color:red">*</i></th>
 			                  <th>操作系统版本<i style="color:red">*</i></th>
-			                  <th>CPU(核)<i style="color:red">*</i></th>
+			                  <th>CPU(个)<i style="color:red">*</i></th>
 			                  <th>内存(GB)<i style="color:red">*</i></th>
 			                  <th>存储(GB)<i style="color:red">*</i></th>
 			                  <th>密码</th>
@@ -4738,7 +4772,7 @@
 			                <table class="table table-striped">
 			                  <thead>
 			                    <th>云主机名称</th>
-			                    <th>CPU(核)</th>
+			                    <th>CPU(个)</th>
 			                    <th>内存(GB)</th>
 			                    <th>存储(GB)</th>
 			                    <th>软件个数</th>

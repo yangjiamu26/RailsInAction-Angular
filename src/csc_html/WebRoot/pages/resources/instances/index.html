@@ -1,8 +1,8 @@
 <div class="bg-light lter b-b wrapper-sm">
   <ol class="breadcrumb">
     <li>当前位置：</li>
-    <li>资源</li>
-    <li class="active">资源实例</li>
+    <li id="instance_html_title_1">资源</li>
+    <li class="active" id="instance_html_title_2">资源实例</li>
   </ol>
 </div>
 
@@ -10,19 +10,19 @@
   <div class='nav-tabs-alt bg-white-only b b-blue'>
     <ul class='nav nav-tabs' role='tablist' id="instancesListBox">
       <li class='active' role='presentation'>
-        <a id='vmsTab' aria-controls='partition_vms' data-toggle='tab' href='#partition_vms' role='tab'>云主机</a></li>
+        <a id='vmsTab' aria-controls='partition_vms' data-toggle='tab' href='#partition_vms' role='tab' onclick="refreshInstanceVm()">云主机</a></li>
       <li role='presentation'>
-        <a id='storagesTab' aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab'>云硬盘</a></li>
+        <a id='storagesTab' aria-controls='partition_storages' data-toggle='tab' href='#partition_storages' role='tab' onclick="refreshInstanceDisk()">云硬盘</a></li>
       <li role='presentation'>
-        <a id='publicipsTab' aria-controls='partition_publicips' data-toggle='tab' href='#partition_publicips' role='tab'>公网IP</a></li>
+        <a id='publicipsTab' aria-controls='partition_publicips' data-toggle='tab' href='#partition_publicips' role='tab' onclick="refreshInstancePublicIP()">公网IP</a></li>
       <li role='presentation'>
-        <a id='balancerTab' aria-controls='partition_balancer' data-toggle='tab' href='#partition_balancer' role='tab'>负载均衡器</a></li>
+        <a id='balancerTab' aria-controls='partition_balancer' data-toggle='tab' href='#partition_balancer' role='tab' onclick="refreshInstanceBalancer()">负载均衡器</a></li>
       <li role='presentation'>
-        <a id='sshkeysTab' aria-controls='partition_sshkeys' data-toggle='tab' href='#partition_sshkeys' role='tab'>SSH密钥</a></li>
+        <a id='sshkeysTab' aria-controls='partition_sshkeys' data-toggle='tab' href='#partition_sshkeys' role='tab' onclick="refreshInstanceSSHKey()">SSH密钥</a></li>
       <li role='presentation'>
-        <a id='objectStoragesTab' aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab'>对象存储</a></li>
+        <a id='objectStoragesTab' aria-controls='partition_object_storages' data-toggle='tab' href='#partition_object_storages' role='tab' onclick="refreshInstanceObjectStorage()">对象存储</a></li>
       <li role='presentation'>
-        <a aria-controls='partition_tasks' data-toggle='tab' href='#partition_tasks' role='tab'>调度任务</a></li>
+        <a aria-controls='partition_tasks' data-toggle='tab' href='#partition_tasks' role='tab' onclick="refreshInstanceTask()">调度任务</a></li>
     </ul>
     <div class='tab-content'>
       <div class='tab-pane active' id='partition_vms' role='tabpanel'></div>
@@ -38,6 +38,49 @@
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
+  //点击标签页 刷新列表内容
+  function refreshInstanceTask(){
+	  if(window.viewModelTask){
+		  window.viewModelTask.search();
+	  }
+  }
+  function refreshInstanceVm(){
+	  if(window.viewModelVM){
+		  window.viewModelVM.search();
+	  }
+  }
+  function refreshInstanceDisk(){
+	  if(window.viewModelDisk){
+		  window.viewModelDisk.search();
+	  }
+  }
+  
+  function refreshInstancePublicIP(){
+	  if(window.viewModelPublicIP){
+		  window.viewModelPublicIP.search();
+	  }
+  }
+  
+  function refreshInstanceBalancer(){
+	  if(window.viewModelBalancer){
+		  window.viewModelBalancer.searchLb();
+	  }
+  }
+  
+  function refreshInstanceSSHKey(){
+	  if(window.viewModelSSHKey){
+		  window.viewModelSSHKey.search();
+	  }
+  }
+  
+  function refreshInstanceObjectStorage(){
+	  if(window.viewModelObjectStorage){
+		  window.viewModelObjectStorage.search();
+	  }
+  }
+  
+  
+  
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"]
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //如果是普通用户就隐藏tab按钮
@@ -70,6 +113,27 @@
 				value=arr[i].substr(num+1);
 				this[name]=value;
 			}
+			//我的资源进入的时候修改面包屑名称
+			var instance_html_title_1 = "资源";
+			var instance_html_title_2 = "资源实例";
+			if(name == "type"){
+				instance_html_title_1 = "我的资源";
+				if(value == "0"){
+					instance_html_title_2 = "云主机";
+				}else if(value == "1"){
+					instance_html_title_2 = "云硬盘";
+				}else if(value == "2"){
+					instance_html_title_2 = "公网IP";
+				}else if(value == "3"){
+					instance_html_title_2 = "负载均衡器";
+				}else if(value == "4"){
+					instance_html_title_2 = "SSH密钥";
+				}else if(value == "5"){
+					instance_html_title_2 = "对象存储";
+				}
+			}
+			$("#instance_html_title_1").html(instance_html_title_1);
+			$("#instance_html_title_2").html(instance_html_title_2);
 		}
 	}
   	

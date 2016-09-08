@@ -8,8 +8,8 @@
 <div class="wrapper-md nav-tabs-alt b b-blue">
 	<div id="workflow_content">
 	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a id="doingTab" href="#tab1" aria-controls="home" role="tab" data-toggle="tab">待办工作</a></li>
-		<li role="presentation"><a id="didTab" href="#tab2" aria-controls="profile" role="tab" data-toggle="tab">已办工作</a></li>
+		<li role="presentation" class="active"><a id="doingTab" href="#tab1" aria-controls="home" role="tab" data-toggle="tab" onclick="refreshTab1()">待办工作</a></li>
+		<li role="presentation"><a id="didTab" href="#tab2" aria-controls="profile" role="tab" data-toggle="tab" onclick="refreshTab2()">已办工作</a></li>
 	</ul>
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="tab1">
@@ -18,7 +18,8 @@
 				<div class="wrapper" >
 					<div class="row">
 						<div class="col-xs-1">
-							<button class="btn btn-sm btn-info" onclick="showModal('pages/workflows/approval.html')">批量审批</button>
+							<!-- <button class="btn btn-sm btn-info"  onclick="showModal('pages/workflows/approval.html')">批量审批</button> -->
+							<button class="btn btn-sm btn-info"  data-bind="click: batchApprove">批量审批</button>
 						</div>
 						<div class="col-xs-3">
 				            <div class="input-group">
@@ -74,12 +75,12 @@
 						<thead>
 							<tr>
 								<th>
-									<div class="checkbox">
-										<label class="i-checks">
-											<input type="checkbox" value="">
-											<i></i>
-										</label>
-									</div>                    
+									<!-- <div class="checkbox">
+								         <label class="i-checks">
+								           <input type="checkbox" data-bind="checked: isSelectedAll">
+								           <i></i>
+								         </label>
+							        </div> -->
 								</th>
 								<th>任务ID</th>
 								<th>流程类型</th>
@@ -97,19 +98,49 @@
 						</thead>
 						<tbody>
 						  <tr data-bind="visible: showNoData">
-				            <td colspan="10" class="aligncenter">
+				            <td colspan="11" class="aligncenter">
 				              	暂无数据
 				            </td>
 				          </tr>
 				          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
 								<td>
-									<div class="checkbox">
-										<label class="i-checks">
-											<input type="checkbox" value="">
-											<i></i>
-										</label>
-									</div> 
+									<div class="checkbox">									
+								         <label class="i-checks" data-bind="visible: $row.processType=='RESOURCE_APPLY' && $row.formKey == 'construct'" title="资源申请的施工工作不能批量审批">
+								           <!-- <input type="checkbox" data-bind="checkedValue: $data, checked: $row.formKey == 'construct' ||($row.formKey == 'resure' && $row.status=='DOING') ? null : $parent.chosenItems,attr:{disabled: $row.formKey == 'construct' ||($row.formKey == 'resure' && $row.status=='DOING')}"> -->
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: ($row.processType=='RESOURCE_APPLY' || $row.processType=='RESOURCE_CHANGE' || $row.processType=='RESOURCE_RECYCLE'|| $row.processType=='RESOURCE_DELETE') && ($row.formKey == 'resure' && $row.status=='DOING')" title="有施工失败资源的工作不能批量审批">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: $row.processType=='VDC_APPLY' && $row.formKey == 'construct'" title="VDC施工工作不能批量审批">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: $row.processType=='VDC_CHANGE' && $row.formKey == 'construct'" title="VDC变更施工工作不能批量审批">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: $row.processType=='CUSTOM'" title="自定义流程不能批量审批">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: $row.status=='UNSUBMIT'" title="未提交流程不能批量审批">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: $row.processType!='CUSTOM' && $row.status == null">
+								           <input type="checkbox" data-bind="checkedValue: $data" disabled="disabled">
+								           <i></i>
+								         </label>
+								         <label class="i-checks" data-bind="visible: !($row.processType=='RESOURCE_APPLY' && $row.formKey == 'construct') && !(($row.processType=='RESOURCE_APPLY' || $row.processType=='RESOURCE_CHANGE' || $row.processType=='RESOURCE_RECYCLE'|| $row.processType=='RESOURCE_DELETE') && ($row.formKey == 'resure' && $row.status=='DOING'))
+								         	&& !($row.processType=='VDC_APPLY' && $row.formKey == 'construct') && !($row.processType=='VDC_CHANGE' && $row.formKey == 'construct') && !($row.processType=='CUSTOM') && !($row.status=='UNSUBMIT') && $row.status != null">
+								           <input type="checkbox" data-bind="checkedValue: $data,checked: $parent.chosenItems">
+								           <i></i>
+								         </label>
+							        </div>
 								</td>
 								<td data-bind="text: $row.id"></td>
 								<td data-bind="text: $row.processTypeName"></td>
@@ -119,6 +150,7 @@
 								</td>
 								<td data-bind="text: $row.name,visible:$row.processType=='CUSTOM'||$row.status=='DOING'"></td>
 								<td data-bind="visible:$row.status=='UNSUBMIT'">申请节点</td>
+								<td data-bind="text: $row.name,visible: !($row.status=='UNSUBMIT') && !($row.processType=='CUSTOM'||$row.status=='DOING')"></td>
 								<td data-bind="text: $row.applyUser"></td>
 							
 								<td data-bind="text: $row.applyTime"></td>
@@ -132,7 +164,7 @@
 									<span data-bind="visible: $row.productTypes=='OBJECT_STORAGE'">对象存储</span>
 									<span data-bind="visible: $row.productTypes=='VDC'">VDC</span>
 								</td>
-								<td data-bind="text: $row.instanceNames"></td>
+								<td data-bind="text: $row.instanceNames != null && $row.instanceNames.length > 19 ? $row.instanceNames.substring(0,19)+'...' : $row.instanceNames"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
 									<div data-bind="visible:$row.status=='DOING'||$row.processType=='CUSTOM'"><a data-url="pages/workflows/tasks" data-bind="click:$root.dealwith">办理</a></div>
@@ -172,6 +204,56 @@
 			     </ul>
 			   </footer>
 			</div>
+			
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: {show: isBatchApprove }">
+  <div class='modal-dialog modal-lg' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>批量审批</h3>
+      </div>
+      <div class='modal-body no-padder'>
+        <table class="table table-striped" data-bind="with: batchTable">
+          <thead>
+            <tr>
+              <th>流程实例单号</th>
+              <th>流程类型</th>
+              <th>当前节点</th>
+              <th>申请人</th>
+              <th>所属VDC</th>
+              <th>实例名称</th>
+              <th>下一节点办理人</th>
+            </tr>
+          </thead>
+          <tbody>
+          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+            <tr>
+              <td data-bind="text: $row.processInstanceId"></td>
+              <td data-bind="text: $row.processTypeName"></td>
+              <td data-bind="text: $row.name"></td>
+              <td data-bind="text: $row.applyUser"></td>
+              <td data-bind="text: $row.vdcName"></td>
+              <td data-bind="text: $row.instanceNames"></td>
+              <td>
+                <select class="input-sm form-control w-sm" data-bind="options:userList,optionsText:'user',optionsValue:function(item){return item.type+':'+item.user},attr:{id: $index()}">
+                </select>
+              </td>
+            </tr>
+            <!-- /ko -->
+          </tbody>
+        </table>
+        <div class="wrapper-md">
+          <h4>审批意见:</h4>
+          <textarea class="input-sm form-control w-sm" style="width:100%;min-height:100px;" maxlength="255" data-bind="value: commentMsg"></textarea>
+        </div>
+      </div>
+      <div class='modal-footer' style="text-align: center">
+        <input type="button" name="commit" value="确定" class="btn btn-default btn-info" data-bind="click: saveBatchApprove"/>
+        <button name="button" type="submit" class="btn btn-default" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>  
+</div>
+			
 		</div>
 		<div role="tabpanel" class="tab-pane" id="tab2">
 			<div class="panel panel-default">
@@ -198,14 +280,14 @@
 					<table class="table table-striped">
 						<thead>
 							<tr>
-								<th>
+								<!-- <th>
 									<div class="checkbox">
 										<label class="i-checks">
 											<input type="checkbox" value="">
 											<i></i>
 										</label>
 									</div> 
-								</th>
+								</th> -->
 								<th>任务ID</th>
 								<th>流程类型</th>
 								<th>流程状态</th>
@@ -221,20 +303,20 @@
 						</thead>
 						<tbody>
 						   <tr data-bind="visible: showNoData">
-				            <td colspan="10" class="aligncenter">
+				            <td colspan="11" class="aligncenter">
 				              	暂无数据
 				            </td>
 				          </tr>
 				          <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
 							<tr>
-								<td>
+								<!-- <td>
 									<div class="checkbox">
 										<label class="i-checks">
 											<input type="checkbox" value="">
 											<i></i>
 										</label>
 									</div> 
-								</td>
+								</td> -->
 								<td data-bind="text: $row.id"></td>
 								<td data-bind="text: $row.processTypeName"></td>
 								<td>
@@ -256,7 +338,7 @@
 									<span data-bind="visible: $row.productTypes=='OBJECT_STORAGE'">对象存储</span>
 									<span data-bind="visible: $row.productTypes=='VDC'">VDC</span>
 								</td>
-								<td data-bind="text: $row.instanceNames"></td>
+								<td data-bind="text: $row.instanceNames != null && $row.instanceNames.length > 19 ? $row.instanceNames.substring(0,19)+'...' : $row.instanceNames,attr:{title:$row.instanceNames}"></td>
 								<td><a data-bind="click: $root.review">查看</a></td>
 								<td>
 									<a data-bind="click: $root.recall, visible:$row.isRecall&&$row.status=='DOING'">撤回</a>
@@ -306,11 +388,13 @@
 
 
 
+
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
 	var scripts = [null, null]
-	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
-		
+	var historicModel;
+	var viewModel;
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {					
 		function ViewModel(){
 			var self = this;
 			
@@ -339,7 +423,8 @@
 		        	processType: "",
 		        	sQueryTime: "",
 		        	eQueryTime: ""
-				})
+				});
+				self.table.params(self.searchParam());
 			}
 			
 			this.review = function(object, event){
@@ -381,8 +466,42 @@
 		        });
 		      }
 		    this.loadProcessTypes();
+		    
+		    //批量审批
+		    this.isBatchApprove = ko.observable(false);
+		    this.batchTable = new DataTable([]);
+		    var taskId;
+		    this.batchApprove = function(){
+		    	
+		    	if(self.table.chosenItems().length == 0){
+		    		alert("请选择要批量审批的数据 !");
+		    		return;
+		    	}
+
+		    	self.batchTable.pagedRows(self.table.chosenItems());
+		    	self.isBatchApprove(true);
+		    }
+		    
+		    this.commentMsg = ko.observable();
+		    //保存批量审批
+		    this.saveBatchApprove = function(){
+		    	var appList = [];
+		    	for(var i =0; i < self.batchTable.pagedRows().length; i++){
+		    		var app = {
+		    			userId : $("#"+i).val(),
+		    			taskId : self.batchTable.pagedRows()[i].id,
+		    			msg : self.commentMsg()
+		    		}
+		    		appList.push(app);
+		    	}
+		    	csc.rest.put('api/v5.0.0/workflows/tasks/approveList',appList,function(data){
+		  		  alert("审批成功！");
+		  		  self.isBatchApprove(false);
+		  		  self.table.refreshData();
+		  		},function(){alert("操作失败！")});
+		    }
 		}
-		var viewModel = new ViewModel();
+		viewModel = new ViewModel();
 		ko.applyBindings(viewModel, $('#page-content .tab-pane')[0]); 
 		
 		function ViewModel_Historic(){
@@ -401,7 +520,8 @@
 					id: "",
 					taskName: "",
 		        	processType: ""
-				})
+				});
+				self.table.params(this.searchHistoricParam());
 			}
 			
 			this.review = function(object, event){
@@ -429,7 +549,7 @@
 		      }
 		    this.loadProcessTypes();
 		}
-		var historicModel = new ViewModel_Historic();
+		historicModel = new ViewModel_Historic();
 		ko.applyBindings(historicModel, $('#page-content .tab-pane')[1]); 
 		
 		$("#taskList a").bind("click",function(){
@@ -469,4 +589,13 @@
 	      });
 
 	});
+	
+	//刷新待办工作
+	function refreshTab1(){
+		viewModel.search();
+	}		
+	//刷新已办工作
+	function refreshTab2(){
+		historicModel.search();
+	}
 </script>

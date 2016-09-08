@@ -1,6 +1,6 @@
 <div class="row wrapper">
     <div class="col-xs-1">
-        <button class="btn btn-sm btn-info" data-bind="click: addvdisk">创建</button>
+        <button class="btn btn-sm btn-info" data-bind="click: addvdisk ,check_action:'cd_DiskCreate'">创建</button>
     </div>
     <div class="col-xs-3">
         <div class="input-group">
@@ -150,9 +150,18 @@
                     <div class="form-group">
                         <label class="col-xs-3 control-label">挂载云主机</label>
                         <div class="col-xs-8">
-                            <select class="form-control" data-bind="value:vmUuid, options: $root.vms, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vms_add}">
+                            <select class="form-control input-sm" data-bind="value:vmUuid, options: $root.vms, optionsText: 'name', optionsValue: 'uuid',event: {change: $root.onchange_vms_add}">
                                 <option value="">云主机1</option>
                             </select>
+                        </div>
+                        <div class="col-xs-1">
+                            <span class="text-danger inline m-l-n m-t-sm">*</span>
+                        </div>
+                    </div>
+                    <div class="form-group" data-bind="visible: $root.isCNware()">
+                        <label class="col-xs-3 control-label">存储池</label>
+                        <div class="col-xs-8">
+                            <select class="form-control input-sm" data-bind="value: storagePoolPlatformId, options: $root.add_storagePools_cn, optionsText: 'name', optionsValue: 'id'"></select>
                         </div>
                         <div class="col-xs-1">
                             <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -278,57 +287,73 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>资源变更</h3>
               </div>
               <div class='modal-body form-horizontal row'>
-		<div class='wrapper-md'>
-		    <div class="panel panel-info">
-		        <div class="panel-heading">基本信息</div>
-		        <div class="panel-body">
-		            <div class="row">
-		                <div class="col-xs-6">
-		                    <p><strong>流程类型：</strong>资源变更</p>
-		                </div>
-		                <div class="col-xs-6">
-		                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
-		                </div>
-		            </div>
-		            <div class="row">
-		                <div class="col-xs-6">
-		                    <p><strong>申请人：<span data-bind="text: adjustProcessVO().user"></span></strong></p>
-		                </div>
-		                <div class="col-xs-6">
-		                    <p><strong>申请日期：<span data-bind="text: adjustProcessVO().time"></span></strong></p>
-		                </div>
-		            </div>
-		            <table class="table">
-			            <thead>
-			              <tr>
-			                <th></th>
-			                <th>调整前</th>
-			                <th>调整后</th>
-			              </tr>
-			            </thead>
-			            <tbody>
-			              <tr>
-			                <td>存储(GB)</td>
-			                <td data-bind="text: adjustProcessVO().size"></td>
-			                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetSize"/></td>
-			              </tr>
-			            </tbody>
-			         </table> 
-		        </div>
-		    </div>
-
-		    <div class="panel panel-info">
-		        <div class="panel-heading">申请信息</div>
-		        <div id="orderDetailedList" class="wrapper">
-		
-		          <div class="row">
-		            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustProcessVO().name"></span></p></div>
-		            <div class="col-xs-6"><p>资源类型：云硬盘</p></div>
-		          </div>
-		        </div>
-		    </div>
-		</div>         
-		</div>     
+              <!-- 
+				<div class='wrapper-md'>
+				    <div class="panel panel-info">
+				        <div class="panel-heading">基本信息</div>
+				        <div class="panel-body">
+				            <div class="row">
+				                <div class="col-xs-6">
+				                    <p><strong>流程类型：</strong>资源变更</p>
+				                </div>
+				                <div class="col-xs-6">
+				                    <p><strong>流程状态：</strong><span class="label label-info">未提交</span></p>
+				                </div>
+				            </div>
+				            <div class="row">
+				                <div class="col-xs-6">
+				                    <p><strong>申请人：<span data-bind="text: adjustProcessVO().user"></span></strong></p>
+				                </div>
+				                <div class="col-xs-6">
+				                    <p><strong>申请日期：<span data-bind="text: adjustProcessVO().time"></span></strong></p>
+				                </div>
+				            </div>
+				            <table class="table">
+					            <thead>
+					              <tr>
+					                <th></th>
+					                <th>调整前</th>
+					                <th>调整后</th>
+					              </tr>
+					            </thead>
+					            <tbody>
+					              <tr>
+					                <td>存储(GB)</td>
+					                <td data-bind="text: adjustProcessVO().size"></td>
+					                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetSize"/></td>
+					              </tr>
+					            </tbody>
+					         </table> 
+				        </div>
+				    </div>
+				     -->
+				    <div class="panel panel-info">
+				        <div class="panel-heading">申请信息</div>
+				        <div id="orderDetailedList" class="wrapper">
+				
+				          <div class="row">
+				            <div class="col-xs-6"><p>资源名称：<span data-bind="text: adjustProcessVO().name"></span></p></div>
+				            <div class="col-xs-6"><p>资源类型：云硬盘</p></div>
+				          </div>
+				          <table class="table">
+				            <thead>
+				              <tr>
+				                <th></th>
+				                <th>调整前</th>
+				                <th>调整后</th>
+				              </tr>
+				            </thead>
+				            <tbody>
+				              <tr>
+				                <td>存储(GB)</td>
+				                <td data-bind="text: adjustProcessVO().size"></td>
+				                <td><input class="form-control w-xxs input-sm" data-bind="value: adjustProcessVO().targetSize"/></td>
+				              </tr>
+				            </tbody>
+				         </table> 
+				        </div>
+				    </div>
+			</div>     
 			<div class='modal-footer' style="text-align:center;">
               <a class="btn btn-default btn-info" data-bind="click: adjustProcessPost">确定</a>
               <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
@@ -353,6 +378,15 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 required: true,cscNameRule:true,maxLength:32
             }),
             volumeSize: ko.observable().extend({
+            	required: true,positiveIntegerRule:true
+            }),
+            vdcUuid: ko.observable().extend({
+                required: true
+            }),
+            vmUuid: ko.observable().extend({
+                required: true
+            }),
+            azUuid: ko.observable().extend({
                 required: true
             })
         });
@@ -369,7 +403,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                 vdcUuid: '',
                 azUuid: '',
                 expiryDate: ko.observable(),
-                description: ''
+                description: '',
+                storagePoolPlatformId:''
             });
             self.currentVO().expiryDate('');
             self.loadVdcs_add();
@@ -488,7 +523,18 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             //console.log(this.searchParam());
             this.table.params(this.searchParam());
         }
-        this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/volumes?type=Disk'});
+        this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/volumes?type=Disk',loader:function(result){
+        	//将时间转换一下
+      	  if(result.expiryDate){
+      		  var expiryDate = result.expiryDate;    	  
+          	  result.expiryDate = expiryDate.substring(0,10);
+      	  }
+        	//如果路径为空，则转换为'-'
+      	  if(csc.util.isNull(result.path)){
+      		result.path = "-"
+    	  }
+      	  return result;
+        }});
         
 
         /** 下拉级联选择--------------------------------------------START **/
@@ -574,6 +620,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
             }
         //新增：选择不同VDC后，可用分区下拉框要跟着改变
         this.partitions_add = ko.observableArray([]);
+        this.isCNware = ko.observable(false);
         this.onchange_vdcs_add = function() {
             var vdcUuid = self.currentVO.toJSON().vdcUuid;
             if(vdcUuid){
@@ -614,22 +661,48 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
                     self.onchange_vms_add();
                 }
             });
+            //异步加载选中的可用分区，确定存储池选项是否展示
+            csc.rest.get('api/v5.0.0/azs/' + azUuid, function(data) {
+                if (data.cloudPlatform == "CNware") {
+                	self.isCNware(true);
+                }else{
+                	self.isCNware(false);
+                }
+            });
         }
 
         //关联云主机下拉列表变更事件
         this.onchange_vms_add = function(){
         	// 级联加载所属云主机的有效时间 
-        	var currentVmUuid = self.currentVO().vmUuid;
+        	var currentVmUuid = self.currentVO().vmUuid();
         	if(currentVmUuid){
         		for(var i=0;i<self.vms().length;i++){
             		if(currentVmUuid == self.vms()[i].uuid){
     	        		self.currentVO().expiryDate(self.vms()[i].expiryDate);
+    	        		//加载存储池
+    	        		if(self.isCNware()){
+	            			self.add_storagePools_def_cn(self.vms()[i].ownerHostUuid);
+    	        		}
             		}
             	}	
         	}else{
         		self.currentVO().expiryDate('');
         	}
-        	
+        }
+        
+        //存储池
+        this.add_storagePools_cn = ko.observableArray([]);
+        this.add_storagePools_def_cn = function(hostId){
+      	  if(csc.util.isNotNull(hostId)){
+      		  var azUuid = self.currentVO.toJSON().azUuid;
+  	    	  csc.rest.get('api/v5.0.0/storagePools/targetStoragePools?azUuid='+azUuid+'&hostId='+hostId,function(storagePoolData){
+  		    	  //根据所选物理主机获取可使用的目标存储池
+  		    	  self.add_storagePools_cn(storagePoolData.results);
+  	    	  });
+      		  
+      	  }else{
+      		  self.add_storagePools_cn([]);
+      	  }
         }
 
         /* 为VDC和可用分区下拉框添加"全部"备选项*/
@@ -738,7 +811,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
   		  self.adjustProcessVO().targetSize('');
         }
     
-        this.adjustProcessVO = ko.observable({
+        this.adjustProcessVO = ko.validatedObservable({
       	  name: ko.observable(),
       	  uuid: ko.observable(),
       	  time: ko.observable(),
@@ -749,7 +822,9 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
       	  vdcUuid: ko.observable(),
       	  vdcName: ko.observable(),
       	  
-      	  targetSize: ko.observable()
+      	  targetSize: ko.observable().extend({
+      		positiveIntegerRule:true
+          }),
         });
         
         //申请
@@ -789,6 +864,7 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         }
         //------------------------------------------资源变更-流程结束--------------------------------
     }
-    ko.applyBindings(new ViewModel_Storage(), $('#partition_storages')[0]);
+    window.viewModelDisk = new ViewModel_Storage();
+    ko.applyBindings(window.viewModelDisk, $('#partition_storages')[0]);
 })
 </script>

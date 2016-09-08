@@ -1,9 +1,9 @@
   <div class="panel panel-info" >
-        <div class="panel-heading">VDC变更</div>
+        <div class="panel-heading">VDC信息</div>
         <div id="orderDetailedList" class="wrapper">
             <div class="wrapper-sm">VDC名称：<span data-bind="text: itemList().instanceName"></span></div>
             <div class="wrapper-sm">支持的操作系统：<span data-bind="text: osType()"></span></div>
-            <div class="wrapper-sm">申请时长：
+            <div class="wrapper-sm" data-bind="visible:false">申请时长：
             	<span data-bind="visible: expireType()=='1'">永久</span>
             	<span data-bind="visible: expireType()=='2'"><span data-bind="text: expireValue()"></span>个月</span>
             	<span data-bind="visible: expireType()=='3'"><span data-bind="text: expireValue()"></span></span>
@@ -143,8 +143,8 @@
                 </thead>
                 <tbody data-bind="foreach: networks">
                 	<tr>
-                		<input type="hidden" data-bind="value: networkUuid,attr:{azUuid:azUuid,networkName:networkName,cloudPlatformName:cloudPlatformName,azName:azName}" name="networkUuid">
-                		<td data-bind="text: networkName"></td>
+                		<input type="hidden" data-bind="value: uuid,attr:{azUuid:azUuid,networkName:name,cloudPlatformName:cloudPlatformName,azName:azName}" name="networkUuid">
+                		<td data-bind="text: name"></td>
                 		<td data-bind="text: cloudPlatformName"></td>
                 		<td data-bind="text: azName"></td>
                 		<td><a data-bind="click: $root.removeNetwork">移除</a></td>
@@ -421,8 +421,8 @@
     	this.fee = ko.observable("");
     	this.desc = ko.observable("");
     	
-    	this.azs = ko.observable("");//可用分区列表
-    	this.networks = ko.observable("");//网络列表
+    	this.azs = ko.observableArray();//可用分区列表
+    	this.networks = ko.observableArray();//网络列表
     	
     	this.vdcQuotas = ko.observable("");
     	
@@ -511,13 +511,12 @@
 			      			azList.push(data.results[0]);
 			      			self.azs(azList);
 		      			});
-		      			/* debugger
 		      			var nwUuids = azs[i].networks;
 		      			for(var j=0;j<nwUuids.length;j++){
 		      				csc.rest.get('api/v5.0.0/networks?getOne=true&azUuid='+azs[i].uuid+'&networkUuid='+nwUuids[j].uuid,function(data){
-			      				networks.push(data);
+		      					self.networks.push(data);
 		   					});
-		      			} */
+		      			}
 		      		}
 	      		}
 	      	 })
@@ -534,7 +533,8 @@
 					  var azList = data.results;
 					  for(var i=0;i<azList.length;i++){
 						  var az = azList[i];
-						  tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\"><input type=\"checkbox\" value=\""+ az.uuid +"\" name=\"azUuid\"/><i></i></label></div></td>"
+						  tableBody += "<tr><td><div class=\"checkbox\"><label class=\"i-checks\">"+
+						  "<input type=\"checkbox\" value=\""+ az.uuid +"\" cloud=\"" + az.cloudPlatform + "\" azname=\""+az.name+"\" hypervisor=\""+az.virtualHypervisor+"\" name=\"azUuid\"/><i></i></label></div></td>"
 						  	+"<td id='cloudPlatform"+i+"'>"+az.cloudPlatform+"</td><td id=\"virtualHypervisor"+i+"\">"+az.virtualHypervisor+"</td><td id=\"name"+i+"\">"+az.name+"</td></tr>";
 					  } 
 				  }
@@ -562,11 +562,11 @@
 			var azs = [];
 			$("#preAddAzListTableId input[type='checkbox']").each(function(index){
 				//azs.push({uuid:$(this).val()});
-				var cloudPlatform = $("#cloudPlatform"+index).text();
-				var virtualHypervisor = $("#virtualHypervisor"+index).text();
-				var name = $("#name"+index).text();
-				var az={uuid:$(this).val(),cloudPlatform:$("#cloudPlatform"+index).text(),
-						virtualHypervisor:$("#virtualHypervisor"+index).text(),name:$("#name"+index).text()};
+				var cloudPlatform = $(this).attr("cloud");
+				var virtualHypervisor = $(this).attr("hypervisor");
+				var name = $(this).attr("azname");
+				var az={uuid:$(this).val(),cloudPlatform:cloudPlatform,
+						virtualHypervisor:virtualHypervisor,name:name};
 				azs.push(az);
 				/* $("#vdcRelAcList").append("<tr id='"+$(this).val()+"'><td><input type='hidden' value='"+$(this).val()+"'>"
 						+name+"</td><td>"+cloudPlatform+"</td><td>"

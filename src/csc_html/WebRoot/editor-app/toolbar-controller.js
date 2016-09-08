@@ -84,6 +84,25 @@ angular.module('activitiModeler')
 	                	}
 	                }
 	        	}
+	        	
+	        	/***********by wujie start at 2016-9-6**************/
+	        	/*for (var i = 0; i < properties.length; i++) {
+	        		var property = properties[i];
+	                var key = property.key;
+	                if(key === "oryx-usertaskassignment"){
+	                	console.log(property)
+	                	if(property.value == "" || property.value == null || typeof(property.value) == "undefined"){
+	                		msg += "默认办理人不能为空！\r\n";
+	                	}else{	                		
+	                		var assignee = property.value.assignment.assignee;
+	                		if(assignee == "" || assignee == null || typeof(assignee) == "undefined"){
+	                			msg += "默认办理人不能为空！\r\n";
+	                		}
+	                	}
+	                }
+	        	}*/
+	        	/***********by wujie end**************/
+	        	
 	        	if(msg != ""){
 	        		alert(msg);
 	        		return;

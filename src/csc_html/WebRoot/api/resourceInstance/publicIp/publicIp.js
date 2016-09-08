@@ -9,7 +9,9 @@
 		createPublicIp : function(param, callback, errorCallback) {
 			csc.rest.post('api/v5.0.0/publicIps', param, function(data) {
 				callback(data);
-			});
+			}, function(data){
+		        errorCallback(data);
+		    });
 		},
 		/**
 		 * 绑定云主机
@@ -23,7 +25,9 @@
 			csc.rest.put('api/v5.0.0/publicIps/' + uuid + "/bind", param,
 					function(data) {
 						callback(data)
-					});
+					}, function(data){
+				        errorCallback(data);
+				    });
 		},
 		/**
 		 * 解绑
@@ -37,7 +41,9 @@
 			csc.rest.put('api/v5.0.0/publicIps/' + uuid + "/unbind", param,
 					function(data) {
 						callback(data)
-					});
+					}, function(data){
+				        errorCallback(data);
+				    });
 		},
 		/**
 		 * 删除PublicIp

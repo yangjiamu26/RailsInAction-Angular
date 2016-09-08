@@ -89,8 +89,8 @@
 											</div>
 										</div>
 										<div class="row m-b">
-											<div class="col-xs-1 font-bold">网络名称：</div>
-											<div class="col-xs-3">
+											<div class="col-xs-1 font-bold"  data-bind="visible: cloudPlatForm">网络名称：</div>
+											<div class="col-xs-3" data-bind="visible: cloudPlatForm">
 												<span data-bind="text:networkName"></span>
 											</div>
 											<div class="col-xs-1 font-bold">指定IP：</div>
@@ -103,8 +103,8 @@
 											</div> -->
 										</div>
 										<div class="row m-b">
-											<div class="col-xs-1 font-bold">选择密钥：</div>
-											<div class="col-xs-3">
+											<div class="col-xs-1 font-bold" data-bind="visible: cloudPlatForm">选择密钥：</div>
+											<div class="col-xs-3" data-bind="visible: cloudPlatForm">
 												<span data-bind="text:sshKeyName"></span>
 											</div>
 											<div class="col-xs-1 font-bold">申请时长：</div>
@@ -239,7 +239,7 @@
 					              </div>
 					              <label class="col-xs-1 control-label no-padder-h">操作系统版本</label>
 					              <div class="col-xs-2">
-					                <select class="form-control input-sm" data-bind="options: osVersionList, optionsText: 'imageName', optionsValue: 'uuid',value: osVersion,valueAllowUnset:true,optionsCaption:'请选择'">
+					                <select class="form-control input-sm" data-bind="options: osVersionList, optionsText: 'opSysVersion', optionsValue: 'uuid',value: osVersion,valueAllowUnset:true,optionsCaption:'请选择'">
 					                </select>
 					              </div>
 					              <div class="col-xs-1">
@@ -279,11 +279,11 @@
 					              </div>
 					            </div>
 					            <div class="form-group">
-					              <label class="col-xs-1 control-label no-padder-h">网络名称</label>
-					              <div class="col-xs-2">
+					              <label class="col-xs-1 control-label no-padder-h" data-bind="visible: cloudPlatForm">网络名称</label>
+					              <div class="col-xs-2" data-bind="visible: cloudPlatForm">
 					                <select class="form-control input-sm" data-bind="options: privateNetworkList, optionsText: 'name', optionsValue: 'uuid',value: networkUuid,event:{change:$root.networkChangeGetIpList},valueAllowUnset:true,optionsCaption:'请选择'"></select>
 					              </div>
-					              <div class="col-xs-1">
+					              <div class="col-xs-1" data-bind="visible: cloudPlatForm">
 					                <span class="text-danger inline m-l-n m-t-sm">*</span>
 					              </div>
 					              <label class="col-xs-1 control-label no-padder-h">指定IP</label>
@@ -291,7 +291,7 @@
 					                  <select class="form-control input-sm" data-bind="options: availableIpList, optionsText: $data, optionsValue: $data,value: ip,valueAllowUnset:true,optionsCaption:'请选择'"></select>
 					              </div>
 					            </div>
-					            <div class="form-group">
+					            <div class="form-group" data-bind="visible: cloudPlatForm">
 					              <!-- <label class="col-xs-1 control-label no-padder-h">主机账号</label>
 					              <div class="col-xs-2">
 					                <input type="text" class="form-control" data-bind="value: account">
@@ -305,7 +305,7 @@
 					                <input type="password" class="form-control" data-bind="value: repeatPassword">
 					              </div>
 					            </div>
-					            <div class="form-group">
+					            <div class="form-group" data-bind="visible: cloudPlatForm">
 					              <div id="resource_instance_vm_add_ssh">
 					                <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
 					                <div class="col-xs-2">
@@ -664,7 +664,7 @@
 				      	    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vmInParamData.vdcUuid+"&azUuid="+vmInParamData.azUuid+"&vpcUuid="+vmInParamData.vpcUuid+"&osType="+vmInParamData.osType;
 				                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri, function(result,textStatus,callbackCustParam){
 				                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vmInParamData.vdcUuid,function(result2,textStatus,callbackCustParam){
-				                         csc.rest.get("api/v5.0.0/sshKeys?byCurrentUser=true&isValidate=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid,function(result3,textStatus,callbackCustParam){
+				                         csc.rest.get("api/v5.0.0/sshKeys?byCurrentUser=true&isValidate=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid,function(result3,textStatus,callbackCustParam){				                        	 
 				                        	 callback(result,result2,result3,callbackCustParam);
 				                         },function(){},callbackCustParam);
 				                     },function(){},callbackCustParam);
@@ -691,6 +691,18 @@
 				                          vmInfo.vpcList(result.vpcList);
 				                          vmInfo.privateNetworkList(result.networkList);
 				                          vmInfo.azList(result.azList);
+				                          //平台判断
+						      			  if(result.azList.length > 0){
+						      				  for(var i =0; i < result.azList.length; i++){
+							      				 if(result.azList[i].uuid == vmInfo.azUuid()){
+						      						if(result.azList[i].cloudPlatform == 'OpenStack'){
+						      							vmInfo.cloudPlatForm(true);
+						      						}else{
+						      							vmInfo.cloudPlatForm(false);
+						      						}
+							      				 }
+							      			  }
+						      			  }
 				                          vmInfo.osTypeList(result.osTypeList);
 				                          vmInfo.cpuList(result.cpuList);
 				                          vmInfo.memoryList(result.memoryList);
@@ -714,7 +726,7 @@
 				      				vmInfo.serviceUuid(orderItem.serviceUuid);
 				      				vmInfo.instanceName(orderItem.instanceName);
 				      				vmInfo.vdcUuid(vmInParamData.vdcUuid);
-				      				vmInfo.azUuid(vmInParamData.azUuid);
+				      				vmInfo.azUuid(vmInParamData.azUuid);			      								      				
 				      				vmInfo.vpcUuid(vmInParamData.vpcUuid);
 				      				vmInfo.osType(vmInParamData.osType);
 				      				vmInfo.osVersion(vmInParamData.osVersion);
@@ -953,6 +965,19 @@
 			                	  data.vpcList([]);data.vpcUuid("");
 				      	    	  data.privateNetworkList([]);data.networkUuid("");
 				      	    	  data.availableIpList([]);data.ip("");
+				      	    	  //判断平台
+				      	    	  if(data.azList().length > 0){
+				      	    		  for(var i = 0; i < data.azList().length; i++){
+				      	    			  if(data.azList()[i].uuid == data.azUuid()){
+				      	    				  if(data.azList()[i].cloudPlatform == 'OpenStack'){
+				      	    					  data.cloudPlatForm(true);
+				      	    				  }else{
+				      	    					  data.cloudPlatForm(false);
+				      	    				  }
+				      	    			  }
+				      	    		  }
+				      	    	  }
+				      	    	  
 			                      csc.rest.get("api/v5.0.0/cart/getVpcList/" + data.vdcUuid() + "/" + data.azUuid(), function(result) {
 			                    	  data.vpcList(result);
 			                      });
@@ -968,7 +993,7 @@
 			                  
 			                  this.osTypeChangeGetOsVersion = function(data, event) {
 			                	  data.osVersionList([]);
-			                      csc.rest.get("api/v5.0.0/cart/getOsVersionList/" + data.azUuid() + "/" + data.osType(), function(result) {
+			                      csc.rest.get("api/v5.0.0/cart/getOsVersionList/" + data.serviceUuid() + "/" + data.azUuid() + "/" + data.osType(), function(result) {
 			                    	  data.osVersionList(result);
 			                      });
 			                  }
@@ -1317,6 +1342,8 @@
 				      			this.bussyList = ko.observableArray([]),
 				      			this.billRuleList = ko.observableArray([]),
 				      			this.availableIpList = ko.observableArray([]);
+				      	        //平台
+				      	        this.cloudPlatForm = ko.observable(true),
 				      	        
 				      	  	ko.computed(function(){
 			 		            var serviceUuid=this.serviceUuid();

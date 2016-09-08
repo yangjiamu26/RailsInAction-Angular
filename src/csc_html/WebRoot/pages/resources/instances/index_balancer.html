@@ -64,7 +64,7 @@
           </tr>
           <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
           <tr>
-            <td><a data-bind="click: $root.showDetailFun"><span data-bind="text: $row.name"></span></a></td><!-- 负载均衡器名称 -->
+            <td><a data-bind="click: $root.showDetailFun"><span data-bind="text: $row.name_, attr:{'title': $row.name}"></span></a></td><!-- 负载均衡器名称 -->
             <td data-bind="text: $row.vdcName">VDC1</td> <!-- 所属VDC -->
             <td data-bind="text: $row.azName">AZ1</td>  <!-- 可用分区 -->
             <td data-bind="text: $row.vpcName">VPC1</td><!-- 所属VPC -->
@@ -78,7 +78,7 @@
 	            <span class="label label-warning" data-bind="if: $row.state == 'PENDING_UPDATE'">正在修改</span>
             </td><!-- 状态 -->
             
-            <td data-bind="text: $row.vipName">VIP1</td><!-- VIP名称 -->
+            <td data-bind="text: $row.vipName_, attr:{'title': $row.vipName}">VIP1</td><!-- VIP名称 -->
             <td data-bind="text: $row.vipAddress">1</td><!-- VIP地址 -->
             <td data-bind="text: $row.publicIp">1</td><!-- 公网IP地址 -->
             <td>
@@ -253,50 +253,25 @@
                <label class="col-xs-1 control-label no-padder-h">申请时长</label>
                <div class="col-xs-10">
                  <label class="radio-inline" style="padding-top: 2px">
-                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio1" value="option1" checked="checked"> 永久
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio1" value="option1" checked="checked" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 永久
                  </label>
                  <label class="radio-inline">
-                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px"> 
-                   <input type="text" class="form-control inline w-xxs" id="resource_load_balancer_time_value">
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio2" value="option2" style="margin-top:10px" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 
+                   <input type="text" class="form-control inline w-xxs" id="resource_load_balancer_time_value" data-bind="value: yearMonth">
                    <select class="form-control inline w-xs" id="resource_load_balancer_time_unit">
                      <option value="MONTH">月</option>
                      <option value="YEAR">年</option>
                    </select>  
                  </label>
                  <label class="radio-inline">
-                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px"> 有效期至
-                   <input type="text" value="" class="form-control inline w" id="resource_load_balancer_datePicker">
+                   <input type="radio" name="lbExpiredRadioOptions" id="inlineRadio3" value="option3" style="margin-top:10px" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 有效期至
+                   <input type="text" value="" class="form-control inline w" id="resource_load_balancer_datePicker" data-bind="value:toDate">
                  </label>                                    
                </div>
-               <div class="col-xs-1">
+              <!--  <div class="col-xs-1">
                  <span class="text-danger inline m-l-n m-t-sm">*</span>
-               </div>
+               </div> -->
              </div>
-            <!-- <div class="col-sm-12">
-              <div class="form-group">
-                <label class="col-xs-1 control-label no-padder-h">申请时长</label>
-                <div class="col-xs-10">
-                  <label class="radio-inline" style="padding-top: 2px">
-                    <input type="radio" name="lbExpiredRadioOptions" value="option1" checked="checked"> 永久
-                  </label>
-                  <label class="radio-inline">
-                    <input type="radio" name="lbExpiredRadioOptions"  value="option2" style="margin-top:10px"> 
-                    <input type="text" class="form-control inline w-xxs" >
-                    <select class="form-control inline w-xs">
-                      <option value="DAY">日</option>
-                      <option value="MONTH">月</option>
-                    </select>  
-                  </label>
-                  <label class="radio-inline">
-                    <input type="radio" name="lbExpiredRadioOptions"  value="option3" style="margin-top:10px"> 有效期至
-                    <input type="text" value="" class="form-control inline w">
-                  </label>                                    
-                </div>
-                <div class="col-xs-1">
-                  <span class="text-danger inline m-l-n m-t-sm">*</span>
-                </div>
-              </div>
-            </div> -->
           </div>
         </div>
         <div class='modal-footer'>
@@ -319,7 +294,7 @@
           <h3 class='modal-title' data-bind="visible: !isVipEditFlag()">添加VIP</h3>
           <h3 class='modal-title' data-bind="visible: isVipEditFlag()">编辑VIP</h3>
         </div>
-        <div class='modal-body form-horizontal' data-bind="with: currentVipVo">
+        <div class='modal-body form-horizontal' data-bind="with: createVipVo">
           <div class="form-group">
             <label class="col-xs-3 control-label">VIP名称</label>
             <div class="col-xs-8">
@@ -333,9 +308,6 @@
             <label class="col-xs-3 control-label">网络</label>
             <div class="col-xs-8">
             	<input type="text" class="form-control" data-bind="value: cidr" disabled>
-              <!-- <select class="form-control">
-                <option>192.168.0.0/24</option>
-              </select> -->
             </div>
             <div class="col-xs-1">
               <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -427,7 +399,7 @@
        </div>
        <div class='modal-body form-horizontal row'>
          <div class="form-group">
-           <label class="col-sm-3 control-label">有效期：</label>
+           <label class="col-sm-3 control-label">有效期</label>
            <div class="col-sm-8">
              <input type="text" value="" class="form-control inline w" id="resource_loadBalancer_validate_edit" data-bind="value: validateTimeVO().time">
            </div>
@@ -462,7 +434,7 @@
           <div class="bg-light b-t b-b wrapper-sm text-nowarp" data-bind="with: $root.currentLbVo">
             <div class="row m-b">
               <div class="col-xs-1 font-bold">负载均衡器名称：</div>
-              <div class="col-xs-3" data-bind="text: name">负载均衡器</div>
+              <div class="col-xs-3" data-bind="text: name_, attr:{'title': name}">负载均衡器</div>
               <div class="col-xs-1 font-bold">所属VDC：</div>
               <div class="col-xs-3" data-bind="text: vdcName">VDC1</div>
               <div class="col-xs-1 font-bold">可用分区：</div>
@@ -523,28 +495,28 @@
               <div class="detail-others-text h-xs" style="width:85%">
                 <div class="row">
                   <div class="col-xs-4">
-                    <p>VIP名称：<span data-bind="text: lbName">负载均衡器1</span></p>
+                    <p>VIP名称：<span data-bind="text: name_, attr:{'title': name}"></span></p>
                   </div>
                   <div class="col-xs-4">
                     <p>网络：<span data-bind="text: networkName">208</span></p>
                   </div>
                   <div class="col-xs-4">
-                    <p>IP地址：<span data-bind="text: address">192.1.1.1</span></p>
+                    <p>IP地址：<span data-bind="text: address"></span></p>
                   </div>
                   <div class="col-xs-4">
-                    <p>协议：<span data-bind="text: protocol">TCP</span></p>
+                    <p>协议：<span data-bind="text: protocol"></span></p>
                   </div>
                   <div class="col-xs-4">
-                    <p>协议端口：<span data-bind="text: protocolPort">8080</span></p>
+                    <p>协议端口：<span data-bind="text: protocolPort"></span></p>
                   </div>
                   <div class="col-xs-4">
-                    <p>连接限制：<span data-bind="text: connectionLimit">5000</span></p>
+                    <p>连接限制：<span data-bind="text: connectionLimit"></span></p>
                   </div>
                   <div class="col-xs-4">
-                    <p>会话持久性：<span data-bind="text: sessionPersistenceType()">是</span></p>
+                    <p>会话持久性：<span data-bind="text: sessionPersistenceType">是</span></p>
                   </div>
-                  <div class="col-xs-4">
-                    <p>Cookie名称：<span data-bind="text: cookieName">是</span></p>
+                  <div class="col-xs-4" data-bind="visible: sessionPersistenceType=='APP_COOKIE'">
+                    <p>Cookie名称：<span data-bind="text: cookieName_, attr:{'title': cookieName}">是</span></p>
                   </div>
                   <div class="col-xs-12">
                     <p>备注：<span data-bind="text: desc">XXXX</span></p>
@@ -576,7 +548,6 @@
                   <th>状态</th>
                   <th>协议端口</th>
                   <th>权重</th>
-                  <th>所属负载均衡器</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -598,7 +569,6 @@
                   </td>
                   <td data-bind="text: $row.protocolPort">8080</td>
                   <td data-bind="text: $row.weight">20</td>
-                  <td data-bind="text: $row.lbName">负载均衡器1</td>
                   <td>
 	                  <span data-bind="if: $root.isLbValidate()">
 	                  	  <a data-bind="click: $root.showEditMember">修改</a> |
@@ -673,10 +643,10 @@
             <h3 class='modal-title' data-bind="visible: !isEditMemberFlag()">添加成员</h3>
             <h3 class='modal-title' data-bind="visible: isEditMemberFlag()">修改成员</h3>
           </div>
-          <div class='modal-body form-horizontal' data-bind="with: currentMemberVo">
+          <div class='modal-body form-horizontal' data-bind="with: createMemberVo">
         	<div class="tab-pane active">
           	  <div class="form-group">
-                <label class="col-xs-4 control-label">负载均衡器名称：</label>
+                <label class="col-xs-4 control-label">负载均衡器名称</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" value="负载均衡器1" data-bind="value: lbName" disabled/>
                 </div>
@@ -685,7 +655,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">云主机：</label>
+                <label class="col-xs-4 control-label">云主机</label>
                 <div class="col-xs-5" data-bind="visible:!$root.isEditMemberFlag()">
                   <select class="form-control" data-bind="optionsCaption: '请选择', options: $root.memberVmList, optionsText:'vmName',value: vm">
                     <option value="">VM1</option>
@@ -699,7 +669,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">协议端口：</label>
+                <label class="col-xs-4 control-label">协议端口</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: protocolPort, enable:!$root.isEditMemberFlag()"/>
                 </div>
@@ -708,7 +678,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">权重：</label>
+                <label class="col-xs-4 control-label">权重</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: weight"/>
                 </div>
@@ -737,10 +707,10 @@
             <h3 class='modal-title' data-bind="visible: !isEditMonitorFlag()">添加监控</h3>
             <h3 class='modal-title' data-bind="visible: isEditMonitorFlag()">修改监控</h3>
           </div>
-          <div class='modal-body form-horizontal' data-bind="with: currentMonitorVo">
+          <div class='modal-body form-horizontal' data-bind="with: createMonitorVo">
             <div class="tab-pane active">
               <div class="form-group">
-                <label class="col-xs-4 control-label">监控类型：</label>
+                <label class="col-xs-4 control-label">监控类型</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: type" disabled/>
                 </div>
@@ -749,7 +719,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">延迟：</label>
+                <label class="col-xs-4 control-label">延迟</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: delay"/>
                 </div>
@@ -758,7 +728,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">超时：</label>
+                <label class="col-xs-4 control-label">超时</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: timeout"/>
                 </div>
@@ -767,7 +737,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">最大重试次数：</label>
+                <label class="col-xs-4 control-label">最大重试次数</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: maxRetries"/>
                 </div>
@@ -777,7 +747,7 @@
                 </div>          
               </div>
               <div class="form-group" data-bind="visible: !$root.isTcpHide()">
-                <label class="col-xs-4 control-label">http方式：</label>
+                <label class="col-xs-4 control-label">http方式</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: httpMethod" disabled/>
                 </div>
@@ -786,7 +756,7 @@
                 </div>          
               </div>
               <div class="form-group" data-bind="visible: !$root.isTcpHide()">
-                <label class="col-xs-4 control-label">URL：</label>
+                <label class="col-xs-4 control-label">URL</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: urlPath"/>
                 </div>
@@ -795,7 +765,7 @@
                 </div>          
               </div>
               <div class="form-group" data-bind="visible: !$root.isTcpHide()">
-                <label class="col-xs-4 control-label">期待http状态代码：</label>
+                <label class="col-xs-4 control-label">期待http状态代码</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: expectedCodes"/>
                 </div>
@@ -954,7 +924,10 @@
 	      	  });
 	      	  
 	      	  self.searchAzList([]);
-	      	  $.AZ.getAzs({}, function(data){
+	      	  var azParams = {
+	    	  	  cloudPlatform:"OpenStack"
+	    	  };
+	      	  $.AZ.getAzs(azParams, function(data){
 	   			if(data && data.results){
 	   				self.searchAzList(data.results);
 	   			}
@@ -963,13 +936,13 @@
 	      	subSearchVdc = self.searchParam().vdcUuid.subscribe(function(val){
 			    self.searchAzList([]);
 			    if(csc.util.isNotNull(val)){
-			    	$.VDC.getVdcAzs(val,{},function(data){
+			    	$.VDC.getVdcAzs(val,azParams,function(data){
 		   				 if(data && data.results){
 		   					 self.searchAzList(data.results);
 		   				 }
 		   			});
 			    }else{
-			    	$.AZ.getAzs({},function(data){
+			    	$.AZ.getAzs(azParams,function(data){
 		   				 if(data && data.results){
 		   					 self.searchAzList(data.results);
 		   				 }
@@ -980,8 +953,6 @@
       	  
         }();
         
-        
-      	//搜索
       //重置
         this.reset = function(){
             this.searchParam({
@@ -1009,7 +980,8 @@
       		  perPage: 10,
                 path: 'api/v5.0.0/loadBalancers',
                 loader: function(result){
-                    //result.account_ = "超级管理员"; 
+              	    result.name_ = csc.util.trimName(result.name, 16);
+            	    result.vipName_ = csc.util.trimName(result.vipName, 16);
                     result.lbMethod_ = $.LOAD_BALANCER.lbMethodView[result.lbMethod];
                     result.expiryDate = result.expiryDate && result.expiryDate.length >10?result.expiryDate.substring(0, 10):result.expiryDate;
                     return result;
@@ -1021,10 +993,62 @@
     	
     	
     	/********  创建负载均衡器   *********/
+      //处理选中年月时输入框的验证问题
+        this.applyTime = ko.observable("option1");
+        this.RadioClick = function(){
+      	  if (self.applyTime() == "option2") {
+      		  self.changeYearMonthValidateYesOrNot(true);
+            }else{
+          	  self.changeYearMonthValidateYesOrNot(false);
+            }
+        }
+        this.changeYearMonthValidateYesOrNot = function(t){
+      	  if(t){
+      		  self.createBlVo({
+      			  name: 		ko.observable(self.createBlVo().name()).extend({required: true, cscNameRule:true, maxLength:32}),
+        		  vdcUuid: 	ko.observable(self.createBlVo().vdcUuid()).extend({required: true}),
+        		  azUuid:		ko.observable(self.createBlVo().azUuid()).extend({required: true}),
+        		  vpcUuid: 	ko.observable(self.createBlVo().vpcUuid()).extend({required: true}),
+        		  vpcNetworkUuid: ko.observable(self.createBlVo().vpcNetworkUuid()).extend({required: true}),
+        		  protocol: 	ko.observable(self.createBlVo().protocol()).extend({required: true}),
+        		  lbMethod: 	ko.observable(self.createBlVo().lbMethod()).extend({required: true}),
+        		  remark: 	ko.observable(self.createBlVo().remark()).extend({maxLength:255}),
+        		  yearMonth:	ko.observable(self.createBlVo().yearMonth()).extend({required: true,positiveIntegerRule:true}),
+    	    	  toDate: 	self.createBlVo().toDate
+              });
+      	  }else{
+      		  self.createBlVo({
+      			  name: 	ko.observable(self.createBlVo().name()).extend({required: true, cscNameRule:true, maxLength:32}),
+           		  vdcUuid: 	ko.observable(self.createBlVo().vdcUuid()).extend({required: true}),
+           		  azUuid:	ko.observable(self.createBlVo().azUuid()).extend({required: true}),
+           		  vpcUuid: 	ko.observable(self.createBlVo().vpcUuid()).extend({required: true}),
+           		  vpcNetworkUuid: ko.observable(self.createBlVo().vpcNetworkUuid()).extend({required: true}),
+           		  protocol: ko.observable(self.createBlVo().protocol()).extend({required: true}),
+           		  lbMethod: ko.observable(self.createBlVo().lbMethod()).extend({required: true}),
+           		  remark: 	ko.observable(self.createBlVo().remark()).extend({maxLength:255}),
+           		  yearMonth:ko.observable(self.createBlVo().yearMonth()).extend({required: false}),
+       	    	  toDate: 	self.createBlVo().toDate
+              });
+      	  }
+      	  //重新初始化日期控制，如果不设置清空，具体不明
+    	  $('#resource_load_balancer_datePicker').val(self.createBlVo().toDate).daterangepicker({
+              format:'YYYY-MM-DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                  applyLabel: '确认',
+                  cancelLabel: '取消',
+                  weekLabel: '周',
+                  daysOfWeek:["日","一","二","三","四","五","六"],
+                  monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+ 	       });
+        }
+      	  
     	$("#modal_addLoadBalancer").on("shown.bs.modal",function(){
 	          // daterange             
-	          $('#resource_load_balancer_datePicker').val(moment().format('YYYY-MM-DD')).daterangepicker(
-	            {
+	          $('#resource_load_balancer_datePicker').val(moment().format('YYYY-MM-DD')).daterangepicker({
+	        	  format:'YYYY-MM-DD',
 	              minDate:moment(),
 	              singleDatePicker: true,
 	              locale:{
@@ -1034,24 +1058,23 @@
 	                daysOfWeek:["日","一","二","三","四","五","六"],
 	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
 	              }
-	            }
-	          ); 
-        })
+	          }); 
+        });
     	
     	
       	this.showCreatePage = ko.observable(false);
     	//创建的负载均衡器对象
     	this.createBlVo = ko.validatedObservable({
-    		name: 		ko.observable("").extend({required: true}),
+    		name: 		ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
     		vdcUuid: 	ko.observable("").extend({required: true}),
     		azUuid:		ko.observable("").extend({required: true}),
     		vpcUuid: 	ko.observable("").extend({required: true}),
     		vpcNetworkUuid: ko.observable("").extend({required: true}),
     		protocol: 	ko.observable("").extend({required: true}),
     		lbMethod: 	ko.observable("").extend({required: true}),
-    		timeType: 	ko.observable("").extend({required: true}),
-    		timeValue: 	ko.observable(""),
-    		remark: 		ko.observable("")
+    		remark: 	ko.observable("").extend({maxLength:255}),
+    		yearMonth:	ko.observable("").extend({required: false}),
+	    	toDate: 	""
     	});
     	
     	this.vdcList = ko.observableArray();
@@ -1075,9 +1098,9 @@
         		vpcNetworkUuid:	"",
         		protocol: 	"",
         		lbMethod: 	"",
-        		timeType: 	"",
-        		timeValue: 	"",
-        		remark: 		""
+        		remark: 	"",
+        		yearMonth:	"",
+        		toDate: 	""
         	});
         	
         	self.lbMethodList($.LOAD_BALANCER.lbMethods);
@@ -1097,7 +1120,10 @@
 			subscriptionVdc = self.createBlVo().vdcUuid.subscribe(function(val){
 			    self.azList([]);
 			    if(csc.util.isNotNull(val)){
-			    	$.VDC.getVdcAzs(val,{},function(data){
+			    	var azParams = {
+				    	cloudPlatform:"OpenStack"
+				    };
+			    	$.VDC.getVdcAzs(val,azParams,function(data){
 		   				 if(data && data.results){
 		   					 self.azList(data.results);
 		   				 }
@@ -1143,7 +1169,6 @@
 		   			});
 			    }
     	    });
-			
         	
       	};
       	
@@ -1151,74 +1176,62 @@
       		if(self.disableCreateLbBtn()){
       			return;
       		}
-      		self.disableCreateLbBtn(true);
-      		var p = self.createBlVo.toJSON();
-      		
-      		var expiryTime = "";
-    	  	var temp = document.getElementsByName("lbExpiredRadioOptions");
-    	  	for(var i=0;i<temp.length;i++){
-    	     if(temp[i].checked){
-    	    	 if(temp[i].value == "option1"){
-    	    		 expiryTime = "2099-12-31 23:59:59";
-    	    	 }else if(temp[i].value == "option2"){
-    	    		 if($("#resource_load_balancer_time_unit").val() == "MONTH"){
-    	    			 var plusMonth = parseInt($("#resource_load_balancer_time_value").val());
-    	    			 var dd = new Date();
-    	    			 var y = dd.getFullYear(); 
-    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
-    	    			 var selfM = dd.getMonth()+1;
-    	    			 var d = dd.getDate();
-    	    			 y = y + parseInt(m/12);
-    	    			 m = m%12;
-    	    			 if(m == 0){
-    	    				 m = selfM;
-    	    			 }
-    	    		 }else if($("#resource_load_balancer_time_unit").val() == "YEAR"){
-    	    			 var plusYear = parseInt($("#resource_load_balancer_time_value").val());
-    	    			 var dd = new Date();
-    	    			 var y = dd.getFullYear(); 
-    	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
-    	    			 var d = dd.getDate();
-    	    			 y = y + plusYear;
-    	    		 }
-    	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
-    	    	 }else{
-    	    		 var timeStr = $("#resource_load_balancer_datePicker").val();
-    	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
-    	    	 }
-    	     }
-    	  	}
-      		p.timeType = "0";
-      		p.timeValue = "0";
-      		p.expiryDate = expiryTime;
-      		$.LOAD_BALANCER.createLoadBalancer(p, function(data){
-      			self.showCreatePage(false);
- 	    		self.loadBalancerTable.refreshData();
- 				alert("创建负载均衡器成功！");
-      		})
+      		ko.validation.group(self.createBlVo).showAllMessages();
+            if(self.createBlVo.isValid()){
+            	var p = self.createBlVo.toJSON();
+          		var expiryTime = "";
+        	  	var temp = document.getElementsByName("lbExpiredRadioOptions");
+        	  	for(var i=0;i<temp.length;i++){
+        	       if(temp[i].checked){
+        	    	 if(temp[i].value == "option1"){
+        	    		 expiryTime = "2099-12-31 23:59:59";
+        	    	 }else if(temp[i].value == "option2"){
+        	    		 if($("#resource_load_balancer_time_unit").val() == "MONTH"){
+        	    			 var plusMonth = parseInt($("#resource_load_balancer_time_value").val());
+        	    			 var dd = new Date();
+        	    			 var y = dd.getFullYear(); 
+        	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
+        	    			 var selfM = dd.getMonth()+1;
+        	    			 var d = dd.getDate();
+        	    			 y = y + parseInt(m/12);
+        	    			 m = m%12;
+        	    			 if(m == 0){
+        	    				 m = selfM;
+        	    			 }
+        	    		 }else if($("#resource_load_balancer_time_unit").val() == "YEAR"){
+        	    			 var plusYear = parseInt($("#resource_load_balancer_time_value").val());
+        	    			 var dd = new Date();
+        	    			 var y = dd.getFullYear(); 
+        	    			 var m = dd.getMonth()+1;//获取当前月份的日期 
+        	    			 var d = dd.getDate();
+        	    			 y = y + plusYear;
+        	    		 }
+        	    		 expiryTime = y+"-"+m+"-"+d+" 23:59:59";
+        	    	 }else{
+        	    		 var timeStr = $("#resource_load_balancer_datePicker").val();
+        	    		 expiryTime = $.trim(timeStr) + " 23:59:59";
+        	    	 }
+        	       }
+        	  	}
+          		p.expiryDate = expiryTime;
+          		
+          		self.disableCreateLbBtn(true);
+          		$.LOAD_BALANCER.createLoadBalancer(p, function(data){
+          			self.showCreatePage(false);
+     	    		self.loadBalancerTable.refreshData();
+     				alert("创建负载均衡器成功！");
+          		}, function(data){
+          			self.disableCreateLbBtn(false);
+          		});
+            }
       		
       	}
       	/********  创建负载均衡器 END   *********/
       	
-      	/********  创建负载均衡器基本信息   *********/
+      	/********  创建负载均衡器详情页面   *********/
       	
       	this.currentLbVo = ko.observable();
-      	/* {
-    		name: 		"",
-    		vdcUuid:	"",
-    		vdcName:	"",
-    		azUuid:		"",
-    		azName:		"",
-    		vpcUuid: 	"",
-    		vpcNetworkUuid:	"",
-    		protocol: 	"",
-    		lbMethod: 	"",
-    		timeType: 	"",
-    		timeValue: 	"",
-    		vipUuid:	"",
-    		desc: 		"",
-    		isValidate: ""
-    	} */
+      	
       	this.isShowDetail = ko.observable(false);
     	this.isLbValidate = ko.observable(true);//当前负载均衡器是否在有效期内
       	
@@ -1235,31 +1248,15 @@
     			
     			loadVipInfo(row.vipUuid);
     		}
-    		
     	}
+    	
+      	this.currentVipVo = ko.observable();
       	this.isShowVipInfo = ko.observable(false);
       	function loadVipInfo(vipUuid){
       		if(csc.util.isNotNull(vipUuid)){
       			self.isShowVipInfo(true);
       			$.LOAD_BALANCER.getLoadBalancerVip(vipUuid, function(data){
-            		self.currentVipVo({
-                		"uuid": data.uuid,
-                		"azUuid": data.azUuid,
-                  		"lbId": data.originalId,
-                  		"lbUuid": data.uuid,
-                  		"lbName":  data.lbName,
-                  		"name":  data.name,
-                  		"vpcNetworkUuid":  data.vpcNetworkUuid,
-                  		"networkName": data.networkName,
-                  		"cidr": data.cidr,
-                  		"address":  data.address,
-                  		"protocol": data.protocol,
-                  		"protocolPort":  data.protocolPort,
-                  		"sessionPersistenceType":  ko.observable(data.sessionPersistenceType),
-                  		"cookieName":  data.cookieName,
-                  		"connectionLimit":data.connectionLimit,
-                  		"desc":data.desc
-                	});
+            		self.currentVipVo(data);
           		});
       		}else{
       			self.isShowVipInfo(false);
@@ -1307,7 +1304,24 @@
       	/********  添加VIP   *********/
       	this.isShowAddVip = ko.observable(false);
       	this.isVipEditFlag = ko.observable(false);
-      	this.currentVipVo = ko.validatedObservable();
+      	this.createVipVo = ko.validatedObservable({
+    		"uuid": "",
+    		"azUuid": "",
+      		"lbId": "",
+      		"lbUuid": "",
+      		"lbName": "",
+      		"name":  ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
+      		"vpcNetworkUuid":  "",
+      		"networkName": "",
+      		"cidr": ko.observable(""),
+      		"address":  ko.observable("").extend({required: true}),
+      		"protocol": ko.observable(""),
+      		"protocolPort":  ko.observable(80).extend({required: true, min:1, max:65535}),
+      		"sessionPersistenceType":  ko.observable(""),
+      		"cookieName":  ko.observable("").extend({cscNameRule:true, maxLength:32}),
+      		"connectionLimit":ko.observable("").extend({required: true, positiveIntegerRule:true}),
+      		"desc":ko.observable("").extend({maxLength:255})
+    	});
       	this.spTypeList = ko.observableArray();
          //选择IP
         this.availIpList = ko.observableArray([]);
@@ -1320,7 +1334,6 @@
 			//
 			self.spTypeList([]);
         	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
-        	//self.spTypeList.unshift("");
         	//可用IP列表
         	self.availIpList([]);
         	if(csc.util.isNotNull(row.vpcNetworkUuid)){
@@ -1332,7 +1345,7 @@
         	}
         	
         	//初始化VIP参数
-        	self.currentVipVo({
+        	self.createVipVo.fromJSON({
         		"uuid": "",
         		"azUuid": row.azUuid,
           		"lbId": row.originalId,
@@ -1345,7 +1358,7 @@
           		"address":  "",
           		"protocol": row.protocol,
           		"protocolPort":  80,
-          		"sessionPersistenceType":  ko.observable(),
+          		"sessionPersistenceType":  "",
           		"cookieName":  "",
           		"connectionLimit":"",
           		"desc":""
@@ -1354,15 +1367,21 @@
       	};
       	
       	this.addVip = function(){
-      		var p = ko.toJS(self.currentVipVo());
-      		$.LOAD_BALANCER.createLoadBalancerVip(p, function(data){
-      			self.isShowAddVip(false);
- 	    		self.loadBalancerTable.refreshData();
- 				alert("创建负载均衡器VIP成功！");
-      		})
+      		ko.validation.group(self.createVipVo).showAllMessages();
+            if(self.createVipVo.isValid()){
+            	var p = ko.toJS(self.createVipVo());
+            	self.disableUpdateVipBtn(true);
+          		$.LOAD_BALANCER.createLoadBalancerVip(p, function(data){
+          			self.isShowAddVip(false);
+     	    		self.loadBalancerTable.refreshData();
+     				alert("创建负载均衡器VIP成功！");
+          		}, function(data){
+          			self.disableUpdateVipBtn(false);
+          		});
+            }
       	}
-      	var oldEditVip = {};
       	
+      	var oldEditVip = {};
       	this.showEditVip = function(row, event){
         	self.isShowAddVip(true);
         	self.isVipEditFlag(true);//编辑页面
@@ -1370,37 +1389,21 @@
         	//
         	self.spTypeList([]);
         	self.spTypeList($.LOAD_BALANCER.sessionPersistenceType);
-        	//self.spTypeList.unshift("");
         	//初始化VIP参数
-        	loadCurrentVipInfo(row.vipUuid);
-      	};
-      	var loadCurrentVipInfo = function(vipUuid){
-      		$.LOAD_BALANCER.getLoadBalancerVip(vipUuid, function(data){
+        	$.LOAD_BALANCER.getLoadBalancerVip(row.vipUuid, function(data){
         		oldEditVip.name = data.name;
         		oldEditVip.desc = data.desc;
         		oldEditVip.sessionPersistenceType = data.sessionPersistenceType == null?"":data.sessionPersistenceType;
         		oldEditVip.cookieName = data.cookieName == null ? "": data.cookieName;
         		oldEditVip.connectionLimit = data.connectionLimit;
-        			
-        		self.currentVipVo({
-            		"uuid": data.uuid,
-            		"azUuid": data.azUuid,
-            		"vpcUuid": data.vpcUuid,
-              		"lbId": data.originalId,
-              		"lbUuid": data.lbUuid,
-              		"lbName": data.lbName,
-              		"name":  data.name,
-              		"vpcNetworkUuid":  data.vpcNetworkUuid,
-              		"networkName": data.networkName,
-              		"cidr": data.cidr,
-              		"address":  data.address,
-              		"protocol": data.protocol,
-              		"protocolPort":  data.protocolPort,
-              		"sessionPersistenceType":  ko.observable(data.sessionPersistenceType),
-              		"cookieName":  data.cookieName,
-              		"connectionLimit":data.connectionLimit,
-              		"desc":data.desc
-            	});
+        		self.createVipVo.fromJSON(data);
+      		});
+        	
+      	};
+      	
+      	var loadCurrentVipInfo = function(vipUuid){
+      		$.LOAD_BALANCER.getLoadBalancerVip(vipUuid, function(data){
+        		self.currentVipVo(data);
       		});
       	};
       	
@@ -1419,27 +1422,31 @@
       	}
       	
       	this.editVip = function(){
-      		var p = ko.toJS(self.currentVipVo());
-      		if(isVipChange(oldEditVip, p)){
-      			$.LOAD_BALANCER.editLoadBalancerVip(p.uuid, p, function(data){
+      		ko.validation.group(self.createVipVo).showAllMessages();
+            if(self.createVipVo.isValid()){
+            	var p = ko.toJS(self.createVipVo());
+          		if(isVipChange(oldEditVip, p)){
+          			self.disableUpdateVipBtn(true);
+          			$.LOAD_BALANCER.editLoadBalancerVip(p.uuid, p, function(data){
+              			self.isShowAddVip(false);
+         	    		self.loadBalancerTable.refreshData();
+         	    		if(self.isShowDetail()){
+         	    			loadCurrentVipInfo(p.uuid);
+         	    		}
+         				alert("修改负载均衡器VIP成功！");
+              		}, function(data){
+              			self.disableUpdateVipBtn(false);
+              		})
+          		}else{
           			self.isShowAddVip(false);
-     	    		self.loadBalancerTable.refreshData();
-     	    		if(self.isShowDetail()){
-     	    			loadCurrentVipInfo(p.uuid);
-     	    		}
-     				alert("修改负载均衡器VIP成功！");
-          		})
-      		}else{
-      			self.isShowAddVip(false);
-      		}
-      		
+          		}
+            }
       	}
       	
       	this.updateVip = function(){
       		if(self.disableUpdateVipBtn()){
       			return;
       		}
-      		self.disableUpdateVipBtn(true);
       		if(self.isVipEditFlag()){
       			self.editVip();
       		}else{
@@ -1480,7 +1487,16 @@
       	this.isShowAddMember = ko.observable(false);
         this.isEditMemberFlag = ko.observable(false);
         
-      	this.currentMemberVo = ko.observable();
+      	this.createMemberVo = ko.validatedObservable({
+      		"vpcUuid": "",
+      		"lbId": "",
+      		"lbUuid": "",
+      		"lbName": ko.observable(""),
+      		"vmName": ko.observable(""),
+      		"vm":ko.observable().extend({required: true}),
+      		"protocolPort":ko.observable(80).extend({required: true, min:1, max: 65535}),
+      		"weight":ko.observable(1).extend({required: true, positiveIntegerRule:true})
+      	});
       	this.memberVmList = ko.observableArray();
       	
       	this.disableUpdateMemberBtn = ko.observable(false);
@@ -1488,6 +1504,17 @@
           	self.isShowAddMember(true);
           	self.isEditMemberFlag(false);
           	self.disableUpdateMemberBtn(false);
+          	
+          	self.createMemberVo({
+          		"vpcUuid": "",
+          		"lbId": "",
+          		"lbUuid": "",
+          		"lbName": ko.observable(""),
+          		"vmName": ko.observable(""),
+          		"vm":ko.observable().extend({required: true}),
+          		"protocolPort":ko.observable(80).extend({required: true, min:1, max: 65535}),
+          		"weight":ko.observable(1).extend({required: true, positiveIntegerRule:true})
+          	});
           	
           	self.memberVmList([]);
           	var p = {
@@ -1499,16 +1526,10 @@
             $.PORT.getLbMemberVmList(p, function(data){
          	   if(data && data.results){
          		   self.memberVmList(data.results);
-         		   /* self.vmList({
-         			   vmUuid: "9c0cd5c0-7360-40f8-8381-1a69a69bdde7",
-         			   vmName: "crnName"
-         		   }); */
          	   }
             })
-          	//var vmList = $.LOAD_BALANCER.getMemberVms;
-          	//self.memberVmList(vmList);
           	
-          	self.currentMemberVo({
+          	self.createMemberVo.fromJSON({
           		"vpcUuid": self.currentLbVo().vpcUuid,
           		"lbId": self.currentLbVo().originalId,
           		"lbUuid": self.currentLbVo().uuid,
@@ -1525,22 +1546,27 @@
         	if(self.disableUpdateMemberBtn()){
       			return;
       		}
-      		self.disableUpdateMemberBtn(true);
-        	var p = {
-        		"vpcUuid": self.currentMemberVo().vpcUuid,
-        		"lbId": 	self.currentMemberVo().lbId,
-        		"lbUuid": 	self.currentMemberVo().lbUuid,
-        		"address":	self.currentMemberVo().vm.address,
-          		"protocolPort":self.currentMemberVo().protocolPort,
-          		"weight":   self.currentMemberVo().weight,
-          		"vmName":	self.currentMemberVo().vm.vmName
-        	};
-        	var memName = self.currentMemberVo().lbName;
-        	$.LOAD_BALANCER.createLoadBalancerMember(p, function(data){
-        		self.isShowAddMember(false);
-        		self.lbMemberTable.refreshData();
-				alert("创建成员[" + memName + "]成功！")
-        	});
+        	ko.validation.group(self.createMemberVo).showAllMessages();
+            if(self.createMemberVo.isValid()){
+            	var p = {
+                		"vpcUuid": self.createMemberVo().vpcUuid,
+                		"lbId": 	self.createMemberVo().lbId,
+                		"lbUuid": 	self.createMemberVo().lbUuid,
+                		"address":	self.createMemberVo().vm().address,
+                  		"protocolPort":self.createMemberVo().protocolPort(),
+                  		"weight":   self.createMemberVo().weight(),
+                  		"vmName":	self.createMemberVo().vm().vmName
+                	};
+                	var lbName = self.createMemberVo().lbName();
+                	self.disableUpdateMemberBtn(true);
+                	$.LOAD_BALANCER.createLoadBalancerMember(p, function(data){
+                		self.isShowAddMember(false);
+                		self.lbMemberTable.refreshData();
+        				alert("创建负载均衡器[" + lbName + "]成员成功！")
+                	}, function(data){
+              			self.disableUpdateMemberBtn(false);
+              		});
+            }
         }
         
         /********************  修改成员  ************************/
@@ -1551,21 +1577,20 @@
         	self.isEditMemberFlag(true);
         	self.disableUpdateMemberBtn(false);
         	
-        	/* self.memberVmList([]);
-        	var p = {
-              	   tenantId: 	self.currentLbVo().tenantId,
-              	   networkUuid:	self.currentLbVo().vpcNetworkUuid,
-              	   lbUuid: 		self.currentLbVo().uuid
-             };
-        	$.PORT.getLbMemberVmList(p, function(data){
-          	    if(data && data.results){
-          		    self.memberVmList(data.results);
-          	    }
-            }) */
-
+        	self.createMemberVo({
+          		"vpcUuid": "",
+          		"lbId": "",
+          		"lbUuid": "",
+          		"lbName": ko.observable(""),
+          		"vmName": ko.observable(""),
+          		"vm":ko.observable(),
+          		"protocolPort":ko.observable(80).extend({required: true, min:1, max: 65535}),
+          		"weight":ko.observable(1).extend({required: true, positiveIntegerRule:true})
+          	});
+        	
           	oldEditMember.weight = row.weight;
-           	//将数据行的数据传入currentMemberVo
-           	self.currentMemberVo({
+           	//将数据行的数据传入createMemberVo
+           	self.createMemberVo.fromJSON({
            		"uuid":			row.uuid,
            		"vpcUuid": 		row.vpcUuid,
          		"lbId": 		row.lbId,
@@ -1580,29 +1605,34 @@
         }
         
         this.editMember = function(){
+        	if(self.disableUpdateMemberBtn()){
+      			return;
+      		}
         	var p = {
-            		"vpcUuid": self.currentMemberVo().vpcUuid,
-            		"lbId": 	self.currentMemberVo().lbId,
-            		"lbUuid": 	self.currentMemberVo().lbUuid,
-            		"address":	self.currentMemberVo().address,
-              		"protocolPort":self.currentMemberVo().protocolPort,
-              		"weight":   self.currentMemberVo().weight,
-              		"vmName":	self.currentMemberVo().vmName
+            		"vpcUuid": self.createMemberVo().vpcUuid,
+            		"lbId": 	self.createMemberVo().lbId,
+            		"lbUuid": 	self.createMemberVo().lbUuid,
+            		"address":	self.createMemberVo().address,
+              		"protocolPort":self.createMemberVo().protocolPort(),
+              		"weight":   self.createMemberVo().weight(),
+              		"vmName":	self.createMemberVo().vmName
             	};
-        	var uuid = self.currentMemberVo().uuid;
+        	var uuid = self.createMemberVo().uuid;
         	if(oldEditMember.weight == p.weight){
         		//没有修改，则只是隐藏页面
         		self.isShowAddMember(false);
         	}else{
-        		if(self.disableUpdateMemberBtn()){
-          			return;
-          		}
-          		self.disableUpdateMemberBtn(true);
-        		$.LOAD_BALANCER.editLoadBalancerMember(uuid, p, function(data){
-               		self.isShowAddMember(false);
-               		self.lbMemberTable.refreshData();
-       				alert("修改成员成功！")
-               	});
+        		ko.validation.group(self.createMemberVo).showAllMessages();
+                if(self.createMemberVo.isValid()){
+                	self.disableUpdateMemberBtn(true);
+            		$.LOAD_BALANCER.editLoadBalancerMember(uuid, p, function(data){
+                   		self.isShowAddMember(false);
+                   		self.lbMemberTable.refreshData();
+           				alert("修改成员成功！")
+                   	}, function(data){
+              			self.disableUpdateMemberBtn(false);
+              		});
+                }
         	}
         	
         }
@@ -1638,7 +1668,11 @@
   		  	perPage: 10,
             path: 'api/v5.0.0/loadBalancerMonitors',
             loader: function(result){
-                result.detail = result.httpMethod + result.urlPath + " => " + result.expectedCodes; 
+            	if(result.type == "TCP"){
+            		result.detail = "-";
+            	}else{
+            		result.detail = result.httpMethod + result.urlPath + " => " + result.expectedCodes;
+            	}
                 return result;
             }
     	});
@@ -1647,7 +1681,45 @@
         this.isShowAddMonitor = ko.observable(false);
         this.isEditMonitorFlag = ko.observable(false);
         
-        this.currentMonitorVo = ko.validatedObservable();
+        this.createMonitorVo = ko.validatedObservable({
+        	vpcUuid:	"",
+    		lbUuid:		"",
+    		type: 		ko.observable(),
+    		delay:		ko.observable().extend({required: true,positiveIntegerRule:true}),
+    		timeout:	ko.observable().extend({required: true,positiveIntegerRule:true}),
+    		maxRetries:	ko.observable(1).extend({required: true, min:1, max: 10}),
+    		httpMethod: "GET",
+    		urlPath:	ko.observable("/").extend({required: true, maxLength:255}),
+    		expectedCodes:ko.observable(200).extend({required: true, min:1, max: 999})
+        });
+        
+        this.redefineCreateMonitorVo = function(isTcp){
+        	if(isTcp){
+        		self.createMonitorVo({
+        			vpcUuid:	"",
+            		lbUuid:		"",
+            		type: 		ko.observable(),
+            		delay:		ko.observable().extend({required: true,positiveIntegerRule:true}),
+            		timeout:	ko.observable().extend({required: true,positiveIntegerRule:true}),
+            		maxRetries:	ko.observable(1).extend({required: true, min:1, max: 10}),
+            		httpMethod: "GET",
+            		urlPath:	ko.observable("/").extend({required: false, maxLength:255}),
+            		expectedCodes:ko.observable(200).extend({required: false, min:1, max: 999})
+        		});
+        	}else{
+        		self.createMonitorVo({
+					vpcUuid:	"",
+		    		lbUuid:		"",
+		    		type: 		ko.observable(),
+		    		delay:		ko.observable().extend({required: true,positiveIntegerRule:true}),
+		    		timeout:	ko.observable().extend({required: true,positiveIntegerRule:true}),
+		    		maxRetries:	ko.observable(1).extend({required: true, min:1, max: 10}),
+		    		httpMethod: "GET",
+		    		urlPath:	ko.observable("/").extend({required: true, maxLength:255}),
+		    		expectedCodes:ko.observable(200).extend({required: true, min:1, max: 999})
+        		});
+        	}
+        }
         
         this.isTcpHide = ko.observable();//当协议类型为TCP时，需要隐藏的字段
         
@@ -1656,14 +1728,15 @@
         	self.isShowAddMonitor(true);
         	self.isEditMonitorFlag(false);
         	self.disableUpdateMonitorBtn(false);
-        	//初始化currentMonitorVo数据
+        	//初始化createMonitorVo数据
         	var protocolType = self.currentLbVo().protocol;
         	if("TCP" == protocolType){
         		self.isTcpHide(true);
         	}else{
         		self.isTcpHide(false);
         	}
-        	self.currentMonitorVo({
+        	self.redefineCreateMonitorVo(self.isTcpHide());
+        	self.createMonitorVo.fromJSON({
         		vpcUuid:		self.currentLbVo().vpcUuid,
         		lbUuid:		self.currentLbVo().uuid,
         		type: 	self.currentLbVo().protocol,
@@ -1681,13 +1754,22 @@
         	if(self.disableUpdateMonitorBtn()){
       			return;
       		}
-      		self.disableUpdateMonitorBtn(true);
-        	var p = self.currentMonitorVo();
-        	$.LOAD_BALANCER.createLoadBalancerMonitor(p, function(data){
-        		self.isShowAddMonitor(false);
-        		self.lbMonitorTable.refreshData();
-				alert("添加监听成功！")
-        	});
+        	var p = self.createMonitorVo.toJSON();
+        	ko.validation.group(self.createMonitorVo).showAllMessages();
+            if(self.createMonitorVo.isValid()){
+            	if(p.timeout > p.delay){
+            		alert("超时时间不能大于延迟时间！");
+            		return;
+            	}
+            	self.disableUpdateMonitorBtn(true);
+            	$.LOAD_BALANCER.createLoadBalancerMonitor(p, function(data){
+            		self.isShowAddMonitor(false);
+            		self.lbMonitorTable.refreshData();
+    				alert("添加监听成功！");
+            	}, function(data){
+          			self.disableUpdateMonitorBtn(false);
+          		});
+            }
         }
         /********************  修改监听   ************************/
         var oldMonitorVo = {};
@@ -1706,7 +1788,8 @@
         	}else{
         		self.isTcpHide(false);
         	}
-        	self.currentMonitorVo(row);
+        	self.redefineCreateMonitorVo(self.isTcpHide());
+        	self.createMonitorVo.fromJSON(row);
         }
         
         var isMonitorChange = function(o, n){
@@ -1723,17 +1806,26 @@
         }
         
         this.editMonitor = function(){
-        	var p = self.currentMonitorVo();
+        	if(self.disableUpdateMonitorBtn()){
+      			return;
+      		}
+        	var p = self.createMonitorVo.toJSON();
         	if(isMonitorChange(oldMonitorVo, p)){
-        		if(self.disableUpdateMonitorBtn()){
-          			return;
-          		}
-          		self.disableUpdateMonitorBtn(true);
-        		$.LOAD_BALANCER.editLoadBalancerMonitor(p.uuid, p, function(data){
-            		self.isShowAddMonitor(false);
-            		self.lbMonitorTable.refreshData();
-    				alert("修改监听成功！")
-            	});
+        		ko.validation.group(self.createMonitorVo).showAllMessages();
+                if(self.createMonitorVo.isValid()){
+					if(p.timeout > p.delay){
+                		alert("超时时间不能大于延迟时间！");
+                		return;
+                	}
+                	self.disableUpdateMonitorBtn(true);
+            		$.LOAD_BALANCER.editLoadBalancerMonitor(p.uuid, p, function(data){
+                		self.isShowAddMonitor(false);
+                		self.lbMonitorTable.refreshData();
+        				alert("修改监听成功！")
+                	}, function(data){
+              			self.disableUpdateMonitorBtn(false);
+              		});
+                }
         	}else{
         		self.isShowAddMonitor(false);
         	}
@@ -1798,7 +1890,8 @@
 		      	  //设置修改对象的uuid
 		      	  self.validateTimeVO().uuid(object.uuid);
 		      	  self.validateTimeVO().name(object.name);
-		      	  self.validateTimeVO().metaTime(object.expiredDate);
+		      	  self.validateTimeVO().time(object.expiryDate);
+		      	  self.validateTimeVO().metaTime(object.expiryDate);
          	  }
         }
         
@@ -1812,7 +1905,8 @@
 	        	//设置修改对象的uuid
 	        	self.validateTimeVO().uuid(self.currentLbVo().uuid);
 	        	self.validateTimeVO().name(self.currentLbVo().name);
-	        	self.validateTimeVO().metaTime(self.currentLbVo().expiredDate);
+	        	self.validateTimeVO().time(self.currentLbVo().expiryDate);
+	        	self.validateTimeVO().metaTime(self.currentLbVo().expiryDate);
        	  	}
         }
         
@@ -1894,11 +1988,12 @@
          	  postBody.orderItems = orderItems;
          	  
          	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-         		if(data.taskId){ 
-                    systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！'); 
-                }else if(data.code){
-         			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
-         		}
+         		if(data.code){
+          			systemMsg.alert('删除资源申请成功，订单编号：'+data.code+'！');
+          		}else{
+          			systemMsg.alert('删除负载均衡器成功！'); 
+                    self.loadBalancerTable.refreshData();
+          		}
          		self.isDeleteProcess(false);
          	  });
    		}
@@ -1987,7 +2082,8 @@
         }
         //------------------------------------------有效期-流程结束--------------------------------
     };
-    ko.applyBindings(new ViewModel_Balancer(), $('#partition_balancer')[0]);
+    window.viewModelBalancer = new ViewModel_Balancer();
+    ko.applyBindings(window.viewModelBalancer, $('#partition_balancer')[0]);
   })
 
 </script>

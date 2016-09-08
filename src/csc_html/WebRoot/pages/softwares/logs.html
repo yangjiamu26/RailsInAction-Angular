@@ -131,12 +131,15 @@
 			                    <p><strong>软件名称：</strong><span data-bind="text: logVO().softwareName"></span></p>
 			                </div>
 			                <div class="col-xs-6">
-			                    <p><strong>云主机名称：</strong><span data-bind="text: logVO().vmName"></span></p>
+			                    <p><strong>软件版本：</strong><span data-bind="text: logVO().softwareVersion"></span></p>
 			                </div>
 			            </div>
 			            <div class="row">
 			                <div class="col-xs-6">
-			                    <p><strong>安装时间：</strong><span data-bind="text: logVO().installTime"></span></p>
+			                    <p><strong>云主机名称：</strong><span data-bind="text: logVO().vmName"></span></p>
+			                </div>
+			                <div class="col-xs-6">
+			                    <p><strong>安装进度：</strong><span data-bind="text: logVO().progress"></span></p>
 			                </div>
 			            </div>
 			        </div>
@@ -144,7 +147,7 @@
             	<div class="panel panel-info">
 			        <div class="panel-heading">日志信息</div>
 					<div class="panel-body">
-						<textarea class="form-control" style="height: 220px;"
+						<textarea class="form-control" style="resize: none; height: 220px; margin-top: -15px; margin-left: -15px; margin-bottom: -15px; width: 726px; border: none;"
 								 data-bind="value: logTextVal" id="logTextArea">
 						</textarea>
 		            </div>
@@ -372,8 +375,9 @@
 			this.logVO = ko.observable({
 				uuid: '',
 				softwareName: '',
+				softwareVersion: '',
 				vmName: '',
-				installTime: ''
+				progress: ko.observable('')
 			});
 			
 			this.searchParam = ko.observable({
@@ -425,6 +429,10 @@
 				$.INSTALL.getLogDetail(uuid, {withStatus: 'Y'}, function (data) {
 					self.logTextVal(data.logText);
 					
+					if (data.preogress) {
+						self.logVO().progress(data.preogress);
+					}
+					
 					if (!self.getLogTextInterval[uuid] && data.status == '0') {
 						self.getLogTextInterval[uuid] = setInterval(function(){
 							self.getLogText(uuid);
@@ -443,8 +451,9 @@
 			this.showLogText = function(object, event) {
 				self.logVO().uuid = object.uuid;
 				self.logVO().softwareName = object.softwareName;
+				self.logVO().softwareVersion = object.softwareVersion;
 				self.logVO().vmName = object.vmName;
-				self.logVO().installTime = object.installTime;
+				self.logVO().progress(object.progress);
 				
 				self.getLogText(object.uuid);
 				self.isLogText(true);

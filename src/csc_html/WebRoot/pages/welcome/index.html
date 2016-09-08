@@ -325,6 +325,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
                           <tr>
                               <td width="10%"><span class='label text-base pos-rlt m-r' data-bind="css:$root.orderStateCss(state),text:$root.orderState(state)"></span></td>
                               <td data-bind="text:code"></td>
+                              <td data-bind="text:createTime"></td>
                               <td data-bind="text:resourceNames"></td>
                           </tr>
                       </tbody>
@@ -550,7 +551,7 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
-  var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js","assets/lib/moment/moment.js",];
+  var scripts = [null,"assets/lib/highcharts/highstock.js", "assets/js/jquery-ui.custom.js","assets/js/jquery-drag.js","assets/js/jquery.ui.touch-punch.js","assets/lib/drap/drap.js","assets/lib/moment/moment.js",];
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(query) {
 
 	  var unlimited = '-1.0';//配额不限制默认值
@@ -667,6 +668,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
 		} 
   	}
   	
+	  //格式化数字限制2位小数
+	  function floatToFix2(data){
+		 return Math.round(parseFloat(data)*100)/100
+	  }
+  	
     function doHighchartsVDC(data){
       // cpu占比图
       $('#total_cpu_chart').highcharts({
@@ -725,13 +731,13 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             name: 'CPU',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.cpuUsed),
+                    y: floatToFix2(data.cpuUsed),
                     unit: data.cpuUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.cpuTotal != unlimited ? parseFloat(data.cpuTotal)-parseFloat(data.cpuUsed) : "不限制",
+                    y: data.cpuTotal != unlimited ? floatToFix2(data.cpuTotal)-floatToFix2(data.cpuUsed) : "不限制",
                     unit: data.cpuTotal != unlimited ? data.cpuUnit : "",
                     color:"#fad733"
                 }
@@ -797,13 +803,13 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             name: '内存',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.memUsed),
+                    y: floatToFix2(data.memUsed),
                     unit: data.memUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.memTotal != unlimited ? parseFloat(data.memTotal)-parseFloat(data.memUsed) : "不限制",
+                    y: data.memTotal != unlimited ? floatToFix2(data.memTotal)-floatToFix2(data.memUsed) : "不限制",
                     unit: data.memTotal != unlimited ? data.memUnit : "",
                     color:"#fad733"
                 }
@@ -869,13 +875,13 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
             name: '存储',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.stoUsed),
+                    y: floatToFix2(data.stoUsed),
                     unit: data.stoUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.stoTotal != unlimited ? parseFloat(data.stoTotal)-parseFloat(data.stoUsed) : "不限制",
+                    y: data.stoTotal != unlimited ? floatToFix2(data.stoTotal)-floatToFix2(data.stoUsed) : "不限制",
                     unit: data.stoTotal != unlimited ? data.stoUnit : "",
                     color:"#fad733"
                 }
@@ -938,16 +944,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '云主机',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.vmUsed),
+                    y: floatToFix2(data.vmUsed),
                     unit: data.vmUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.vmTotal != unlimited ? parseFloat(data.vmTotal)-parseFloat(data.vmUsed) : "不限制",
+                    y: data.vmTotal != unlimited ? floatToFix2(data.vmTotal)-floatToFix2(data.vmUsed) : "不限制",
                     unit: data.vmTotal != unlimited ? data.vmUnit : "",
                     color:"#fad733"
                 }
@@ -1010,16 +1016,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '云硬盘',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.diskUsed),
+                    y: floatToFix2(data.diskUsed),
                     unit: data.diskUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.diskTotal != unlimited ? parseFloat(data.diskTotal)-parseFloat(data.diskUsed) : "不限制",
+                    y: data.diskTotal != unlimited ? floatToFix2(data.diskTotal)-floatToFix2(data.diskUsed) : "不限制",
                     unit: data.diskTotal != unlimited ? data.diskUnit : "",
                     color:"#fad733"
                 }
@@ -1082,16 +1088,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '对象存储',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.objUsed),
+                    y: floatToFix2(data.objUsed),
                     unit: data.objUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.objTotal != unlimited ? parseFloat(data.objTotal)-parseFloat(data.objUsed) : "不限制",
+                    y: data.objTotal != unlimited ? floatToFix2(data.objTotal)-floatToFix2(data.objUsed) : "不限制",
                     unit: data.objTotal != unlimited ? data.objUnit : "",
                     color:"#fad733"
                 }
@@ -1154,16 +1160,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '路由器',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.routerUsed),
+                    y: floatToFix2(data.routerUsed),
                     unit: data.routerUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.routerTotal != unlimited ? parseFloat(data.routerTotal)-parseFloat(data.routerUsed) : "不限制",
+                    y: data.routerTotal != unlimited ? floatToFix2(data.routerTotal)-floatToFix2(data.routerUsed) : "不限制",
                     unit: data.routerTotal != unlimited ? data.routerUnit : "",
                     color:"#fad733"
                 }
@@ -1226,16 +1232,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '防火墙',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.firewallUsed),
+                    y: floatToFix2(data.firewallUsed),
                     unit: data.firewallUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.firewallTotal != unlimited ? parseFloat(data.firewallTotal) - parseFloat(data.firewallUsed) : "不限制",
+                    y: data.firewallTotal != unlimited ? floatToFix2(data.firewallTotal) - floatToFix2(data.firewallUsed) : "不限制",
                     unit: data.firewallTotal != unlimited ? data.firewallUnit : "",
                     color:"#fad733"
                 }
@@ -1298,16 +1304,16 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
         },
         series: [{
             type: 'pie',
-            name: 'VPC',
+            name: '安全组',
             data: [{
                     name: '已用',
-                    y: parseFloat(data.securityGroupUsed),
+                    y: floatToFix2(data.securityGroupUsed),
                     unit: data.securityGroupUnit,
                     color:"#23b7e5"
                 },
                 {
                     name: '未用',
-                    y: data.securityGroupTotal != unlimited ? parseFloat(data.securityGroupTotal)-parseFloat(data.securityGroupUsed) : "不限制",
+                    y: data.securityGroupTotal != unlimited ? floatToFix2(data.securityGroupTotal)-floatToFix2(data.securityGroupUsed) : "不限制",
                     unit: data.securityGroupTotal != unlimited ? data.securityGroupUnit : "",
                     color:"#fad733"
                 }
@@ -1845,11 +1851,11 @@ input[type="checkbox"]:checked+span::before{display:block;z-index:1;width:20px;h
       this.orderStateCss = function(state){
     	  switch(state){
     	  case 'UNSUBMIT':
-    		  return "bg-danger";
+    		  return "label-warning";
     	  case 'DOING':
-    		  return "bg-info";
+    		  return "label-info";
     	  case 'FINISHED':
-    		  return "bg-success";
+    		  return "label-success";
     	  }
       };
       //--------------------最新订单模块end--------------//

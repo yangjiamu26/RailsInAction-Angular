@@ -952,44 +952,47 @@
           							 }
           						 })
           						 
+          						//将购物车提交到订单 
     						    csc.rest.post('api/v5.0.0/orders',self.ordersVo.toJSON(),function(result1){
+    						    	typeList.product.forEach(function (d){
+                        				var delId;
+                        				if(delInfo=="vmCartInfo"){
+                        					delId = d.uuid();
+                        				}else{
+                        					delId = d.id();
+                        				}
+                        				//删除购物车记录
+            				 			csc.rest.del('api/v5.0.0/cart/delete/'+delInfo+'/'+delId,function(result2){
+            				 				if(result2.type=="vdiskCartInfo"){
+            				 					self.vdiskList.remove(function (item) { return item.id() == result2.id; });
+            				 					self.vdiskNum(self.vdiskNum()-1);
+            				 					self.vdiskList_chosens.removeAll();
+            				 				}else if(result2.type=="objectStorageCartInfo"){
+            				 					self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
+            				 					self.objectStorageNum(self.objectStorageNum()-1);
+            				 					self.objectStorageList_chosens.removeAll();
+            				 				}else if(result2.type=="publicNetworkCartInfo"){
+        						 				self.publicNetworkList.remove(function (item) { return item.id() == result2.id; });
+        						 				self.publicNetworkNum(self.publicNetworkNum()-1);
+        										self.publicNetworkList_chosens.removeAll();
+            				 				}else if(result2.type=="loadbalancerCartInfo"){
+        						 				self.loadbalancerList.remove(function (item) { return item.id() == result2.id; });
+        						 				self.lbNum(self.lbNum()-1);
+        										self.loadbalancerList_chosens.removeAll();
+            				 				}else if(result2.type=="sshKeytCartInfo"){
+        						 				self.sshKeytList.remove(function (item) { return item.id() == result2.id; });
+        						 				self.sshNum(self.sshNum()-1);
+        										self.sshKeytList_chosens.removeAll();
+            				 				}else if(result2.type=="vmCartInfo"){
+         						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
+         						 				self.vmNum(self.vmNum()-1);
+        										self.vmList_chosens.removeAll();
+            				 				}
+            				 				
+            				 				alert('成功提交订单！');
+        					 			});
+                        			})
     						    });
-          						 
-                    			typeList.product.forEach(function (d){
-                    				var delId;
-                    				if(delInfo=="vmCartInfo"){
-                    					delId = d.uuid();
-                    				}else{
-                    					delId = d.id();
-                    				}
-        				 			csc.rest.del('api/v5.0.0/cart/delete/'+delInfo+'/'+delId,function(result2){
-        				 				if(result2.type=="vdiskCartInfo"){
-        				 					self.vdiskList.remove(function (item) { return item.id() == result2.id; });
-        				 					self.vdiskNum(self.vdiskNum()-1);
-        				 					self.vdiskList_chosens.removeAll();
-        				 				}else if(result2.type=="objectStorageCartInfo"){
-        				 					self.objectStorageList.remove(function (item) { return item.id() == result2.id; });
-        				 					self.objectStorageNum(self.objectStorageNum()-1);
-        				 					self.objectStorageList_chosens.removeAll();
-        				 				}else if(result2.type=="publicNetworkCartInfo"){
-    						 				self.publicNetworkList.remove(function (item) { return item.id() == result2.id; });
-    						 				self.publicNetworkNum(self.publicNetworkNum()-1);
-    										self.publicNetworkList_chosens.removeAll();
-        				 				}else if(result2.type=="loadbalancerCartInfo"){
-    						 				self.loadbalancerList.remove(function (item) { return item.id() == result2.id; });
-    						 				self.lbNum(self.lbNum()-1);
-    										self.loadbalancerList_chosens.removeAll();
-        				 				}else if(result2.type=="sshKeytCartInfo"){
-    						 				self.sshKeytList.remove(function (item) { return item.id() == result2.id; });
-    						 				self.sshNum(self.sshNum()-1);
-    										self.sshKeytList_chosens.removeAll();
-        				 				}else if(result2.type=="vmCartInfo"){
-     						 				self.vmList.remove(function (item) { return item.uuid() == result2.id; });
-     						 				self.vmNum(self.vmNum()-1);
-    										self.vmList_chosens.removeAll();
-        				 				}
-    					 			});
-                    			})
                     		})
 
                     	})
@@ -998,7 +1001,6 @@
                         *   方法定义位置：WebRoot\index.html 
                         */ 
                     	frameViewModel.loadCartNum();
-                    	alert('成功提交订单！');
     	                $.ajaxSetup({   
     		                    async : true   
     		                });

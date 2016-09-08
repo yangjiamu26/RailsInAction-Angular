@@ -914,7 +914,7 @@ kv.rules['email'] = {
       validate && /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i.test(val)
     );
   },
-  message: 'Please enter a proper email address.'
+  message: '请输入正确的Email地址.'
 };
 
 kv.rules['date'] = {
@@ -978,7 +978,26 @@ kv.rules['cscNameRule'] = {
 		  },
 		  message: '不能包含特殊字符'
 		};
-
+kv.rules['notCH'] = {
+		  validator: function (val, params) {
+			    var nameExp =new RegExp(/^[^\u4e00-\u9fa5]{0,}$/);
+	  	        if(!nameExp.test(val)){
+	  	        	return false;
+	  	        }	
+	  	        return true;
+		  },
+		  message: '不能包含中文字符'
+		};
+kv.rules['httpUrlRule'] = {
+		  validator: function (val, params) {
+			    var nameExp =new RegExp(/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"\"])*$/);
+	  	        if(!nameExp.test(val)){
+	  	        	return false;
+	  	        }	
+	  	        return true;
+		  },
+		  message: '请输入http|https协议头的url地址'
+		};
 kv.rules['positiveIntegerRule'] = {//正整数校验
 		  validator: function (val, params) {
 	  	        if(!val || /^[1-9]\d*$/.test(val)){

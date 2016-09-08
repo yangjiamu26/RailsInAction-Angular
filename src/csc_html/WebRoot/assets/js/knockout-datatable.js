@@ -289,6 +289,8 @@
       })(this);
       this.replaceRows = (function(_this) {
         return function(rows) {
+          _this.isSelectedAll(false);
+          _this.chosenItem(null);
           _this.rows(rows);
           _this.currentPage(1);
           return _this.filter(void 0);

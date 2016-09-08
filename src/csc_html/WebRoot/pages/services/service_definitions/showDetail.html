@@ -169,8 +169,8 @@
                         <th>可用分区</th>
                         <th>操作系统类型</th>
                         <th>操作系统版本</th>
-                        <th>关联镜象</th>
-                        <th>操作</th>
+                        <th>关联镜像</th>
+                        <!-- <th>操作</th> -->
                       </thead>
                       <tbody data-bind="foreach: osType_chosen">
                         <tr>
@@ -178,11 +178,11 @@
                           <td data-bind="text: osType"></td>
                           <td data-bind="text: osVersion"></td>
                           <td data-bind="text: imageName"></td>
-                          <td><a class="btn btn-xs btn-default" >删除</a></td>
+                          <!-- <td><a class="btn btn-xs btn-default" >删除</a></td> -->
                         </tr>
                       </tbody>
                     </table>
-                    <a class="btn btn-sm btn-default" style="margin-left: 10px;" style="display: none;">添加</a>
+                    <!-- <a class="btn btn-sm btn-default" style="margin-left: 10px;" style="display: none;">添加</a> -->
                   </div>
                 </div>
                 <div class="col-xs-1">
@@ -190,7 +190,7 @@
 				</div>
               </div>
               <div class="form-group">
-                <label class="col-xs-2 control-label">CPU(核)：</label>
+                <label class="col-xs-2 control-label">CPU(个)：</label>
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
@@ -623,7 +623,7 @@
 	                        <tr>
 	                          <td data-bind="text: attrType"></td>
                               <td data-bind="text: name"></td>
-	                          <td><a class="btn btn-xs btn-default">删除</a></td>
+	                          <td><a class="btn btn-xs btn-default" disabled="disabled">删除</a></td>
 	                        </tr>
 	                      </tbody>
 	                    </table>
@@ -719,9 +719,12 @@
 	    }
 	    // 云主机   -->
 	    //初始化虚拟化类型下拉框数据
-	    function loadVirtualPlatform(){
+	    function loadVirtualPlatform(callback){
 	      	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getSource',function(data){
 	      		serviceViewModel.virtualPlatformList(data);
+	      		if (callback != undefined) {
+	      			callback();
+	      		}
 	         });
 	    }
 	      
@@ -824,7 +827,21 @@
             //是否计费
        	   this.isFee = ko.observable("1");
             
-       	   this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef"});
+       	   self.osVersionList = new Array();
+       	   
+       	   self.loadOsVersionList = function (azUuid, virtualPlatForm, osTypes, callback) {
+       		   var url = "api/v5.0.0/service/getServiceImageRef?azUuid=" + azUuid + "&virtualPlatForm=" + virtualPlatForm + "&osTypes=" + osTypes;
+				csc.rest.get(url,function(osVersionData){
+					if (osVersionData && osVersionData.results) {
+						var tempOsVersionList = osVersionData.results;
+						for (var i = 0; i < tempOsVersionList.length; i++) {
+							self.osVersionList.push(tempOsVersionList[i]);
+						}
+						callback();
+					}
+				});
+       	   };
+       	   
             //计费规则
        	   function Package(type,value){
         	  this.type = ko.observable(type);
@@ -858,7 +875,7 @@
                 });
          	}
            //虚拟化类型选择事件
-           this.changeVirtualValue = function(viewModel, event){      	  
+           this.changeVirtualValue = function(viewModel, event){
               if(viewModel.selected_product()=='VM'){
            	
            	 	//初始化虚拟机操作系统类型数据        	 
@@ -997,22 +1014,20 @@
            		  }else{
            			  self.serviceVO().serviceVDC.osTypeList.push(vdcOsType);
            		  }
-       			  //if(limit == "yes"){
-       				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
-       				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
-       				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
-       				  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
-       				  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
-       				  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
-       				  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
-       				  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
-       				  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
-       				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
-       				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
-       				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
-       				  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
-       				  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
-       			//  }
+   				  self.serviceVO().serviceVDC.maxCpu(data.serviceVDC.maxCpu);
+   				  self.serviceVO().serviceVDC.maxVmNum(data.serviceVDC.maxVmNum);
+   				  self.serviceVO().serviceVDC.maxMemory(data.serviceVDC.maxMemory);
+   				  self.serviceVO().serviceVDC.maxDiskNum(data.serviceVDC.maxDiskNum);
+   				  self.serviceVO().serviceVDC.maxStorager(data.serviceVDC.maxStorager);
+   				  self.serviceVO().serviceVDC.maxIpNum(data.serviceVDC.maxIpNum);
+   				  self.serviceVO().serviceVDC.maxVPC(data.serviceVDC.maxVPC);
+   				  self.serviceVO().serviceVDC.maxRouterNum(data.serviceVDC.maxRouterNum);
+   				  self.serviceVO().serviceVDC.maxObjStorageNum(data.serviceVDC.maxObjStorageNum);
+   				  self.serviceVO().serviceVDC.maxFireWallNum(data.serviceVDC.maxFireWallNum);
+   				  self.serviceVO().serviceVDC.maxSSHNum(data.serviceVDC.maxSSHNum);
+   				  self.serviceVO().serviceVDC.maxLoadBalanceNum(data.serviceVDC.maxLoadBalanceNum);
+   				  self.serviceVO().serviceVDC.maxSecurityGroupNum(data.serviceVDC.maxSecurityGroupNum);
+   				  self.serviceVO().serviceVDC.maxVpnNum(data.serviceVDC.maxVpnNum);
        		  }else{
        			  //初始化AZ数据
        			  getAzsByUser(serviceViewModel,false);
@@ -1039,71 +1054,68 @@
            			  loadDiskType();
            			  self.diskTypeCheck(data.serviceDisk.diskType);
            		  }else if(data.productId == "VM"){//虚拟机
-           			  loadVirtualPlatform();//获取虚拟化平台数据
-                   	  loadVmCpu(false);//获取虚拟机CPU
-                   	  loadVmMemory(false);//获取虚拟机内存
-                   	  
-                   	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
-                   	  //CPU赋值
-                   	  var vmCpu = data.serviceVm.cpu;
-                   	  if(vmCpu.indexOf(",") != -1){
-               			  self.cpuCheckList(vmCpu.split(","));
-               		  }else{
-               			  self.cpuCheckList.push(vmCpu);
-               		  }
-                   	  //memory赋值
-                   	  var vmMemory = data.serviceVm.memory;
-                   	  if(vmMemory.indexOf(",") != -1){
-               			  self.memoryCheckList(vmMemory.split(","));
-               		  }else{
-               			  self.memoryCheckList.push(vmMemory);
-               		  }
-                   	 /*  //当修改时清除已选择的可用分区和操作系统类型数据
-                   	  if(viewModel.azUuidList().length > 0){
-                			 viewModel.azUuidList.removeAll();
-                		  }
-                   	  if(viewModel.osTypeCheckList().length > 0){
-                  			 viewModel.osTypeCheckList.removeAll();
-                  		  }*/
-                   	  //操作系统类型赋值
-                   	  var vmOsType = data.serviceVm.osType;
-                   	   if(vmOsType.indexOf(",") != -1){
-               			  self.osTypeCheckList(vmOsType.split(","));
-               		  }else{
-               			  self.osTypeCheckList.push(vmOsType);
-               		  } 
-                   	  //可用分区赋值
-                   	  var vmAz = data.serviceVm.azUuid;
-                   	  if(vmAz.indexOf(",") != -1){
-               			  self.azUuidList(vmAz.split(","));
-               		  }else{
-               			  self.azUuidList.push(vmAz);
-               		  }
-               		  //操作系统版本列表赋值
-               		  self.osVersionList.params({
-                     		  azUuid: vmAz,
-                     		  osTypes: vmOsType
-                     	  });
-                      var vmOsVersion = data.serviceVm.osVersion;
+           			  loadVirtualPlatform(function(){
+						  loadVmCpu(false);//获取虚拟机CPU
+                     	  loadVmMemory(false);//获取虚拟机内存
+                     	  
+                     	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
+                     	  //初始化操作系统
+                     	  loadVmOsType(true);
+                    	  //初始化可用分区数据
+               	      	  loadVmAzs(true);
+                     	  //CPU赋值
+                     	  var vmCpu = data.serviceVm.cpu;
+                     	  if(vmCpu.indexOf(",") != -1){
+                 			  self.cpuCheckList(vmCpu.split(","));
+                 		  }else{
+                 			  self.cpuCheckList.push(vmCpu);
+                 		  }
+                     	  //memory赋值
+                     	  var vmMemory = data.serviceVm.memory;
+                     	  if(vmMemory.indexOf(",") != -1){
+                 			  self.memoryCheckList(vmMemory.split(","));
+                 		  }else{
+                 			  self.memoryCheckList.push(vmMemory);
+                 		  }
+                     	  //操作系统类型赋值
+                     	  var vmOsType = data.serviceVm.osType;
+                     	   if(vmOsType.indexOf(",") != -1){
+                 			  self.osTypeCheckList(vmOsType.split(","));
+                 		  }else{
+                 			  self.osTypeCheckList.push(vmOsType);
+                 		  } 
+                     	  //可用分区赋值
+                     	  var vmAz = data.serviceVm.azUuid;
+                     	  if(vmAz.indexOf(",") != -1){
+                 			  self.azUuidList(vmAz.split(","));
+                 		  }else{
+                 			  self.azUuidList.push(vmAz);
+                 		  }
+                       	
+                          var vmOsVersion = data.serviceVm.osVersion;
 
-   	                  if(vmOsVersion.indexOf(",") != -1){
-   	                	  self.vmOsVersionList(vmOsVersion.split(","));
-   	          		  }else{
-   	          			  self.vmOsVersionList.push(vmOsVersion);
-   	          		  }
-   	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
-   	                  if(self.osType_chosen().length > 0){
-   	                	  self.osType_chosen.removeAll();
-   	                  }
-                   	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
-                   		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
-                   			  for(var n = 0; n < self.vmOsVersionList().length; n++){
-                   				  if(self.osVersionList.pagedRows()[m].imageUuid == self.vmOsVersionList()[n]){
-                   					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
-                   				  }
-                   			  }
-                   		  }
-                   	  }
+     	                  if(vmOsVersion.indexOf(",") != -1){
+     	                	  self.vmOsVersionList(vmOsVersion.split(","));
+     	          		  }else{
+     	          			  self.vmOsVersionList.push(vmOsVersion);
+     	          		  }
+     	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
+     	                  if(self.osType_chosen().length > 0){
+     	                	  self.osType_chosen.removeAll();
+     	                  }
+     	                  //操作系统版本列表赋值
+                 		 self.loadOsVersionList(vmAz, data.serviceVm.virtualName, vmOsType, function(){
+                 			if(self.osVersionList.length > 0 && self.vmOsVersionList().length > 0){
+                       		  for(var m = 0; m < self.osVersionList.length; m++){
+                       			  for(var n = 0; n < self.vmOsVersionList().length; n++){
+                       				  if(self.osVersionList[m].imageUuid == self.vmOsVersionList()[n]){
+                       					  self.osType_chosen.push(self.osVersionList[m]);
+                       				  }
+                       			  }
+                       		  }
+                       	  }
+                 		 });
+           			  });//获取虚拟化平台数据
            		  }else if(data.productId == "PUBLICIP"){//公网IP
            			  //公网IP列表赋值
            			  self.ip_chosen(data.serviceIpRef);

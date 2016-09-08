@@ -58,8 +58,6 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
     var selectMemberId = [];
     var usersArr = new Array();
     //给候选人赋值
-    console.log(allUsers)
-    console.log($scope.assignment)
     if(allUsers !== undefined){    	
     	for(var j = 0;j < assignUser.length;j++){
     		for(var i = 0;i < allUsers.length;i++){
@@ -169,6 +167,10 @@ var KisBpmAssignmentPopupCtrl = [ '$scope','$modal', function($scope,$modal) {
         $scope.property.value.assignment = $scope.assignment;
         
         $scope.updatePropertyInModel($scope.property);
+        /*if($scope.assignment.assignee == ""){
+        	alert("请选择默认办理人！");
+        	return;
+        }*/
         $scope.close();
     };
 

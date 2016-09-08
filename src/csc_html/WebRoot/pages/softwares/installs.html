@@ -157,7 +157,7 @@
 			</div>
 			<div class='modal-footer'>
 				<input type="button" name="commit" value="确定安装"
-					class="btn btn-default btn-primary" data-bind="click: confirmInstall" />
+					class="btn btn-default btn-primary" data-bind="click: confirmInstall, enable: installBtnEnable" />
 				<button name="button" type="submit"
 					class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
 			</div>
@@ -195,10 +195,10 @@
 										</label>
 									</div>
 								</th>
-								<th width="24%">云主机名称</th>
-								<th width="20%">云主机IP</th>
+								<th width="23%">云主机名称</th>
+								<th width="22%">云主机IP</th>
 								<th width="24%">所属业务系统</th>
-								<th width="24%">所属业务域</th>
+								<th width="23%">所属业务域</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -365,6 +365,9 @@
 					this.isInstallVM = ko.observable(false);
 					this.isAttr = ko.observable(false);
 					this.isEditAttr = ko.observable(false);
+					
+					/** 安装按钮可操作状态 **/
+					this.installBtnEnable = ko.observable(true);
 
 					/** 安装数据对象 **/
 					this.installVO = ko.observable({
@@ -636,11 +639,12 @@
 					
 					/** 提交执行安装信息 **/
 					this.confirmInstall = function () {
-						
 						if (self.toInstallTable().length == 0) {
 							systemMsg.alert('没有指定目标云主机');
 							return;
 						}
+						
+						self.installBtnEnable(false);
 						
 						$.each(self.toInstallTable(), function (i, val) {
 							var installAttrs = [];
@@ -672,10 +676,12 @@
 						$.INSTALL.installSoft(self.installVO(), function(data) {
 							self.isInstall(false);
 							setTimeout(function () {
+								self.installBtnEnable(true);
 								window.location.href = '#pages/softwares/logs';
 							}, 1000);
 						}, function(XMLHttpRequest, textStatus, errorThrown) {
 					    	self.installVO().vms.splice(0, self.installVO().vms.length);
+					    	self.installBtnEnable(true);
 					    });
 					};
 					
