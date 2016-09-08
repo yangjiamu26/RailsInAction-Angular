@@ -1,3 +1,5 @@
+'use strict'
+
 var Storage = window.localStorage;
 var CVM_PAD = {};
 var USER_INFO = {};
@@ -5,7 +7,7 @@ var USER_INFO = {};
 $.ajaxSetup({
   cache: false
 })
-PAGE_SIZE = 12;
+var PAGE_SIZE = 12;
 
 var $$ = Dom7;
 var myApp = new Framework7({
@@ -53,9 +55,6 @@ $$(document).on('ajaxComplete', function () {
 
 myApp.showAssisTime = true;
 $(function(){
-  $(document).bind('click',function(event){
-    alert(event.toElement);
-  })
 
   var infos = eval('(' + Storage.getItem('userInfo') + ')');
   if(infos&&infos.token&&infos.tokenKey){

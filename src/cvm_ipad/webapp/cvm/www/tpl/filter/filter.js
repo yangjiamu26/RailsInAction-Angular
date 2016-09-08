@@ -9,9 +9,9 @@ myApp.onPageInit("indexFilter-business", function(page) {
     };
     this.getSelectedBus = function(id){
       var name;
-      for(var i=0;i<this.busdomain.list().length;i++){
-        if(this.busdomain.list()[i].id == id){
-          name = this.busdomain.list()[i].name;
+      for(var i=0;i<self.busdomain.list().length;i++){
+        if(self.busdomain.list()[i].id == id){
+          name = self.busdomain.list()[i].name;
           break;
         }
       }
