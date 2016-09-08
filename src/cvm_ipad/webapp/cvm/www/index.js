@@ -16,7 +16,6 @@ var myApp = new Framework7({
   cache: false,
   cacheDuration: 0,//1000 * 60 * 1,
   cacheIgnoreGetParameters: true,
-  fastClicks:false,
   allowDuplicateUrls: true,
   pushState: false,
   modalButtonOk:"确定",
