@@ -43,15 +43,19 @@
 			createLoadBalancer:function(param, callback, errorCallback){
 				 csc.rest.post('api/v5.0.0/loadBalancers', param, function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+	   		        	errorCallback(data);
+	   		        }); 
 			},
 			/**
 			 * 修改负载均衡器
 			 *  @param uuid 负载均衡器 uuid
 			 */
-			editLoadBalancer:function(uuid, params, callback){
+			editLoadBalancer:function(uuid, params, callback, errorCallback){
 				csc.rest.put('api/v5.0.0/loadBalancers/'+uuid, function(data){
 					 callback(data)
+   		        }, function(data){
+   		        	errorCallback(data);
    		        })
 			},
 			/**
@@ -81,15 +85,19 @@
 			createLoadBalancerMember:function(param, callback, errorCallback){
 				 csc.rest.post('api/v5.0.0/loadBalancerMembers', param, function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+	   		        	errorCallback(data);
+	   		        }); 
 			},
 			/**
 			 * 修改负载均衡器
 			 *  @param uuid 负载均衡器 uuid
 			 */
-			editLoadBalancerMember:function(uuid, params, callback){
+			editLoadBalancerMember:function(uuid, params, callback, errorCallback){
 				csc.rest.put('api/v5.0.0/loadBalancerMembers/'+uuid, params, function(data){
 					 callback(data)
+   		        }, function(data){
+   		        	errorCallback(data);
    		        })
 			},
 			/**
@@ -121,15 +129,19 @@
 			createLoadBalancerMonitor:function(param, callback, errorCallback){
 				 csc.rest.post('api/v5.0.0/loadBalancerMonitors', param, function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+	   		        	errorCallback(data);
+	   		        }); 
 			},
 			/**
 			 * 修改负载均衡器监控
 			 *  @param uuid 负载均衡器 uuid
 			 */
-			editLoadBalancerMonitor:function(uuid, params, callback){
+			editLoadBalancerMonitor:function(uuid, params, callback, errorCallback){
 				csc.rest.put('api/v5.0.0/loadBalancerMonitors/'+uuid, params, function(data){
 					 callback(data)
+   		        }, function(data){
+   		        	errorCallback(data);
    		        })
 			},
 			/**
@@ -150,16 +162,20 @@
  			getLoadBalancerVips:function(param,callback,errorCallback){
  				 var param = csc.util.httpQueryParamConvert(param);
  				 csc.rest.get('api/v5.0.0/loadBalancerVips?'+param, function(data){
- 					     callback(data);
- 	    		    }); 
+ 					   callback(data);
+ 	    		 }); 
  			},
  			/**
  			 * 获取指定负载均衡器VIP信息
  			 * @param param  查询条件
  			 */
  			getLoadBalancerVip: function(uuid,callback,errorCallback){
- 				 csc.rest.get('api/v5.0.0/loadBalancerVips/' + uuid, function(data){
-				     callback(data);
+ 				csc.rest.get('api/v5.0.0/loadBalancerVips/' + uuid, function(data){
+ 					if(data){
+ 						data.name_ = csc.util.trimName(data.name, 16);
+ 						data.cookieName_ = csc.util.trimName(data.cookieName, 16);
+ 					}
+				    callback(data);
     		    }); 
  			},
 			/**
@@ -169,15 +185,19 @@
 			createLoadBalancerVip:function(param, callback, errorCallback){
 				 csc.rest.post('api/v5.0.0/loadBalancerVips', param, function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+	   		        	errorCallback(data);
+	   		        }); 
 			},
 			/**
 			 * 修改负载均衡器VIP
 			 *  @param uuid 负载均衡器 uuid
 			 */
-			editLoadBalancerVip:function(uuid, params, callback){
+			editLoadBalancerVip:function(uuid, params, callback, errorCallback){
 				csc.rest.put('api/v5.0.0/loadBalancerVips/'+uuid, params, function(data){
 					 callback(data)
+   		        }, function(data){
+   		        	errorCallback(data);
    		        })
 			},
 			/**
@@ -188,9 +208,6 @@
 				csc.rest.del('api/v5.0.0/loadBalancerVips/' + uuid,function(data){
 					 callback(data)
    		        })
-			},
-			
-			getMemberVms: [{"vmName":"qmTest1", "address": "20.20.20.115"}, 
-					        {"vmName":"qmTest2", "address": "20.20.20.116"}]
+			}
 	};
 }(window.jQuery);

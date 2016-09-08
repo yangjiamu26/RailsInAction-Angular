@@ -18,7 +18,7 @@
 			<div class="bg-white">
 				<ul class="nav nav-tabs" role="tablist">
 					<li role="presentation" class="active"><a href="#tab1"
-						aria-controls="home" role="tab" data-toggle="tab">组织架构</a></li>
+						aria-controls="home" role="tab" data-toggle="tab">组织目录</a></li>
 				</ul>
 <!-- 				<div class="tab-content">
 					<div role="tabpanel" class="tab-pane active" id="tab1">
@@ -74,7 +74,8 @@
 									</div>
 								</td>
 								<td data-bind="text: $row.name"></td>
-								<td><span class="label label-success">有效</span></td>
+								<td><span class="label" data-bind="text: $row.stateName, css: {'label-danger':!$row.state,'label-success':$row.state}"></span></td>
+								<!-- <td><span class="label label-success">有效</span></td> -->
 							</tr>
 							<!-- /ko -->
 						</tbody>
@@ -144,7 +145,8 @@
 									</div>
 								</td>
 								<td data-bind="text: $row.name"></td>
-								<td><span class="label label-success">有效</span></td>
+								<td><span class="label" data-bind="text: $row.stateName, css: {'label-danger':!$row.state,'label-success':$row.state}"></span></td>
+								<!-- <td><span class="label label-success">有效</span></td> -->
 							</tr>
 							<!-- /ko -->
 						</tbody>
@@ -176,10 +178,9 @@
         var roleId = args.roleId;
 		function ViewModel() {
 			var start = 0;
-			var state = 0;
 			var size = 0;
+			var userType = '0';
 			var orgId = '';
-			var userType = '';
 			var self = this;
 			var setting = {
 				view : {
@@ -204,12 +205,10 @@
 			    		nameLike : this.searchParamL().name,
 			    		systemId : "csc5.0",
 			    		start : start,
-			    		state : state,
 			    		size : size,
 			    		userType : userType
 			    		};
 				  self.loadTableLeft();
-				//alert(this.searchParamL().name)
 			}
 			this.searchParamR = ko.observable({
 				name: ""
@@ -224,7 +223,6 @@
 			    		nameLike : this.searchParamR().name,
 			    		systemId : "csc5.0",
 			    		start : start,
-			    		state : state,
 			    		size : size,
 			    		userType : userType
 			    		};
@@ -232,8 +230,8 @@
 				//alert(this.searchParamR().name)
 			}
 			
-			this.searchParamLeft = {start:0, size:0, roleId: roleId, systemId: "csc5.0", state:0}
-			this.searchParamRight = {start:0, size:0, roleId: roleId, systemId: "csc5.0", state:0};
+			this.searchParamLeft = {start:0, size:0, roleId: roleId, systemId: "csc5.0", userType : userType}
+			this.searchParamRight = {start:0, size:0, roleId: roleId, systemId: "csc5.0", userType : userType};
 
 			function search(event, treeId, treeNode) {
 				if(treeNode.code == '0'){
@@ -242,7 +240,6 @@
 				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
@@ -251,7 +248,6 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -261,7 +257,6 @@
 				    		roleId : roleId,
 				    		systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 				    		userType : treeNode.userType
 				    		};
@@ -270,7 +265,6 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -280,7 +274,6 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 							};
@@ -289,7 +282,6 @@
 							roleId : roleId,
 							systemId : "csc5.0",
 				    		start : start,
-				    		state : state,
 				    		size : size,
 							userType : treeNode.userType
 						};
@@ -309,12 +301,8 @@
 			
 			this.addRoleUsers = function() {
 				var param = {};
-				var leftUsers = self.tableLeft.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&systemId='+userType+'&state='+state, function(data) {
-						var rightUsers = _.pluck(data.results, 'id');
-						var users = rightUsers.concat(leftUsers);
-						
-						param.id = users.join(",");
+				var leftUsers = self.tableLeft.chosenItems().join(",");
+						param.id = leftUsers;
 						param.name = args.name;
 						param.userType = userType;
 					    csc.rest.put('api/v5.0.0/uap/'+roleId , param,
@@ -323,24 +311,21 @@
 									    	self.loadTableRight();		 
 					    				  
 										});
-						});  
+				/* 		});   */ 
 			};
 			this.removeRoleUsers = function() {
 				var param = {};
-				var leftUsers = self.tableRight.chosenItems();
-					csc.rest.get('api/v5.0.0/uap/users?roleId='+roleId+'&userType='+userType+'&state='+state,function(data) {
-					    var rightUsers = _.pluck(data.results, 'id');
-					    var users = _.difference(rightUsers, leftUsers); 
-					    param.id = users.join(",");
+				var leftUsers = self.tableRight.chosenItems().join(",");
+					    param.id = leftUsers;
 					    param.name = args.name;
 					    param.userType = userType;
 					    //去除rightUsers中包含的leftUsers用户
-						csc.rest.put('api/v5.0.0/uap/'+roleId, param,
+						csc.rest.put('api/v5.0.0/uap/delete/'+roleId, param,
 					       function() {
 							  self.loadTableLeft();
 							  self.loadTableRight();
 						});
-					}); 
+				/* 	});  */
 			}
 			
 			function getCharge(check,data) {
@@ -369,26 +354,26 @@
 			this.tableLeft = new DataTable([], {enabled: false,perPage:8});
             this.loadTableLeft = function(){
             	var params = this.searchParamLeft;
-            	csc.rest.get('/csc/api/v5.0.0/uap/roleUsers?start='+params.start+'&size='+params.size+'&state='+params.state
+            	csc.rest.get('/csc/api/v5.0.0/uap/roleUsers?start='+params.start+'&size='+params.size
             			+(params.roleId ? '&roleId='+ params.roleId:'')
             			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
             			+(params.orgId ? '&orgId='+params.orgId:'')
             			+(params.systemId ? '&systemId='+params.systemId:'')
             			+(params.userType ? '&userType='+params.userType:''), function(data){
-            		self.tableLeft.rows(data.results);
+            		self.tableLeft.replaceRows(data.results);
             	})
             }
 			//初始化已分配表格
 			this.tableRight = new DataTable([], {enabled: false,perPage:8});
 			this.loadTableRight = function(){
 				var params = this.searchParamRight;
-				csc.rest.get('/csc/api/v5.0.0/uap/users?start='+params.start+'&size='+params.size+'&state='+params.state
+				csc.rest.get('/csc/api/v5.0.0/uap/users?start='+params.start+'&size='+params.size
             			+(params.roleId ? '&roleId='+ params.roleId:'')
             			+(params.nameLike ? '&nameLike='+ params.nameLike:'')
             			+(params.orgId ? '&orgId='+params.orgId:'')
             			+(params.systemId ? '&systemId='+params.systemId:'')
             			+(params.userType ? '&userType='+params.userType:''), function(data){
-            		self.tableRight.rows(data.results);
+            		self.tableRight.replaceRows(data.results);
             	})
             }
 			this.loadTableLeft();

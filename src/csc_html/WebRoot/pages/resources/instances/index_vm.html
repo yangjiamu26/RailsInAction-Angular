@@ -105,9 +105,9 @@
                         <li data-bind="if: state == 'SHUTOFF' && isValidate == true,check_action:'cs_PowerOn'"><a data-bind="click: $root.startOne">开机</a></li>
                         <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_PowerOff'"><a data-bind="click: $root.shutoffOne">关机</a></li>
                         <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_Reboot'"><a data-bind="click: $root.restartOne">重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_PoweReboot'"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
-                        <li data-bind="if: state == 'ACTIVE' && isValidate == true,check_action:'cs_Wait'"><a data-bind="click: $root.suspend">挂起</a></li>
-                        <li data-bind="if: state == 'SUSPENDED' && isValidate == true,check_action:'cs_Recovery'"><a data-bind="click: $root.resume">恢复</a></li>
+                        <li data-bind="if: virtualHypervisor != 'PowerVM' && virtualHypervisor != 'VMware' && state == 'ACTIVE' && isValidate == true,check_action:'cs_PoweReboot'"><a data-bind="click: $root.restartForceOne">强制重启</a></li>
+                        <li data-bind="if: virtualHypervisor != 'PowerVM' && state == 'ACTIVE' && isValidate == true,check_action:'cs_Wait'"><a data-bind="click: $root.suspend">挂起</a></li>
+                        <li data-bind="if: virtualHypervisor != 'PowerVM' && state == 'SUSPENDED' && isValidate == true,check_action:'cs_Recovery'"><a data-bind="click: $root.resume">恢复</a></li>
                         <li data-bind="if: isValidate == true,check_action:'cs_Stop'"><a data-bind="click: $root.validate">终止</a></li>
                         <li data-bind="check_action:'cs_Delete',if: (state == 'SHUTOFF' || state == 'ACTIVE' || state == 'SUSPENDED') && isValidate == false"><a data-bind="click: $root.removeOne">删除</a></li>
                     </ul>
@@ -163,7 +163,7 @@
                     <div class="form-group">
                       <label class="col-xs-1 control-label no-padder-h">云主机名称</label>
                       <div class="col-xs-2">
-                        <input type="text" class="form-control" data-bind="value: currentVO().name" placeholder="请输入名称"/>
+                        <input type="text" maxlength="32" class="form-control" data-bind="value: currentVO().name" placeholder="请输入名称"/>
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -181,6 +181,31 @@
                       </div>
                       <div class="col-xs-1">
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                     <label class="col-xs-1 control-label no-padder-h">镜像</label>
+                      <div class="col-xs-2">
+                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId',event: {change: $root.onchange_add_images}"></select>
+                      </div>
+                      <div class="col-xs-1">
+                        <span class="text-danger inline m-l-n m-t-sm">*</span>
+                      </div>
+                      <div id="add_vm_params_cnware_validate_msg" style="display:none;">
+                      	<label class="col-xs-1 control-label no-padder-h">最小内存（MB）</label>
+                        <div class="col-xs-2">
+                        	<input type="text" class="form-control" data-bind="value: chosenImageVO().minRam" disabled="disabled"/>
+                     	</div>
+                     	<div class="col-xs-1">
+                        	<span class="text-danger inline m-l-n m-t-sm"></span>
+                      	</div>
+                     	<label class="col-xs-1 control-label no-padder-h">最小存储（GB）</label>
+                        <div class="col-xs-2">
+                        	<input type="text" class="form-control" data-bind="value: chosenImageVO().minDisk" disabled="disabled"/>
+                     	</div>
+                     	<div class="col-xs-1">
+                        	<span class="text-danger inline m-l-n m-t-sm"></span>
+                      	</div>
                       </div>
                     </div>
                     <div class="form-group">
@@ -206,15 +231,6 @@
                         <span class="text-danger inline m-l-n m-t-sm">*</span>
                       </div>
                     </div>
-                    <div class="form-group">
-                     <label class="col-xs-1 control-label no-padder-h">镜像</label>
-                      <div class="col-xs-2">
-                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择镜像',value: currentVO().image, options: $root.add_images, optionsText: 'imageName', optionsValue: 'imageId',event: {change: $root.onchange_add_images}"></select>
-                      </div>
-                      <div class="col-xs-1">
-                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-                      </div>
-                    </div>
                     <div id="add_vm_params_cnware" style="display:none;">
                     	<div class="form-group">
 	                      <label class="col-xs-1 control-label no-padder-h">物理主机</label>
@@ -226,7 +242,7 @@
 	                      </div>
 	                      <label class="col-xs-1 control-label no-padder-h">存储池</label>
 	                      <div class="col-xs-2">
-	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择存储池',value: cnwareCurrentVO().storagePool, options: $root.add_storagePools_cn, optionsText: 'name', optionsValue: 'id',event: {change: $root.onchange_add_storagePools_cn}"></select>
+	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择存储池',value: cnwareCurrentVO().storagePool, options: $root.add_storagePools_cn, optionsText: 'name_text', optionsValue: 'id',event: {change: $root.onchange_add_storagePools_cn}"></select>
 	                      </div>
 	                      <div class="col-xs-1">
 	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -242,7 +258,7 @@
 	                      </div>
 	                      <label class="col-xs-1 control-label no-padder-h">IP</label>
 	                      <div class="col-xs-2">
-	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择IP',value: cnwareCurrentVO().ip, options: $root.add_ips_cn, optionsText: 'name', optionsValue: 'id'"></select>
+	                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择IP',value: cnwareCurrentVO().ip, options: $root.add_ips_cn, optionsText: 'ip', optionsValue: 'ip'"></select>
 	                      </div>
 	                      <div class="col-xs-1">
 	                        <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -275,24 +291,15 @@
 	                      </div>
 	                    </div>
 	                    <div class="form-group">
-	                      <div id="resource_instance_vm_add_ssh_switch">
-		                      <label class="col-xs-1 control-label no-padder-h">绑定密钥</label>
-		                      <div class="col-xs-2">
-		                        <select class="form-control" data-bind="value: openstackCurrentVO().isBind, options: $root.add_isBinds, optionsText: 'text', optionsValue: 'option', event: {change: $root.onchange_add_isBind}">
-		                        </select>
-		                      </div>
-		                      <div class="col-xs-1">
-		                        <span class="text-danger inline m-l-n m-t-sm">*</span>
-		                      </div>
-	                      </div>
 	                      <div id="resource_instance_vm_add_ssh">
 		                      <label class="col-xs-1 control-label no-padder-h">选择密钥</label>
 		                      <div class="col-xs-2">
 		                        <select class="form-control input-sm" data-bind="optionsCaption: '请选择密钥',value: openstackCurrentVO().sshKey, options: $root.add_sshKeys, optionsText: 'name', optionsValue: 'uuid'"></select>
 		                      </div>
+		                      <div class="col-xs-1">
+		                        <span class="text-danger inline m-l-n m-t-sm"></span>
+		                      </div> 
 	                      </div>
-                    	</div>
-	                    <div class="form-group">
 	                      <label class="col-xs-1 control-label no-padder-h">管理员密码</label>
 	                      <div class="col-xs-2">
 	                        <input type="password" class="form-control" data-bind="value: $root.adminPass" placeholder="请输入密码">
@@ -334,7 +341,8 @@
                     </div>
                   </div>
                 </div>
-                <div class="panel panel-default">
+                
+                <div class="panel panel-default" id="create_vm_add_volume_page" style="display:none;">
                   <div class="panel-heading">
                     挂载云硬盘
                     <a href="#" class="pull-right" data-bind="click: $root.addAction">添加硬盘</a>
@@ -353,6 +361,36 @@
                           <td><input type="text" class="form-control input-sm" data-bind="value: volumeName" maxlength="32"/></td>
                           <td><input type="text" class="form-control input-sm" data-bind="value: volumeSize"/></td>
                           <td><a data-bind="click:$root.delAction">删除</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <div class="panel panel-default" id="create_vm_add_volume_page_cnware" style="display:none;">
+                  <div class="panel-heading">
+                    挂载云硬盘
+                    <a href="#" class="pull-right" data-bind="click: $root.addAction_cnware">添加硬盘</a>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-striped table-hover">
+                      <thead>
+                        <tr>
+                          <th >云硬盘名称*</th>
+                          <th >存储大小(GB)*</th>
+                          <th >存储池*</th>
+                          <th >操作</th>
+                        </tr>
+                      </thead>
+                      <tbody data-bind="foreach: diskItems_cnware">
+                        <tr>
+                          <td><input type="text" class="form-control input-sm" data-bind="value: volumeName" maxlength="32"/></td>
+                          <td><input type="text" class="form-control input-sm" data-bind="value: volumeSize"/></td>
+                          <td >
+                          	<select class="form-control" data-bind="optionsCaption: '请选择存储池',value: storagePoolId,options: volumeTarget,optionsText: 'name_text', optionsValue: 'id'">
+	                        </select>
+                          </td>
+                          <td><a data-bind="click:$root.delAction_cnware">删除</a></td>
                         </tr>
                       </tbody>
                     </table>
@@ -733,21 +771,7 @@
       this.addvm = function(){
     	 //初始化公共参数
     	self.currentVO({
-  			name: ko.observable().extend({required: true,cscNameRule:true,
-				 validation: {
-		                validator: function (val, someOtherVal) {
-		                	if (val != null && val.length <= 32)
-		                    {
-		                        return true;
-		                    }
-		                    else
-		                    {
-		                        return false;
-		                    }
-		                },
-		                message: '输入的字符数不能超过 32 个'
-		            }
-			}),
+  			name: ko.observable().extend({required: true,cscNameRule:true}),
   			vdc: ko.observable().extend({required: true}),
   			partition: ko.observable().extend({required: true}),
   			image:  ko.observable().extend({required: true}),
@@ -755,10 +779,36 @@
 				min: { params: 1, message: "请输入大于1的整数" }
   			}),
   			memory: ko.observable().extend({required: true,
-				min: { params: 1, message: "请输入大于1的整数" }
+				min: { params: 1, message: "请输入大于1的整数" },
+				validation: {
+	                validator: function (val, someOtherVal) {
+	                	if (cloudPlatform != "CNware" || (val != null && parseInt(val) >= parseInt(self.chosenImageVO().minRam())))
+	                    {
+	                        return true;
+	                    }
+	                    else
+	                    {
+	                        return false;
+	                    }
+	                },
+	                message: '不能小于最小内存值'
+	            }
   			}),
   			storage: ko.observable().extend({required: true,
-				min: { params: 1, message: "请输入大于1的整数" }
+				min: { params: 1, message: "请输入大于1的整数" },
+				validation: {
+	                validator: function (val, someOtherVal) {
+	                	if (cloudPlatform != "CNware" || (val != null && parseInt(val) >= parseInt(self.chosenImageVO().minDisk())))
+	                    {
+	                        return true;
+	                    }
+	                    else
+	                    {
+	                        return false;
+	                    }
+	                },
+	                message: '不能小于最小存储值'
+	            }
   			})
   	  	});
     	 
@@ -767,7 +817,6 @@
 			vpc: ko.observable().extend({required: true}),
 			network: ko.observable().extend({required: true}),
 			ip: ko.observable(),
-			isBind: ko.observable(),
 			sshKey: ko.observable(),
 			adminPass: ko.observable(),
 			adminPassReinput: ko.observable()
@@ -776,9 +825,23 @@
     	//初始化CNware 参数
     	self.cnwareCurrentVO = ko.validatedObservable({
     		host: ko.observable().extend({required: true}),
-    	    storagePool: ko.observable().extend({required: true}),
+    	    storagePool: ko.observable().extend({required: true,
+    	    validation: {
+                validator: function (val, someOtherVal) {
+                	self.choseStoragePool();
+                	if (chosenStoragePool.availStorage >= parseInt(self.currentVO().storage()))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                },
+                message: '存储池剩余空间不满足要求'
+            }}),
     	    ipPool: ko.observable().extend(),
-    	    ip: ko.observable().extend()
+    	    ip: ko.observable().extend({required: true})
       	});
     	
     	//初始化自定义参数
@@ -815,7 +878,7 @@
     		  if(data.consoleUrl){
     			  var consoleUrl = data.consoleUrl;
         		  //模拟点击
-        		  $("#resource_instance_index_vm_console").html("<a id='resource_instance_index_vm_console_a' href='"+consoleUrl+"' target='_blank'></a>");
+        		  $("#resource_instance_index_vm_console").html("<a id='resource_instance_index_vm_console_a' title='xxxx'  href='"+consoleUrl+"' target='_blank'></a>");
           		  $("#resource_instance_index_vm_console_a")[0].click();
     		  }
 		  });
@@ -1040,32 +1103,44 @@
       this.isAddvm = ko.observable(false);
       //公共参数
       this.currentVO = ko.validatedObservable({
-    	  	name: ko.observable().extend({required: true,cscNameRule:true,
-				 validation: {
-		                validator: function (val, someOtherVal) {
-		                	if (val != null && val.length <= 32)
-		                    {
-		                        return true;
-		                    }
-		                    else
-		                    {
-		                        return false;
-		                    }
-		                },
-		                message: '输入的字符数不能超过 32 个'
-		            }
-			}),
+    	  	name: ko.observable().extend({required: true,cscNameRule:true}),
 			vdc: ko.observable().extend({required: true}),
 			partition: ko.observable().extend({required: true}),
 			image:  ko.observable().extend({required: true}),
 			vcpu: ko.observable().extend({required: true,
-				min: { params: 1, message: "请输入大于1的整数" }
+				min: { params: 1, message: "请输入大于1的整数" },
 			}),
 			memory: ko.observable().extend({required: true,
-				min: { params: 1, message: "请输入大于1的整数" }
+				min: { params: 1, message: "请输入大于1的整数" },
+				validation: {
+	                validator: function (val, someOtherVal) {
+	                	if (cloudPlatform != "CNware" || (val != null && parseInt(val) >= parseInt(self.chosenImageVO().minRam())))
+	                    {
+	                        return true;
+	                    }
+	                    else
+	                    {
+	                        return false;
+	                    }
+	                },
+	                message: '不能小于最小内存值'
+	            }
 			}),
 			storage: ko.observable().extend({required: true,
-				min: { params: 1, message: "请输入大于1的整数" }
+				min: { params: 1, message: "请输入大于1的整数" },
+				validation: {
+	                validator: function (val, someOtherVal) {
+	                	if (cloudPlatform != "CNware" || (val != null && parseInt(val) >= parseInt(self.chosenImageVO().minDisk())))
+	                    {
+	                        return true;
+	                    }
+	                    else
+	                    {
+	                        return false;
+	                    }
+	                },
+	                message: '不能小于最小存储值'
+	            }
 			})
 	  });
       
@@ -1074,16 +1149,29 @@
 			vpc: ko.observable().extend({required: true}),
 			network: ko.observable().extend({required: true}),
 			ip: ko.observable(),
-			isBind: ko.observable(),
 			sshKey: ko.observable()
       });
       
       //CNware参数
       this.cnwareCurrentVO = ko.validatedObservable({
     	    host: ko.observable().extend({required: true}),
-    	    storagePool: ko.observable().extend({required: true}),
+    	    storagePool: ko.observable().extend({required: true,
+    	    		validation: {
+    	                validator: function (val, someOtherVal) {
+    	                	self.choseStoragePool();
+    	                	if (chosenStoragePool.availStorage >= parseInt(self.currentVO().storage()))
+    	                    {
+    	                        return true;
+    	                    }
+    	                    else
+    	                    {
+    	                        return false;
+    	                    }
+    	                },
+    	                message: '存储池剩余空间不满足要求'
+    	            }}),
     	    ipPool: ko.observable().extend(),
-    	    ip: ko.observable().extend()
+    	    ip: ko.observable().extend({required: true})
       });
       
       //自定义参数
@@ -1099,25 +1187,6 @@
 				} 
 		    })(this)
 	  }});
-      
-      //是否绑定
-      this.add_isBinds = ko.observableArray([]);
-      this.isBinds_def = function(){
-    	  var bindList = [];
-    	  bindList.push({text:"是",option:"YES"})
-    	  bindList.push({text:"否",option:"NO"});
-    	  self.add_isBinds(bindList);
-      }
-      this.isBinds_def();
-      
-      //是否绑定->SSH
-      this.onchange_add_isBind = function(){
-    	  if(this.openstackCurrentVO().isBind() == "YES"){
-    		  $("#resource_instance_vm_add_ssh").show();
-    	  }else{
-    		  $("#resource_instance_vm_add_ssh").hide();
-    	  }
-      }
       
       //VDC
       this.add_vdcs = ko.observableArray([]);
@@ -1149,16 +1218,22 @@
       this.onchange_add_partitions = function(){
     	  $("#add_vm_params_openstack").hide();
     	  $("#add_vm_params_cnware").hide();
+    	  $("#add_vm_params_cnware_validate_msg").hide();
+    	  
+    	  $("#create_vm_add_volume_page").hide();
+    	  $("#create_vm_add_volume_page_cnware").hide();
+    	  
     	  var azUuid = self.currentVO().partition();
     	  csc.rest.get('api/v5.0.0/azs/'+azUuid,function(azData){
     		  cloudPlatform = azData.cloudPlatform;
     		  //根据可用分区虚拟化平台不同展示不同参数
     		  if(cloudPlatform == "OpenStack"){
     			  $("#add_vm_params_openstack").show();
+    			  $("#create_vm_add_volume_page").show();
             	  self.add_vpcs_def();
         	  }else if(cloudPlatform == "CNware"){
         		  $("#add_vm_params_cnware").show();
-        		  self.add_ipPools_def_cn();
+            	  $("#add_vm_params_cnware_validate_msg").show();
         	  }
     	  });
     	  self.add_images_def();
@@ -1176,6 +1251,10 @@
       }
       
       var chosenImage = {};
+      this.chosenImageVO = ko.observable({
+    	  minDisk: ko.observable(),
+    	  minRam: ko.observable()
+      });
       //镜像-> SSH + 物理主机
       this.onchange_add_images = function(){
     	  var imageId = self.currentVO().image();
@@ -1193,8 +1272,8 @@
     		  self.currentVO().vcpu(chosenImage.vcpu);
 	    	  self.currentVO().memory(chosenImage.memory);
 	    	  self.currentVO().storage(chosenImage.minDisk);
-/* 	    	  console.log(chosenImage);
-	    	  return; */
+	    	  self.chosenImageVO().minDisk(chosenImage.minDisk);
+	    	  self.chosenImageVO().minRam(chosenImage.minRam);
     		  self.add_hosts_def_cn();
     	  }
       }
@@ -1206,10 +1285,8 @@
     	  var chosenImageOs = chosenImage.opSysType;
     	  if("windows" == chosenImageOs){
     		  //windows类型的操作系统对应镜像不用设置ssh密钥
-    		  $("#resource_instance_vm_add_ssh_switch").hide();
     		  $("#resource_instance_vm_add_ssh").hide();
     	  }else{
-    		  $("#resource_instance_vm_add_ssh_switch").show();
     		  $("#resource_instance_vm_add_ssh").show();
 	    	  csc.rest.get('api/v5.0.0/sshKeys?byCurrentUser=true&isValidate=true&azUuid='+azUuid,function(data){
 	    		  self.add_sshKeys(data.results);
@@ -1235,20 +1312,28 @@
     	  }
       }
       
-      //物理主机 -> 存储池
+      //物理主机 -> 存储池 + IP池
       this.onchange_add_hosts_cn = function(){
     	  self.add_storagePools_def_cn();
+		  self.add_ipPools_def_cn();
       }
       
+      var storagePools = [];
+      var chosenStoragePool = {};
       //存储池
       this.add_storagePools_cn = ko.observableArray([]);
       this.add_storagePools_def_cn = function(){
     	  var hostId = self.cnwareCurrentVO().host();
     	  if(csc.util.isNotNull(hostId)){
+		      //根据所选物理主机获取可使用的目标存储池
 	    	  var azUuid = self.currentVO().partition();
 	    	  csc.rest.get('api/v5.0.0/storagePools/targetStoragePools?azUuid='+azUuid+'&hostId='+hostId,function(storagePoolData){
-		    	  //根据所选物理主机获取可使用的目标存储池
+	    		  for(var i=0;i<storagePoolData.results.length;i++){
+	    			  storagePoolData.results[i].name_text = storagePoolData.results[i].name + "（剩余空间：" +  storagePoolData.results[i].availStorage + "GB）"
+	    		  }
 		    	  self.add_storagePools_cn(storagePoolData.results);
+		    	  storagePools = storagePoolData.results;
+		    	  $("#create_vm_add_volume_page_cnware").show();
 	    	  });
     		  
     	  }else{
@@ -1257,13 +1342,22 @@
       }
       this.onchange_add_storagePools_cn = function(){
       }
+      this.choseStoragePool = function(){
+    	  var storagePoolId = self.cnwareCurrentVO().storagePool();
+    		for(var i=0;i<storagePools.length;i++){
+        		if(storagePools[i].id == storagePoolId){
+        			  chosenStoragePool = storagePools[i];
+        		}
+    		}
+      }
       
       //IP池
       this.add_ipPools_cn = ko.observableArray([]);
       this.add_ipPools_def_cn = function(){
     	  var azUuid = self.currentVO().partition();
-    	  csc.rest.get("api/v5.0.0/ipPools?azUuid="+azUuid,function(ipPoolData){
-	    	  //根据可用分区获取IP池列表
+    	  var hostId = self.cnwareCurrentVO().host();
+	      //根据可用分区和物理主机获取IP池列表
+    	  csc.rest.get("api/v5.0.0/ipPools/getListByHostId?azUuid="+azUuid+"&hostId="+hostId,function(ipPoolData){
 	    	  self.add_ipPools_cn(ipPoolData.results);
     	  });
       }
@@ -1274,10 +1368,16 @@
       }
       
       //IP地址
+      var chosen_ips = [];
       this.add_ips_cn = ko.observableArray([]);
       this.add_ips_def_cn = function(){
-    	  //TODO 根据IP池获取IP列表
-    	  self.add_ips_cn([]);
+    	  //根据IP池获取IP列表
+    	  var azUuid = self.currentVO().partition();
+    	  var ipPoolId = self.cnwareCurrentVO().ipPool();
+    	  csc.rest.get('api/v5.0.0/ipPools/'+ipPoolId+'?azUuid='+azUuid,function(ipData){
+    		  chosen_ips = ipData.results;
+	    	  self.add_ips_cn(ipData.results);
+    	  });
       }
       
       //----------------------------CNware-END
@@ -1367,22 +1467,6 @@
 	    	     }
 	    	  }
 	    	  postBody.expiryTime = expiryTime;
-	    	  postBody.diskList = [];
-	    	  postBody.diskList = ko.toJS(self.diskItems());
-	    	  var isDiskPass = true;
-	    	  for(var i=0;i<postBody.diskList.length;i++){
-	    		  var name = postBody.diskList[i].volumeName.trim();
-	    		  var size = postBody.diskList[i].volumeSize.trim();
-	    		  if(csc.util.isNull(name) || csc.util.isNull(size)){
-	    			  isDiskPass = false;
-	    			  break;
-	    		  }
-	    	  }
-	    	  
-	    	  if(!isDiskPass){
-	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
-	    		  return;
-	    	  }
 	    	  csc.rest.post('api/v5.0.0/vms',postBody,function(data){
 			 		systemMsg.alert('创建云主机请求成功，任务ID：'+data.taskId+'！');
 			 		self.isAddvm(false);
@@ -1424,6 +1508,23 @@
     	    	  if(csc.util.isNotNull(self.adminPass())){
     				  postBody.adminPass = self.adminPass().trim();
     	    	  }
+    	    	  //挂载云硬盘
+    	    	  postBody.diskList = [];
+    	    	  postBody.diskList = ko.toJS(self.diskItems());
+    	    	  var isDiskPass = true;
+    	    	  for(var i=0;i<postBody.diskList.length;i++){
+    	    		  var name = postBody.diskList[i].volumeName.trim();
+    	    		  var size = postBody.diskList[i].volumeSize.trim();
+    	    		  if(csc.util.isNull(name) || csc.util.isNull(size)){
+    	    			  isDiskPass = false;
+    	    			  break;
+    	    		  }
+    	    	  }
+    	    	  
+    	    	  if(!isDiskPass){
+    	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
+    	    		  return;
+    	    	  }
     		      self.save(postBody);
     		  }
     	  }else if(cloudPlatform == "CNware"){
@@ -1436,11 +1537,42 @@
     	    	  var networkInfo = {};
     	    	  if(csc.util.isNotNull(self.cnwareCurrentVO().ip())){
     	    		  networkInfo.ip = self.cnwareCurrentVO().ip();
+    	    		  for(var i=0;i<chosen_ips.length;i++){
+    	    			  if(chosen_ips[i].ip == self.cnwareCurrentVO().ip()){
+		    	    		  networkInfo.gateway = chosen_ips[i].gateway;
+		    	    	      networkInfo.netmask = chosen_ips[i].netmask;
+    	    				  break;
+    	    			  }
+    	    		  }
     	    	  }
     	    	  networkList.push(networkInfo);
     	    	  postBody.networkList = networkList;
     	    	  //storagePool
     	    	  postBody.storagePoolPlatformId = self.cnwareCurrentVO().storagePool();
+    	    	  //挂载云硬盘
+    	    	  var disks = ko.toJS(self.diskItems_cnware());
+    	    	  var disksFinal = [];
+    	    	  //postBody.diskList = ko.toJS(self.diskItems_cnware());
+    	    	  var isDiskPass = true;
+    	    	  for(var i=0;i<disks.length;i++){
+    	    		  var name = disks[i].volumeName.trim();
+    	    		  var size = disks[i].volumeSize.trim();
+    	    		  var target = disks[i].storagePoolId;
+    	    		  if(csc.util.isNull(name) || csc.util.isNull(size) || csc.util.isNull(target)){
+    	    			  isDiskPass = false;
+    	    			  break;
+    	    		  }
+    	    		  var disk = {};
+    	    		  disk.volumeName = name;
+    	    		  disk.volumeSize = size;
+    	    		  disk.storagePoolPlatformId = target;
+    	    		  disksFinal.push(disk);
+    	    	  }
+    	    	  postBody.diskList = disksFinal;
+    	    	  if(!isDiskPass){
+    	    		  systemMsg.alert('云硬盘信息缺失，请检查！');
+    	    		  return;
+    	    	  }
     	    	  self.save(postBody);
     		  }
     	  }
@@ -1497,6 +1629,8 @@
       //------------------------------------------调整配置结束------------------------------
       
       //------------------------------------------云硬盘列表开始----------------------------
+      
+      //OpenStack
       this.diskItems = ko.observableArray();
       //增加一条数据
       function PerDisk(){
@@ -1511,6 +1645,25 @@
         //调用删除接口，成功后回调以下方法
         self.diskItems.remove(this);
       }
+      
+      // CNware
+      this.diskItems_cnware = ko.observableArray();
+      //增加一条数据
+      function PerDisk_cnware(){
+        this.volumeName = ko.observable("");
+        this.volumeSize = ko.observable("");
+        this.volumeTarget = ko.observableArray(storagePools);
+        this.storagePoolId = ko.observable("");
+      };
+      this.addAction_cnware = function(){
+    	  this.diskItems_cnware.push(new PerDisk_cnware());
+      }
+      //删除数据
+      this.delAction_cnware = function(){
+        //调用删除接口，成功后回调以下方法
+        self.diskItems_cnware.remove(this);
+      }
+      
       
       //------------------------------------------云硬盘列表结束----------------------------
       
@@ -1759,6 +1912,7 @@
 	  this.isValidateProcess = ko.observable(false);
       
       this.doValidateProcessPost = function(object){
+    	  //检查日期相同的，不发送请求直接关闭页面
     	  self.isValidateProcess(true);
 		  self.validateProcessVO().name(object.name);
 		  self.validateProcessVO().uuid(object.uuid);
@@ -1807,8 +1961,21 @@
       
       //申请
       this.validateProcessPost = function(){
+    	  var dataA = self.validateProcessVO().metaTime();
+    	  var dataB = self.validateProcessVO().targetValidateTime();
+    	  var bStrs = dataB.split('-');
+    	  var bYear = bStrs[0];
+    	  var bMonth = bStrs[1];
+    	  var bDay = bStrs[2];
+    	  if(bMonth[0] == '0'){
+    		  bMonth = bMonth[1];
+    	  }
+    	  if(bDay[0] == '0'){
+    		  bDay = bDay[1];
+    	  }
+    	  dataB = bYear + '-' + bMonth + '-' + bDay;
     	  //检查日期相同的，不发送请求直接关闭页面
-    	  if(self.validateProcessVO().metaTime() == self.validateProcessVO().targetValidateTime()){
+    	  if(dataA == dataB){
     		  self.isValidateProcess(false);
     		  return;
     	  }
@@ -1842,6 +2009,7 @@
       }
       //------------------------------------------有效期-流程结束--------------------------------
     }
-    ko.applyBindings(new ViewModel_VM(), $('#partition_vms')[0]);
+    window.viewModelVM = new ViewModel_VM();
+    ko.applyBindings(window.viewModelVM, $('#partition_vms')[0]);
   })
 </script>

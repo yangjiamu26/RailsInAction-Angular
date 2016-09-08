@@ -37,18 +37,21 @@ var MultiselectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope,
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl").html();
 						for(var i=0; i<users.length; i++){
-							users[i].nodeName = node.name;					
-							if(users[i].id != $scope.assignment.assignee){
-								var userId = '';
-								if(userType == 0){
-									userId = users[i].id;
-								}else{
-									userId = users[i].account;
+							//排除安全管理员和审计管理员
+							if(users[i].id != "audit" && users[i].id != "safety"){
+								users[i].nodeName = node.name;					
+								if(users[i].id != $scope.assignment.assignee){
+									var userId = '';
+									if(userType == 0){
+										userId = users[i].id;
+									}else{
+										userId = users[i].account;
+									}
+									result += "<tr><td><input type='checkbox' name='orgUserId' value='"+userId+"'"
+										+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
+										+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 								}
-								result += "<tr><td><input type='checkbox' name='orgUserId' value='"+userId+"'"
-									+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
-									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
-							}							
+							}
 						}
 						jQuery("#org_user_list").html(result);						
 					    if(selUserArr != null && selUserArr.length > 0){

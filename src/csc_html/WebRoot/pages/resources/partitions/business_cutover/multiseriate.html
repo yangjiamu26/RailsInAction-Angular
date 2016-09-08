@@ -74,7 +74,7 @@
 				</table>
 			</div>
 			<div class="row padder-v" style="text-align: center;">
-				<a class="btn btn-default btn-info">确定</a> 
+				<a class="btn btn-default btn-info" data-bind="click: saveCutOverList">确定</a> 
 				<a data-dismiss="modal" class="btn btn-default btn btn-default" href="#pages/resources/partitions/business_cutover/index">取消</a>
 			</div>
 		</div>
@@ -98,10 +98,10 @@
 						<div id="orderDetailedList" class="wrapper">
 							<table class="table table-striped" data-bind="with: diskTable">
 								<thead>
-									<th>云硬盘名称</th>
-									<th>总大小（GB）</th>
-									<th>服务产品</th>
-									<th>套餐</th>
+									<th style="width: 100px">云硬盘名称</th>
+									<th style="width: 100px">总大小(GB)</th>
+									<th style="width: 100px">服务产品<span class="text-danger inline m-t-sm" style="margin-left: 5px">*</span></th>
+									<th style="width: 100px">套餐<span class="text-danger inline m-t-sm" style="margin-left: 5px">*</span></th>
 								</thead>
 								<tbody>
 								 <!-- ko foreach: {data: pagedRows, as: '$row'} -->
@@ -123,7 +123,7 @@
 				</div>
 			</div>
 			<div class='modal-footer' style="text-align: center;">
-				<a class="btn btn-default btn-info">确定</a> 
+				<a class="btn btn-default btn-info" data-bind="click: saveDiskList">确定</a> 
 				<a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
 		</div>
@@ -133,7 +133,7 @@
 	var scripts = [ null, "assets/lib/moment/moment.js",
 			"assets/lib/bootstrap-daterangepicker/daterangepicker.js","assets/lib/bootstrap-daterangepicker/date.js" ];
 	$('.page-content-area').ace_ajax('loadScripts',scripts,function(args) {
-		$("input[name='cutover_date']").val(moment().subtract( 29, 'days').format('YYYY-MM-DD')).daterangepicker({
+		$("input[name=cutover_date]").val(moment().subtract( 29, 'days').format('YYYY-MM-DD')).daterangepicker({
 			format : 'YYYY/MM/DD',
 			minDate : moment(),
 			startDate: moment().subtract( 29, 'days'),
@@ -150,15 +150,54 @@
 			var self = this;
 			//配置云盘
 			self.isModal = ko.observable(false);			
-			this.add = function(obj， event) {
-				debugger
+			this.add = function(obj) {
+				for(var i = 0; i < self.table.pagedRows().length; i++){
+					if(self.table.pagedRows()[i].originalId == obj.originalId){
+						selectedId = i;
+					}
+				}
 				csc.rest.get('api/v5.0.0/nanotubes/getDiskInfoByVmId?vmId='+obj.vmId+'&hypervisor='+obj.hypervisor+'&cloudUuid='+cloudUuid,function(data){
 					self.diskTable.pagedRows(data);
+					loadServiceList($("#"+selectedId).val(),"DISK", false);
 					self.isModal(true);
 					loadCycleList($("#diskService0").val(),'DISK',false);
 		        });				
 			}
 			
+			//云盘保存
+			this.saveDiskList = function(){
+				var diskList = self.diskTable.pagedRows();
+				var newDiskList = [];
+				var isDiskTrue = true;
+				for(var i = 0; i < diskList.length; i++){
+					if($("#diskService"+i).val() == null || $("#diskService"+i).val() == ""){
+	      				isDiskTrue = false;
+		      		}
+	      			if($("#diskFee"+i).val() == null || $("#diskFee"+i).val() == ""){
+	      				isDiskTrue = false;
+		      		}
+					
+					var disk = {
+	      				serviceUuid	: $("#diskService"+i).val(),
+	      				volumeName : diskList[i].name,
+	      				volumeSize : diskList[i].size+"",
+	      				description : diskList[i].desc,
+	      				volumeStatus : diskList[i].state=="MOUNT"?"in-use":"",
+	      				vdcUuid : $("#"+selectedId).val(),
+	      				azUuid : $("#az"+selectedId).val(),
+	      				billCycle : $("#diskFee"+i).val()
+	      			}
+	      			newDiskList.push(disk);
+				}
+				self.table.pagedRows()[selectedId].diskList = newDiskList;
+				if(!isDiskTrue){
+					alert("请检查必填项！");
+					return;
+				}
+				self.isModal(false);
+			}
+			
+			//虚拟机列表信息
 			this.table = new DataTable([]);
 			this.table.pagedRows(cutOverList);
 			
@@ -236,6 +275,76 @@
 	        	}
 	        }
 	        
+	        //批量纳管保存
+	        this.saveCutOverList = function(){
+	        	var cutOverList = self.table.pagedRows();
+	        	var newCutOverList = [];
+	        	var isMust = true;
+	        	for(var i = 0; i < cutOverList.length; i++){
+	        		
+	        		if($("#"+i).val() == null || $("#"+i).val() == ""){
+	        			isMust = false;
+		      		}
+	      			if($("#az"+i).val() == null || $("#az"+i).val() == ""){
+	      				isMust = false;
+		      		}
+	      			if($("#service"+i).val() == null || $("#service"+i).val() == ""){
+	        			isMust = false;
+		      		}
+	      			if($("#fee"+i).val() == null || $("#fee"+i).val() == ""){
+	      				isMust = false;
+		      		}
+	      			if($("#bus"+i).val() == null || $("#bus"+i).val() == ""){
+	        			isMust = false;
+		      		}
+	      			if($("#user"+i).val() == null || $("#user"+i).val() == ""){
+	      				isMust = false;
+		      		}
+	      			
+	      			var state = cutOverList[i].state;
+		      		if(state == "OK"){
+		      			state = "ACTIVE";
+		      		}else if(state == "STOPPED"){
+		      			state = "SHUTOFF";
+		      		}
+	      			
+	      			var cutOverInfo = {
+    	      			state : state,
+    	      			ownerHostName : cutOverList[i].hostName,
+    	      			ownerHostUuid : cutOverList[i].hostId+"",
+    	      			vcpu : cutOverList[i].vcpu,
+    	      			memory : cutOverList[i].memory,
+    	      			storage : cutOverList[i].storage,
+    	      			ip : cutOverList[i].ip,
+    	      			osVersion : cutOverList[i].osType,
+    	      			name : cutOverList[i].name,
+    	      			serviceUuid : $("#service"+i).val(),
+    	      			type : "VM",
+    	      			azUuid : $("#az"+i).val(),
+    	      			vdcUuid : $("#"+i).val(),
+    	      			account : $("#user"+i).val(),
+    	      			busSysUuid : $("#bus"+i).val(),
+    	      			virtualHypervisor : cutOverList[i].platform,
+    	      			cloudPlatform : "CNware",
+    	      			dataTime : $("#date"+i).val(),
+    	      			validTimeType : $("input[name=optionsRadios"+i+"]:checked").val(),
+    	      			billCycle : $("#fee"+i).val(),
+    	      			originalId : cutOverList[i].originalId,
+    	      			diskList : cutOverList[i].diskList
+    	      		}
+	      			newCutOverList.push(cutOverInfo);
+	        	}
+	        	if(!isMust){
+      				alert("请检查必填项！");
+      				return;
+      			}
+	        	var map = {resourceInstanceVmList : newCutOverList};
+	        	csc.rest.post('api/v5.0.0/nanotubes/createCutOverList',map,function(data){
+					alert("纳管成功！");
+					location.href = "#pages/resources/partitions/business_cutover/index";
+		        });
+	        }
+	        
 		}
 		var moreModel = new ViewModel();
 		ko.applyBindings(moreModel, $('#page-content')[0]);
@@ -254,14 +363,21 @@
 					var azList = data.results;
 					var azHtml = "";
 					azList.forEach(function(f){
-						azHtml+= "<option value='"+f.uuid+"'>"+f.name+"</option>"
+						if(f.cloudPlatform == 'CNware'){
+							azHtml+= "<option value='"+f.uuid+"'>"+f.name+"</option>"
+						}
 					});
 					$("#az"+selectedId).html("");
 					$("#az"+selectedId).append(azHtml);
 		        });
 			}else{
 				csc.rest.get('api/v5.0.0/vdcs/'+vdcUuid+'/azs',function(data){
-					moreModel.azList(data.results);
+					moreModel.azList.removeAll();
+					data.results.forEach(function(e){
+						if(e.cloudPlatform == 'CNware'){
+							moreModel.azList.push(e);
+						}
+					})
 		        });
 			}
 		}
@@ -317,14 +433,9 @@
 			        });
 				}else{
 					csc.rest.get('api/v5.0.0/service/getVdcService/'+vdcUuid+'/'+type,function(data){
-						var diskServerList = data.results;
-						var diskServerHtml = "";
-						diskServerList.forEach(function(f){
-							diskServerHtml+= "<option value='"+f.uuid+"'>"+f.name+"</option>"
-						});
-						$("#service"+selectedId).html("");
-						$("#service"+selectedId).append(diskServerHtml);
-						loadCycleList($("#service"+selectedId).val(), "DISK", true);
+						debugger
+						moreModel.serviceDiskList(data.results);
+						//loadCycleList($("#diskService"+selectedId).val(), "DISK", true);
 			        });
 				}
 			}else{

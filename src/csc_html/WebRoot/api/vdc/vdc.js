@@ -14,9 +14,25 @@
 			 * 查询VDC下AZ
 			 */
 			getVdcAzs:function(uuid,param,callback){
+				 var cloudPlatform = ""; 
+				 if(param.cloudPlatform){
+					 cloudPlatform = param.cloudPlatform;
+				 }
 				 var param = csc.util.httpQueryParamConvert(param);
 				 csc.rest.get('api/v5.0.0/vdcs/'+uuid+"/azs?"+param,function(data){
-					     callback(data);
+					 if(csc.util.isNotNull(cloudPlatform) && data.results && data.total>0){
+						 var resData = [];
+						 for(var i=0; i<data.results.length; i++){
+							 if(data.results[i].cloudPlatform == cloudPlatform){
+								 resData.push(data.results[i]);
+							 }
+						 }
+						 data.results = resData;
+						 data.total = resData.length;
+						 callback(data);
+					 }else{
+						 callback(data);
+					 }
 	    		 }); 
 			},
 			/**

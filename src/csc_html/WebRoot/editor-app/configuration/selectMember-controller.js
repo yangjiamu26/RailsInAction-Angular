@@ -35,31 +35,34 @@ var SelectMemberPopupCtrl = [ '$scope', '$modal', '$http', function($scope, $mod
 			    	    var result = "";
 						var listTmpl = jQuery("#org_user_list_tmpl1").html();
 						for(var i=0; i<users.length; i++){
-							users[i].nodeName = node.name;							
-							var selUserList = $scope.assignment.candidateUsers;
-							var cc = "";
-							for(var j = 0;j < selUserList.length;j++){
-								cc += selUserList[j].value + ",";
-							}
-							var userId = '';
-							if(userType == 0){
-								userId = users[i].id;
-							}else{
-								userId = users[i].account;
-							}
-							if(cc != ""){
-								if(cc.indexOf(users[i].id+',') == -1){
+							//排除安全管理员和审计管理员
+							if(users[i].id != "audit" && users[i].id != "safety"){
+								users[i].nodeName = node.name;							
+								var selUserList = $scope.assignment.candidateUsers;
+								var cc = "";
+								for(var j = 0;j < selUserList.length;j++){
+									cc += selUserList[j].value + ",";
+								}
+								var userId = '';
+								if(userType == 0){
+									userId = users[i].id;
+								}else{
+									userId = users[i].account;
+								}
+								if(cc != ""){
+									if(cc.indexOf(users[i].id+',') == -1){
+										//result += zy_tmpl_s(listTmpl,users[i],null);
+										result += "<tr><td><input type='radio' name='orgRadioId' value='"+userId+"'"
+											+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
+											+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
+									}
+								}else{
 									//result += zy_tmpl_s(listTmpl,users[i],null);
 									result += "<tr><td><input type='radio' name='orgRadioId' value='"+userId+"'"
 										+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
 										+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
 								}
-							}else{
-								//result += zy_tmpl_s(listTmpl,users[i],null);
-								result += "<tr><td><input type='radio' name='orgRadioId' value='"+userId+"'"
-									+"sname='"+users[i].name+"' userType='"+userType+"' /></td>"
-									+"<td data-title='用户名'><div>"+users[i].name+"</div></td></tr>";
-							}				
+							}
 						}
 						jQuery("#org_user_list1").html(result);						
 					    if(selUserArr != null && selUserArr.length > 0){

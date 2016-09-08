@@ -11,7 +11,7 @@
     <ul class='nav nav-tabs' role='tablist'>
       <li class='active' role='presentation'>
         <a aria-controls='instance_vm_summary' data-toggle='tab' href='#instance_vm_summary' role='tab'>云主机摘要</a></li>
-      <li role='presentation' data-bind="check_action:'cs_Minitor'">
+      <li role='presentation' data-bind="check_action:'cs_Minitor',if: vmVO().virtualHypervisor != 'PowerVM'">
         <a aria-controls='instance_vm_softwares' data-toggle='tab' id="vm_monitor_tab" href='#instance_vm_monitor' role='tab'>监控</a></li>
       <li role='presentation'>
     </ul>
@@ -23,10 +23,10 @@
               <a data-bind="click: $root.startOne,if: vmVO().state == 'SHUTOFF' && vmVO().isValidate == true,check_action:'cs_PowerOn'"><button class="btn btn-sm btn-info" >开机</button></a>
               <a data-bind="click: $root.shutoffOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_PowerOff'"><button class="btn btn-sm btn-info" >关机</button></a>
               <a data-bind="click: $root.restartOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_Reboot'"><button class="btn btn-sm btn-info" >重启</button></a>
-              <a data-bind="click: $root.restartForceOne,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_PoweReboot'"><button class="btn btn-sm btn-info" >强制重启</button></a>
+              <a data-bind="click: $root.restartForceOne,if: vmVO().virtualHypervisor != 'PowerVM' && vmVO().virtualHypervisor != 'VMware' && vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_PoweReboot'"><button class="btn btn-sm btn-info" >强制重启</button></a>
               <a data-bind="click: $root.console,check_action:'cs_Console'"><button class="btn btn-sm btn-info" >控制台</button></a>
-              <a data-bind="click: $root.suspend,if: vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_Wait'"><button class="btn btn-sm btn-info" >挂起</button></a>
-              <a data-bind="click: $root.resume,if: vmVO().state == 'SUSPENDED' && vmVO().isValidate == true,check_action:'cs_Recovery'"><button class="btn btn-sm btn-info" >恢复</button></a>
+              <a data-bind="click: $root.suspend,if: vmVO().virtualHypervisor != 'PowerVM' && vmVO().state == 'ACTIVE' && vmVO().isValidate == true,check_action:'cs_Wait'"><button class="btn btn-sm btn-info" >挂起</button></a>
+              <a data-bind="click: $root.resume,if: vmVO().virtualHypervisor != 'PowerVM' && vmVO().state == 'SUSPENDED' && vmVO().isValidate == true,check_action:'cs_Recovery'"><button class="btn btn-sm btn-info" >恢复</button></a>
               <a data-bind="click: $root.vmAdjustment,if: vmVO().isValidate == true && vmVO().state != 'SUSPENDED',check_action:'cs_Resomodify'"><button class="btn btn-sm btn-info" >调整资源</button></a>
               <a data-bind="click: $root.editValidateTime,check_action:'cs_TimeMidify'"><button class="btn btn-sm btn-info">有效时间变更</button></a>
               <a data-bind="click: $root.validate,if: vmVO().isValidate == true,check_action:'cs_Stop'"><button class="btn btn-sm btn-info">终止</button></a>
@@ -100,7 +100,7 @@
                 </div>                
               </div>
             </div>
-            <div class="col-xs-3">
+            <div class="col-xs-3" data-bind="if: vmVO().virtualHypervisor != 'PowerVM'">
               <div class="clear btn-info wrapper">
                 <div class="detail-others-img img-chart">资源使用率</div>
                 <div class="detail-others-text">
@@ -155,8 +155,6 @@
                   <thead>
                     <tr>
                       <th>云硬盘名称</th>
-                      <!-- <th>云硬盘类型</th> -->
-                      <th>虚拟化类型</th>
                       <th>存储池</th>
                       <th>大小（GB）</th>
                       <th>状态</th>
@@ -173,9 +171,7 @@
   	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
   	                <tr>
   	                    <td data-bind="text: volumeName"></td>
-  	                    <!-- <td ></td> -->
-  	                    <td ></td>
-  	                    <td ></td>
+  	                    <td data-bind="text: storagePoolName"></td>
   	                    <td data-bind="text: volumeSize"></td>
   	                    <td data-bind="text: volumeStatus"></td>
   	                    <td data-bind="text: path"></td>
@@ -253,7 +249,7 @@
                       </td>
                       <td data-bind="text: installTime"></td>
                       <td>
-	                      <span class="label label-info" data-bind="if: status == 0">安装中</span>
+	                      <span class="label label-warning" data-bind="if: status == 0">安装中</span>
 	                      <span class="label label-success" data-bind="if: status == 1">安装成功</span>
 	                      <span class="label label-danger" data-bind="if: status == 2">安装失败</span>
                       </td>
@@ -536,7 +532,7 @@
       </div>
       <div class='modal-body'>
         <div>
-           脚本名称：<span data-bind="text: updateSoftwareVO().scriptName"></span> 软件版本：<span data-bind="text: updateSoftwareVO().version"></span>
+           软件名称：<span data-bind="text: updateSoftwareVO().softwareName"></span> 软件版本：<span data-bind="text: updateSoftwareVO().version"></span>
         </div>
         <hr />
         <div data-bind="with: software_update_table">
@@ -636,19 +632,20 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">云硬盘名称：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" data-bind="value: volumeVO().name">
+              <input type="email" class="form-control" data-bind="value: volumeVO().name" disabled>
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-3 control-label">云硬盘大小(GB)：</label>
             <div class="col-sm-8">
-              <input type="email" class="form-control" data-bind="value: volumeVO().size">
+              <input type="email" class="form-control" data-bind="value: volumeVO().size" disabled>
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-3 control-label">扩展后大小(GB)：</label>
             <div class="col-sm-8">
               <input type="email" class="form-control" data-bind="value: volumeVO().targetSize">
+             	 可调整范围为：<span data-bind="text:volumeVO().size()+1"></span>GB至2TB
             </div>
           </div>
 
@@ -909,8 +906,7 @@
 </div>
 
 <!-- 安装日志弹窗   start --> 
-   <div role="dialog" aria-hidden="true" class="modal fade" 
-      data-bind="modal: { show: isLogText }"> 
+<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: isLogText }"> 
 
       <div class='modal-dialog' role='document'> 
          <div class='modal-content'> 
@@ -918,15 +914,33 @@
                <button type="button" class="close" data-dismiss="modal"> 
                   <span aria-hidden="true">&times;</span> 
                </button> 
-               <h3 class='modal-title'>安装日志</h3> 
+               <h3 class='modal-title'>任务日志</h3> 
             </div> 
             <div class='modal-body form-horizontal'> 
-               <div class="form-group"> 
-                  <div class="col-xs-12"> 
-                     <textarea class="form-control" style="min-height: 250px;" data-bind="text: installLogVO().logText"> 
-                     </textarea> 
-                  </div> 
-               </div> 
+	            <div class="panel panel-info">
+			        <div class="panel-heading">基本信息</div>
+			        <div class="panel-body">
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>软件名称：</strong><span data-bind="text: installLogVO().softwareName"></span></p>
+			                </div>
+			                <div class="col-xs-6">
+			                    <p><strong>云主机名称：</strong><span data-bind="text: installLogVO().vmName"></span></p>
+			                </div>
+			            </div>
+			            <div class="row">
+			                <div class="col-xs-6">
+			                    <p><strong>安装时间：</strong><span data-bind="text: installLogVO().installTime"></span></p>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+            	<div class="panel panel-info">
+			        <div class="panel-heading">日志信息</div>
+			        <div class="panel-body">
+		            	<div contenteditable="true" class="csc_dailyTextarea" id="task_log_text" style="width:519px;padding:3px 0 0 8px;"></div>
+		            </div>
+               </div>
                <div class='modal-footer' style="text-align: center"> 
                   <button name="button" type="submit" 
                      class="btn btn-default btn btn-default" data-dismiss="modal">关闭</button> 
@@ -1171,6 +1185,7 @@
     
     this.updateSoftwareVO = ko.observable({
     	scriptName: ko.observable(),
+    	softwareName: ko.observable(),
     	version: ko.observable(),
     	userName: ko.observable(),
     	password: ko.observable()
@@ -1184,8 +1199,9 @@
     this.update = function(object,event){
         self.isUpdate(true);
         self.software_update_table.params(self.updateSearchParam());
-    	self.software_update_table.path('api/v5.0.0/soft/softwares?installable=Y&installType='+encodeURIComponent('升级')+'&softwareName='+encodeURIComponent(object.softwareName));
+    	self.software_update_table.path('api/v5.0.0/soft/softwares?installable=Y&installType='+encodeURIComponent('升级')+'&softwareName='+encodeURIComponent(object.softwareName)+'&softType='+encodeURIComponent(object.softType)+'&softTypeName='+encodeURIComponent(object.softTypeName));
     	self.updateSoftwareVO().scriptName(object.scriptName);
+    	self.updateSoftwareVO().softwareName(object.softwareName);
     	self.updateSoftwareVO().version(object.version);
     };
     
@@ -1230,13 +1246,19 @@
   
     //------------------------------------------软件安装日志开始------------------------
     this.installLogVO = ko.observable({
-    	logText: ko.observable()
+    	logText: ko.observable(),
+    	softwareName: ko.observable(),
+    	vmName: ko.observable(),
+    	installTime: ko.observable()
     })
     this.doInstallLog = function(object,event){
     	var softwareUuid = object.uuid;
     	csc.rest.get("api/v5.0.0/install/log/"+softwareUuid,function(logData){
     		if(logData){
     			self.installLogVO().logText(logData.logText);
+    			self.installLogVO().softwareName(logData.softwareName);
+    			self.installLogVO().vmName(logData.vmName);
+    			self.installLogVO().installTime(logData.installTime);
     		}
     	});
 	    self.isLogText(true);
@@ -1367,7 +1389,13 @@
     //------------------------------------------静默安装属性列表结束----------------------------
     
       //------------------------------------------云硬盘列表开始----------------------------
-      this.vm_volume_table = new DataTable([]);
+      this.vm_volume_table = new DataTable([],{loader:function(result){
+        	//如果路径为空，则转换为'-'
+      	  if(csc.util.isNull(result.path)){
+      		result.path = "-"
+    	  }
+      	  return result;
+        }});
       
       this.volume_param = ko.observable({
     	  firstResult: -1,
@@ -1846,8 +1874,21 @@
       
       //申请
       this.validateProcessPost = function(){
+    	  var dataA = self.validateProcessVO().metaTime();
+    	  var dataB = self.validateProcessVO().targetValidateTime();
+    	  var bStrs = dataB.split('-');
+    	  var bYear = bStrs[0];
+    	  var bMonth = bStrs[1];
+    	  var bDay = bStrs[2];
+    	  if(bMonth[0] == '0'){
+    		  bMonth = bMonth[1];
+    	  }
+    	  if(bDay[0] == '0'){
+    		  bDay = bDay[1];
+    	  }
+    	  dataB = bYear + '-' + bMonth + '-' + bDay;
     	  //检查日期相同的，不发送请求直接关闭页面
-    	  if(self.validateProcessVO().metaTime() == self.validateProcessVO().targetValidateTime()){
+    	  if(dataA == dataB){
     		  self.isValidateProcess(false);
     		  return;
     	  }

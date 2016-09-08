@@ -418,6 +418,16 @@ csc.util = {
     	}catch(e){
     		return "";
     	}
+    },
+	trimName : function(name, length){
+    	if(csc.util.isNull(name) || csc.util.isNull(length) || isNaN(length)|| length < 10){
+    		return name;
+    	}
+    	var result = name;
+    	if(name.length > length){
+    		result = name.substring(0, length-6) + "......";
+		}
+    	return result;
     }
 }
 

@@ -331,6 +331,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VDC&configCodeName=osType&urlType=getSource',function(data){      		
       		viewModel.osList(data);
       		if(bool){
+      			viewModel.osTypeList([]);
       			if(data.length > 0){   	      			
        	      		for(var i = 0;i < data.length;i++){
               			viewModel.osTypeList.push(data[i].value);
@@ -341,9 +342,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     }
     //云主机 
     //初始化虚拟化类型下拉框数据
-    function loadVirtualPlatform(){
+    function loadVirtualPlatform(callback){
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getSource',function(data){
       		viewModel.virtualPlatformList(data);
+      		if (callback != undefined) {
+      			callback();
+      		}
          });
     }
       
@@ -352,6 +356,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		 csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=virtualPlatform&urlType=getTarget&sourceValue='+viewModel.serviceVO().serviceVm.virtualName(),function(data){   	      		 
 	   		viewModel.vmOsTypeList(data);
 	   		if(bool){
+	   			viewModel.osTypeCheckList([]);
 	   			if(data.length > 0){   	      			
 			      	for(var i = 0;i < data.length;i++){
 		    			viewModel.osTypeCheckList.push(data[i].value);
@@ -366,7 +371,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 		 csc.rest.get('api/v5.0.0/azs?virtualHypervisor='+viewModel.serviceVO().serviceVm.virtualName(),function(data1){
 			viewModel.azList(data1.results);
 			if(bool){
-				if(data1.results.length > 0){          			
+				viewModel.azUuidList([]);
+				if(data1.results.length > 0){
 					for(var i = 0;i < data1.results.length;i++){
 			    		viewModel.azUuidList.push(data1.results[i].uuid);
 			        }
@@ -380,7 +386,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=cpu&urlType=getSource',function(data){
       		viewModel.cpuList(data);
       		if(bool){
-      			if(data.length > 0){   	      			
+      			viewModel.cpuCheckList([]);
+      			if(data.length > 0){
        	      		for(var i = 0;i < data.length;i++){
               			viewModel.cpuCheckList.push(data[i].value);
                 	}
@@ -393,7 +400,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	csc.rest.get('api/v5.0.0/products/configs/values?productCodeName=VM&configCodeName=memory&urlType=getSource',function(data){
       		viewModel.memoryList(data);
       		if(bool){
-      			if(data.length > 0){   	      			
+      			viewModel.memoryCheckList([]);
+      			if(data.length > 0){
        	      		for(var i = 0;i < data.length;i++){
               			viewModel.memoryCheckList.push(data[i].value);
                 	}
@@ -406,6 +414,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       	csc.rest.get('api/v5.0.0/service/getReleaseVdcByAzs?azUuids='+ azUuids,function(data){
       		viewModel.vdcList(data);
       		if(bool && !viewModel.serviceVO().uuid()){
+      			viewModel.releaseRange([]);
       			if(data.length > 0){
           			for(var i = 0;i < data.length;i++){
               			viewModel.releaseRange.push(data[i].uuid);
@@ -422,6 +431,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
          });
     }
     
+    var uploadImgSrc = "";
   	function loadInit(){
   		var $ = jQuery,
         $list = $('#fileList'),
@@ -465,17 +475,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
  	    
  	 // 当有文件添加进来的时候
  	    uploader.on( 'fileQueued', function( file ) {
- 	    	
    	        var $li = $(
  	                '<div id="' + file.id + '" class="file-item thumbnail">' +
  	                    '<img>' +
  	                    '<div class="info">' + file.name + '</div>' +
  	                '</div>'
- 	                ), 
+ 	                ),
  	            $img = $("#ImgPr");
- 	    	//	        $img = $li.find('img');
-
-// 	        $list.append( $li ); 
 
  	        // 创建缩略图
  	        uploader.makeThumb( file, function( error, src ) {
@@ -489,7 +495,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 
  	    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
  	    uploader.on( 'uploadSuccess', function( file, result) {
- 	    	viewModel.serviceVO().imageUrl("/csc/api/img/imgServlet?path="+result.path);
+ 	    	uploadImgSrc = result.path;
  	        $( '#'+file.id ).addClass('upload-state-done');
  	    });
 
@@ -742,35 +748,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       function ipVO(){
     	  this.ipUuid = ko.observable();
       }
-
-      
-      //云主机start
-      //虚拟化类型选择事件
-/*       this.changeVirtualValue = function(viewModel, event){      	  
-         if(viewModel.selected_product()=='VM'){
-			 if(event.bubbles){
-				  //当选择不同的虚拟化时得清空初始化数据，重新加载
-				  if(viewModel.azUuidList().length > 0){
-				  	viewModel.azUuidList.removeAll();
-			  	  }
-			  	  if(viewModel.osTypeCheckList().length > 0){
-					  viewModel.osTypeCheckList.removeAll();
-				  }
-			 	  if(viewModel.osType_chosen().length > 0){
-						  viewModel.osType_chosen.removeAll();
-				  }
-			 	 //初始化虚拟机操作系统类型数据        	 
-			 	 loadVmOsType(true);
-			 	 //初始化可用分区数据
-			 	 loadVmAzs(true); 
-			 }
-			
-         }else if(viewModel.selected_product()=='VDC'){
-            
-         }else{
-      	   
-         }
-      }  */
       
     //云主机可用分区和操作系统类型change事件
       this.changeCheckBoxValue = function(data, event){
@@ -787,12 +764,12 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
      // this.packages = ko.observableArray();
       this.osType_chosen = ko.observableArray();
       this.osType_current = null;
-      
       this.isAdd_osType = ko.observable(false);
+      self.isModifyOsType = false;
 
 	  this.osVersionList = new DataTable([], {path: "api/v5.0.0/service/getServiceImageRef", onFinish:function(){
 		  if (self.azUuidList().length > 0 && self.osTypeCheckList().length > 0) {
-			  self.isAdd_osType(true);
+			  self.isAdd_osType(self.isModifyOsType);
 		  }
 	  }});
       //添加操作系统版本按钮
@@ -808,8 +785,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     	  self.osType_current = package;
     	  self.osVersionList.params({
     		  azUuid: getAzUuids(self.azUuidList()),
-    		  osTypes: getAzUuids(self.osTypeCheckList())
-    	  })
+    		  osTypes: getAzUuids(self.osTypeCheckList()),
+    		  virtualPlatForm: self.serviceVO().serviceVm.virtualName()
+    	  });
+    	  self.isModifyOsType = true;
       }
       this.addOsVersionToList = function(){
     	  this.osType_chosen(this.osVersionList.chosenItems());
@@ -847,6 +826,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       //修改服务弹窗
       this.vmOsVersionList = ko.observableArray();
       this.editService = function(object, event){
+    	  self.isModifyOsType = false;
     	  var vo = new entityVO();
 	  	  self.serviceVO = new ko.validatedObservable(vo);
 	  	  
@@ -998,96 +978,90 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         			  loadDiskType();
         			  self.diskTypeCheck(data.serviceDisk.diskType);
         		  }else if(data.productId == "VM"){//虚拟机
-        			  loadVirtualPlatform();//获取虚拟化平台数据
-                	  loadVmCpu(false);//获取虚拟机CPU
-                	  loadVmMemory(false);//获取虚拟机内存
+        			  loadVirtualPlatform(function(){
+        				  loadVmCpu(false);//获取虚拟机CPU
+                    	  loadVmMemory(false);//获取虚拟机内存
+                    	  
+                    	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
+                    	  
+                    	  //初始化虚拟机操作系统类型数据        	 
+             		 	  loadVmOsType(false);
+             		 	  //初始化可用分区数据
+             		 	  loadVmAzs(false);
+             		 	  //清除CPU的值
+             		 	  if(self.cpuCheckList().length > 0){
+                			 self.cpuCheckList.removeAll();
+                		  }
+             		 	  //清除内存的值
+             		 	  if(self.memoryCheckList().length > 0){
+                			 self.memoryCheckList.removeAll();
+                		  }
+             		 	  //清除操作系统类型的值
+             		 	  if(self.osTypeCheckList().length > 0){
+                			 self.osTypeCheckList.removeAll();
+                		  }
+             		 	  //清除可用分区的值
+             		 	  if(self.azUuidList().length > 0){
+                			 self.azUuidList.removeAll();
+                		  }
+                    	  //CPU赋值
+                    	  var vmCpu = data.serviceVm.cpu;
+                    	  if(vmCpu.indexOf(",") != -1){
+                			  self.cpuCheckList(vmCpu.split(","));
+                		  }else{
+                			  self.cpuCheckList.push(vmCpu);
+                		  }
+                    	  //memory赋值
+                    	  var vmMemory = data.serviceVm.memory;
+                    	  if(vmMemory.indexOf(",") != -1){
+                			  self.memoryCheckList(vmMemory.split(","));
+                		  }else{
+                			  self.memoryCheckList.push(vmMemory);
+                		  }
+                    	  //操作系统类型赋值
+                    	  var vmOsType = data.serviceVm.osType;
+                    	  if(vmOsType.indexOf(",") != -1){
+                			  self.osTypeCheckList(vmOsType.split(","));
+                		  }else{
+                			  self.osTypeCheckList.push(vmOsType);
+                		  }
+                    	  //可用分区赋值
+                    	  var vmAz = data.serviceVm.azUuid;
+                    	  if(vmAz.indexOf(",") != -1){
+                			  self.azUuidList(vmAz.split(","));
+                		  }else{
+                			  self.azUuidList.push(vmAz);
+                		  }
+                		  //操作系统版本列表赋值
+                		  self.osVersionList.params({
+                      		  azUuid: vmAz,
+                      		  osTypes: vmOsType
+                      	  });
+                      	  var vmOsVersion = data.serviceVm.osVersion;
+                      	  if(self.vmOsVersionList().length > 0){
+                      		self.vmOsVersionList.removeAll();
+                      	  }
+    	                  if(vmOsVersion.indexOf(",") != -1){
+    	                	  self.vmOsVersionList(vmOsVersion.split(","));
+    	          		  }else{
+    	          			  self.vmOsVersionList.push(vmOsVersion);
+    	          		  }
+    	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
+    	                  if(self.osType_chosen().length > 0){
+    	                	  self.osType_chosen.removeAll();
+    	                  }
+    	                  
+                      	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
+                      		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
+                      			  for(var n = 0; n < self.vmOsVersionList().length; n++){
+                      				  if(self.osVersionList.pagedRows()[m].imageUuid == self.vmOsVersionList()[n]){
+                      					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
+                      				  }
+                      			  }
+                      		  }
+                      	  }
+        			  });//获取虚拟化平台数据
                 	  
-                	  self.serviceVO().serviceVm.virtualName(data.serviceVm.virtualName);//虚拟化赋值
-                	  
-                	  //初始化虚拟机操作系统类型数据        	 
-         		 	  loadVmOsType(false);
-         		 	  //初始化可用分区数据
-         		 	  loadVmAzs(false);
-         		 	  //清除CPU的值
-         		 	  if(self.cpuCheckList().length > 0){
-            			 self.cpuCheckList.removeAll();
-            		  }
-         		 	  //清除内存的值
-         		 	  if(self.memoryCheckList().length > 0){
-            			 self.memoryCheckList.removeAll();
-            		  }
-         		 	  //清除操作系统类型的值
-         		 	  if(self.osTypeCheckList().length > 0){
-            			 self.osTypeCheckList.removeAll();
-            		  }
-         		 	  //清除可用分区的值
-         		 	  if(self.azUuidList().length > 0){
-            			 self.azUuidList.removeAll();
-            		  }
-                	  //CPU赋值
-                	  var vmCpu = data.serviceVm.cpu;
-                	  if(vmCpu.indexOf(",") != -1){
-            			  self.cpuCheckList(vmCpu.split(","));
-            		  }else{
-            			  self.cpuCheckList.push(vmCpu);
-            		  }
-                	  //memory赋值
-                	  var vmMemory = data.serviceVm.memory;
-                	  if(vmMemory.indexOf(",") != -1){
-            			  self.memoryCheckList(vmMemory.split(","));
-            		  }else{
-            			  self.memoryCheckList.push(vmMemory);
-            		  }
-                	 /*  //当修改时清除已选择的可用分区和操作系统类型数据
-                	  if(viewModel.azUuidList().length > 0){
-             			 viewModel.azUuidList.removeAll();
-             		  }
-                	  if(viewModel.osTypeCheckList().length > 0){
-               			 viewModel.osTypeCheckList.removeAll();
-               		  }*/
-                	  //操作系统类型赋值
-                	  var vmOsType = data.serviceVm.osType;
-                	  if(vmOsType.indexOf(",") != -1){
-            			  self.osTypeCheckList(vmOsType.split(","));
-            		  }else{
-            			  self.osTypeCheckList.push(vmOsType);
-            		  }
-                	  //可用分区赋值
-                	  var vmAz = data.serviceVm.azUuid;
-                	  if(vmAz.indexOf(",") != -1){
-            			  self.azUuidList(vmAz.split(","));
-            		  }else{
-            			  self.azUuidList.push(vmAz);
-            		  }
-            		  //操作系统版本列表赋值
-            		  self.osVersionList.params({
-                  		  azUuid: vmAz,
-                  		  osTypes: vmOsType
-                  	  });
-                  	  var vmOsVersion = data.serviceVm.osVersion;
-                  	  if(self.vmOsVersionList().length > 0){
-                  		self.vmOsVersionList.removeAll();
-                  	  }
-//                  	  self.vmOsVersionList.removeAll();
-	                  if(vmOsVersion.indexOf(",") != -1){
-	                	  self.vmOsVersionList(vmOsVersion.split(","));
-	          		  }else{
-	          			  self.vmOsVersionList.push(vmOsVersion);
-	          		  }
-	                  //清除已加载的数据，防止多次点击修改时数据无限叠加
-	                  if(self.osType_chosen().length > 0){
-	                	  self.osType_chosen.removeAll();
-	                  }
-	                  
-                  	  if(self.osVersionList.pagedRows().length > 0 && self.vmOsVersionList().length > 0){
-                  		  for(var m = 0; m < self.osVersionList.pagedRows().length; m++){
-                  			  for(var n = 0; n < self.vmOsVersionList().length; n++){
-                  				  if(self.osVersionList.pagedRows()[m].imageUuid == self.vmOsVersionList()[n]){
-                  					  self.osType_chosen.push(self.osVersionList.pagedRows()[m]);
-                  				  }
-                  			  }
-                  		  }
-                  	  }
         		  }else if(data.productId == "PUBLICIP"){//公网IP
         			  //公网IP列表赋值
         			  self.ip_chosen(data.serviceIpRef);
@@ -1150,7 +1124,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
       //创建服务弹窗
       //创建服务弹窗
       this.isCreateService = ko.observable(false);
-      this.createService = function(){ 	
+      this.createService = function(){
     	  var vo = new entityVO();
 	  	  this.serviceVO = new ko.validatedObservable(vo);
 	  	  this.isCreateService(true);
@@ -1284,7 +1258,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                     	  return;
                       }
         			  if(this.cpuCheckList().length <= 0){
-                    	  alert("请至少勾选一个CPU(核)！");
+                    	  alert("请至少勾选一个CPU(个)！");
                     	  return;
                       }
         			  if(this.memoryCheckList().length <= 0){
@@ -1318,6 +1292,10 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 			});
         }
         this.setImg = function(){
+          if (uploadImgSrc != "") {
+   	     	viewModel.serviceVO().imageUrl("/csc/api/img/imgServlet?path="+uploadImgSrc);
+          }
+          
           this.isChangeImg(false);
         }
         //修改图标end
@@ -1335,6 +1313,8 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         	  
           }else if(viewModel.selected_product()=='VM'){//选择云主机
         	  loadVirtualPlatform();//获取虚拟化平台数据
+        	  loadVmAzs(true);
+        	  loadVmOsType(true);
         	  loadVmCpu(true);//获取虚拟机CPU
         	  loadVmMemory(true);//获取虚拟机内存
           }else if(viewModel.selected_product()=='DISK'){//选择云盘
@@ -1343,7 +1323,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
           }else{
         	  getAzsByUser(viewModel,true);
           }
-          csc.rest.get('api/v5.0.0/products?codeName='+viewModel.selected_product(),function(data){  
+          csc.rest.get('api/v5.0.0/products?codeName='+viewModel.selected_product(),function(data){
   	    	  viewModel.serviceVO().imageUrl(data[0].imgUrl);
           });
     		
@@ -1351,12 +1331,13 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         //
      	function getAzsByUser(viewModel,bool){
     	   if(viewModel.azUuidList().length > 0){
-     		   viewModel.azUuidList.removeAll();
+    		   viewModel.azUuidList([]);
      	   }
        	   //根据当前用户获取可用分区
        	   csc.rest.get('api/v5.0.0/azs',function(data1){
          		viewModel.azList(data1.results);
          		if(bool){
+         			
          			if(data1.results.length > 0){          			
              			for(var i = 0;i < data1.results.length;i++){
                  			viewModel.azUuidList.push(data1.results[i].uuid);
@@ -1777,16 +1758,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        },
 	        owner: this
 	      });
-	    /** 云主机内存全选按钮 ***/
-	    this.isSelectedMemoryAll = ko.pureComputed({
-	        read: function () {
-	            return this.memoryList().length >0 && this.memoryList().length === this.memoryCheckList().length;
-	        },
-	        write: function (value) {
-	        	this.memoryCheckList(value ? _.pluck(this.memoryList(), 'value') : []);
-	        },
-	        owner: this
-	      });
 	    /** VDC操作系统类型全选按钮 ***/
 	    this.isSelectedVdcOsAll = ko.pureComputed({
 	        read: function () {
@@ -1870,8 +1841,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
               <div class="form-group">
                 <label class="col-xs-3 control-label">产品：</label>
                 <div class="col-xs-7">
-                  <select class="form-control" id="selectServiceName" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}">
-                  </select>
+                  <select class="form-control" id="selectServiceName" data-bind="options:productList,optionsText:'name',optionsValue:'codeName',value: selected_product, event:{'change':changeValue}"></select>
                 </div>
                 <div class="col-xs-1">
 					<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -1882,7 +1852,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                 <div class="col-xs-7">
                   <div class="service-img-box" data-bind="click: changeImg">
                   <!-- <div class="service-img-box"  onclick="showModal('pages/services/service_definitions/addService.html')"> -->
-                    <img src="" alt="" width="60" height="60" data-bind="attr: {src: serviceVO().imageUrl}">
+                    <img src="" alt="" width="60" height="60" data-bind="attr: {src: serviceVO().imageUrl}" id="_serviceImg_">
                     <a >更改图标</a>
                   </div>
                 </div>
@@ -1984,7 +1954,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
                         <th>可用分区</th>
                         <th>操作系统类型</th>
                         <th>操作系统版本</th>
-                        <th>关联镜象</th>
+                        <th>关联镜像</th>
                         <th>操作</th>
                       </thead>
                       <tbody data-bind="foreach: osType_chosen">
@@ -2005,7 +1975,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 				</div>
               </div>
               <div class="form-group">
-                <label class="col-xs-2 control-label">CPU(核)：</label>
+                <label class="col-xs-2 control-label">CPU(个)：</label>
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
@@ -2025,7 +1995,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 				</div>
               </div>
               <div class="form-group">
-                <label class="col-xs-2 control-label">内存：</label>
+                <label class="col-xs-2 control-label">内存(GB)：</label>
                 <div class="col-xs-9 form-inline">
                   <div class="checkbox">
                     <label>
@@ -2582,9 +2552,9 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 			         </label>
 			       </div> 
 			     </td>
-                 <td data-bind="text: imageName"></td>
+                 <td data-bind="text: imageName != null && imageName.length > 19 ? imageName.substring(0,19)+'...' : imageName,attr: {title: imageName}"></td>
                  <td data-bind="text: osType"></td>
-                 <td data-bind="text: osVersion"></td>
+                 <td data-bind="text: osVersion != null && osVersion.length > 19 ? osVersion.substring(0,19)+'...' : osVersion,attr: {title: osVersion}"></td>
                  <td data-bind="text: zaName"></td>
                </tr>
                <!-- /ko -->
@@ -2677,7 +2647,7 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
 	        
 	        <div class='modal-body row'>
 	          <div class="col-xs-6">
-	            <div id="fileList" class="uploader-list"><div class="file-item thumbnail" style="height: 120px"><img src="" alt="" id="ImgPr" height="100" width="100" data-bind="attr: {src: serviceVO().imageUrl}"></div></div>
+	            <div id="fileList" class="uploader-list"><div class="file-item thumbnail" style="height: 120px"><img src="" alt="" id="ImgPr" height="100" width="100"></div></div>
 	          </div>
 	          <div class="col-xs-6">
 	            <div id="filePicker">选择图片</div>

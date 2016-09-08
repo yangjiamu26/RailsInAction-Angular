@@ -64,7 +64,7 @@
 									<tr>
 										<td data-bind="text: $row.name"><input type="hidden" data-bind="text: $row.id"></td>
 										<td data-bind="text: $row.processTypeName"></td>
-										<td data-bind="text: $row.productTypesName"></td>
+										<td data-bind="text: $row.productTypesName != null && $row.productTypesName.length > 19 ? $row.productTypesName.substring(0,19)+'...' : $row.productTypesName, attr:{title: $row.productTypesName}"></td>
 										<td data-bind="text: $row.vdcName"></td>
 										<td data-bind="text: $row.createUser"></td>
 										<td data-bind="text: $row.createTime"></td>
@@ -72,7 +72,7 @@
 										<td><span class="label" data-bind="text: $row.deploy, css: {'label-danger':!$row.isDeploy,'label-success':$row.isDeploy}"></span></td>
 										<!-- <td><span data-bind="text: $row.deploy,attr: {'class': $row.deployClass }"></span></td> -->
 										<td data-bind="text: $row.change"></td>
-										<td data-bind="text: $row.description"></td>
+										<td data-bind="text: $row.description != null && $row.description.length > 19 ? $row.description.substring(0,19)+'...' : $row.description,attr: {title : $row.description}"></td>
 										<td>
 											<a data-bind="click: $root.edit,visible:true">修改</a> |
 											<a data-bind="click: $root.design">设计</a> |
@@ -145,7 +145,7 @@
               <div class="form-group" data-bind="visible: showVdc">
                 <label for="inputEmail3" class="col-xs-3 control-label">所属VDC</label>
                 <div class="col-xs-8">
-                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', attr: {'disabled': vdcDisable},event:{change:$root.loadProducts(modelVO().processType())},valueAllowUnset:true">
+                  <select class="form-control" data-bind="value: modelVO().vdcId, options: $root.vdcs, optionsText: 'name', optionsValue: 'uuid', optionsCaption: '--请选择--', attr: {'disabled': vdcDisable},event:{change:$root.loadProducts(modelVO().processType())},valueAllowUnset:true">
                   </select>
                 </div>
               </div>
@@ -269,7 +269,7 @@
 							<tr>
 								<td data-bind="text: $row.name"></td>
 								<td data-bind="text: $row.processTypeName"></td>
-								<td data-bind="text: $row.productTypes"></td>
+								<td data-bind="text: $row.productTypes != null && $row.productTypes.length > 19 ? $row.productTypes.substring(0,19)+'...' : $row.productTypes,attr: {title : $row.productTypes}"></td>
 								<td data-bind="text: $row.vdcName"></td>
 								<td data-bind="text: $row.deployTime"></td>
 								<td><span class="label" data-bind="text: $row.statusName, css: {'label-danger':$row.status,'label-success':!$row.status}"></span></td>
@@ -422,7 +422,7 @@
 	          }
 	      }
 	      
-	      this.loadProducts = function(val){
+	      this.loadProducts = function(val){	    	  
 	    	  self.saveDisabled(false);
 	    	  if(val != '' && val != 'CUSTOM'){	    		  
 		    	  self.showProducts(true);
@@ -435,7 +435,7 @@
 		  	  
 		  	  //查询该类型的流程下的产品选中
 		  	  if(self.showProducts()){
-		  		  if(self.modelVO.toJSON().vdcId == ''){
+		  		  if(self.modelVO.toJSON().vdcId == '' || typeof(self.modelVO.toJSON().vdcId) == 'undefined'){
 		  			self.modelVO.fromJSON({vdcId:"0"});
 		  		  }
 		  		  var params = "processType="+val+"&vdcId="+self.modelVO.toJSON().vdcId;
