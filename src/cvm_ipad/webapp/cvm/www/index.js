@@ -53,6 +53,9 @@ $$(document).on('ajaxComplete', function () {
 
 myApp.showAssisTime = true;
 $(function(){
+  $(document).bind('click',function(event){
+    alert(event.toElement);
+  })
 
   var infos = eval('(' + Storage.getItem('userInfo') + ')');
   if(infos&&infos.token&&infos.tokenKey){
