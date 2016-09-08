@@ -209,6 +209,7 @@ function initStorage_use_chart(free, total) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
+          myApp.detachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           self.dataList.removeAll();
           self.noMore(false);
