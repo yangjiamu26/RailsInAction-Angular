@@ -438,12 +438,6 @@ function initNetwork_chart(data,xAxis) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.vm_performance_viewModel = viewModel;
 
-  if(page.query.hypervisor == 'PowerVM'||page.query.state!='运行中'){
-    viewModel.isShowCharts(false);
-  }else{
-    viewModel.setTimeSelected('最近一小时');
-  }
-
   $$('#vm-times-show').on('click', function(event) {
     myApp.popover($("#popover-vm-times").html(), event.target)
   });

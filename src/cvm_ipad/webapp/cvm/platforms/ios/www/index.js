@@ -1,3 +1,5 @@
+'use strict'
+
 var Storage = window.localStorage;
 var CVM_PAD = {};
 var USER_INFO = {};
@@ -5,7 +7,7 @@ var USER_INFO = {};
 $.ajaxSetup({
   cache: false
 })
-PAGE_SIZE = 12;
+var PAGE_SIZE = 12;
 
 var $$ = Dom7;
 var myApp = new Framework7({
@@ -67,8 +69,6 @@ $(function(){
     setTimeout(function(){
       if(myApp.showAssisTime){
         $$("#assistive").show();
-        clearInterval(intervalCheckNte);
-        startCheckNet();
       }
     },2000);
   }else{
@@ -164,3 +164,157 @@ $(function(){
   });
 
 });
+
+/*菜单tab页加载机制 start*/
+var clickedBusness = false;
+function clickBusness(){
+    window.indexFilter_viewModel.changePage('business');
+    if(clickedBusness) return;
+    window.indexFilter_busdomain_viewModel.getBusinessDomains();
+    clickedBusness = true;
+}
+var clickedPool = false;
+function clickPool(){
+    window.indexFilter_viewModel.changePage('pool');
+    if(clickedPool) return;
+    window.pool_index_viewModel.loadData();
+    clickedPool = true;
+}
+var clickedHost = false;
+function clickHost(){
+    window.indexFilter_viewModel.changePage('host');
+    if(clickedHost) return;
+    window.indexFilter_host_viewModel.getResPools();
+    clickedHost = true;
+}
+var clickedVm = false;
+function clickVm(){
+    window.indexFilter_viewModel.changePage('vm');
+    if(clickedVm) return;
+    window.vm_index_viewModel.loadData();
+    clickedVm = true;
+}
+var clickedStorage = false;
+function clickStorage(){
+    window.indexFilter_viewModel.changePage('storage');
+    if(clickedStorage) return;
+    window.storage_index_viewModel.loadData();
+    clickedStorage = true;
+}
+var clickedSetting = false;
+function clickSetting(){
+    if(clickedSetting) return;
+    window.settings_profile_viewModel.loadInfo();
+    clickedSetting = true;
+}
+
+function reSetAllRequets(){
+  clickedBusness = false;
+  clickedPool = false;
+  clickedHost = false;
+  clickedVm = false;
+  clickedStorage = false;
+  clickedSetting = false;
+}
+/*菜单tab页加载机制 end*/
+
+/*内容tab页加载机制 start*/
+var hostListclicked = false;
+function innerTabclick_host(){
+  if(hostListclicked) return;
+  hostListclicked = true;
+  window.hostList_viewModel.loadData(false);
+}
+var vmListclicks = {
+  "pool":false,
+  "host":false,
+  "business":false
+}
+function innerTabclick_vm(page){
+  var clicked;
+  switch(page){
+    case 'pool':
+      clicked = vmListclicks.pool;
+      break;
+    case 'host':
+      clicked = vmListclicks.host;
+      break;
+    case 'business':
+      clicked = vmListclicks.business;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'pool':
+      vmListclicks.pool = true;
+      break;
+    case 'host':
+      vmListclicks.host = true;
+      break;
+    case 'business':
+      vmListclicks.business = true;
+      break;
+  }
+  window.vmList_viewModel.loadData(false);
+}
+var storageListclicks = {
+  "pool":false,
+  "host":false
+}
+function innerTabclick_storage(page){
+  var clicked;
+  switch(page){
+    case 'pool':
+      clicked = storageListclicks.pool;
+      break;
+    case 'host':
+      clicked = storageListclicks.host;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'pool':
+      storageListclicks.pool = true;
+      break;
+    case 'host':
+      storageListclicks.host = true;
+      break;
+  }
+  window.storageList_viewModel.loadData();
+}
+var diskListclicks = {
+  "vm":false,
+  "storage":false
+}
+function innerTabclick_disk(page){
+  var clicked;
+  switch(page){
+    case 'vm':
+      clicked = diskListclicks.vm;
+      break;
+    case 'storage':
+      clicked = diskListclicks.storage;
+      break;
+  }
+  if(clicked) return;
+  switch(page){
+    case 'vm':
+      diskListclicks.vm = true;
+      break;
+    case 'storage':
+      diskListclicks.storage = true;
+      break;
+  }
+  window.diskList_viewModel.loadData();
+}
+var vmPerformanceClicked = false
+function innerTabclick_performance(hypervisor,state){
+  if(vmPerformanceClicked) return;
+  vmPerformanceClicked = true;
+  if(hypervisor == 'PowerVM'||state!='运行中'){
+    window.vm_performance_viewModel.isShowCharts(false);
+  }else{
+    window.vm_performance_viewModel.setTimeSelected('最近一小时');
+  }
+}
+/*内容tab页加载机制 end*/
