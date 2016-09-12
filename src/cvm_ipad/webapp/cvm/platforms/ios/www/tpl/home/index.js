@@ -64,7 +64,7 @@ myApp.onPageInit("home-index", function(page) {
         initTotal_cpu_chart_home2(data);
         initTotal_memory_chart_home(data);
         initTotal_storage_chart_home(data);
-      });
+      },null,true);
     }
   }
   var viewModel = new ViewModel();

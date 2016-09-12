@@ -1,4 +1,6 @@
 myApp.onPageInit("business-show", function(page) {
+  vmListclicks.business = false;
+  
   function ViewModel(){
     this.name = ko.observable(page.query.name);
 

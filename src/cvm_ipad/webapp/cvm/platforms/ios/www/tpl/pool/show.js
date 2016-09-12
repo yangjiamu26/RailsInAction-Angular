@@ -1,4 +1,8 @@
+
 myApp.onPageInit("pool-show", function(page) {
+  hostListclicked = false;
+  vmListclicks.pool = false;
+  storageListclicks.pool = false;
   function ViewModel(){
     this.name = ko.observable(page.query.resourcePoolName);
 

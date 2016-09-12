@@ -142,6 +142,7 @@ function initVm_status_chart(states) {
     this.loading = false;
     this.page = 1;
     this.noMore = ko.observable();
+    self.isInit = true;
     this.loadData = function(is_loadMore, hypervisor, resPoolId, hostId){
       if(hypervisor){
         this.hypervisor(hypervisor);
@@ -168,7 +169,10 @@ function initVm_status_chart(states) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          if(!self.isInit){
+            myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          }
+          self.isInit = false;
           self.dataList.removeAll();
 
           var os = [data.winVm,data.linuxVm,data.othersVm], status = [data.okStateVm,data.stoppeStatedVm,data.otherStatedVm];
@@ -284,8 +288,6 @@ function initVm_status_chart(states) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.vm_index_viewModel = viewModel;
-
-  viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(),viewModel.hostId());

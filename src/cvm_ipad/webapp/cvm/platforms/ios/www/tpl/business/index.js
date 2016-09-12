@@ -143,7 +143,6 @@ function init_memory_chart(data) {
 }
 // 资源池-存储占比图
 function init_storage_chart(data) {
-  console.log(data)
     $('#business_storage_chart').highcharts({
       chart: {
           marginTop: 0,
@@ -215,6 +214,7 @@ function init_storage_chart(data) {
 }
 
   function ViewModel(){
+    var self = this;
     this.busdomainNum = ko.observable("");
     this.projectNum = ko.observable("");
     this.dataList = ko.observableArray([]);
@@ -227,8 +227,8 @@ function init_storage_chart(data) {
     this.loading = false;
     this.page = 1;
     this.noMore = ko.observable();
+    self.isInit = true;
     this.loadData = function(is_loadMore, id, name){
-      var self = this;
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
@@ -253,7 +253,10 @@ function init_storage_chart(data) {
         self.loading = false;
         if(!is_loadMore){
           myApp.pullToRefreshDone();
-          myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          if(!self.isInit){
+            myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
+          }
+          self.isInit = false;
           self.dataList.removeAll();
           self.noMore(false);
           if(data.data.length < PAGE_SIZE) self.noMore(true);
@@ -284,8 +287,6 @@ function init_storage_chart(data) {
   $$(page.container).find('.infinite-scroll').on('infinite', function () {
     viewModel.loadData(true,viewModel.busdomainId(),viewModel.busdomainName());
   });
-
-  window.indexFilter_busdomain_viewModel.getBusinessDomains();
 });
 
 

@@ -1,4 +1,6 @@
 myApp.onPageInit("storage-show", function(page) {
+  diskListclicks.storage = false;
+  
   function ViewModel(){
     this.name = ko.observable(page.query.name);
     this.belongTab = ko.observable(page.query.belongTab);
