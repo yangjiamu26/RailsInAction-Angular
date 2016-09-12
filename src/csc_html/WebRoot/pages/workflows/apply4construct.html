@@ -2,7 +2,7 @@
         <div class="panel-heading">申请信息</div>
         <div id="orderDetailedList" class="wrapper">
          
-          <div class="table-responsive no-height" data-bind="visible:$root.vdiskNum()>0">
+          <div class="table-responsive no-height" data-bind="visible: $root.vdiskList().length>0">
            <h5 class="text-info">云硬盘数：
             <span class="badge bg-danger" data-bind="text:vdiskNum"></span>
            </h5>
@@ -31,7 +31,7 @@
           </div>
           
           
-          <div class="table-responsive no-height" data-bind="visible:$root.cnwareVdiskList()>0">
+          <div class="table-responsive no-height" data-bind="visible:$root.cnwareVdiskList().length>0">
            <h5 class="text-info">云硬盘数：
             <span class="badge bg-danger" data-bind="text:vdiskNum"></span>
            </h5>
@@ -44,7 +44,7 @@
                         <th>存储大小（G）</th>
                         <th>收费标准</th>
                         <th>可用分区</th>
-                        <th>存储池</th>
+                        <th>存储池<span class="text-danger inline m-t-sm" style="margin-left: 5px">*</span></th>
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: cnwareVdiskList">
@@ -56,7 +56,7 @@
                         <td data-bind="text:fee"></td>
                         <td data-bind="text:azName"></td>
                         <td>
-                        	<select data-bind="options:availableIpList,optionsText:$data,optionsValue:$data,value:ip,optionsCaption:'请选择',attr:{id: 'storagePool'+$index()}">
+                        	<select data-bind="options:storagePoolList,optionsText:'name',optionsValue:'id',value: storagePoolId,optionsCaption:'请选择',attr:{id: 'storagePool'+$index()}">
                             </select>
                         </td>
                     </tr>
@@ -177,25 +177,27 @@
 <!-- page specific plugin scripts -->
 <script type="text/javascript">
   var scripts = [null, null]
+  var storagePoolId;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  if(args.taskId){
-			function ViewModel(){
-			    var self = this;
-	            this.vdiskNum = ko.observable("");
-	            this.objectStorageNum = ko.observable(""); 
-	            this.publicNetworkNum = ko.observable("");
-	            this.lbNum = ko.observable("");
-	            this.sshNum = ko.observable("");
-	            this.ltNum = ko.observable("0"); //路由器数
-	            
-	            this.vdiskList = ko.observableArray();
-	            this.cnwareVdiskList = ko.observableArray();
-	            this.sshList = ko.observableArray();
-	            this.lbList = ko.observableArray();
-			     csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
-		    	     var processInstanceId = data.taskInfo[0].processInstanceId;
-		    	     //获取订单数据
-			      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+		  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
+    	     var processInstanceId = data.taskInfo[0].processInstanceId;
+    	     //获取订单数据
+	      	 csc.rest.get('api/v5.0.0/orders/byFlowInstanceUuid/'+processInstanceId,function(data){
+				function ViewModel(){
+				    var self = this;
+		            this.vdiskNum = ko.observable("");
+		            this.objectStorageNum = ko.observable(""); 
+		            this.publicNetworkNum = ko.observable("");
+		            this.lbNum = ko.observable("");
+		            this.sshNum = ko.observable("");
+		            this.ltNum = ko.observable("0"); //路由器数
+		            
+		            this.vdiskList = ko.observableArray();
+		            this.cnwareVdiskList = ko.observableArray();
+		            this.sshList = ko.observableArray();
+		            this.lbList = ko.observableArray();
+			     	
 			      		
 			            var vdiskNum = 0;
 			            var objectStorageNum = 0;
@@ -212,22 +214,47 @@
 			      			
 			      			if(e.resourceType=='DISK'){
 			      				vdiskNum ++;
-			      				
+			      				var diskVO = new DiskVO();
 			      				var disk = e;
 				      			disk.size = resBaseInfo.volumeSize;
 				      			
 				      			var vmName = resBaseInfo.vmName;
 				      			disk.vmName = vmName;
 				      			
+				      			storagePoolId = metaData.storagePoolPlatformId
+				      			
+				      			diskVO.azName(disk.azName);
+				      			diskVO.azUuid(disk.azUuid);
+				      			diskVO.billCycle(disk.billCycle);
+				      			diskVO.cloudPlatform(disk.cloudPlatform);
+				      			diskVO.createTime(disk.createTime);
+				      			diskVO.desc(disk.desc);
+				      			diskVO.expireTime(disk.expireTime);
+				      			diskVO.expireType(disk.expireType);
+				      			diskVO.expireValue(disk.expireValue);
+				      			diskVO.fee(disk.fee);
+				      			diskVO.id(disk.id);
+				      			diskVO.instanceName(disk.instanceName);
+				      			diskVO.isBill(disk.isBill);
+				      			diskVO.itemState(disk.itemState);
+				      			diskVO.itemWorkProgress(disk.itemWorkProgress);
+				      			diskVO.vdcName(disk.vdcName);
+				      			diskVO.vdcUuid(disk.vdcUuid);
+				      			diskVO.vmName(disk.vmName);
+				      			diskVO.size(disk.size);
+				      			diskVO.uuid(disk.uuid);
+				      			
+				      			disk.storagePoolList=[];
+				      			disk.storagePoolId=resBaseInfo.storagePoolId;
 				      			if(disk.cloudPlatform == "CNware"){
-				      				//获取存储池列表
-			      					csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+resBaseInfo.azUuid+"&hostId="+resBaseInfo.vmUuid, function(result,textStatus,resBaseInfo,disk){
-	  	                        	     debugger
-	  	                        	     disk.storagePoolList(result.results);
-	  	                        	     disk.storagePoolId(resBaseInfo.storagePoolId);
-  	                                },function(){},disk,true);
-				      				
-			      					self.cnwareVdiskList.push(disk);
+				      				csc.rest.get("api/v5.0.0/vms/"+resBaseInfo.vmUuid,function(result,textStatus,diskVO,resBaseInfo){
+				      					//获取存储池列表
+				      					csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+diskVO.azUuid()+"&hostId="+result.ownerHostUuid, function(result,textStatus,diskVO,resBaseInfo){
+		  	                        	     diskVO.storagePoolList(result.results);
+		  	                        	     diskVO.storagePoolId(storagePoolId);
+	  	                                },function(){},diskVO,resBaseInfo,true);
+				      				},function(){},diskVO,resBaseInfo,true);
+			      					self.cnwareVdiskList.push(diskVO);
 				      			}else{
 				      				self.vdiskList.push(disk);
 				      			}
@@ -251,31 +278,88 @@
 			      		self.vdiskNum(vdiskNum);
 			      		self.sshNum(sshNum);
 			      		self.lbNum(lbNum);
-			      	 })
-			  })
+			      	 
 			  
-			  this.save = function(){
-	       		saveComment(args.taskId,function(){
-	       			alert("保存成功！");
-	       		});
-			  }
+				  this.save = function(){
+		       		saveComment(args.taskId,function(){
+		       			if(self.cnwareVdiskList().length > 0){
+		       				for(var j=0;j<data.orderItems.length;j++){
+		        		    	var vmOrderItemVO = data.orderItems[j];
+		        		  	    var metaData = JSON.parse(vmOrderItemVO.metaData);
+		        		   	    var metaDataResBaseInfo= JSON.parse(metaData.resBaseInfo);
+		       				
+			       				for(var i=0;i<self.cnwareVdiskList().length;i++){
+		        		  		    var applyCnDiskVo = self.cnwareVdiskList()[i];
+		        		  		    if(applyCnDiskVo.uuid() == vmOrderItemVO.uuid){
+		        		  		    	//cnware平台
+		        		  		    	metaData.storagePoolPlatformId =  $("#storagePool"+i).val();
+		        		  		    	if(metaData.storagePoolPlatformId == ""){
+		        		  		    		alert("请检查必填项！");
+		        		  		    		return;
+		        		  		    	}
+		        		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
+		        		  		    	break;
+		        		  		    }
+		        		    	}
+		       				}
+		       				csc.rest.put("api/v5.0.0/orders/"+data.uuid,data, function(data){ 
+	                    	   if(typeof(callback) != 'undefined'){
+		           					callback();
+		           					return;
+		           			    }
+	                           alert("保存成功！"); 
+	                       });
+		       			}else{
+		       				alert("保存成功！");
+		       			}
+		       			
+		       		});
+				  }
 			  
-			  this.next = function(){
-				if(isLast){
-				  saveComment(args.taskId,function(){
-					var databody = {"userId":"","action":"designated"};
-					csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
-					  alert("审核成功！");
-					  location.href = "#pages/workflows/tasks?type=work";
-					},function(){alert("操作失败！")});
-				  });
-			  	}else{		  
-				  showModal("pages/workflows/next.html");
-			  	}
-			  }
-		 }
-				
-		ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+				  this.next = function(){
+					if(isLast){
+					  saveComment(args.taskId,function(){
+						var databody = {"userId":"","action":"designated"};
+						csc.rest.put('api/v5.0.0/workflows/tasks/'+args.taskId,databody,function(data){
+						  alert("审核成功！");
+						  location.href = "#pages/workflows/tasks?type=work";
+						},function(){alert("操作失败！")});
+					  });
+				  	}else{		  
+					  showModal("pages/workflows/next.html");
+				  	}
+				  }
+				  //云盘实体
+				  function DiskVO(){
+					  this.azName = ko.observable();
+					  this.azUuid = ko.observable();
+					  this.billCycle = ko.observable();
+					  this.cloudPlatform = ko.observable();
+					  this.createTime = ko.observable();
+					  this.desc = ko.observable();
+					  this.expireTime = ko.observable();
+					  this.expireType = ko.observable();
+					  this.expireValue = ko.observable();
+					  this.fee = ko.observable();
+					  this.id = ko.observable();
+					  this.instanceName = ko.observable();
+					  this.isBill = ko.observable();
+					  this.itemState = ko.observable();
+					  this.itemWorkProgress = ko.observable();
+					  this.storagePoolId = ko.observable();
+					  this.storagePoolList = ko.observableArray();
+					  this.vdcName = ko.observable();
+					  this.vdcUuid = ko.observable();
+					  this.vmName = ko.observable();
+					  this.size = ko.observable();
+					  this.uuid = ko.observable();
+				  }
+				  
+				}		
+			ko.applyBindings(new ViewModel(), $('#approveContent')[0]); 
+
+       	})
+ 	  })
 	  }
 	});
 </script>

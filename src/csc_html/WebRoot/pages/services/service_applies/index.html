@@ -773,7 +773,6 @@
 				if(self.productType()==1){
 					var bool=false;
 					 self.model_VM().vmCartInfo().forEach(function(e){
-						
 					    if(e().mountDisks != null){
 					    	e().mountDisks().forEach(function(d){
 		                		if(!d.isValid()){
@@ -797,7 +796,7 @@
 					});  
 					if(bool){
 						return;
-					} 
+					}
 					productJsonArray = self.model_VM.toJSON().vmCartInfo;
 					productData = self.model_VM.toJSON();
 					productKey = 'VM';
@@ -2464,16 +2463,6 @@
 	            this.applyTime = ko.observable();
 	            this.networkType = ko.observable();
 	            
-	            this.ipPoolUuid = ko.pureComputed(function(){
-	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
-	            	if(item!=null){
-	            		return item.uuid;//item.type!="vpc" ? item.value : "";
-	            	}else{
-	            		return "";
-	            	}
-	            	
-	            }, this);
-	            
 	            this.ipPoolUuid4CNware = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.vpcList(), {id: this.vpcOrIpPoolList()});
 	            	if(item!=null){
@@ -2483,6 +2472,19 @@
 	            	}
 	            	
 	            }, this);
+	            
+	            this.ipPoolUuid = ko.pureComputed(function(){
+	            	
+	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
+	            	if(item!=null){
+	            		return item.uuid;//item.type!="vpc" ? item.value : "";
+	            	}else{
+	            		//当云平台为Cnware时，ipPoolUuid为空，ipPoolUuid4CNware不为空
+	            		return this.ipPoolUuid4CNware() != null ? this.ipPoolUuid4CNware() : "";
+	            	}
+	            	
+	            }, this);
+	            
 	            
 	            this.vpcUuid = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
