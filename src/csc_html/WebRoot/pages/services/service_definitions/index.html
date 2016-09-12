@@ -1229,7 +1229,6 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     			  return;
     		  }
     	  }
-    	  //debugger
     	  if(this.step() == 2 && this.selected_product()!='VDC'){
     		  if(this.selected_product()=='PUBLICIP'){
     			  if(this.ip_chosen().length <= 0){
@@ -1310,18 +1309,21 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
         this.changeValue = function(viewModel, event){
         	//选择VDC
           if(viewModel.selected_product()=='VDC'){        	  
-        	  
+
           }else if(viewModel.selected_product()=='VM'){//选择云主机
         	  loadVirtualPlatform();//获取虚拟化平台数据
         	  loadVmAzs(true);
         	  loadVmOsType(true);
         	  loadVmCpu(true);//获取虚拟机CPU
         	  loadVmMemory(true);//获取虚拟机内存
+        	  getAzsByUser(viewModel,true);
           }else if(viewModel.selected_product()=='DISK'){//选择云盘
         	  loadDiskType();//初始化云盘类型
         	  getAzsByUser(viewModel,true);
           }else{
-        	  getAzsByUser(viewModel,true);
+        	  //除VDC/云主机/云硬盘外，az暂只需查OpenStack，以后扩展到其它平台再调整
+        	  var cloudPlatform = "OpenStack";
+        	  getAzsByUser(viewModel, true, cloudPlatform);
           }
           csc.rest.get('api/v5.0.0/products?codeName='+viewModel.selected_product(),function(data){
   	    	  viewModel.serviceVO().imageUrl(data[0].imgUrl);
@@ -1329,15 +1331,18 @@ var scripts = [null, 'assets/lib/zTree/js/jquery.ztree.core.js', 'assets/lib/zTr
     		
         }
         //
-     	function getAzsByUser(viewModel,bool){
+     	function getAzsByUser(viewModel, bool, cloudPlatform){
     	   if(viewModel.azUuidList().length > 0){
     		   viewModel.azUuidList([]);
      	   }
        	   //根据当前用户获取可用分区
-       	   csc.rest.get('api/v5.0.0/azs',function(data1){
+       	   var url = 'api/v5.0.0/azs';
+       	   if (cloudPlatform != null && cloudPlatform != "" && cloudPlatform != undefined) {
+				url += '?cloudPlatform=' + cloudPlatform;
+       	   }
+       	   csc.rest.get(url, function(data1){
          		viewModel.azList(data1.results);
          		if(bool){
-         			
          			if(data1.results.length > 0){          			
              			for(var i = 0;i < data1.results.length;i++){
                  			viewModel.azUuidList.push(data1.results[i].uuid);

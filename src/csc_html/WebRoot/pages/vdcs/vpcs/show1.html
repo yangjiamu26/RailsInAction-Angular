@@ -1,0 +1,555 @@
+<div class="bg-light lter b-b wrapper-sm">
+	<ol class="breadcrumb">
+		<li>当前位置：</li>
+		<li><a href="#pages/vdcs/vpcs/index?type=0">VPC管理</a></li>
+		<li class="active">VPC详情</li>
+	</ol>
+</div>
+
+<div class='wrapper-md'>
+	<div class="nav-tabs-alt bg-white-only b b-blue">
+		<ul class="nav nav-tabs" role="tablist">
+			<li class="active" role="presentation">
+				<a aria-controls="VPC" data-toggle="tab" href="#baseInfo" role="tab">基本信息</a>
+			</li>
+			 <li role="presentation" id="topoBox">
+				<a aria-controls="router" data-toggle="tab" href="#topo"  role="tab">网络拓扑图</a>
+			</li>
+		</ul>
+		<div class="tab-content">
+			<!-- 基本信息 -->
+			<div class="tab-pane active" id="baseInfo" role="tabpanel">
+				<div class="wrapper"><a class="btn btn-sm btn-default" href="#pages/vdcs/vpcs/index?type=0"><i class="fa fa-arrow-left"></i> 返回</a></div>
+				<div class="wrapper">
+	                <div class="bg-light b-t b-b wrapper-sm">
+	                  <div class="row m-b">
+	                    <div class="col-xs-1 font-bold text-nowrap">VPC名称：</div>
+	                    <div class="col-xs-3" data-bind="text:vpcVO().name"></div>
+	                    <div class="col-xs-1 font-bold text-nowrap">所属VDC：</div>
+	                    <div class="col-xs-3" data-bind="text:vpcVO().vdcName"></div>
+	                    <div class="col-xs-1 font-bold text-nowrap">可用分区：</div>
+	                    <div class="col-xs-3" data-bind="text:vpcVO().azName"></div>
+	                  </div>
+	                  <div class="row m-b">
+	                    <div class="col-xs-1 font-bold text-nowrap">外部网络：</div>
+	                     <div class="col-xs-3" data-bind="text:vpcExtNetQuery().name">
+	                     </div>
+	                     <button class="btn btn-info btn-sm" data-bind="click:addVpcExtNet,visible: shouldShowAddExt">添加</button>
+	                     <button class="btn btn-info btn-sm" data-bind="click:removeVpcExtNet,visible: shouldShowRemoveExt">移除</button>
+	                  </div>
+	                 </div>
+				</div>
+				
+				<div class="wrapper">
+					<h5 class="text-black"><i class="fa fa-minus fa-rotate-90 text-info"></i>私有网络</h5>
+					<div class="row m-t m-b-sm">
+						<div class="col-xs-8">
+							<button class="btn btn-info btn-sm"  data-bind="click:createVpcNet" >创建</button>
+						</div>
+						<div class="col-xs-3">          
+	                        <div class="input-group">
+	                          <span class="input-group-addon">名称</span>
+	                          <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchVpcNetParam().name">
+	                        </div>
+	                    </div>
+	                    <div class="col-xs-1">
+	                        <button class="btn btn-sm btn-default" type="button" data-bind="click:searchVpcNet">搜索</button>
+	                    </div>
+					</div>	
+					<table class="table table-striped"  data-bind="with: netListTable">
+						<thead>
+							<tr>
+								<th  style="width:300px">网络名称</th>
+								<th style="width:500px">网段</th>
+								<th>IP总数</th>
+								<th>创建时间</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						   	<tr data-bind="visible: showNoData">
+							            <td colspan=6 class="aligncenter">
+							              This table has no data.
+							            </td>
+							</tr>
+						    <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
+							<tr>
+								<td data-bind="text: $row.name"></td>
+								<td data-bind="text: $row.netPool"></td>
+								<td data-bind="text: $row.ipTotal"></td>
+								<td data-bind="text: $row.createTime"></td>
+								<td>
+									 <a data-bind="click:$root.delVpcNet">删除</a>
+								</td>
+							</tr>
+							<!-- /ko -->
+						</tbody>
+					</table>
+					 <footer class="panel-footer" data-bind="with: netListTable, visible: netListTable.pages() > 1">
+					     <ul class="pagination">
+					       <li data-bind="css: leftPagerClass, click: gotoPage(1)">
+					         <a href="#">首页</a>
+					       </li>
+					       <li data-bind="css: leftPagerClass, click: prevPage">
+					         <a href="#">&laquo;</a>
+					       </li>
+					       <li >
+					         <a href="#"  data-bind="text: currentPage"></a>
+					       </li>
+					       <li data-bind="css: rightPagerClass, click: nextPage">
+					         <a href="#">&raquo;</a>
+					       </li>
+					       <li data-bind="css: rightPagerClass, click: gotoPage(pages())">
+					         <a href="#">末页</a>
+					       </li>
+					       <li class="page-control-li">
+					         <div class="input-group form-group-sm">
+					           <input type="text" class="form-control" data-bind="value: targetPage"  />
+					           <div class="input-group-btn">
+					             <a href="#" class="btn btn-sm btn-default" data-bind="click: gotoTargetPage()">跳转</a>
+					           </div>
+					         </div>
+					         <div class="page-info-div" data-bind="text: recordsText"></div>
+					       </li>
+					     </ul>
+				   </footer>		
+				</div>
+			<div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: addVpcExtNetModal }">
+			  <div class='modal-dialog modal-lg' role='document'>
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>添加外部网络</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <div class="form-group string required">
+			          <span>网络名称：</span>
+			          <select class="form-control" style="display:inline-block;width:150px"  data-bind="options:vpcExtNetList,optionsText:'netWorkName',optionsValue:'netWorkUuid',value:vpcExtNetVO().vpcExtNetUuid"  id="netSelect">
+			          </select>
+			        </div>
+			        </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
+				 
+		   <div role="dialog" aria-hidden="true" class="modal fade" data-bind="modal: { show: createVpcNetModal }">
+			 <div class='modal-dialog' role='document' >
+			    <div class='modal-content'>
+			      <div class='modal-header'>
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button><h3 class='modal-title'>创建私有网络</h3>
+			      </div>
+			      <div class='modal-body form-horizontal'>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网络名称</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text"  data-bind="value: vpcNetVO().name"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>          
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网段</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().cidr,valueUpdate: 'afterkeydown'"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span> 格式如：192.168.1.0/24
+			          </div>          
+			        </div> 
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">子网掩码</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().mask,enable:false"/>
+			          </div>
+			        </div> 
+			        <div class="form-group form-inline">
+			          <label class="col-xs-3 control-label">可用IP段 </label>
+			          <div class="col-xs-9 ">
+			            <div>
+			              <a data-bind="click: addNetPoolsItem">添加</a>
+			            </div>      
+			           </div>
+			          <div class="col-xs-9 " data-bind="foreach: vpcNetVO().netPools">
+			            <div>
+			              <input class="form-control" style="width:140px" type="text"  data-bind="value:start" /> ~ <input class="form-control" style="width:140px" type="text" data-bind="value:end" /> 
+			              <a data-bind="click: $root.removeNetPoolsItem">删除</a>
+			            </div>
+			          </div>       
+			        </div>   
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">网关</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().gateway"/>
+			          </div>
+			          <div class="col-xs-4">
+			            <span class="text-danger inline m-l-n m-t-sm">*</span>
+			          </div>         
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">主DNS</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().masterDns"/>
+			          </div>
+			        </div>
+			        <div class="form-group">
+			          <label class="col-xs-3 control-label">备DNS</label>
+			          <div class="col-xs-5">
+			            <input class="form-control" type="text" data-bind="value: vpcNetVO().slaverDns"/>
+			          </div>
+			        </div>  
+			      </div>
+			      <div class='modal-footer'>
+			        <input type="button" name="commit" value="确定" data-bind="click: vpcNetSubmit" class="btn btn-default btn-info" />
+			        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
+		   </div>
+			
+			
+			<!-- 网络拓扑图-->
+			<div class="tab-pane" id="topo" role="tabpanel">
+				<div class="row">
+					<div class="col-xs-8" style="padding-top:30px;">
+						<div class="col-md-2" style="position:relative;">
+							<div class="panel panel-default">
+							   <div class="panel-body">
+							       <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/network.png"  class="network"></div>
+								      <div class="caption">网络</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/Router.png" class="Router"></div>
+								      <div class="caption">路由器</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/ICF.png" class="ICF"></div>
+								      <div class="caption">防火墙</div>
+								    </div><!--
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/cloudHost.png" class="cloudHost"></div>
+								      <div class="caption">云主机</div>
+								    </div>
+								    <div class="thumbnail">
+								      <div class="img" ><img src="assets/img/topo/images/loadBalance.png" class="loadBalance"></div>
+								      <div class="caption">负载均衡</div>
+								    </div>-->
+							      </div>
+							   </div>
+						 </div> 
+						<div class="col-md-10">
+							<canvas id="canvas1" width=810 height=435></canvas>
+						</div>
+					</div>
+					<!-- network Router  ICF cloudHost loadBalance -->
+					<div class="col-xs-4 form-horizontal" style="padding-right:150px;padding-top:15px;">
+						<div class="panel panel-default networkInfo">
+							<div class="panel-heading">网络配置</div>
+							<div class="panel-body">
+							
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">网络名称：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">网段：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">子网俺码：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">可用IP段：</label>
+									<div class="col-xs-7">
+										<button type="button" class="btn btn-link">添加</button>
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-default inline m-l-n m-t-sm"></span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label"> </label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+										
+							           <button type="button" class="btn btn-link inline m-l-n text-danger">X</button>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">网关：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">主DNS：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">备DNS：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class='form-group' style="margin-left:150px;">
+							        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+							        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+							    </div>
+							</div>
+						</div>
+
+
+						<div class="panel panel-default RouterInfo">
+							<div class="panel-heading">路由器配置</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">路由器名称：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">路由器地址：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class='form-group' style="margin-left:150px;">
+							        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+							        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+							    </div>
+							</div>
+						</div>
+<!-- 						<div class="panel panel-default RouterInfo">
+							<div class="panel-heading">路由器配置</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">路由器名称：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">网络名称：</label>
+									<div class="col-xs-7">
+										<select class="form-control">
+											<option>网络1</option>
+											<option>网络2</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div> -->
+						<div class="panel panel-default ICFInfo">
+							<div class="panel-heading">防火墙配置</div>
+							<div class="panel-body">
+								<!-- <div class="form-group">
+									<label  class="col-xs-4 control-label">配置方式：</label>
+									<div class="col-xs-7">
+										<select class="form-control">
+											<option>网络1</option>
+											<option>网络2</option>
+										</select>
+									</div>
+								</div> -->
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">防火墙名称：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control" data-bind="value:firewallVO().name">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">路由器：</label>
+									<div class="col-xs-7">
+										<select class="form-control" data-bind="options: availableRouters,optionsText: 'name',optionsValue: 'uuid', value:firewallVO().routerName"></select>
+										<!-- <select class="form-control">
+											<option>路由器1</option>
+											<option>路由器2</option>
+										</select> -->
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<!-- <div class="form-group">
+									<label  class="col-xs-4 control-label">规则：</label>
+									<div class="col-xs-7">
+										<a class="btn btn-link" onclick="showModal('pages/vpcs/topo_firewall.html')">查看</a>
+									</div>
+								</div> -->
+								<div class='form-group' style="margin-left:150px;">
+							        <input type="button" name="commit" value="确定" data-bind="click:confirmAddVpcExtNet" class="btn btn-default btn-info" />
+							        <button name="button" type="submit" class="btn btn-default btn btn-default" data-dismiss="modal">取消</button>
+							    </div>
+							</div>
+						</div>
+
+						<!-- <div class="panel panel-default ICFInfo">
+							<div class="panel-heading">防火墙配置</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">配置方式：</label>
+									<div class="col-xs-7">
+										<select class="form-control">
+											<option>网络1</option>
+											<option>网络2</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">防火墙名称：</label>
+									<div class="col-xs-7">
+										<input type="text" class="form-control">
+									</div>
+									<div class="col-xs-1">
+							            <span class="text-danger inline m-l-n m-t-sm">*</span>
+							        </div>
+								</div>
+								<div class="form-group">
+									<label  class="col-xs-4 control-label">规则：</label>
+									<div class="col-xs-7">
+										<a class="btn btn-link" onclick="showModal('pages/vpcs/topo_firewall.html')">查看</a>
+									</div>
+								</div>
+							</div>
+						</div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+</div></div>
+<!-- page specific plugin scripts -->
+<script type="text/javascript">
+	var scripts = [null,'assets/js/jtopo.js', "api/vpc/vpc.js", "api/vdc/vdc.js"]
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
+		var vpcUuid = args.vpcUuid;
+		
+       /**********************拓扑图*************************/	
+       
+		var canvas = document.getElementById('canvas1');			
+			var stage = new JTopo.Stage(canvas);
+			var scene = new JTopo.Scene(stage);
+			scene.backgroundColor='255,255,255';
+			
+			
+			for(var i=0; i<5; i++){
+				var node = new JTopo.Node('Node_' + i);
+				node.setLocation(Math.random() * 600, Math.random() * 400);
+				scene.add(node);		
+			}
+													
+			
+			var beginNode = null;
+
+			var tempNodeA = new JTopo.Node('tempA');;
+			tempNodeA.setSize(1, 1);
+			
+			var tempNodeZ = new JTopo.Node('tempZ');;
+			tempNodeZ.setSize(1, 1);
+			
+			var link = new JTopo.Link(tempNodeA, tempNodeZ);
+			
+			scene.mouseup(function(e){
+				if(e.button == 2){
+					scene.remove(link);
+					return;
+				}
+				if(e.target != null && e.target instanceof JTopo.Node){
+					if(beginNode == null){
+						beginNode = e.target;
+						scene.add(link);
+						tempNodeA.setLocation(e.x, e.y);
+						tempNodeZ.setLocation(e.x, e.y);
+					}else if(beginNode !== e.target){
+						var endNode = e.target;
+						var l = new JTopo.Link(beginNode, endNode);
+						scene.add(l);
+						beginNode = null;
+						scene.remove(link);
+					}else{
+						beginNode = null;
+					}
+				}else{
+					scene.remove(link);
+				}
+			});
+			
+			scene.mousedown(function(e){
+				if(e.target == null || e.target === beginNode || e.target === link){
+					scene.remove(link);
+				}
+			});
+
+			scene.mousemove(function(e){
+				tempNodeZ.setLocation(e.x, e.y);
+			});
+			
+		var tempsele=[];
+			scene.mouseup(function(e){ 
+				tempsele=scene.selectedElements;
+			})
+
+		 document.onkeydown=function(event){
+          var e = event || window.event || arguments.callee.caller.arguments[0];
+          var tempLength=tempsele.length;
+          if(e && e.keyCode==46 && tempLength>0){
+        	  for(var i=0; i<tempLength; i++){
+        		  if(tempsele[i].elementType=="link" ){
+          				scene.remove(tempsele[i]);
+          			}
+        		 
+      				
+      			}
+          	}
+        
+                 
+      }; 
+
+});
+</script>

@@ -9,7 +9,7 @@
                       <th>云主机名称</th>
                       <th>操作系统版本</th>
                       <th>CPU(个)</th>
-                      <th>内存(MB)</th>
+                      <th>内存(GB)</th>
                       <th>存储(GB)</th>
                       <th>所属VDC</th>
                       <th>VPC/IP池</th>
@@ -75,7 +75,7 @@
 											</div>
 										</div>
 										<div class="row m-b">
-											<div class="col-xs-1 font-bold">内存(MB)：</div>
+											<div class="col-xs-1 font-bold">内存(GB)：</div>
 											<div class="col-xs-3">
 												 <span data-bind="text:memory"></span>
 											</div>
@@ -112,7 +112,7 @@
 												<span data-bind="text:expireText"></span>
 											</div>
 										</div>
-										<div class="row m-b">
+										<div class="row m-b" data-bind="visible: isBill()=='true'">
 											<div class="col-xs-1 font-bold">套餐：</div>
 											<div class="col-xs-3">
 												<span data-bind="text:billCycleText"></span>
@@ -271,8 +271,11 @@
 					                <span class="text-danger inline m-l-n m-t-sm">*</span>
 					              </div>
 					              <label class="col-xs-1 control-label no-padder-h">VPC/IP池</label>
-					              <div class="col-xs-2">
+					              <div class="col-xs-2" data-bind="visible: cloudPlatForm">
 					                <select class="form-control input-sm" data-bind="options: vpcList, optionsText: 'name', optionsValue: 'uuid',value: vpcUuid,event:{change:$root.vpcChange},valueAllowUnset:true,optionsCaption:'请选择'"></select>
+					              </div>
+					              <div class="col-xs-2" data-bind="visible: cloudPlat() == 'CNware'">
+					                <select class="form-control input-sm" data-bind="options: vpcList, optionsText: 'name', optionsValue: 'id',value: vpcUuid,event:{change:$root.vpcChange},valueAllowUnset:true,optionsCaption:'请选择'"></select>
 					              </div>
 					              <div class="col-xs-1">
 					                <span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -337,7 +340,7 @@
 					                <span class="text-danger inline m-l-n m-t-sm">*</span>
 					              </div>
 					            </div>
-					            <div class="form-group">
+					            <div class="form-group" data-bind="visible: isBill()=='true'">
 					              <label class="col-xs-1 control-label no-padder-h">套餐</label>
 					              <div class="col-xs-10">
 					                <select class="form-control inline w-xs" data-bind="options:billRuleList,optionsText:'name',optionsValue:'value',value:billCycle,valueAllowUnset:true,optionsCaption:'请选择'" >
@@ -623,6 +626,7 @@
   
 <script type="text/javascript">
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js"];
+  var ip;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     
 	  
@@ -691,36 +695,12 @@
 				                          vmInfo.vpcList(result.vpcList);
 				                          vmInfo.privateNetworkList(result.networkList);
 				                          vmInfo.azList(result.azList);
-				                          //平台判断
-						      			  if(result.azList.length > 0){
-						      				  for(var i =0; i < result.azList.length; i++){
-							      				 if(result.azList[i].uuid == vmInfo.azUuid()){
-						      						if(result.azList[i].cloudPlatform == 'OpenStack'){
-						      							vmInfo.cloudPlatForm(true);
-						      						}else{
-						      							vmInfo.cloudPlatForm(false);
-						      						}
-							      				 }
-							      			  }
-						      			  }
 				                          vmInfo.osTypeList(result.osTypeList);
 				                          vmInfo.cpuList(result.cpuList);
 				                          vmInfo.memoryList(result.memoryList);
 				                          vmInfo.osVersionList(result.osVersionList);
 				                          vmInfo.billRuleList(setArrayCharge(result.chargeList));
 				 	                },serviceUuid,vmInParamData,callbackCustParam);
-				 	                
-				 	                csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
-	 	                        	     var ipList = [];
-	 	                        	     if(result){
-	 	                        	    	 for(var i=0;i<result.length;i++){
-	 	                        	    		var objIp = result[i];
-	 	                        	    		ipList.push(objIp.ip);
-	 	                        	    	 }
-	 	                        	     }
-	 	                        	     vmInfo.availableIpList(ipList);
- 	                                },function(){},vmInfo,true); 
-				 	                
 				 	                
 				 	                vmInfo.uuid(orderItem.uuid);
 				      				vmInfo.serviceUuid(orderItem.serviceUuid);
@@ -734,6 +714,7 @@
 				      				vmInfo.memory(vmInParamData.memory);
 				      				vmInfo.storage(vmInParamData.storage);
 				      				vmInfo.networkUuid(selelctNetworkUuid);
+				      				ip = vmInParamData.ip;
 				      				vmInfo.ip(vmInParamData.ip);
 				      				vmInfo.account(vmInParamData.account);
 				      				vmInfo.password(vmInParamData.password);
@@ -746,6 +727,37 @@
 				      				vmInfo.expireValue(orderItem.expireValue);
 				      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 				      				vmInfo.relateUuid(orderItem.relateUuid);
+				      				//平台
+				      				vmInfo.cloudPlat(orderItem.cloudPlatform);
+				      				
+				 	                if(orderItem.cloudPlatform == 'CNware'){
+		      							vmInfo.cloudPlatForm(false);
+		      							//获取IP池列表
+				      					csc.rest.get("api/v5.0.0/ipPools/"+vmInfo.vpcUuid()+"?azUuid="+vmInParamData.azUuid, function(result,textStatus,vmInfo){
+	    	                        	     var ipList = [];
+	    	                        	     if(result){
+	    	                        	    	 for(var i=0;i<result.total;i++){
+	    	                        	    		var objIp = result.results[i];
+	    	                        	    		ipList.push(objIp.ip);
+	    	                        	    	 }
+	    	                        	     }
+	    	                        	     vmInfo.availableIpList(ipList);
+	    	                        	     vmInfo.ip(ip);
+	    	                             },function(){},vmInfo,true);
+		      						}else{
+		      							vmInfo.cloudPlatForm(true);
+		      							csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
+		 	                        	     var ipList = [];
+		 	                        	     if(result){
+		 	                        	    	 for(var i=0;i<result.length;i++){
+		 	                        	    		var objIp = result[i];
+		 	                        	    		ipList.push(objIp.ip);
+		 	                        	    	 }
+		 	                        	     }
+		 	                        	     vmInfo.availableIpList(ipList);
+	 	                                },function(){},vmInfo,true);
+		      						}
+				      				
 				      				self.currentVO().vmApplyList.push(new ko.validatedObservable(vmInfo));
 				      			  }else if(orderItem.resourceType == "DISK"){
 				      				  var serviceUuid=orderItem.serviceUuid;
@@ -985,10 +997,34 @@
 
 			                  this.vpcChange = function(data, event) {
 			                	  data.privateNetworkList([]);data.networkUuid("");
-				      	    	  data.availableIpList([]);data.ip("");
-			                      csc.rest.get("api/v5.0.0/cart/getNetworkList/"+data.serviceUuid()+"/" + data.vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
+				      	    	  data.availableIpList([]);data.ip(""); 
+				      	    	if(data.cloudPlat() == 'CNware'){
+	      							//获取IP池列表
+			      					csc.rest.get("api/v5.0.0/ipPools/"+data.vpcUuid()+"?azUuid="+data.azUuid(), function(result,textStatus,vmInfo){
+    	                        	     var ipList = [];
+    	                        	     if(result){
+    	                        	    	 for(var i=0;i<result.total;i++){
+    	                        	    		var objIp = result.results[i];
+    	                        	    		ipList.push(objIp.ip);
+    	                        	    	 }
+    	                        	     }
+    	                        	     vmInfo.availableIpList(ipList);
+    	                             },function(){},vmInfo,true);
+	      						}else{
+	      							csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
+	 	                        	     var ipList = [];
+	 	                        	     if(result){
+	 	                        	    	 for(var i=0;i<result.length;i++){
+	 	                        	    		var objIp = result[i];
+	 	                        	    		ipList.push(objIp.ip);
+	 	                        	    	 }
+	 	                        	     }
+	 	                        	     vmInfo.availableIpList(ipList);
+ 	                                },function(){},vmInfo,true);
+	      						}
+			                      /* csc.rest.get("api/v5.0.0/cart/getNetworkList/"+data.serviceUuid()+"/" + data.vpcUuid(), function(result) { //需修改为服务UUID作为参数传递
 			                    	  data.privateNetworkList(result);
-			                      });
+			                      }); */
 			                  }
 			                  
 			                  this.osTypeChangeGetOsVersion = function(data, event) {
@@ -1258,7 +1294,18 @@
 				      	        this.vpcUuid=ko.observable("").extend({required:true}),
 				      	        this.vpcName=ko.observable(""),
 				      	        this.vpcName = ko.pureComputed(function(){
-				 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+				      	        	var item;
+				      	        	if(this.cloudPlat() == "CNware"){
+				      	        		for(var i = 0; i < this.vpcList().length; i++){
+				      	        			if(this.vpcList()[i].id == this.vpcUuid()){
+				      	        				item = this.vpcList()[i];
+				      	        			}
+				      	        		}
+				      	        		
+				      	        	}else{
+				      	        		item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+				      	        	}
+				 	            	
 				 	            	if(item!=null){
 				 	            		return item.name;
 				 	            	}else{
@@ -1278,7 +1325,7 @@
 				      	        this.vcpu= ko.observable("").extend({required:true}),
 				      	        this.memory= ko.observable("").extend({required:true}),
 				      	        this.storage= ko.observable("").extend({required:true,number:true}),
-				      	        this.networkUuid= ko.observable("").extend({required:true}),
+				      	        
 				      	        this.networkName= ko.observable(""),
 				      	        this.networkName = ko.pureComputed(function(){
 				 	            	var item = _.findWhere(this.privateNetworkList(), {uuid: this.networkUuid()});
@@ -1344,6 +1391,14 @@
 				      			this.availableIpList = ko.observableArray([]);
 				      	        //平台
 				      	        this.cloudPlatForm = ko.observable(true),
+				      	        this.cloudPlat = ko.observable(),
+				      	        this.networkUuid= ko.observable("").extend({required: {onlyIf:
+				      	        	(function(_this){  
+					    				return function(){
+					    					return _this.cloudPlat()!="CNware";
+					    				} 
+				    				})(this)
+				      	        }}),
 				      	        
 				      	  	ko.computed(function(){
 			 		            var serviceUuid=this.serviceUuid();
@@ -1404,7 +1459,6 @@
 					      		    var orderData =  self.currentVO.toJSON().orderData;
 					      		    
 					      	    	console.log("pre----------",orderData)
-					      		    
 					      		    var vmOrderItems = [];
 				        		    var diskOrderItems= [];
 				        		    var softOrderItems= [];
@@ -1440,10 +1494,12 @@
 				                	});
 				        			
 				        			if(bool){
+				        				alert("请检查必填项！");
 				        				return;
 				        			}
 				        			
 				        			var vmList = self.currentVO().vmApplyList();
+				        			
 				      		        for(var j=0;j<vmList.length;j++){
 					      			    var vmVO = vmList[j]();
 					      			    var vmOrderItemVO = {};
@@ -1467,15 +1523,18 @@
 					        		   	metaDataResBaseInfo.vpcUuid = vmVO.vpcUuid();
 				        		   	    metaDataResBaseInfo.osVersion = vmVO.osVersion();
 					        		   	metaDataResBaseInfo.osType = vmVO.osType();
-					        		 	metaDataResBaseInfo.account = vmVO.account();
-					        		   	metaDataResBaseInfo.password = vmVO.password();
-					        		 	metaDataResBaseInfo.repeatPassword = vmVO.repeatPassword();
+					        		   	if(vmVO.cloudPlat() != "CNware"){
+					        		   		metaDataResBaseInfo.account = vmVO.account();
+						        		   	metaDataResBaseInfo.password = vmVO.password();
+						        		 	metaDataResBaseInfo.repeatPassword = vmVO.repeatPassword();
+						        		 	metaDataResBaseInfo.sshUuid = vmVO.sshKeyUuid();
+					        		   	}
+					        		 	
 					        		 	metaDataResBaseInfo.vcpu = vmVO.vcpu();
 					        		   	metaDataResBaseInfo.memory = vmVO.memory();
 					        		   	metaDataResBaseInfo.storage = vmVO.storage();
 					        		 	metaDataResBaseInfo.ip = vmVO.ip();
 					        		 	metaDataResBaseInfo.busSysUuid = vmVO.busSysUuid();
-					        		   	metaDataResBaseInfo.sshUuid = vmVO.sshKeyUuid();
 					        			metaData.resBaseInfo =  metaDataResBaseInfo;
 			    		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
 			    		  		    	vmOrderItemVONew.push(vmOrderItemVO);

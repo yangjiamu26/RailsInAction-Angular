@@ -9,7 +9,7 @@
                       <th>云主机名称</th>
                       <th>操作系统版本</th>
                       <th>CPU(个)</th>
-                      <th>内存(MB)</th>
+                      <th>内存(GB)</th>
                       <th>存储(GB)</th>
                       <th>所属VDC</th>
                       <th>VPC/IP池</th>
@@ -71,7 +71,7 @@
 											</div>
 										</div>
 										<div class="row m-b">
-											<div class="col-xs-1 font-bold">内存(MB)：</div>
+											<div class="col-xs-1 font-bold">内存(GB)：</div>
 											<div class="col-xs-3">
 												 <span data-bind="text:memory"></span>
 											</div>
@@ -305,10 +305,10 @@
 			      			  if(azList.length > 0){
 			      				  for(var i =0; i < azList.length; i++){
 				      				 if(azList[i].uuid == vmInfo.azUuid()){
-			      						if(azList[i].cloudPlatform == 'OpenStack'){
-			      							vmInfo.cloudPlatForm(true);
-			      						}else{
+			      						if(azList[i].cloudPlatform == 'CNware'){
 			      							vmInfo.cloudPlatForm(false);
+			      						}else{
+			      							vmInfo.cloudPlatForm(true);
 			      						}
 				      				 }
 				      			  }
@@ -539,7 +539,16 @@
  	      	        this.vpcUuid=ko.observable("");
  	      	        this.vpcName=ko.observable("");
  	      	        this.vpcName = ko.pureComputed(function(){
-	 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+ 	      	        	var item;
+ 	      	        	if(!this.cloudPlatForm()){
+ 	      	        		for(var i = 0; i < this.vpcList().length; i++){
+	      	        			if(this.vpcList()[i].id == this.vpcUuid()){
+	      	        				item = this.vpcList()[i];
+	      	        			}
+	      	        		}
+ 	      	        	}else{
+ 	      	        		item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+ 	      	        	}
 	 	            	if(item!=null){
 	 	            		return item.name;
 	 	            	}else{

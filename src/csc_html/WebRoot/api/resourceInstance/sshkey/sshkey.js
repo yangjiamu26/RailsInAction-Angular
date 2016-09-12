@@ -7,7 +7,9 @@
 			createSSHKey:function(param,callback,errorCallback){
 				 csc.rest.post('api/v5.0.0/sshKeys',param,function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+				        errorCallback(data);
+				    }); 
 			},
 			/**
 			 * 修改SSHKey
@@ -17,16 +19,20 @@
 			modifySSHKey:function(uuid,param,callback,errorCallback){
 				 csc.rest.put('api/v5.0.0/sshKeys/'+uuid,param,function(data){
 					 callback(data)
-    		    }); 
+    		    }, function(data){
+			        errorCallback(data);
+			    }); 
 			},
 			/**
 			 * 删除SSHKey
 			 *  @param uuid SSHKey uuid
 			 */
-			deleteSSHKey:function(uuid,callback){
+			deleteSSHKey:function(uuid,callback,errorCallback){
 				csc.rest.del('api/v5.0.0/sshKeys/'+uuid,function(data){
 					 callback(data)
-   		        })
+   		        }, function(data){
+			        errorCallback(data);
+			    })
 			},
 			/**
 			 * 获取SSHKey列表
@@ -36,7 +42,9 @@
 				 var param = csc.util.httpQueryParamConvert(param);
 				 csc.rest.get('api/v5.0.0/sshKeys?'+param,function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+				        errorCallback(data);
+				    }); 
 			},
 			/**
 			 * 获取绑定的SSHKey 云主机列表
@@ -45,7 +53,9 @@
 			getVms:function(uuid,callback,errorCallback){
 				 csc.rest.get('api/v5.0.0/sshKeys/'+uuid+"/vms",function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+				        errorCallback(data);
+				    }); 
 			},
 			/**
 			 * 获取绑定的SSHKey

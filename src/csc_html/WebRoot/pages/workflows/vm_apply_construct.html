@@ -2,8 +2,8 @@
     <div class="panel panel-info">
         <div class="panel-heading">申请信息</div>
         <div id="orderDetailedList" class="wrapper">
-          <h5 class="text-info">云主机数：<span data-bind="text:currentVO().vmApplyList().length"></span></h5>
-          <div class="table-responsive no-height">
+          <h5 class="text-info" data-bind="visible: currentVO().vmApplyList().length > 0">云主机数：<span data-bind="visible: currentVO().vmApplyList().length > 0,text:currentVO().vmApplyList().length"></span></h5>
+          <div class="table-responsive no-height" data-bind="visible: currentVO().vmApplyList().length > 0">
             <table class="table" id= "vmApplyConstructVmTable">
                 <thead>
                     <tr>
@@ -12,7 +12,7 @@
                         <th>可用分区</th>
                         <th>操作系统</th>
                         <th>CPU(个)</th>
-                        <th>内存(MB)</th>
+                        <th>内存(GB)</th>
                         <th>存储(GB)</th>
                         <th>VPC名称</th>
                         <th>网络名称</th>
@@ -74,7 +74,7 @@
 											</div>
 										</div>
 										<div class="row m-b">
-											<div class="col-xs-1 font-bold">内存(MB)：</div>
+											<div class="col-xs-1 font-bold">内存(GB)：</div>
 											<div class="col-xs-3">
 												 <span data-bind="text:memory"></span>
 											</div>
@@ -178,9 +178,179 @@
                 </tbody>
             </table>
           </div>
+          
+          <h5 class="text-info" data-bind="visible: currentVO().cnwareVmApplyList().length > 0">云主机数：<span data-bind="visible: currentVO().cnwareVmApplyList().length > 0,text: currentVO().cnwareVmApplyList().length"></span></h5>
+          <div class="table-responsive no-height" data-bind="visible: currentVO().cnwareVmApplyList().length > 0">
+            <table class="table" id= "vmApplyConstructCNwareVmTable">
+                <thead>
+                    <tr>
+                        <th>云主机名称</th>
+                        <th>所属VDC</th>
+                        <th>可用分区</th>
+                        <th>操作系统</th>
+                        <th>CPU(个)</th>
+                        <th>内存(GB)</th>
+                        <th>存储(GB)</th>
+                        <th>物理机<span class="text-danger inline m-t-sm" style="margin-left: 5px">*</span></th>
+                        <th>存储池<span class="text-danger inline m-t-sm" style="margin-left: 5px">*</span></th>
+                        <th>IP池</th>
+                        <th>IP地址</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                
+                   <tbody  data-bind="foreach:currentVO().cnwareVmApplyList">
+                    <tr>
+                        <td><span data-bind="text: instanceName"></span></td>
+                        <td><span data-bind="text: vdcName"></span></td>
+                        <td><span data-bind="text: azName"></span></td>
+                        <td><span data-bind="text: osVersionName()!= null && osVersionName().length > 19 ? osVersionName().substring(0,19)+'...' : osVersionName,attr:{title: osVersionName}"></span></td>
+                        <td><span data-bind="text: vcpu"></span></td>
+                        <td><span data-bind="text: memory"></span></td>
+                        <td><span data-bind="text: storage"></span></td>
+                        <td><select style="width: 120px" data-bind="options:hostList,optionsText:'name',optionsValue:'id',value:hostId,optionsCaption:'请选择',attr:{id: $index()},event:{change:$root.hostChange}">
+                            </select>
+                        </td>
+                        <td><select data-bind="options:storagePoolList,optionsText:'name',optionsValue:'id',value:storagePoolId,optionsCaption:'请选择',attr:{id: 'storagePool'+$index()}">
+                            </select>
+                        </td>
+                        <td><span data-bind="text: vpcName"></span></td>
+                        <td>
+                            <select data-bind="options:availableIpList,optionsText:$data,optionsValue:$data,value:ip,optionsCaption:'请选择'">
+                            </select> 
+                        </td>
+                        <td><a  class="expand-btn-detail" >查看 <i class="fa fa-angle-double-right"></i></a></td>
+                    </tr>
+                    <tr style="display: none">
+	                    <td colspan="11" class="no-padder">
+	                      <div class="b wrapper-sm">
+	                                <h5>
+										<i class="fa fa-minus fa-rotate-90 text-info"></i>基本信息
+									</h5>
+									<div class="bg-light b-t b-b wrapper-sm">
+										<div class="row m-b">
+											<div class="col-xs-1 font-bold">云主机名称：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:instanceName"></span>
+											</div>
+											<div class="col-xs-1 font-bold">所属VDC：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:vdcName"></span>
+											</div>
+											<div class="col-xs-1 font-bold">可用分区：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:azName"></span>
+											</div>
+										</div>
+										<div class="row m-b">
+											<div class="col-xs-1 font-bold">操作系统类型：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:osType"></span>
+											</div>
+											<div class="col-xs-1 font-bold">操作系统版本：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:osVersionName"></span>
+											</div>
+											<div class="col-xs-1 font-bold">CPU(个)：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:vcpu"></span>
+											</div>
+										</div>
+										<div class="row m-b">
+											<div class="col-xs-1 font-bold">内存(GB)：</div>
+											<div class="col-xs-3">
+												 <span data-bind="text:memory"></span>
+											</div>
+											<div class="col-xs-1 font-bold">存储(GB)：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:storage"></span>
+											</div>
+											<div class="col-xs-1 font-bold">VPC/IP池：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:vpcName"></span>
+											</div>
+										</div>
+										<div class="row m-b">
+											
+											<div class="col-xs-1 font-bold">指定IP：</div>
+											<div class="col-xs-3">
+												<span  data-bind="text:ip"></span>
+											</div>
+											<div class="col-xs-1 font-bold">申请时长：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:expireText"></span>
+											</div>
+										</div>
+										<div class="row m-b">
+											<div class="col-xs-1 font-bold">套餐：</div>
+											<div class="col-xs-3">
+												<span data-bind="text:billCycleText"></span>
+											</div>
+											<div class="col-xs-1 font-bold">费用：</div>
+											<div class="col-xs-3">
+												<span  data-bind="text:fee"></span>
+											</div>
+										</div>
+									</div>
+									
+									<h5><i class="fa fa-minus fa-rotate-90 text-info"></i>安装软件</h5>
+				                        <div class="table-responsive no-height">
+				                          <table class="table table-striped table-hover">
+				                            <thead>
+				                              <tr>
+				                                <th>软件名称</th>
+				                                <th>软件分类</th>
+				                                <th>软件类型</th>
+				                                <th>软件版本</th>
+				                                <th>静默安装属性</th>
+				                              </tr>
+				                            </thead>
+				                             <tbody data-bind="foreach:softwareList">
+				                              <tr>
+				                                  <td data-bind="text:name"></td>
+							                      <td data-bind="text:softType"></td>
+							                      <td data-bind="text:softTypeName"></td>
+							                      <td data-bind="text:version"></td>
+							                      <td><a class="btn btn-xs btn-default" data-bind="click:function(data,event){$root.showAttr_VM(true,data,event)}">查看</a></td>
+				                              </tr>
+				                            </tbody>
+				                          </table>            
+				                        </div>          
+				
+				                     <!--    <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>系统盘分区</h5>
+				                        <table class="table table-striped table-hover">
+				                          <thead>
+				                            <tr>
+				                              <th>分区名称</th>
+				                              <th>分区大小</th>
+				                            </tr>
+				                          </thead>
+				                          <tbody>
+				                            <tr>
+				                              <td>NFS</td>
+				                              <td>100G</td>
+				                            </tr>
+				                          </tbody>
+				                        </table>  -->
+				
+				                        <h5><i class="fa fa-minus fa-rotate-90 text-info"></i>高级选项</h5>
+				                        <div class="bg-light b-t b-b wrapper-sm">
+				                          <div class="row m-b">
+				                            <div class="col-xs-1">所属业务系统：</div>
+				                            <div class="col-xs-3"><span data-bind="text:busSysName"></span></div>
+				                            <div class="col-xs-1">备注：</div>
+				                            <div class="col-xs-7"></div>
+				                          </div>
+				                        </div> 
+	                      </div>
+	                    </td>
+                   </tr>                
+                </tbody>
+            </table>
+          </div>
 
-          <h5 class="text-info">云硬盘数：<span data-bind="text:currentVO().diskApplyList().length"></span></h5>
-          <div class="table-responsive no-height">
+          <h5 class="text-info" data-bind="">云硬盘数：<span data-bind="text:currentVO().diskApplyList().length"></span></h5>
+          <div class="table-responsive no-height" data-bind="">
             <table class="table">
                 <thead>
                     <tr>
@@ -200,6 +370,36 @@
                         <td><span data-bind="text: volumeSize"></span></td>
                         <td><span data-bind="text: fee"></span></td>
                         <td><span data-bind="text: azName"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+
+		<h5 class="text-info" data-bind="visible: currentVO().cnwarediskApplyList().length > 0">云硬盘数：<span data-bind="text:currentVO().cnwarediskApplyList().length"></span></h5>
+          <div class="table-responsive no-height" data-bind="visible: currentVO().cnwarediskApplyList().length > 0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>云硬盘名称</th>
+                        <th>所属VDC</th>
+                        <th>挂载云主机</th>
+                        <th>存储大小（G）</th>
+                        <th>收费标准</th>
+                        <th>可用分区</th>
+                        <th>存储池</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:currentVO().diskApplyList">
+                    <tr>
+                        <td><span data-bind="text: instanceName"></span></td>
+                        <td><span data-bind="text: vdcName"></span></td>
+                        <td><span data-bind="text: vmName"></span></td>
+                        <td><span data-bind="text: volumeSize"></span></td>
+                        <td><span data-bind="text: fee"></span></td>
+                        <td><span data-bind="text: azName"></span></td>
+                        <td><select data-bind="options:availableIpList,optionsText:$data,optionsValue:$data,value:ip,optionsCaption:'请选择',attr:{id: $index()},event:{change:$root.hostChange}">
+                            </select>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -250,6 +450,8 @@
 <script type="text/javascript">
 //"api/workflow/vm_apply_viewmodel.js"
   var scripts = ["api/resourceInstance/sshkey/sshkey.js", null];
+  var hostId;
+  var storagePoolId;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	  
 	  csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -261,7 +463,9 @@
 				      		 var self = this;
 				      	      this.currentVO = ko.validatedObservable({
 				      	    	     vmApplyList : ko.observableArray([]),
+				      	    	     cnwareVmApplyList : ko.observableArray([]),
 				      	             diskApplyList : ko.observableArray([]),
+				      	             cnwarediskApplyList : ko.observableArray([]),
 				      	             softApplyList : ko.observableArray([]),
 				      	             orderData: ko.observable(orderData)
 				      	      });
@@ -270,9 +474,7 @@
 				      	    	  var uri="serviceUuid="+serviceUuid+"&vdcUuid="+vmInParamData.vdcUuid+"&azUuid="+vmInParamData.azUuid+"&vpcUuid="+vmInParamData.vpcUuid+"&osType="+vmInParamData.osType;
 				                    csc.rest.get("api/v5.0.0/cart/getCartSelectList?"+uri+"&userAccount="+userName+"&userType="+userType, function(result,textStatus,callbackCustParam){
 				                     csc.rest.get("api/v5.0.0/bussys?vdcuuid="+vmInParamData.vdcUuid,function(result2,textStatus,callbackCustParam){
-				                         //csc.rest.get("api/v5.0.0/sshKeys?getList=true&azUuid="+vmInParamData.azUuid+"&vcdUuid="+vmInParamData.vdcUuid+"&account="+userName+"&userType="+userType,function(result3,textStatus,callbackCustParam){
 				                        	 callback(result,result2,callbackCustParam);
-				                        // },function(){},callbackCustParam);
 				                     },function(){},callbackCustParam);
 				                   },function(){},callbackCustParam);
 				      	      }
@@ -298,6 +500,7 @@
 				                          //vmInfo.sshList(result3.results);
 				 	                	  vmInfo.bussyList(result2.results); 
 				                          vmInfo.vdcList(result.vdcList);
+				                          
 				                          vmInfo.vpcList(result.vpcList);
 				                          vmInfo.privateNetworkList(result.networkList);
 				                          vmInfo.azList(result.azList);
@@ -306,26 +509,21 @@
 				                          vmInfo.memoryList(result.memoryList);
 				                          var osVersionList = result.osVersionList;
 				                          vmInfo.osVersionList(result.osVersionList);
+				                          /* for(var  i = 0; i < result.vpcList.length; i++){
+				                        	  if(result.vpcList[i].id == vmInfo.vpcUuid()){
+				                        		  debugger
+				                        		  vmInfo.vpcName(result.vpcList[i].name);
+				                        	  }
+				                          }; */
 				                          
-				 	                },serviceUuid,vmInParamData,userName,userType,callbackCustParam);
+				 	                },serviceUuid,vmInParamData,userName,userType,callbackCustParam); 
 				 	                
-				 	                vmInfo.selectIp = vmInParamData.ip;//用于查询网络有效ip的回调取值
-				 	                csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
-    	                        	     var ipList = [];
-    	                        	     if(result){
-    	                        	    	 for(var i=0;i<result.length;i++){
-    	                        	    		var objIp = result[i];
-    	                        	    		ipList.push(objIp.ip);
-    	                        	    	 }
-    	                        	     }
-    	                        	     vmInfo.availableIpList(ipList);
-    	                        	     vmInfo.ip(vmInfo.selectIp);
-    	                             },function(){},vmInfo,true); 
 				 	                
 				 	                vmInfo.uuid(orderItem.uuid);
 				      				vmInfo.serviceUuid(orderItem.serviceUuid);
 				      				vmInfo.instanceName(orderItem.instanceName);
 				      				vmInfo.vdcUuid(vmInParamData.vdcUuid);
+				      				
 				      				vmInfo.azUuid(vmInParamData.azUuid);
 				      				vmInfo.vpcUuid(vmInParamData.vpcUuid);
 				      				vmInfo.osType(vmInParamData.osType);
@@ -352,7 +550,62 @@
 				      				vmInfo.expireText(expireText);
 				      				vmInfo.busSysUuid(vmInParamData.busSysUuid);
 				      				vmInfo.relateUuid(orderItem.relateUuid);
-				      				self.currentVO().vmApplyList.push(vmInfo);
+				      								      			
+				      				vmInfo.selectIp = vmInParamData.ip;//用于查询网络有效ip的回调取值
+				      				
+				      				hostId = metaData.hostId;
+				      				storagePoolId = metaData.storagePoolId;
+				      				vmInfo.cloudPlat(orderItem.cloudPlatform);
+				      				if(orderItem.cloudPlatform == "CNware"){
+				      					//获取物理机列表
+				      					csc.rest.get("api/v5.0.0/nanotubes/getHostInfoByAzUuid?azUuid="+vmInParamData.azUuid, function(result,textStatus,vmInfo){
+				      						result.sort(function(a,b){return a.availMemory > b.availMemory && a.availCpu > b.availCpu && a.availStorage > b.availStorage});//排序
+		  	                        	     vmInfo.hostList(result);
+		  	                        	     if(typeof(hostId) == "undefined"){
+		  	                        	    	 hostId = result[0].id;
+		  	                        	     }
+		  	                        	     vmInfo.hostId(hostId);
+		  	                        	 	 //获取存储池列表
+						      				 csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+vmInParamData.azUuid+"&hostId="+hostId, function(result,textStatus,vmInfo){
+				  	                        	     vmInfo.storagePoolList(result.results);
+				  	                        	     if(typeof(storagePoolId) == "undefined"){
+				  	                        	    	storagePoolId = result.results[0].id;
+				  	                        	     }
+				  	                        	     vmInfo.storagePoolId(storagePoolId);
+			  	                              },function(){},vmInfo,metaData,true);
+		  	                        	     
+	  	                                },function(){},vmInfo,true);
+				      					//获取IP池列表
+				      					csc.rest.get("api/v5.0.0/ipPools/"+vmInfo.vpcUuid()+"?azUuid="+vmInParamData.azUuid, function(result,textStatus,vmInfo){
+	    	                        	     var ipList = [];
+	    	                        	     if(result){
+	    	                        	    	 for(var i=0;i<result.total;i++){
+	    	                        	    		var objIp = result.results[i];
+	    	                        	    		ipList.push(objIp.ip);
+	    	                        	    	 }
+	    	                        	     }
+	    	                        	     vmInfo.availableIpList(ipList);
+	    	                        	     vmInfo.ip(vmInfo.selectIp);
+	    	                             },function(){},vmInfo,true);
+				      					
+				      					self.currentVO().cnwareVmApplyList.push(vmInfo);
+				      				}else{
+					 	                csc.rest.get("api/v5.0.0/vpcNetworks/"+selelctNetworkUuid+"/availableIp", function(result,textStatus,vmInfo){
+	    	                        	     var ipList = [];
+	    	                        	     if(result){
+	    	                        	    	 for(var i=0;i<result.length;i++){
+	    	                        	    		var objIp = result[i];
+	    	                        	    		ipList.push(objIp.ip);
+	    	                        	    	 }
+	    	                        	     }
+	    	                        	     vmInfo.availableIpList(ipList);
+	    	                        	     vmInfo.ip(vmInfo.selectIp);
+	    	                             },function(){},vmInfo,true);
+					 	                
+					 	                 self.currentVO().vmApplyList.push(vmInfo);
+				      				}
+				      				
+				      				
 				      			  }else if(orderItem.resourceType == "DISK"){
 				      				  diskOrderItems.push(orderItem);
 				      				  var serviceUuid=orderItem.serviceUuid;
@@ -380,7 +633,19 @@
 				      				  diskInfo.relateUuid(orderItem.relateUuid);
 				      				  //var expireText = csc.util.getExpireText(diskInParamData.expireType,diskInParamData.expireValue);
 				      				 // diskInfo.expireText(expireText);
-				      				  self.currentVO().diskApplyList.push(diskInfo);
+				      				 
+				      				if(orderItem.cloudPlatform == "CNware"){
+				      					//获取存储池列表
+				      					csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+orderItem.azUuid+"&hostId="+diskInParamData.vmUuid, function(result,textStatus,metaData,diskInfo){
+		  	                        	     diskInfo.storagePoolList(result.results);
+		  	                        	     diskInfo.storagePoolId(metaData.storagePoolId);
+		                                },function(){},disk,true);
+				      					
+				      					self.currentVO().diskCnwareApplyList.push(diskInfo);
+				      				 }else{
+				      					self.currentVO().diskApplyList.push(diskInfo);
+				      				 }
+				      				  
 				      			  }else if(orderItem.resourceType == "SOFTWARE"){
 					      			/**************加载云软件数据**************************/
 				      				var relateUuid=orderItem.relateUuid;
@@ -459,8 +724,21 @@
 				          			  }
 				          		  }
 				      		  }
-				      		  
-				      		
+				      		//物理机 change事件  
+				      		this.hostChange = function(data,event){
+				      			var index = event.currentTarget.id;
+				      		    //获取存储池列表
+				      		    if(typeof(data.hostId()) != "undefined"){
+				      		    	csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+data.azUuid()+"&hostId="+data.hostId(), function(result,textStatus,vmInfo){
+		  	                        	   vmInfo.storagePoolList(result.results);
+		  	                        	   vmInfo.storagePoolId(result.results[0].id);
+	 	                            },function(){},vmInfo,true);
+				      		    }else{
+				      		    	   vmInfo.storagePoolList([]);
+	  	                        	   vmInfo.storagePoolId("");
+				      		    }
+			      				
+				      		}
 				      		  
 				      		/***************云软件详情页面***********************/  
 				      	    self.showSoftwareAttr = ko.observable(false);
@@ -517,7 +795,10 @@
 				      	        this.expireValue=ko.observable(""),
 				      	        this.expireText=ko.observable(""),
 				      	        this.isBill=ko.observable(""),
-				      	        this.relateUuid=ko.observable("")
+				      	        this.relateUuid=ko.observable(""),
+				      	    	//cnware平台
+			        	    	this.storagePoolList = ko.observableArray([]); 
+			        	    	this.storagePoolId = ko.observable();
 				      	   }
 				      		
 				      		
@@ -548,7 +829,18 @@
 				      	        this.vpcUuid=ko.observable(""),
 				      	        this.vpcName=ko.observable(""),
 				      	        this.vpcName = ko.pureComputed(function(){
-				 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+				      	        	var item;
+				      	        	if(this.cloudPlat() == "CNware"){
+				      	        		for(var i = 0; i < this.vpcList().length; i++){
+				      	        			if(this.vpcList()[i].id == this.vpcUuid()){
+				      	        				item = this.vpcList()[i];
+				      	        			}
+				      	        		}
+				      	        		
+				      	        	}else{
+				      	        		item = _.findWhere(this.vpcList(), {uuid: this.vpcUuid()});
+				      	        	}
+				 	            	
 				 	            	if(item!=null){
 				 	            		return item.name;
 				 	            	}else{
@@ -615,7 +907,13 @@
 				 	      	    this.osVersionList = ko.observableArray([]),
 				 	      	    this.sshList = ko.observableArray([]),
 				      			this.bussyList = ko.observableArray([]),
-				      			this.availableIpList = ko.observableArray([])
+				      			this.availableIpList = ko.observableArray([]);
+				      	        //cnware平台
+				      			this.hostList = ko.observableArray([]);
+				      			this.storagePoolList = ko.observableArray([]);
+				      	        this.hostId = ko.observable().extend({required: true});
+				      	        this.storagePoolId = ko.observable().extend({required: true});
+				      	        this.cloudPlat = ko.observable();
 				      		  }
 				      		  
 				      		  
@@ -623,6 +921,7 @@
 					      		    var orderUuid = self.currentVO.toJSON().orderData.uuid;
 					      		    var orderData =  self.currentVO.toJSON().orderData;
 					      		    var vmApplyList = self.currentVO().vmApplyList();
+					      		    var cnwareVmApplyList = self.currentVO().cnwareVmApplyList();
 					      		    var vmOrderItems = [];
 				        		    var diskOrderItems= [];
 				        		    var softOrderItems= [];
@@ -642,16 +941,39 @@
 				        		    	var vmOrderItemVO = vmOrderItems[j];
 				        		  	    var metaData = JSON.parse(vmOrderItemVO.metaData);
 				        		   	    var metaDataResBaseInfo= JSON.parse(metaData.resBaseInfo);
-				        		  	    for(var i=0;i<vmApplyList.length;i++){
-				        		  		    var applyVmVo = vmApplyList[i];
-				        		  		    if(applyVmVo.uuid() == vmOrderItemVO.uuid){
-				        		  		    	metaDataResBaseInfo.ip = applyVmVo.ip();
-				        		  		    	metaDataResBaseInfo.networkList[0].ip = applyVmVo.ip();
-				        		  		    	metaData.resBaseInfo =  metaDataResBaseInfo;
-				        		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
-				        		  		    	break;
-				        		  		    }
-				        		    	}
+				        		   	    if(vmOrderItemVO.cloudPlatform == "CNware"){
+				        		   	    	for(var i=0;i<cnwareVmApplyList.length;i++){
+					        		  		    var applyCnVmVo = cnwareVmApplyList[i];
+					        		  		    if(applyCnVmVo.uuid() == vmOrderItemVO.uuid){
+					        		  		    	metaDataResBaseInfo.ip = applyCnVmVo.ip();
+					        		  		    	metaDataResBaseInfo.networkList[0].ip = applyCnVmVo.ip();
+					        		  		    	metaData.resBaseInfo =  metaDataResBaseInfo;
+					        		  		    	//cnware平台
+					        		  		    	metaData.hostPlatformId =  applyCnVmVo.hostId();
+					        		  		    	metaData.storagePoolPlatformId =  applyCnVmVo.storagePoolId();
+					        		  		     
+					        		  		    	if(typeof(metaData.hostPlatformId) == "undefined" || typeof(metaData.storagePoolPlatformId) == "undefined"){
+					        		  		    		alert("请检查必填项！");
+					        		  		    		return;
+					        		  		    	}
+					        		  		    	
+					        		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
+					        		  		    	break;
+					        		  		    }
+					        		    	}
+				        		   	    }else{
+				        		   	    	for(var i=0;i<vmApplyList.length;i++){
+					        		  		    var applyVmVo = vmApplyList[i];
+					        		  		    if(applyVmVo.uuid() == vmOrderItemVO.uuid){
+					        		  		    	metaDataResBaseInfo.ip = applyVmVo.ip();
+					        		  		    	metaDataResBaseInfo.networkList[0].ip = applyVmVo.ip();
+					        		  		    	metaData.resBaseInfo =  metaDataResBaseInfo;
+					        		  		    	vmOrderItemVO.metaData =  JSON.stringify(metaData);
+					        		  		    	break;
+					        		  		    }
+					        		    	}
+				        		   	    }
+				        		  	    
 				        		    } 
 				        		    
 				        		    for(var k=0;k<diskOrderItems.length;k++){
@@ -659,6 +981,12 @@
 				        		  	    var metaData = JSON.parse(diskOrderItemVO.metaData);
 				        		   	    var metaDataResBaseInfo= JSON.parse(metaData.resBaseInfo);
 				        		   	    metaData.resBaseInfo =  metaDataResBaseInfo;
+				        		   		//cnware平台
+				        		   	 	if(diskOrderItemVO.cloudPlatform == "CNware"){
+					        		   	 	metaData.hostId =  applyCnVmVo.hostId();
+			        		  		    	metaData.storagePoolId =  applyCnVmVo.storagePoolId();
+				        		   	 	}
+				        		   	 	
 				        		   	    diskOrderItemVO.metaData =  JSON.stringify(metaData);//即使不处理前台也需要 否则后台数据表里多\\
 				        		    } 
 				        		    
@@ -709,7 +1037,12 @@
 	      $(this).parents('tr').next("tr").toggle();
 	      $(this).parents('tr').next("tr").find('.sub-detail').toggle();
 	  })
-
+	  
+	  $("#vmApplyConstructCNwareVmTable").on("click",".expand-btn-detail",function(){
+		  $(this).find('i').toggleClass("fa-angle-double-down");
+	      $(this).parents('tr').next("tr").toggle();
+	      $(this).parents('tr').next("tr").find('.sub-detail').toggle();
+	  })
 	  
 
   });

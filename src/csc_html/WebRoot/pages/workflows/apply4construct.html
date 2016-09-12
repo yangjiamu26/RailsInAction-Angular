@@ -29,6 +29,40 @@
                 </tbody>
             </table>
           </div>
+          
+          
+          <div class="table-responsive no-height" data-bind="visible:$root.cnwareVdiskList()>0">
+           <h5 class="text-info">云硬盘数：
+            <span class="badge bg-danger" data-bind="text:vdiskNum"></span>
+           </h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>云硬盘名称</th>
+                        <th>所属VDC</th>
+                        <th>挂载云主机</th>
+                        <th>存储大小（G）</th>
+                        <th>收费标准</th>
+                        <th>可用分区</th>
+                        <th>存储池</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: cnwareVdiskList">
+                    <tr>
+                        <td data-bind="text:instanceName"></td>
+                        <td data-bind="text:vdcName"></td>
+                        <td data-bind="text:vmName"></td>
+                        <td data-bind="text:size"></td>
+                        <td data-bind="text:fee"></td>
+                        <td data-bind="text:azName"></td>
+                        <td>
+                        	<select data-bind="options:availableIpList,optionsText:$data,optionsValue:$data,value:ip,optionsCaption:'请选择',attr:{id: 'storagePool'+$index()}">
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
 
           <div class="table-responsive no-height" data-bind="visible:$root.publicNetworkNum()>0">
           <h5 class="text-info">公网IP数：1</h5>
@@ -155,6 +189,7 @@
 	            this.ltNum = ko.observable("0"); //路由器数
 	            
 	            this.vdiskList = ko.observableArray();
+	            this.cnwareVdiskList = ko.observableArray();
 	            this.sshList = ko.observableArray();
 	            this.lbList = ko.observableArray();
 			     csc.rest.get('api/v5.0.0/workflows/tasks/'+args.taskId,function(data){
@@ -184,7 +219,19 @@
 				      			var vmName = resBaseInfo.vmName;
 				      			disk.vmName = vmName;
 				      			
-				      			self.vdiskList.push(disk);
+				      			if(disk.cloudPlatform == "CNware"){
+				      				//获取存储池列表
+			      					csc.rest.get("api/v5.0.0/storagePools/targetStoragePools?azUuid="+resBaseInfo.azUuid+"&hostId="+resBaseInfo.vmUuid, function(result,textStatus,resBaseInfo,disk){
+	  	                        	     debugger
+	  	                        	     disk.storagePoolList(result.results);
+	  	                        	     disk.storagePoolId(resBaseInfo.storagePoolId);
+  	                                },function(){},disk,true);
+				      				
+			      					self.cnwareVdiskList.push(disk);
+				      			}else{
+				      				self.vdiskList.push(disk);
+				      			}
+				      			
 			      			}else if(e.resourceType=='SECRET_KEY'){
 			      				sshNum ++;
 			      				self.sshList.push(e);

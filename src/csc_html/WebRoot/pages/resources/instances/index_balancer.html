@@ -361,6 +361,9 @@
             <div class="col-xs-8">
               <input type="text" class="form-control"  maxlength="32" data-bind="value: cookieName">
             </div>
+            <div class="col-xs-1">
+              <span class="text-danger inline m-l-n m-t-sm">*</span>
+            </div>
           </div>
           <div class="form-group">
             <label class="col-xs-3 control-label">连接限制</label>
@@ -598,8 +601,8 @@
               <thead>
                 <tr>
                   <th>监控类型</th>
-                  <th>延迟</th>
-                  <th>超时</th>
+                  <th>延迟(秒)</th>
+                  <th>超时(秒)</th>
                   <th>最大重试次数</th>
                   <th>详情</th>
                   <th>操作</th>
@@ -719,7 +722,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">延迟</label>
+                <label class="col-xs-4 control-label">延迟(秒)</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: delay"/>
                 </div>
@@ -728,7 +731,7 @@
                 </div>          
               </div>
               <div class="form-group">
-                <label class="col-xs-4 control-label">超时</label>
+                <label class="col-xs-4 control-label">超时(秒)</label>
                 <div class="col-xs-5">
                   <input class="form-control" type="text" data-bind="value: timeout"/>
                 </div>
@@ -996,7 +999,7 @@
       //处理选中年月时输入框的验证问题
         this.applyTime = ko.observable("option1");
         this.RadioClick = function(){
-      	  if (self.applyTime() == "option2") {
+      	    if (self.applyTime() == "option2") {
       		  self.changeYearMonthValidateYesOrNot(true);
             }else{
           	  self.changeYearMonthValidateYesOrNot(false);
@@ -1043,6 +1046,8 @@
                   monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
               }
  	       });
+      	   //重新定义后，需要重新注册变量
+    	   subscriptFun();
         }
       	  
     	$("#modal_addLoadBalancer").on("shown.bs.modal",function(){
@@ -1086,37 +1091,17 @@
       	
         this.disableCreateLbBtn = ko.observable(false);
         
-      	this.showCreatePageFun = function(){
-        	self.showCreatePage(true);
-        	self.disableCreateLbBtn(false);
-        	//置空所有选项
-        	self.createBlVo.fromJSON({
-        		name: 		"",
-        		vdcUuid:	"",
-        		azUuid:		"",
-        		vpcUuid: 	"",
-        		vpcNetworkUuid:	"",
-        		protocol: 	"",
-        		lbMethod: 	"",
-        		remark: 	"",
-        		yearMonth:	"",
-        		toDate: 	""
-        	});
-        	
-        	self.lbMethodList($.LOAD_BALANCER.lbMethods);
-    		self.protocolList($.LOAD_BALANCER.lbProtocols);
-        	
-        	var subscriptionVdc;//subscription.dispose();
-            var subscriptionAz;
-            var subscriptionVpc;
-            self.vdcList([]);
+        var subscriptionVdc;//subscription.dispose();
+        var subscriptionAz;
+        var subscriptionVpc;
+        var subscriptFun = function(){
             $.VDC.getVDCs({},function(data){
 				 if(data && data.results){
 					 self.vdcList(data.results);
 				 }
 			});
             
-          //vdc获取AZ
+            //vdc获取AZ
 			subscriptionVdc = self.createBlVo().vdcUuid.subscribe(function(val){
 			    self.azList([]);
 			    if(csc.util.isNotNull(val)){
@@ -1169,7 +1154,35 @@
 		   			});
 			    }
     	    });
+        };
+        
+      	this.showCreatePageFun = function(){
+        	self.showCreatePage(true);
+        	self.disableCreateLbBtn(false);
+        	//置空所有选项
+        	self.applyTime("option1");
         	
+        	self.createBlVo({
+        		name: 		ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
+        		vdcUuid: 	ko.observable().extend({required: true}),
+        		azUuid:		ko.observable().extend({required: true}),
+        		vpcUuid: 	ko.observable().extend({required: true}),
+        		vpcNetworkUuid: ko.observable().extend({required: true}),
+        		protocol: 	ko.observable().extend({required: true}),
+        		lbMethod: 	ko.observable().extend({required: true}),
+        		remark: 	ko.observable("").extend({maxLength:255}),
+        		yearMonth:	ko.observable("").extend({required: false}),
+    	    	toDate: 	""
+        	});
+        	self.lbMethodList($.LOAD_BALANCER.lbMethods);
+    		self.protocolList($.LOAD_BALANCER.lbProtocols);
+    		
+    		self.vdcList([]);
+			self.azList([]);
+			self.vpcList([]);
+			self.vpcNetworkList([]);
+			
+    		subscriptFun();
       	};
       	
       	this.createLoadBalancer = function(){
@@ -1189,15 +1202,15 @@
         	    		 if($("#resource_load_balancer_time_unit").val() == "MONTH"){
         	    			 var plusMonth = parseInt($("#resource_load_balancer_time_value").val());
         	    			 var dd = new Date();
-        	    			 var y = dd.getFullYear(); 
-        	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
-        	    			 var selfM = dd.getMonth()+1;
-        	    			 var d = dd.getDate();
-        	    			 y = y + parseInt(m/12);
-        	    			 m = m%12;
-        	    			 if(m == 0){
+          	    			 var y = dd.getFullYear(); 
+          	    			 var m = dd.getMonth() + plusMonth;//获取目标月份 
+          	    			 //var selfM = dd.getMonth()+1;//获取当前月份
+          	    			 var d = dd.getDate();//获取当前月份的日期 
+          	    			 y = y + parseInt(m/12);
+          	    			 m = m%12 + 1;
+        	    			 /* if(m == 0){
         	    				 m = selfM;
-        	    			 }
+        	    			 } */
         	    		 }else if($("#resource_load_balancer_time_unit").val() == "YEAR"){
         	    			 var plusYear = parseInt($("#resource_load_balancer_time_value").val());
         	    			 var dd = new Date();
@@ -1318,7 +1331,7 @@
       		"protocol": ko.observable(""),
       		"protocolPort":  ko.observable(80).extend({required: true, min:1, max:65535}),
       		"sessionPersistenceType":  ko.observable(""),
-      		"cookieName":  ko.observable("").extend({cscNameRule:true, maxLength:32}),
+      		"cookieName":  ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
       		"connectionLimit":ko.observable("").extend({required: true, positiveIntegerRule:true}),
       		"desc":ko.observable("").extend({maxLength:255})
     	});
@@ -1367,6 +1380,11 @@
       	};
       	
       	this.addVip = function(){
+      		//如果不为APP_COOKIE，则随便设置一下cookieName,以便通过检验
+      		if(self.createVipVo().sessionPersistenceType() != "APP_COOKIE"){
+      			self.createVipVo().cookieName("cookieName");
+      		}
+      		
       		ko.validation.group(self.createVipVo).showAllMessages();
             if(self.createVipVo.isValid()){
             	var p = ko.toJS(self.createVipVo());
@@ -1378,7 +1396,9 @@
           		}, function(data){
           			self.disableUpdateVipBtn(false);
           		});
-            }
+            }else if(self.createVipVo().sessionPersistenceType() != "APP_COOKIE"){
+       			self.createVipVo().cookieName("");
+       		}
       	}
       	
       	var oldEditVip = {};
@@ -1422,6 +1442,13 @@
       	}
       	
       	this.editVip = function(){
+      		//如果不为APP_COOKIE，则随便设置一下cookieName,以便通过检验
+      		var oldCookieName = "";
+      		if(self.createVipVo().sessionPersistenceType() != "APP_COOKIE"){
+      			self.createVipVo().cookieName("cookieName");
+      		}else{
+      			oldCookieName = self.createVipVo().cookieName();
+      		}
       		ko.validation.group(self.createVipVo).showAllMessages();
             if(self.createVipVo.isValid()){
             	var p = ko.toJS(self.createVipVo());
@@ -1440,6 +1467,8 @@
           		}else{
           			self.isShowAddVip(false);
           		}
+            }else{
+            	self.createVipVo().cookieName(oldCookieName);
             }
       	}
       	

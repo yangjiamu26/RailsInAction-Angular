@@ -14,15 +14,17 @@
               <span class="input-group-addon">告警类型</span>
               <select class="form-control input-sm" data-bind="value: searchParam().type">
                 <option value="">全部</option>
-                <option value="系统告警">系统告警</option>
-                <option value="VDC配额告警">VDC配额告警</option>
+                <option value="SYSTEM">系统告警</option>
+                <option value="VDC_QUOTA">VDC配额告警</option>
               </select>
             </div>
           </div>
           <div class="col-xs-3">
             <div class="input-group">
                <span class="input-group-addon">告警指标</span>
-               <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().target">
+              <!--  <input type="text" value="" class="form-control input-sm" data-bind="value: searchParam().target"> -->
+               <select class="form-control input-sm" data-bind="value: searchParam().target, options: $root.targets, optionsText: 'name', optionsValue: 'target'">
+              </select>
             </div>        
           </div>
           <div class="col-xs-1">
@@ -47,8 +49,31 @@
             </tr>
             <!-- ko foreach: {data: pagedRows, as: '$row'}  -->
             <tr>
-              <td data-bind="text:type">CSC平台告警</td>
-              <td data-bind="text:target">CPU</td>
+              <td>
+			  	<span data-bind="if: type == 'SYSTEM'">系统告警</span>
+			  	<span data-bind="if: type == 'VDC_QUOTA'">VDC配额告警</span>
+			  </td>
+              <td>    
+              	<span data-bind="if: target == 'CPU'">CPU</span>
+              	<span data-bind="if: target == 'MEMORY'">内存</span>
+              	<span data-bind="if: target == 'STORAGE'">存储</span>
+              	<span data-bind="if: target == 'VPC'">VPC</span>
+              	<span data-bind="if: target == 'VM'">云主机</span>
+              	<span data-bind="if: target == 'DISK'">云硬盘</span>
+              	<span data-bind="if: target == 'ROUTER'">路由器</span>
+              	<span data-bind="if: target == 'PUBLICIP'">公网IP</span>
+              	<span data-bind="if: target == 'LOAD_BALANCING'">负载均衡器</span>
+              	<span data-bind="if: target == 'FIREWALL'">防火墙</span>
+              	<span data-bind="if: target == 'SECRET_KEY'">SSH密钥</span>
+              	<span data-bind="if: target == 'OBJECT_STORAGE'">对象存储</span>
+              	<span data-bind="if: target == 'VPN'">VPN</span>
+              	<span data-bind="if: target == 'SECURITY_GROUP'">安全组</span>
+              	<span data-bind="if: target == 'SOFTWARE'">软件</span>
+              	
+              	<span data-bind="if: target == 'SYSTEM_CPU'">CPU</span>
+              	<span data-bind="if: target == 'SYSTEM_MEMORY'">内存</span>
+              	<span data-bind="if: target == 'SYSTEM_STORAGE'">存储</span>
+              </td>
               <td data-bind="text:threshold">80</td>
               <td>
                 <a data-bind="click: $root.edit">修改</a>
@@ -159,16 +184,76 @@
       };
       
       this.update = function(){
-    	  $.ALARM_CONFIG.modifyAlarmConfig(self.currentVO().uuid,self.currentVO.toJSON(),function(data){
-    		  if(data.uuid){
-    			  alert('修改成功');
-    			  self.isEdit(false);
-    			  self.table.refreshData();//刷新列表          
-    		  }
-    	  });
-    	  
+    	  this.currentVO.errors.showAllMessages();
+    	  if(this.currentVO.errors().length === 0){
+    		  $.ALARM_CONFIG.modifyAlarmConfig(self.currentVO().uuid,self.currentVO.toJSON(),function(data){
+        		  if(data.uuid){
+        			  alert('修改告警配置成功！');
+        			  self.isEdit(false);
+        			  self.table.refreshData();//刷新列表          
+        		  }
+        	  });
+    	  }
       }
       
+      this.targets = ko.observableArray([]);
+      this.loadTargets = function(){
+    	  csc.rest.get('api/v5.0.0/alarmConfigs',function(data){
+    		  if(data.results){
+    			  alarmList = data.results;
+    			  if(alarmList && alarmList.length>0){
+    				  for(var i=0;i<alarmList.length;i++){
+    					  var obj = alarmList[i];
+    					  if(obj.target == 'CPU'){
+    						  obj.name = 'CPU';
+    					  }else if(obj.target == 'MEMORY'){
+    						  obj.name = '内存';
+    					  }else if(obj.target == 'STORAGE'){
+    						  obj.name = '存储';
+    					  }else if(obj.target == 'VPC'){
+    						  obj.name = 'VPC';
+    					  }else if(obj.target == 'VM'){
+    						  obj.name = '云主机';
+    					  }else if(obj.target == 'DISK'){
+    						  obj.name = '云硬盘';
+    					  }else if(obj.target == 'ROUTER'){
+    						  obj.name = '路由器';
+    					  }else if(obj.target == 'PUBLICIP'){
+    						  obj.name = '公网IP';
+    					  }else if(obj.target == 'LOAD_BALANCING'){
+    						  obj.name = '负载均衡器';
+    					  }else if(obj.target == 'FIREWALL'){
+    						  obj.name = '防火墙';
+    					  }else if(obj.target == 'SECRET_KEY'){
+    						  obj.name = 'SSH密钥';
+    					  }else if(obj.target == 'OBJECT_STORAGE'){
+    						  obj.name = '对象存储';
+    					  }else if(obj.target == 'VPN'){
+    						  obj.name = 'VPN';
+    					  }else if(obj.target == 'SECURITY_GROUP'){
+    						  obj.name = '安全组';
+    					  }else if(obj.target == 'SOFTWARE'){
+    						  obj.name = '软件';
+    					  }else if(obj.target == 'SYSTEM_CPU'){
+    						  obj.name = '系统CPU';
+    					  }else if(obj.target == 'SYSTEM_MEMORY'){
+    						  obj.name = '系统内存';
+    					  }else if(obj.target == 'SYSTEM_STORAGE'){
+    						  obj.name = '系统存储';
+    					  }else{
+    						  obj.name = obj.target;
+    					  }
+    				  }
+    			  }
+  
+    			  //为备选列表添加一个名为"全部"的选项
+		    	   var def = {"name":"全部","target":""};
+		    	   alarmList.unshift(def);
+    			  self.targets(alarmList);
+    		  }
+    	  });
+      }
+      this.loadTargets();
       
       this.searchParam = ko.observable({
         type: "",
