@@ -817,7 +817,7 @@
 															<td>
 																<div class="checkbox">
 																	<label class="i-checks">
-																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: $row.uuid}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
+																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: ($row.cloudPlatform == 'CNware'?$row.id:$row.uuid)}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
 																	</label>
 																</div>
 															</td>
@@ -857,7 +857,7 @@
 															<td>
 																<div class="checkbox">
 																	<label class="i-checks">
-																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: $row.uuid}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
+																		<input type="checkbox" data-bind="attr: {az: $row.azUuid, networkName: $row.name, networkUuid: ($row.cloudPlatform == 'CNware'?$row.id:$row.uuid)}, checkedValue: $data, checked: $parent.chosenItems" ><i></i>
 																	</label>
 																</div>
 															</td>
@@ -1369,9 +1369,16 @@
 					if(!azUuid){
 						return;
 					}
-					var name = self.addVdcNetworkSearchParam().name;
 					
-					self.networkTable.path("api/v5.0.0/networks/" + self.selectVdcVO().uuid + "?azUuid=" + azUuid + "&name=" + name);
+					var url = "";
+					if (self.addVdcNetworkAzList()[0].cloudPlatform == 'CNware') {
+						url = "api/v5.0.0/ipPools/vdcs?azUuid=" + azUuid + "&vdcUuid=" + self.selectVdcVO().uuid;
+					} else {
+						//默认虚拟化为OpenStack
+						var name = self.addVdcNetworkSearchParam().name;
+						url = "api/v5.0.0/networks/" + self.selectVdcVO().uuid + "?azUuid=" + azUuid + "&name=" + name;
+					}
+					self.networkTable.path(url);
 	       	    }
 			    
 				self.addVdcNetwork = function(){
@@ -1393,7 +1400,6 @@
 					//左侧待添加
 					var chosenItemList = self.networkTable.chosenItems();
 					var networkList = self.networkTable.pagedRows();
-					
 					//左侧剩余
 					var filterNetworkList = new DataTable([]).pagedRows();
 					//右侧已添加					
@@ -1403,7 +1409,9 @@
 						for (var j = 0; j < networkList.length; j++) {
 							var exists = true;
 							for (var i = 0; i < chosenItemList.length; i++) {
-								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid) {
+								//CNware网络ID，openstack网络为uuid
+								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid
+										&& chosenItemList[i].id === networkList[j].id) {
 									selectedNetworkList.push(chosenItemList[i]);
 									exists = false;
 									break;
@@ -1431,7 +1439,8 @@
 						for (var j = 0; j < networkList.length; j++) {
 							var exists = true;
 							for (var i = 0; i < chosenItemList.length; i++) {
-								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid) {
+								if (networkList[j].azUuid === chosenItemList[i].azUuid && chosenItemList[i].uuid === networkList[j].uuid
+										&& chosenItemList[i].id === networkList[j].id) {
 									selectedNetworkList.push(chosenItemList[i]);
 									exists = false;
 									break;

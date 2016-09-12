@@ -201,7 +201,7 @@
             <div class="col-sm-8">
             	<div class="checkbox">
             		<label>
-                      <input type="checkbox" data-bind="checked: systemReserve">
+                      <input type="checkbox" data-bind="checked: systemReserve, event: {change: $root.systemReserveChange}">
                     </label>	
                 </div>
             </div>
@@ -221,9 +221,9 @@
                	 </div>
                	 <div>
 	               	 <label class="radio-inline">
-	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option2" style="margin-top:10px" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 
-	                   <input type="text" class="form-control inline w-xxs" id="resource_public_ip_time_value" data-bind="value: yearMonth">
-	                   <select class="form-control inline w-xs" id="resource_public_ip_time_unit">
+	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option2" style="margin-top:10px" data-bind="disable: systemReserve(), checked: $root.applyTime,click:$root.RadioClick"> 
+	                   <input type="text" class="form-control inline w-xxs" id="resource_public_ip_time_value" data-bind="disable: systemReserve(), value: yearMonth">
+	                   <select class="form-control inline w-xs" id="resource_public_ip_time_unit" data-bind="disable: systemReserve()">
 	                     <option value="MONTH">月</option>
 	                     <option value="YEAR">年</option>
 	                   </select>  
@@ -231,8 +231,8 @@
                	 </div>
                  <div>
 	                 <label class="radio-inline">
-	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option3" style="margin-top:10px" data-bind="checked: $root.applyTime,click:$root.RadioClick"> 有效期至
-	                   <input type="text" value="" class="form-control inline w" id="resource_public_ip_datePicker" data-bind="value:toDate">
+	                   <input type="radio" name="publicIpExpiredRadioOptions" value="option3" style="margin-top:10px" data-bind="disable: systemReserve(), checked: $root.applyTime,click:$root.RadioClick"> 有效期至
+	                   <input type="text" value="" class="form-control inline w" id="resource_public_ip_datePicker" data-bind="disable: systemReserve(), value:toDate">
 	                 </label>
                	 </div>
                </div>
@@ -509,20 +509,20 @@
     	  }
     	 
     	  //重新初始化日期控制，如果不设置清空，具体不明
-    	  $('#resource_public_ip_datePicker').val(self.currentIpVo().toDate).daterangepicker(
- 	            {
- 	              format:'YYYY/MM/DD',
- 	              minDate:moment(),
- 	              singleDatePicker: true,
- 	              locale:{
- 	                applyLabel: '确认',
- 	                cancelLabel: '取消',
- 	                weekLabel: '周',
- 	                daysOfWeek:["日","一","二","三","四","五","六"],
- 	                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
- 	              }
- 	            }
- 	          );
+    	  $('#resource_public_ip_datePicker').val(self.currentIpVo().toDate).daterangepicker({
+              format:'YYYY-MM-DD',
+              minDate:moment(),
+              singleDatePicker: true,
+              locale:{
+                applyLabel: '确认',
+                cancelLabel: '取消',
+                weekLabel: '周',
+                daysOfWeek:["日","一","二","三","四","五","六"],
+                monthNames:['01月','02月','03月','04月','05月','06月','07月','08月','09月','10月','11月','12月',]
+              }
+ 	      });
+    	  //重新定义后，需要重新注册变量
+    	  subscriptFun();
       }
       
       $("#modal_addPublicIp").on("shown.bs.modal",function(){
@@ -561,7 +561,7 @@
     	  "vmIp":"",
     	  "account":"",
     	  "expiryDate":"",
-    	  "systemReserve": ""
+    	  "systemReserve": ko.observable(false)
 	  });
       
       this.vmObj = ko.observable({
@@ -573,28 +573,9 @@
       var subscriptionVdc;//subscription.dispose();
       var subscriptionAz;
       var subscriptionVpc;
-      //置灰创建按钮
-      this.disableCreateBtn = ko.observable(false);
-      this.showCreatePage = function(){
-      		self.isShowCreatePage(true);
-      		self.disableCreateBtn(false);
-      		
-      		self.vdcList([]);
-			self.azList([]);
-			self.vpcList([]);
-			self.networkList([]);
-			
-			self.currentIpVo.fromJSON({
-				"name":"",
-				"vdcUuid":"",
-				"azUuid":  "",
-		  		"vpcUuid": "",
-		  		"networkUuid": "",
-		    	"desc": "",
-		    	"systemReserve": "",
-		    	"yearMonth":""
-			});
-			$.VDC.getVDCs({},function(data){
+      
+      var subscriptFun = function(){
+    	  $.VDC.getVDCs({},function(data){
 				 if(data && data.results){
 					 self.vdcList(data.results);
 				 }
@@ -613,8 +594,8 @@
 		   				 }
 		   			});
 			    }
-    	    	
-    	    });
+ 	    	
+ 	    	});
 			//vdc和AZ获取VPC
 			subscriptionAz = self.currentIpVo().azUuid.subscribe(function(val){
 			    self.vpcList([]);
@@ -638,8 +619,8 @@
 		   				 }
 		   			});
 			    }
-    	    	
-    	    });
+ 	    	
+ 	    	});
 			//VPC获取Network
 			subscriptionVpc = self.currentIpVo().vpcUuid.subscribe(function(val){
 			    self.networkList([]);
@@ -650,8 +631,49 @@
 		   				 }
 		   			});
 			    }
-    	    });
+ 	    	});
+      };
+      
+      this.systemReserveChange = function(){
+    	  if(self.currentIpVo().systemReserve()){
+    		  self.applyTime("option1");
+    	  }else{
+    		  
+    	  }
+      }
+      //置灰创建按钮
+      this.disableCreateBtn = ko.observable(false);
+      this.showCreatePage = function(){
+      		self.isShowCreatePage(true);
+      		self.disableCreateBtn(false);
       		
+      		self.applyTime("option1");
+      		
+      		self.vdcList([]);
+			self.azList([]);
+			self.vpcList([]);
+			self.networkList([]);
+			
+			self.currentIpVo({
+  			  "name": ko.observable("").extend({required: true, cscNameRule:true, maxLength:32}),
+  	    	  "vdcUuid": ko.observable().extend({required: true}),
+  	  		  "azUuid":  ko.observable().extend({required: true}),
+  	  		  "vpcUuid": ko.observable().extend({required: true}),
+  	  		  "networkUuid": ko.observable().extend({required: true}),
+  	    	  "desc": ko.observable("").extend({maxLength: 255}),
+  	    	  "yearMonth":ko.observable("").extend({required: false}),
+  	    	  "toDate": "",
+  	    	  "ip":"",
+  	    	  "cidr":"",
+  	    	  "azName":"",
+  	    	  "routerName":"",
+  	    	  "vmName":"",
+  	    	  "vmIp":"",
+  	    	  "account":"",
+  	    	  "expiryDate":"",
+  	    	  "systemReserve": ko.observable(false)
+            });
+			subscriptFun();
       };
       
       //创建
@@ -668,7 +690,7 @@
    	    		"vpcUuid": self.currentIpVo().vpcUuid(),
    	    		"networkUuid": self.currentIpVo().networkUuid(),
    	    		"remark": self.currentIpVo().desc(),
-   	    		"systemReserve": self.currentIpVo().systemReserve
+   	    		"systemReserve": self.currentIpVo().systemReserve()
    	    	  };
         	  var expiryTime = "";
       	  	  var temp = document.getElementsByName("publicIpExpiredRadioOptions");
@@ -681,14 +703,14 @@
       	    			 var plusMonth = parseInt($("#resource_public_ip_time_value").val());
       	    			 var dd = new Date();
       	    			 var y = dd.getFullYear(); 
-      	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
-      	    			 var selfM = dd.getMonth()+1;
-      	    			 var d = dd.getDate();
+      	    			 var m = dd.getMonth() + plusMonth;//获取目标月份 
+      	    			 //var selfM = dd.getMonth()+1;//获取当前月份
+      	    			 var d = dd.getDate();//获取当前月份的日期 
       	    			 y = y + parseInt(m/12);
-      	    			 m = m%12;
-      	    			 if(m == 0){
-      	    				 m = selfM;
-      	    			 }
+      	    			 m = m%12 + 1;
+      	    			 /* if(m == 0){
+      	    				 m = 12;
+      	    			 } */
       	    		 }else if($("#resource_public_ip_time_unit").val() == "YEAR"){
       	    			 var plusYear = parseInt($("#resource_public_ip_time_value").val());
       	    			 var dd = new Date();

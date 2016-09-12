@@ -21,7 +21,7 @@
   <div class="col-xs-3">
     <div class="input-group">
       <span class="input-group-addon">名称</span>
-      <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name">
+      <input type="text" class="input-sm form-control" placeholder="请输入名称" data-bind="value: searchParam().name, enterKey: search">
     </div>
   </div>
   <div class="col-xs-2">
@@ -163,7 +163,7 @@
               <td data-bind="text:name">centos7.iso</td>
               <td data-bind="text:sizeInBytes">1G</td>
               <td data-bind="text:lastModified">2016-06-29 13:56</td>
-              <td data-bind="visible:$root.containerVO().containerIsValidate"><a data-bind="attr:{href:'api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name+'/download'}">下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
+              <td><a data-bind="attr:{href:'api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name+'/download'}">下载</a> | <a data-bind="click: $root.removeOneObject">删除</a></td>
             </tr>
             <!-- /ko -->
           </tbody>
@@ -280,7 +280,7 @@
         </div>
       </div>
       <div class='modal-footer'>
-        <button name="button" class="btn btn-primary " data-bind="click:save">确定</button>
+        <button name="button" class="btn btn-primary " data-bind="click:save,attr: {disabled: disableCreateBtn()}">确定</button>
         <button name="button" class="btn btn-default " data-dismiss="modal">取消</button>
       </div>
     </div>
@@ -391,7 +391,7 @@
 		</div>         
 		</div>     
 			<div class='modal-footer' style="text-align:center;">
-              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost">确定</a>
+              <a class="btn btn-default btn-info" data-bind="click: deleteProcessPost,attr: {disabled: disableDeleteProcessBtn()}">确定</a>
               <a class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
            </div>
        </div>
@@ -454,6 +454,7 @@
   var scripts = [null, "assets/lib/moment/moment.js",
                  "assets/lib/bootstrap-daterangepicker/daterangepicker.js",
                  "api/vdc/vdc.js",
+                 "api/resource/az/az.js",
                  "assets/lib/webuploader/webuploader.js",
                  "api/progress/progress.js",
                  "api/resourceInstance/objectStorage/objectStorage.js"]
@@ -472,6 +473,7 @@
       this.currentVO = ko.validatedObservable({});
       
       this.createDisk = function(){
+    	  self.disableCreateBtn(false);//显示
     	  this.applyTime = ko.observable("option1");//弹出创建窗口，默认选中第一条申请时长
     	  this.currentVO({
         	  name: ko.observable().extend({required: true,cscNameRule:true}),
@@ -500,11 +502,15 @@
           //VDC->可用分区
           this.onchange_add_vdcs = function(){
         	  var vdcUuid = self.currentVO().vdcUuid();
-  	       	  $.VDC.getVdcAzs(vdcUuid,{},function(data){
+        	  var azParams = {
+  		    		cloudPlatform:"OpenStack"	
+  		    	};
+  	       	  $.VDC.getVdcAzs(vdcUuid,azParams,function(data){
   				 if(data && data.results){
   					 self.add_partitions(data.results);
   				 }
   			  });
+  	       	
           }
         //初始化创建的弹窗       
         self.isCreateDisk(true);
@@ -579,7 +585,11 @@
       })
       
       //保存
+      this.disableCreateBtn = ko.observable(false);
       this.save = function(){
+    	  if(self.disableCreateBtn()){
+    		  return;
+    	  }
     	  ko.validation.group(this.currentVO).showAllMessages();
 	      if(this.currentVO.isValid()){
 	    	  var postBody = {};
@@ -598,17 +608,14 @@
 	    	    		 expiryTime = "2099-12-31 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
 	    	    		 if($("#resource_instance_objectStorage_limit_option2_unit").val() == "MONTH"){
-	    	    			 var plusMonth = parseInt($("#resource_instance_objectStorage_limit_option2").val());
-	    	    			 var dd = new Date();
-	    	    			 var y = dd.getFullYear(); 
-	    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
-	    	    			 var selfM = dd.getMonth()+1;
-	    	    			 var d = dd.getDate();
-	    	    			 y = y + parseInt(m/12);
-	    	    			 m = m%12;
-	    	    			 if(m == 0){
-	    	    				 m = selfM;
-	    	    			 }
+	    	    			 var plusMonth = parseInt($("#resource_public_ip_time_value").val());
+	      	    			 var dd = new Date();
+	      	    			 var y = dd.getFullYear(); 
+	      	    			 var m = dd.getMonth() + plusMonth;//获取目标月份 
+	      	    			 //var selfM = dd.getMonth()+1;//获取当前月份
+	      	    			 var d = dd.getDate();//获取当前月份的日期 
+	      	    			 y = y + parseInt(m/12);
+	      	    			 m = m%12 + 1;
 	    	    		 }else if($("#resource_instance_objectStorage_limit_option2_unit").val() == "YEAR"){
 	    	    			 var plusYear = parseInt($("#resource_instance_objectStorage_limit_option2").val());
 	    	    			 var dd = new Date();
@@ -625,6 +632,7 @@
 	    	     }
 	    	  }
 	    	  postBody.expiryDate = expiryTime;
+	    	  self.disableCreateBtn(true);//disabled确定按钮
 	    	  $.OBJECT_STORAGE.createObjectStorage(postBody,function(data){
 	    		  //成功
 	    		  if(data.id){
@@ -632,6 +640,8 @@
 		    		  self.isCreateDisk(false);//关闭弹出框
 		    		  alert('创建对象存储成功！');
 	    		  }    		  	    		  
+	    	  },function(data){
+	    		  self.disableCreateBtn(false);//显示
 	    	  })
 	      }
       }
@@ -980,11 +990,14 @@
     	  });
       }
       this.loadPartitions = function(){
-    	  csc.rest.get('api/v5.0.0/azs',function(data){
-    		  if(data.results){
-    			  azList = data.results;
-    			  //为备选列表添加一个名为"全部"的选项
-    			  var azUuids = "";
+    	  var azParams = {
+    		cloudPlatform:"OpenStack"
+    	  };
+    	  $.AZ.getAzs(azParams, function(data){
+			 if(data && data.results){
+				 azList = data.results;
+   			  //为备选列表添加一个名为"全部"的选项
+   			  	  var azUuids = "";
 		    	  for(var i=0;i<azList.length;i++){
 		    		  if(i == (azList.length-1)){
 		    			  azUuids = azUuids + azList[i].uuid;
@@ -993,11 +1006,11 @@
 					  }
 		    	  }
 		    	  //var azDef = {"name":"全部","uuid":azUuids};
-		    	   var azDef = {"name":"全部","uuid":""};
+		    	  var azDef = {"name":"全部","uuid":""};
 		    	  azList.unshift(azDef);
-    			  self.partitions(azList);
-    		  }
-    	  });
+   			  	  self.partitions(azList);
+			 }
+		 });
       }
       this.loadVdcs();
       this.loadPartitions();
@@ -1123,6 +1136,7 @@
       this.isDeleteProcess = ko.observable(false);
       
       this.doDeleteProcessPost = function(object){
+    	  self.disableDeleteProcessBtn(false);//显示删除按钮！
     	  self.isDeleteProcess(true);
 		  self.deleteProcessVO().name(object.name);
 		  self.deleteProcessVO().uuid(object.uuid);
@@ -1144,8 +1158,13 @@
     	  user: ko.observable()
       });
       
+      //删除流程
+      this.disableDeleteProcessBtn = ko.observable(false);
       this.deleteProcessPost = function(){
-       	  var orderItem = {};
+    	  if(self.disableDeleteProcessBtn()){
+    		  return;
+    	  }
+    	  var orderItem = {};
        	  orderItem.instanceName = self.deleteProcessVO().name();
        	  orderItem.serviceInstanceUuid = self.deleteProcessVO().serviceInstanceUuid();
        	  orderItem.resourceType = "OBJECT_STORAGE";
@@ -1162,13 +1181,17 @@
        	  postBody.vdcUuid = self.deleteProcessVO().vdcUuid();
        	  postBody.orderItems = orderItems;
        	  
+       	  self.disableDeleteProcessBtn(true);//disabled删除按钮！
        	  csc.rest.post("api/v5.0.0/orders/deleteResource",postBody,function(data){
-       		  if(data.taskId){
-    			systemMsg.alert('删除资源请求成功，任务ID：' + data.taskId + '！');
-    		  }else if(data.code){
-    			systemMsg.alert('删除资源申请成功，订单编号：' + data.code + '！');
-    		  }
+	       		if(data.code){
+		  			systemMsg.alert('删除资源申请成功，订单编号：' + data.code + '！');
+	      		}else{
+	      			systemMsg.alert('删除对象存储成功！'); 
+	                self.table.refreshData();
+	      		}
   		 	  self.isDeleteProcess(false);
+       	  },function(data){
+       		self.disableDeleteProcessBtn(false);//显示删除按钮！
        	  });
  		}
       
