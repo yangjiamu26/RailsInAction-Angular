@@ -1,3 +1,14 @@
+<style>
+.capslock{
+	right: 0;
+	background: #fff;
+	padding: 5px 10px;
+	border: 1px orange solid;
+	top: 34px;
+	float:right;
+	width:35%;
+}
+</style>
 <div class="bg-light lter b-b wrapper-sm">
 	<ol class="breadcrumb">
 		<li>当前位置：</li>
@@ -94,7 +105,7 @@
 					<div class="input-group">
 						<span class="input-group-addon">名称</span> <input type="text"
 							class="input-sm form-control" placeholder="请输入名称"
-							data-bind="value:searchParam().name">
+							data-bind="value:searchParam().name, enterKey: search">
 					</div>
 				</div>
 				<div class="col-xs-1">
@@ -145,7 +156,7 @@
 							<td data-bind="text:type">xxx</td>
 							<td data-bind="text:ip">192.168.1.100</td>
 							<td data-bind="text:port">8080</td>
-							<td data-bind="text:domainIp"></td>
+							<td data-bind="text:domainName"></td>
 							<!-- <td><span class="label label-success"
 								data-bind="if:state == '正常'">正常</span> <span
 								class="label label-danger" data-bind="if:state == '异常'">异常</span>
@@ -262,7 +273,7 @@
 				<div class="form-group">
 					<label class="col-xs-3 control-label">IP</label>
 					<div class="col-xs-8">
-						<input type="text" class="form-control" placeholder="请输入名称"
+						<input type="text" class="form-control" placeholder="请输入IP"
 							data-bind="value:currentVO().ip,attr:{disabled:currentVO().id}">
 					</div>
 					<div class="col-xs-1">
@@ -272,7 +283,7 @@
 				<div class="form-group">
 					<label class="col-xs-3 control-label">端口</label>
 					<div class="col-xs-8">
-						<input type="text" class="form-control" placeholder="请输入名称"
+						<input type="text" class="form-control" placeholder="请输入端口"
 							data-bind="value:currentVO().port,attr:{disabled:currentVO().id}">
 					</div>
 					<div class="col-xs-1">
@@ -282,7 +293,7 @@
 				<div class="form-group">
 					<label class="col-xs-3 control-label">用户名</label>
 					<div class="col-xs-8">
-						<input type="text" class="form-control" placeholder="请输入名称"
+						<input type="text" class="form-control" placeholder="请输入用户名"
 							data-bind="value:currentVO().username">
 					</div>
 					<div class="col-xs-1">
@@ -292,8 +303,8 @@
 				<div class="form-group">
 					<label class="col-xs-3 control-label">密码</label>
 					<div class="col-xs-8">
-						<input type="password" class="form-control" placeholder="请输入名称"
-							data-bind="value:currentVO().password">
+						<input type="password" class="form-control" placeholder="请输入密码"
+							data-bind="value:currentVO().password" id="password_">
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm">*</span>
@@ -302,7 +313,7 @@
 				<div class="form-group" data-bind="visible: (currentVO().id==null) &&(currentVO().type() == 'CNware')">
 					<label class="col-xs-3 control-label"></label>
 					<div class="col-xs-8">
-						<a class="btn btn-default btn-info" data-bind="click: findDomain">发现资源域</a>
+						<a class="btn btn-default btn-info" data-bind="click: findDomain,attr:{disabled:(!currentVO().ip.isValid() || !currentVO().port.isValid() || !currentVO().username.isValid() || !currentVO().password.isValid())}">发现资源域</a>
 					</div>
 					<div class="col-xs-1">
 						<span class="text-danger inline m-l-n m-t-sm"></span>
@@ -364,7 +375,7 @@
 			</div>
 			
 			<div class='modal-footer' style="text-align: center;">
-				<a class="btn btn-default btn-info" data-bind="click:ok">确定</a> <a
+				<a class="btn btn-default btn-info" data-bind="click:ok,attr: {disabled: disableCreateBtn()}">确定</a> <a
 					class="btn btn-default btn btn-default" data-dismiss="modal">取消</a>
 			</div>
 		</div>
@@ -600,6 +611,8 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	      self.domainChosen(null);
 	      self.isShowDomainValidateMsg(false);
 	      self.isEdit(true);
+	      
+	      $("#password_").capsLockTip();
 	    };
 
     this.edit = function(object, event){
@@ -622,49 +635,61 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 	      self.domainArray(domainArrList);
 	      self.domainChosen(object.domain);
       }
-      self.isEdit(true);        
+      self.isEdit(true);  
+      $("#password_").capsLockTip();
     };
     
     this.delete = function(object, event){
         confirm("您确定要删除云管理平台["+object.name+"]吗？",function(){ 
         	
         	$.CLOUD_PLATFORM.deleteCloudPlatform(object.uuid,function(data){
-        		alert('删除云管理平台成功');
+        		alert('删除云管理平台成功！');
       		  	self.table.refreshData();
         	});
         	
         });//end confirm    	  
       };
 
+    this.disableCreateBtn = ko.observable(false);
     this.ok = function(){ 
+    	if(self.disableCreateBtn()){
+  		  return;
+  	    }
     	this.currentVO.errors.showAllMessages();
    		//接入
       	if(this.currentVO().id == null){
         	//验证通过
       		 if(self.currentVO().type()=='CNware'){
       			self.isShowDomainValidateMsg(self.domainChosen()==null);//显示请选择资源域的提示
+
       			if(this.currentVO.errors().length === 0 && self.domainChosen()) {
          	    	var postBody = self.currentVO.toJSON();
          	    	postBody.domain = self.domainChosen();
           			//保存
+          			self.disableCreateBtn(true);//disabled确定按钮
           			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
           				self.isEdit(false);//关闭modal
                 		if(data.uuid){
               				alert("接入云管理平台成功！")               	  
     	            		self.table.refreshData();//刷新列表                	
                 		}
+          			},function(data){
+          				self.disableCreateBtn(false);//显示确定按钮
           			});
     	        }
       		 }else{//openstack
          	  	if(this.currentVO.errors().length === 0 ) {
          	    	var postBody = self.currentVO.toJSON();
           			//保存
+          			self.disableCreateBtn(true);//disabled确定按钮
           			$.CLOUD_PLATFORM.createCloudPlatform(postBody,function(data){
           				self.isEdit(false);//关闭modal
                 		if(data.uuid){
               				alert("接入云管理平台成功！")               	  
     	            		self.table.refreshData();//刷新列表                	
                 		}
+          			},function(data){
+          				self.disableCreateBtn(false);//显示确定按钮
           			});
     	        }
       			 
@@ -675,10 +700,13 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
         	//验证通过
      	  	if(this.currentVO.errors().length === 0) {   
      	  		//console.log(this.currentVO.toJSON());
+     	  		self.disableCreateBtn(true);//disabled确定按钮
      	  		$.CLOUD_PLATFORM.modifyCloudPlatform(self.currentVO().uuid,this.currentVO.toJSON(),function(data){
-     	  			alert("修改云管理平台成功")
+     	  			alert("修改云管理平台成功！")
  		        	self.table.refreshData();//刷新列表    	        	
  	        		self.isEdit(false);//关闭modal
+     	  		},function(data){
+     	  			self.disableCreateBtn(false);//显示确定按钮
      	  		});
      	  		
      	  	}
@@ -696,9 +724,9 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     //this.table = new DataTable([], {path: 'pages/resources/partitions/datacenters/1.json'});
     this.table = new DataTable([], {perPage:10,path: 'api/v5.0.0/cloudPlatforms?dataCenterUUID='+self.dataCenterUUID,loader:function(result){
     	if(result.domain){
-    		result.domainIp = result.domain.ip;
+    		result.domainName = result.domain.name;
     	}else{
-    		result.domainIp = "";
+    		result.domainName = "";
     	}
     	return result;
     }});
@@ -710,16 +738,32 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     this.domainChosen = ko.observable();
     this.domainArray = ko.observableArray([]);
     this.findDomain = function(){
+    	if(!self.currentVO().ip.isValid() || !self.currentVO().port.isValid() || !self.currentVO().username.isValid() || !self.currentVO().password.isValid()){
+    		return;
+    	}
     	var ip = self.currentVO().ip();
     	var port = self.currentVO().port();
     	var username = self.currentVO().username();
     	var password = self.currentVO().password();
-    	csc.rest.get('api/v5.0.0/domains?ip='+ip+"&port="+port+"&username="+username+"&password="+password,function(data){
+    	var dataCenterUuid = self.currentVO().dataCenterUUID;
+    	csc.rest.get('api/v5.0.0/domains?dataCenterUuid='+dataCenterUuid+'&ip='+ip+"&port="+port+"&username="+username+"&password="+password,function(data){
     		if(data && data.results && data.results.length>0){
     			  self.domainArray(data.results);
     		  }else{
     			  self.domainArray([]);
     		  }
+    			self.domainChosen(null);
+  	      		self.isShowDomainValidateMsg(false);
+	    },function(XMLHttpRequest, textStatus, errorThrown){
+	    	try {
+				var resText = XMLHttpRequest.responseText
+				res = JSON.parse(resText);
+				alert("["+res.exceptionCode+"]"+res.exceptionMessage);
+			} catch (e) {
+			}
+	    	self.domainArray([]);
+			self.domainChosen(null);
+      		self.isShowDomainValidateMsg(false);
 	    });
     }
 
@@ -732,4 +776,55 @@ $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
 
 
 });
+
+/*--------------------密码输入框增加大写提示 start--------------------*/
+$.fn.extend({
+    capsLockTip: function() {
+        return this.each(function() {
+            window.capsLockActived = false;
+            var $element = $(this);
+            var showTips = function(isShow,$element){
+        		if(isShow) {
+        		    hideTips();
+        		    $element.after('<div class="capslock">大写锁定已打开</div>');
+        		}else 
+        			hideTips() 
+        	}; 
+        	var hideTips = function(){ 
+        	  $(".capslock").remove(); 
+        	} 
+        	$element.bind("keypress", function (_event) { 
+    			var e = _event || window.event; 
+    			var kc = e.keyCode || e.which; 
+    			var isShift = e.shiftKey || (kc == 16) || false; 
+    			capsLockActived = false; 
+    			if ((kc >= 65 && kc <= 90 && !isShift) || (kc >= 97 && kc <= 122 && isShift)){ 
+    				capsLockActived = true;
+    			}
+    			showTips(capsLockActived,$element); 
+    		}); 
+
+    		$element.bind("keydown", function (_event) { 
+    			var e = _event || window.event; 
+    			var kc = e.keyCode || e.which; 
+    			if (kc == 20 && null != capsLockActived){ 
+    				capsLockActived = !capsLockActived; 
+    				showTips(capsLockActived,$element); 
+    			} 
+    		}); 
+
+    		$element.bind("focus", function (_event) { 
+    			if (null != capsLockActived) 
+    				showTips(capsLockActived,$element); 
+    		}); 
+    		
+    		$element.bind("blur", function (_event) { 
+    		    if (null != capsLockActived) 
+    		        showTips(false,$element); 
+    		});
+        });
+    }
+});
+
+/*--------------------密码输入框增加大写提示 end--------------------*/
 </script>

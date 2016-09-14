@@ -461,22 +461,26 @@
 		  			  		self.productVO().objectStorage(visible);
 		  			  	}
 		  			}
-		  			if(self.modalTitle() == '创建' && $("#productData label[style='display: none;']").length == 8){
-		  				if(self.modelVO.toJSON().vdcId == '0'){		  					
-			  				self.productVO().sys(true);
-		  				}else{
-		  					self.productVO().vdc(true);
+		  			if(self.modalTitle() == '创建'){
+		  				if($("#productData label[style='display: none;']").length == 8){
+		  					if(self.modelVO.toJSON().vdcId == '0'){		  					
+				  				self.productVO().sys(true);
+			  				}else{
+			  					self.productVO().vdc(true);
+			  				}
+			  				self.saveDisabled(true);
 		  				}
-		  				self.saveDisabled(true);
 		  			}else{
 		  				// 修改模型时，将其他流程已绑定的产品置灰
 		  				var params2 = "processType="+val+"&vdcId="+self.modelVO.toJSON().vdcId
 		  					+"&modelId="+self.modelVO.toJSON().id;
 				  		csc.rest.get('api/v5.0.0/workflows/model/products?'+params2,function(data){
-				  			data.forEach(function(e){
-				  				$("input[name='productTypes'][value="+e+"]").prop('checked', true);
-					        	$("input[name='productTypes'][value="+e+"]").prop('disabled', true);
-				        	});
+				  			if(typeof(data.length) != "undefined"){
+				  				data.forEach(function(e){
+					  				$("input[name='productTypes'][value="+e+"]").prop('checked', true);
+						        	$("input[name='productTypes'][value="+e+"]").prop('disabled', true);
+					        	});
+				  			}
 				  		})
 		  			}
 		  		 })
@@ -706,7 +710,8 @@
 	      var self = this;
 	      this.pause = function(object, event){
 	    	  confirm("确定挂起流程？",function(){
-	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id+'?action=suspend',"",function(data){
+	    		  var databody = {"action":"suspend"};
+	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id,databody,function(data){
 		        		alert('挂起成功！');
 			          	self.table.refreshData();
 	    		    },function(){alert('挂起失败！')});
@@ -715,7 +720,8 @@
 	
 	      this.activate = function(object, event){
 	    	  confirm("确定激活流程？",function(){
-	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id+'?action=activate',"",function(data){
+	    		  var databody = {"action":"activate"};
+	    		  csc.rest.put('api/v5.0.0/workflows/process-definitions/'+object.id,databody,function(data){
 		        		alert('激活成功！');
 			          	self.table.refreshData();
 	    		    },function(){alert('激活失败！')});

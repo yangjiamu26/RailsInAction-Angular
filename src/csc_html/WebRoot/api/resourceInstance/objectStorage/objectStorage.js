@@ -7,7 +7,9 @@
 			createObjectStorage:function(param,callback,errorCallback){
 				 csc.rest.post('api/v5.0.0/objectStorages',param,function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+				        errorCallback(data);
+				    }); 
 			},
 			/**
 			 * 修改ObjectStorage
@@ -17,19 +19,23 @@
 			modifyObjectStorage:function(uuid,param,callback,errorCallback){
 				 csc.rest.put('api/v5.0.0/objectStorages/'+uuid,param,function(data){
 					 callback(data)
-    		    }); 
+    		    }, function(data){
+			        errorCallback(data);
+			    }); 
 			},
 			/**
 			 * 删除ObjectStorage
 			 *  @param uuid ObjectStorage uuid
 			 */
-			deleteObjectStorage:function(uuid,callback){
+			deleteObjectStorage:function(uuid,callback,errorCallback){
 				csc.rest.del('api/v5.0.0/objectStorages/'+uuid,function(data){
 					 callback(data)
-   		        })
+   		        }, function(data){
+			        errorCallback(data);
+			    })
 			},
 			/**
-			 * 删除ObjectStorage
+			 * 获取ObjectStorage
 			 *  @param uuid ObjectStorage uuid
 			 */
 			getObjectStorage:function(uuid,callback){
@@ -45,16 +51,20 @@
 				 var param = csc.util.httpQueryParamConvert(param);
 				 csc.rest.get('api/v5.0.0/objectStorages?'+param,function(data){
 					     callback(data);
-	    		    }); 
+	    		    }, function(data){
+				        errorCallback(data);
+				    }); 
 			},
 			/**
 			 * 删除Object
 			 *  @param  uuid
 			 */
-			deleteObject:function(objectStorageUuid,name,callback){
+			deleteObject:function(objectStorageUuid,name,callback,errorCallback){
 				csc.rest.del('api/v5.0.0/objectStorages/'+objectStorageUuid+'/objects/'+name,function(data){
 					 callback(data)
-   		        })
+   		        }, function(data){
+			        errorCallback(data);
+			    })
 			},
 			/**
 			 * 停止上传，发送到servlet

@@ -1,5 +1,5 @@
 myApp.onPageInit("settings-index", function(page) {
-  $$('#logout').on('click', function (){
+  $$('.settinglogout').on('click', function (){
     myApp.confirm('确定退出当前用户吗？',function(){
     	myApp.Login_Again = true;
     	myApp.showAssisTime = false;
@@ -10,6 +10,10 @@ myApp.onPageInit("settings-index", function(page) {
       USER_INFO.tokenKey = '';
       Storage.setItem("userInfo",JSON.stringify(USER_INFO));
 	    myApp.closeModal('.popup.modal-in');
+      $$("#assistive").hide();
+      window.overview_viewModel.whichDc('');
+      myApp.hidePreloader();
+      reSetAllRequets();
 	    myApp.loginScreen();
   	});
   });

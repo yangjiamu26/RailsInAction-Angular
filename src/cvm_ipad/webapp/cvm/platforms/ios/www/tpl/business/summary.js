@@ -1,5 +1,6 @@
 myApp.onPageInit("business-summary", function(page) {
   function ViewModel(){
+    var self = this;
     this.summary = ko.observable({
       "vmNum": "", 
       "manager": "",
@@ -8,7 +9,6 @@ myApp.onPageInit("business-summary", function(page) {
       "desc": ""
     });
     this.loadData = function(){
-      var self = this;
       RestServiceJs.get(BASE_URL+"/project",page.query.id,{},function(data){
         myApp.pullToRefreshDone();
         self.summary(data);

@@ -41,8 +41,8 @@
                 <div class="col-xs-3" data-bind="text: vmVO().name"></div>
                 <div class="col-xs-1 font-bold">IP地址：</div>
                 <div class="col-xs-3" data-bind="text: vmVO().ip"></div>
-                <div class="col-xs-1 font-bold">公网IP：</div>
-                <div class="col-xs-3" data-bind="text: vmVO().publicIp"></div>
+                <div class="col-xs-1 font-bold">所属VPC：</div>
+                <div class="col-xs-3" data-bind="text:vmVO().vpcName"></div>
               </div>
               <div class="row m-b">
                 <div class="col-xs-1 font-bold">云主机状态：</div>
@@ -59,14 +59,14 @@
 							<span class="label label-warning" data-bind="if: vmVO().taskState == 'DELETING'">正在删除</span>
 							<span class="label label-warning" data-bind="if: vmVO().taskState == 'RESIZING'">正在调整</span>                 
                 </div>
-                <div class="col-xs-1 font-bold">操作系统：</div>
+                <div class="col-xs-1 font-bold">操作系统类型：</div>
+                <div class="col-xs-3" data-bind="text:vmVO().osType"></div>
+                <div class="col-xs-1 font-bold">操作系统版本：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().osVersion"></div>
-                <div class="col-xs-1 font-bold">所属物理主机：</div>
-                <div class="col-xs-3" data-bind="text:vmVO().ownerHostName"></div>
               </div>
               <div class="row m-b">
-                <div class="col-xs-1 font-bold">所属VPC：</div>
-                <div class="col-xs-3" data-bind="text:vmVO().vpcName"></div>
+              	<div class="col-xs-1 font-bold">所属物理主机：</div>
+                <div class="col-xs-3" data-bind="text:vmVO().ownerHostName"></div>
                 <div class="col-xs-1 font-bold">所属VDC：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().vdcName"></div>
 				<div class="col-xs-1 font-bold">可用分区：</div>
@@ -83,13 +83,26 @@
               <div class="row m-b">
               	<div class="col-xs-1 font-bold">UUID：</div>
                 <div class="col-xs-3" data-bind="text:vmVO().originalId"></div>
-                <div class="col-xs-1 font-bold">密钥：</div>
+                <div class="col-xs-1 font-bold" id="vm_show_pub_ip_info_id">公网IP：</div>
+                <div class="col-xs-3" data-bind="text: vmVO().publicIp"></div>
+                <div class="col-xs-1 font-bold" id="vm_show_ssh_info_id">密钥：</div>
                 <div class="col-xs-7" data-bind="text:vmVO().sshKeyName"></div>
               </div>
             </div>
           </div>
 
           <div class="row wrapper detail-others">
+           <div class="col-xs-3">
+              <div class="clear btn-success wrapper">
+                <div class="detail-others-img img-serverinfo">服务信息</div>
+                <div class="detail-others-text">
+                  <p>服务状态：<span data-bind="if: vmVO().isValidate == true">正常</span><span data-bind="if: vmVO().isValidate == false">已过期</span>
+                  </p>
+                  <p>生效时间：<span data-bind="text:vmVO().effectiveTime"></span></p>
+                  <p>失效时间：<span data-bind="text:vmVO().expiryTime"></span></p>
+                </div> 
+              </div>             
+            </div>
             <div class="col-xs-3">
               <div class="clear bg-primary wrapper">
                 <div class="detail-others-img img-settings">资源配置</div>
@@ -108,17 +121,6 @@
                   <p>内存使用率：<span data-bind="text:vmVO().memoryUsedPer"></span></p>
                 </div>  
               </div>            
-            </div>
-            <div class="col-xs-3">
-              <div class="clear btn-success wrapper">
-                <div class="detail-others-img img-serverinfo">服务信息</div>
-                <div class="detail-others-text">
-                  <p>服务状态：<span data-bind="if: vmVO().isValidate == true">正常</span><span data-bind="if: vmVO().isValidate == false">已过期</span>
-                  </p>
-                  <p>生效时间：<span data-bind="text:vmVO().effectiveTime"></span></p>
-                  <p>失效时间：<span data-bind="text:vmVO().expiryTime"></span></p>
-                </div> 
-              </div>             
             </div>
           </div>
           
@@ -155,7 +157,7 @@
                   <thead>
                     <tr>
                       <th>云硬盘名称</th>
-                      <th>存储池</th>
+                      <!-- <th>存储池</th> -->
                       <th>大小（GB）</th>
                       <th>状态</th>
                       <th>保存路径</th>
@@ -171,7 +173,7 @@
   	            	<!-- ko foreach: {data: pagedRows, as: '$row'}  -->
   	                <tr>
   	                    <td data-bind="text: volumeName"></td>
-  	                    <td data-bind="text: storagePoolName"></td>
+  	                    <!-- <td data-bind="text: storagePoolName"></td> -->
   	                    <td data-bind="text: volumeSize"></td>
   	                    <td data-bind="text: volumeStatus"></td>
   	                    <td data-bind="text: path"></td>
@@ -205,6 +207,7 @@
                 <div class="input-group w">
                   <span class="input-group-addon">安装类型</span>
                   <select class="form-control input-sm" data-bind="value: softwareSearchParam().installType">
+                    <option value="">全部</option>
                     <option value="安装">安装</option>
                     <option value="升级">升级</option>
                   </select>
@@ -1030,6 +1033,7 @@
   var scripts = [null, "assets/lib/moment/moment.js","assets/lib/bootstrap-daterangepicker/daterangepicker.js","assets/lib/highcharts/highstock.js"];
   
   var cpu_chart ;
+  var memory_chart;
   var vmUuid;
   $('.page-content-area').ace_ajax('loadScripts', scripts, function(args) {
     vmUuid = args.vmUuid;
@@ -1105,6 +1109,16 @@
       this.reloadVmInfo = function(){
     	  csc.rest.get('api/v5.0.0/vms/'+vmUuid,function(data){
     		  if(data){
+    			  csc.rest.get('api/v5.0.0/azs/'+data.azUuid,function(azData){
+    	    		  var cloudPlatform = azData.cloudPlatform;
+    	    		  if(cloudPlatform == "CNware"){
+    	    			  $("#vm_show_ssh_info_id").hide();
+    	    			  $("#vm_show_pub_ip_info_id").hide();
+    	    		  }else if(cloudPlatform == "OpenStack"){
+    	    			  $("#vm_show_ssh_info_id").show();
+    	    			  $("#vm_show_pub_ip_info_id").show();
+    	    		  }
+    			  });
     			  self.vmVO(data);
     			  self.reloadVolume();
     			  self.reloadSoftware();
@@ -2029,9 +2043,12 @@
             data: []
         }]
     });
-
-    // 内存使用率
-    $('#memoryUse_chart').highcharts({
+    	// 内存使用率
+   	memory_chart = new Highcharts.Chart({
+    		chart: {  
+                //将报表对象渲染到层上  
+            renderTo: 'memoryUse_chart'  
+        },   
         title: {
             text: '',
         },
@@ -2046,7 +2063,7 @@
             '#e268de' // purple
         ],               
         xAxis: {
-            categories: ['15:55', '16:00', '16:05', '16:10', '16:15', '16:20','16:25', '16:30']
+            categories: []
         },
         yAxis: {
             title: {
@@ -2063,7 +2080,7 @@
         },
         series: [{
             name: '内存使用率',
-            data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5]
+            data: []
         }]
     });
     // 存储使用率
@@ -2247,6 +2264,10 @@
 					if(element.name.indexOf("CPU")!=-1){
 						cpu_chart.series[0].setData(element.ydataList);    
 						cpu_chart.xAxis[0].setCategories(element.xdataList);
+					};
+					if(element.name.indexOf("MEMORY")!=-1){
+						memory_chart.series[0].setData(element.ydataList);    
+						memory_chart.xAxis[0].setCategories(element.xdataList);
 					};
 				});
 			}

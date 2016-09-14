@@ -708,6 +708,15 @@
 		    	}
 		    }
 		    
+		    this.ipPoolChange = function(obj){
+	      	  //根据IP池获取IP列表
+	      	  csc.rest.get('api/v5.0.0/ipPools/'+this.ipPoolUuid4CNware()+'?azUuid='+obj.azUuid(),function(ipData){
+	  	    	  if (ipData && ipData.results) {
+	  	    		obj.ipList(ipData.results);
+	  	    	  }
+	      	  });
+		    }
+		    
 		    this.vpcChangeByPublic = function(obj){
 		    	var _self = this;
 		        csc.rest.get("api/v5.0.0/cart/getNetworkListByPublic/"+obj.serviceUuid()+"/"+obj.vpcUuid(), function(data){
@@ -764,7 +773,6 @@
 				if(self.productType()==1){
 					var bool=false;
 					 self.model_VM().vmCartInfo().forEach(function(e){
-						
 					    if(e().mountDisks != null){
 					    	e().mountDisks().forEach(function(d){
 		                		if(!d.isValid()){
@@ -788,7 +796,7 @@
 					});  
 					if(bool){
 						return;
-					} 
+					}
 					productJsonArray = self.model_VM.toJSON().vmCartInfo;
 					productData = self.model_VM.toJSON();
 					productKey = 'VM';
@@ -1262,7 +1270,7 @@
 					this.desc = ko.observable(e.remark);
 		    		this.azUuid = ko.observable(e.azUuid);
 		    		this.vdcUuid = ko.observable(e.vdcUuid);
-					
+		    		this.cloudPlatform = ko.observable(e.cloudPlatform);
 					this.metaData = ko.observable();
 					this.resourceType = ko.observable();
 		    		this.relateUuid = ko.observable();
@@ -1285,7 +1293,10 @@
 			   this.storage = ko.observable(e.storage);
 			   this.vcpu = ko.observable(e.cpu);
 			   
-			   this.vpcUuid = ko.observable(e.vpcUuid);
+			   //vpcUuid不存在判断是否存在ip池，ip池不存在即是CNware的ip池
+			   vpcUuid = e.vpcUuid=="" ? e.ipPoolUuid : e.vpcUuid;
+			   this.vpcUuid = ko.observable(e.vpcUuid == "" ? e.ipPoolUuid4CNware : e.vpcUuid );
+			   
 			   this.ip = ko.observable(e.ip);
 			  
 			   this.password = ko.observable(e.password);
@@ -2374,7 +2385,8 @@
             
             /************************************ 云主机 vo定义  ************************************/
             var _self_ = this;
-            _self_.isCNwareFlag = ko.observable(true);//openstack、CNware判断,true(openstack)/false(CNware)
+            _self_.isCNwareFlag = ko.observable(true);//true(openstack)/false(CNware)
+            _self_.isOpenStackFlag = ko.observable(false);//true(CNware)/false(openstack)
 		  
             this.model_VM = ko.validatedObservable({
 		    	vmCartInfo: ko.observableArray([])
@@ -2401,9 +2413,6 @@
 	            this.azUuid = ko.observable().extend({required:{onlyIf:function(){
 	      			return self.isAdd_VMMore()?self.myStep()==1:true
 	      		}} });
-/* 	            this.vdcUuid =ko.observable().extend({required:{onlyIf:function(){
-	      			return self.isAdd_VMMore()?self.myStep()==1:true
-	      		}} }); */
 	      		this.vdcUuid = ko.pureComputed(function(){
 		            	return self.vdcListValue();      	
 		        }, this);
@@ -2425,7 +2434,7 @@
 	      			return self.isAdd_VMMore()?self.myStep()==3:true
 	      		}}});
 	            this.vpcNetworkUuid = ko.observable().extend({required:{onlyIf:function(){
-	      			return self.isAdd_VMMore()?self.myStep()==3:true
+	      			return self.isAdd_VMMore()?self.myStep()==3:self.isCNwareFlag()
 	      		}}});
 	            
 	            this.applyType = ko.observable("1");
@@ -2454,15 +2463,29 @@
 	            this.applyTime = ko.observable();
 	            this.networkType = ko.observable();
 	            
-	            this.ipPoolUuid = ko.pureComputed(function(){
-	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
+	            this.ipPoolUuid4CNware = ko.pureComputed(function(){
+	            	var item = _.findWhere(this.vpcList(), {id: this.vpcOrIpPoolList()});
 	            	if(item!=null){
-	            		return item.uuid;//item.type!="vpc" ? item.value : "";
+	            		return item.id;
 	            	}else{
 	            		return "";
 	            	}
 	            	
 	            }, this);
+	            
+	            this.ipPoolUuid = ko.pureComputed(function(){
+	            	
+	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
+	            	if(item!=null){
+	            		return item.uuid;//item.type!="vpc" ? item.value : "";
+	            	}else{
+	            		//当云平台为Cnware时，ipPoolUuid为空，ipPoolUuid4CNware不为空
+	            		return this.ipPoolUuid4CNware() != null ? this.ipPoolUuid4CNware() : "";
+	            	}
+	            	
+	            }, this);
+	            
+	            
 	            this.vpcUuid = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.vpcList(), {uuid: this.vpcOrIpPoolList()});
 	            	if(item!=null){
@@ -2513,11 +2536,15 @@
 	    				} 
     				})(this)
     			} });
+	            
+	            this.cloudPlatform = ko.observable();
 	            //openstack or cnware
-	            this.cloudPlatform = ko.pureComputed(function(){
+	            this.cloudPlatformFlage = ko.pureComputed(function(){
 	            	var item = _.findWhere(this.azList(), {uuid: this.azUuid()});
 	            	if(item!=null){
 	            		_self_.isCNwareFlag(item.cloudPlatform == 'OpenStack');
+	            		_self_.isOpenStackFlag(item.cloudPlatform == 'CNware')
+	            		this.cloudPlatform(item.cloudPlatform);
 	            		return item.cloudPlatform == 'OpenStack' && this.osType()!='windows';
 	            	}
 	            	return false;
@@ -4323,11 +4350,17 @@
               <div class="row">
                 <label class="col-xs-5 control-label">VPC/IP池<i style="color:red">*</i></label>
                 <div class="col-xs-7">
+                  <!-- ko if: $root.isCNwareFlag-->
                   <select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'uuid',value:  vpcOrIpPoolList,event:{change:$root.vpcChange},optionsCaption:'请选择'"></select>
+                  <!-- /ko -->
+                  <!-- ko if: $root.isOpenStackFlag-->
+                  <select class="form-control w-xs" data-bind="options:  vpcList,optionsText:'name',optionsValue:'id',value:  vpcOrIpPoolList,event:{change:$root.ipPoolChange},optionsCaption:'请选择'"></select>
+                  <!-- /ko -->
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4" data-bind="visible: $root.isCNwareFlag">
+            <!-- ko if: $root.isCNwareFlag-->
+            <div class="form-group col-md-4">
               <div class="row">
                 <label class="col-xs-5 control-label">网络名称<i style="color:red">*</i></label>
                 <div class="col-xs-7">
@@ -4335,6 +4368,7 @@
                 </div>
               </div>
             </div>
+            <!-- /ko -->
             <div class="form-group col-md-4">
               <div class="row">
                 <label class="col-xs-5 control-label">指定IP：</label>
@@ -4343,7 +4377,8 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-3" data-bind="visible: $root.isCNwareFlag">
+            <!-- ko if: $root.isCNwareFlag-->
+            <div class="form-group col-md-3">
               <div class="row">
                 <label class="col-xs-5 control-label">密码：</label>
                 <div class="col-xs-7">
@@ -4351,7 +4386,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4" data-bind="visible: $root.isCNwareFlag">
+            <div class="form-group col-md-4">
               <div class="row">
                 <label class="col-xs-5 control-label">重复密码：</label>
                 <div class="col-xs-7">
@@ -4359,7 +4394,8 @@
                 </div>
               </div>
             </div>
-            <div class="form-group col-md-4" data-bind="visible:cloudPlatform">
+            <!-- /ko -->
+            <div class="form-group col-md-4" data-bind="visible:cloudPlatformFlage">
               <div class="row">
                 <label class="col-xs-5 control-label">选择密钥：</label>
                 <div class="col-xs-7">
@@ -4574,7 +4610,6 @@
 				                <thead>
 				                  <th>序号</th>
 				                  <th>云主机名称<i style="color:red">*</i></th>
-	<!-- 			                  <th>所属VDC<i style="color:red">*</i></th> -->
 				                  <th>可用分区<i style="color:red">*</i></th>
 				                  <th>业务系统</th>
 				                  <th>申请时长<i style="color:red">*</i></th>
@@ -4584,7 +4619,6 @@
 				                     <tr>
 					                     <td><span data-bind="text: ($index()+1)"></span></td>
 					                     <td><input type="text" class="form-control w" data-bind="value:vmName"></td>
-<!-- 					                     <td><select class="form-control w-xs" data-bind="options:  vdcList,optionsText:'name',optionsValue:'uuid',value:  vdcUuid,event:{change:$root.getAzForVdcChange},optionsCaption:'请选择'"></select></td> -->
 					                     <td><select class="form-control w-xs" data-bind="options:  azList,optionsText:'name',optionsValue:'uuid',value:  azUuid,event:{change:$root.getVpcForAzChange},optionsCaption:'请选择'"></select></td>
 					                     <td><select class="form-control w-xs" data-bind="options: bussyList,optionsText:'name',optionsValue:'uuid',value:projectUuid,optionsCaption:'请选择'"></select></td>
 					                     <td>
@@ -4665,7 +4699,7 @@
 			                       <td><select class="form-control w-xs" data-bind="options:  networkList,optionsText:'name',optionsValue:'uuid',value:  vpcNetworkUuid,event:{change:$root.getIpForNetWorkChange},optionsCaption:'请选择'"></select></td>
 			                       <td><select class="form-control w-x" data-bind="options:ipList,optionsText:'ip',optionsValue:'ip',value:ip,optionsCaption:'请选择'"></select></td>
 			                       <td >
-			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择',visible:cloudPlatform"></select>
+			                           <select class="form-control w-xs" data-bind="options:sshList,optionsText:'name',optionsValue:'uuid',value:sshUuid,optionsCaption:'请选择',visible:cloudPlatformFlage"></select>
 			                       </td>
 			                    </tr>
 			                </tbody>

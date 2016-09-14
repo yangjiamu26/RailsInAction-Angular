@@ -378,7 +378,7 @@
                         <tr>
                           <th >云硬盘名称*</th>
                           <th >存储大小(GB)*</th>
-                          <th >存储池*</th>
+                          <th style="width:200px;">存储池*</th>
                           <th >操作</th>
                         </tr>
                       </thead>
@@ -847,7 +847,11 @@
     	//初始化自定义参数
 	    self.adminPass('');
 	    self.adminPassReinput('');
-    	
+	  	self.chosenImageVO().minDisk('');
+		self.chosenImageVO().minRam('');
+	    
+	    
+	    
         self.isAddvm(true);
         $("#inlineRadio1").prop("checked",true);
       }
@@ -1257,6 +1261,7 @@
       });
       //镜像-> SSH + 物理主机
       this.onchange_add_images = function(){
+    	  chosenImage = {};
     	  var imageId = self.currentVO().image();
     	  for(var i=0;i<images.length;i++){
     		  if(images[i].imageId == imageId){
@@ -1264,6 +1269,11 @@
     			  break;
     		  }
     	  }
+    	  self.currentVO().vcpu('');
+    	  self.currentVO().memory('');
+    	  self.currentVO().storage('');
+    	  self.chosenImageVO().minDisk('');
+    	  self.chosenImageVO().minRam('');
     	  //根据不同云管理平台处理不同事务
     	  if(cloudPlatform == "OpenStack"){
     		  self.add_sshKeys_def();
@@ -1437,12 +1447,12 @@
 	    	  {
 	    	     if(temp[i].checked){
 	    	    	 if(temp[i].value == "option1"){
-	    	    		 expiryTime = "2099-12-30 23:59:59";
+	    	    		 expiryTime = "2099-12-31 23:59:59";
 	    	    	 }else if(temp[i].value == "option2"){
 	    	    		 if($("#resource_instance_vm_limit_option2_unit").val() == "MONTH"){
 	    	    			 var plusMonth = parseInt($("#resource_instance_vm_limit_option2").val());
 	    	    			 var dd = new Date();
-	    	    			 var y = dd.getFullYear(); 
+	    	    			 /* var y = dd.getFullYear(); 
 	    	    			 var m = dd.getMonth()+1+plusMonth;//获取当前月份的日期 
 	    	    			 var selfM = dd.getMonth()+1;
 	    	    			 var d = dd.getDate();
@@ -1450,7 +1460,12 @@
 	    	    			 m = m%12;
 	    	    			 if(m == 0){
 	    	    				 m = selfM;
-	    	    			 }
+	    	    			 } */
+	    	    			 var y = dd.getFullYear(); 
+          	    			 var m = dd.getMonth() + plusMonth;//获取目标月份 
+          	    			 var d = dd.getDate();//获取当前月份的日期 
+          	    			 y = y + parseInt(m/12);
+          	    			 m = m%12 + 1;
 	    	    		 }else if($("#resource_instance_vm_limit_option2_unit").val() == "YEAR"){
 	    	    			 var plusYear = parseInt($("#resource_instance_vm_limit_option2").val());
 	    	    			 var dd = new Date();
