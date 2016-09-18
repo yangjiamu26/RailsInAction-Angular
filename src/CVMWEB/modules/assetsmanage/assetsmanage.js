@@ -1287,6 +1287,8 @@ angular.module('app')
             $scope.search(search.Code,search.name);
         }
     };
+    
+	$scope.ISsearching = true;
 	$scope.pgCtrl = paginationCtrl = {};
 	$scope.reload = function(){
 		if(!$scope.notFirst) return;
@@ -1301,6 +1303,7 @@ angular.module('app')
 		});
 	}
 	AssetsManegeHosts.query({firstResult:0,currentPage:1,maxResult:15,dcId:dcId},function(res){
+		$scope.ISsearching = false;
 	 	$scope.hosts = res;
 		$scope.pageConf = {
 	        total : $scope.hosts.size,// 总条数
@@ -1366,6 +1369,7 @@ angular.module('app')
         }
     };
 	
+	$scope.ISsearching = true;
 	$scope.pgCtrl = paginationCtrl = {};
 	$scope.reload = function(){
 		if(!$scope.notFirst) return;
@@ -1380,6 +1384,7 @@ angular.module('app')
 		});
 	}
 	AssetsManegeProjects.query({firstResult:0,currentPage:1,maxResult:15},function(res){
+		$scope.ISsearching = false;
 	 	$scope.projects = res;
 		$scope.pageConf = {
 	        total : $scope.projects.size,// 总条数
