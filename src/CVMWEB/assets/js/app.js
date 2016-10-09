@@ -14,8 +14,8 @@ var app = angular.module('app', [
     'monospaced.qrcode'
 ]);
 
-// app.constant("baseUrl","http://10.10.111.144:8093/cvm/v3.0");
-// app.constant("fileUrl","http://10.10.111.144:8093/");
+// app.constant("baseUrl","http://10.10.111.225:8093/cvm/v3.0");
+// app.constant("fileUrl","http://10.10.111.225:8093/");
 app.constant("baseUrl","http://"+window.location.host+"/cvm/v3.0");
 app.constant("fileUrl","http://"+window.location.host+"/");
 // app.constant("baseUrl","http://192.168.208.51:8095/cvm/v3.0");
@@ -91,6 +91,15 @@ app.controller("RootController", function($scope, $state, $interval, $rootScope,
 		};
 	};
 
+	$rootScope.stopFrame = function(){
+		$interval.cancel($scope.timer);
+	}
+
+	$rootScope.goOnFrame = function(){
+		$scope.execFrame();
+		$scope.timer = $interval($scope.execFrame, parseInt($rootScope.interval)*1000);
+	}
+
 	$rootScope.startFrame = function(){
 		$rootScope.isStart = true;
 		$scope.execFrame();
@@ -104,7 +113,6 @@ app.controller("RootController", function($scope, $state, $interval, $rootScope,
 	
 	$scope.closeFrame = function(){
 		$interval.cancel($scope.timer);
-		$scope.timer = null;
 		$state.go("app.bigview");
 		if($rootScope.exitFullscreen){
 			$rootScope.exitFullscreen();

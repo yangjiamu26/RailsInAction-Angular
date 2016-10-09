@@ -58,26 +58,27 @@ angular.module('app')
       $scope.inited = true;
       return;
     }
-      switch(branch.level){
-        case 1:
+    switch(branch.proType){
+        case "1":
+          if(branch.level==1){
             $state.go("app.resourcemonitor.business.statics");
+          }else{
+            $state.go("app.resourcemonitor.business.domains.statics",{domainId:branch.id.substr(1)});
+          } 
           break;
-        case 2:
-          $state.go("app.resourcemonitor.business.domains.statics",{domainId:branch.id.substr(1)});
-          break;
-        case 3:
+        case "2":
           var parent = $scope.my_tree.get_parent_branch(branch);
           $state.go("app.resourcemonitor.business.domains.systems.page.statics",{domainId:parent.id.substr(1),systemId:branch.id.substr(1)});
           break;
-        case 4:
+        case "3":
           var parent = $scope.my_tree.get_parent_branch(branch);
           var grandpa = $scope.my_tree.get_parent_branch(parent);
           $state.go("app.resourcemonitor.business.domains.systems.vms.statics",{domainId:grandpa.id.substr(1),systemId:parent.id.substr(1),vmId:branch.id.substr(1),dcId:branch.dcId});
           break;
         default:
           break;
-      }
-    };
+    }
+  };
 })
 .controller('monitorDomainCtrl', function($scope, $state, $rootScope, MonitorDomainStatics, MonitorDomainInfo) {
     if($rootScope.selectTreeNode) $rootScope.selectTreeNode($state.params);

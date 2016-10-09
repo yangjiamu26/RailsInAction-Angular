@@ -563,8 +563,12 @@ angular.module('app')
     }
 	   
 })
-.controller("overviewShowCtrl",function($scope, $timeout, $interval, fileUrl, SettingProfileConfigs, SettingProfileDetailList){
+.controller("overviewShowCtrl",function($scope, $rootScope, $timeout, $interval, fileUrl, SettingProfileConfigs, SettingProfileDetailList){
     $scope.fileUrl = fileUrl;
+    if($rootScope.isStart){
+        $rootScope.stopFrame();
+    }
+
     function getConfig1(id){
         SettingProfileDetailList.get({id:id},function(res){
             var newDate = [];
@@ -598,6 +602,7 @@ angular.module('app')
             $scope.settings3 = newDate;
         });
     }
+
     SettingProfileConfigs.get(function(res){
         var orders=[];
         for(var i=0;i<res.data.length;i++){
@@ -623,11 +628,14 @@ angular.module('app')
         orders.sort();
         $scope.orders = orders;
         $scope.step=$scope.orders[0];
+
+        $scope.tabNum = 0;
+        $scope.intervalNum = 0;
+        $scope.inSelfPage = true;
+
         $scope.dotimeout();
         console.log('业务流程：'+$scope.show1+' order:'+$scope.order1+'\n'+'业务展示：'+$scope.show2+' order:'+$scope.order2+'\n'+'概况简介：'+$scope.show3+' order:'+$scope.order3)
     })
-
-    
 
     $scope.slideNum1 = 0;
     $scope.dointerval1 = function(){
@@ -635,9 +643,10 @@ angular.module('app')
         $scope.mytime1 = $interval(function(){
             if($scope.slideNum1 == $scope.settings3.length-1){
                 $scope.slideNum1 = 0;
+                $scope.intervalNum ++;
                 $scope.dotimeout();
             }else{
-                $scope.slideNum1 ++
+                $scope.slideNum1 ++;
             }
         },10000);
     }
@@ -648,14 +657,22 @@ angular.module('app')
         $scope.mytime2 = $interval(function(){
             if($scope.slideNum2 == $scope.settings2.length-1){
                 $scope.slideNum2 = 0;
+                $scope.intervalNum ++;
                 $scope.dotimeout();
             }else{
-                $scope.slideNum2 ++
+                $scope.slideNum2 ++;
             }
         },10000);
     }
     var step_i = -1;
     $scope.dotimeout = function(num){
+        $scope.tabNum ++;
+        if($scope.tabNum>3&&$scope.intervalNum>1&&$rootScope.isStart){
+            $interval.cancel($scope.mytime1);
+            $interval.cancel($scope.mytime2);
+            $scope.inSelfPage = false;
+            return $rootScope.goOnFrame();
+        }
         $interval.cancel($scope.mytime1);
         $interval.cancel($scope.mytime2);
         $scope.slideNum1 = 0;
@@ -663,7 +680,7 @@ angular.module('app')
         step_i = num ? num : step_i + 1;
         if(step_i>$scope.orders.length-1) step_i = 0;
         $scope.step = $scope.orders[step_i];
-        if($scope.step==$scope.order1){
+        if($scope.step==$scope.order1&&$scope.inSelfPage){
             $timeout(function(){
                  $scope.dotimeout();
             },10000)

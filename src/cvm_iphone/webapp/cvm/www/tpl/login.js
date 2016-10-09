@@ -1,0 +1,151 @@
+var BASE_URL = '';
+myApp.onPageInit("login", function(page) {
+  function ViewModel(){
+    var lastTime = parseInt(Storage.getItem('cacheTime'));
+    var timeTakes = (new Date().getTime() - lastTime)/86400000;
+    if(timeTakes>7){//day
+      Storage.removeItem("userInfo");
+      Storage.removeItem("cacheTime");
+    }
+    
+    var baseNet = Storage.getItem("baseNet");
+    var userInfo = JSON.parse(Storage.getItem("userInfo"));
+    var Required = false;
+    this.network = baseNet ? ko.observable(baseNet) : ko.observable("http://10.10.111.204:8095");
+    this.username = userInfo ? ko.observable(userInfo.account) : ko.observable("demo");
+    this.password = userInfo ? ko.observable(userInfo.password) : ko.observable("demo");
+    this.dashboard = null;
+    this.login = function(){
+      if(this.network()==""){
+        myApp.alert('请填写网络！');
+        return;
+      }
+      if(this.username()==""){
+        myApp.alert('用户名不能为空！');
+        return;
+      }
+      if(this.password()==""){
+        myApp.alert('密码不能为空！');
+        return;
+      }
+      var self = this;
+
+      function goLogin(data){
+        data.password = self.password();
+        USER_INFO = data;
+        Storage.setItem("userInfo",JSON.stringify(data));
+        Storage.setItem("cacheTime",new Date().getTime());
+
+        myApp.closeModal('.login-screen.modal-in');
+        // if(!this.dashboard){
+        //   this.dashboard = myApp.addView('#view-dashboard', {dynamicNavbar: false,domCache: true});
+        // }
+        // myApp.showAssisTime = true;
+        // this.dashboard.router.load({url: "tpl/dashboard.html",animatePages: false});
+        // myApp.popup('.popup-dashboard');
+
+        if(myApp.Login_Again){
+          window.overview_viewModel.loadData();
+          window.overview_viewModel.loadDatacenters();
+          window.overview_viewModel.changeDc('');
+          //$$('#backToDasboard').hide();
+          //window.Assistive_viewModel.setHigh();
+        }
+
+        // setTimeout(function(){
+        //   $$("#assistive").show();
+        // },2000);
+        gotoMain();
+      }
+
+      if(this.username().toLowerCase()=="demo"&&this.password().toLowerCase()=="demo"){
+        BASE_URL = "demoapi";
+        return goLogin({"name":"测试用户","id":1,"account":"demo","password":"demo","flag":true,"token":"demo"});
+      }
+
+      Storage.setItem("baseNet",this.network());
+      BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
+      
+      checkNetWork(1,function(){
+        $.ajax({
+          type: 'POST',
+          url: BASE_URL+"/user/login",  
+          data: JSON.stringify({
+            "account": self.username(),
+            "password": self.password()
+          }),
+          processData: false,  
+          dataType: 'json',
+          contentType: 'application/json',
+          success: function(data){
+            goLogin(data);
+          },  
+          error: function(req, status, ex){
+            checkNetWork(1,function(){
+              if(!navigator.onLine){
+                myApp.alert('当前网络不可用，请检查您的网络设置！');
+                return;
+              }
+              if(req){
+                if(req.responseText){
+                  if(JSON.parse(req.responseText).exception == 'sys.rest.connect.error'){
+                    myApp.alert('请检查CSC服务是否正常！');
+                  }else{
+                    myApp.alert(JSON.parse(req.responseText).exception);
+                  }
+                }else if(req.statusText=='timeout'){
+                  myApp.alert('请求超时！');
+                }else{
+                  myApp.alert('请检查服务器环境是否启动/网络地址填写是否正确！');
+                }
+              }else{
+                myApp.alert('未知错误！');
+              }
+            });
+          },  
+          timeout:60000  
+        });
+      });
+        
+      
+    }
+  }
+  ko.applyBindings(new ViewModel(), $$(page.container)[0]);
+});
+
+var indexFilter_business, indexFilter_pool, indexFilter_host, indexFilter_vm, indexFilter_storage, view_home, view_business, view_pool, view_host, view_vm, view_storage, view_settings_left, view_settings_right;
+var is_reload = true;
+function gotoMain(){
+  indexFilter_business=indexFilter_business || myApp.addView('#indexFilter-business', {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-business"});
+  indexFilter_pool       = indexFilter_pool || myApp.addView('#indexFilter-pool',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-pool"});
+  indexFilter_host       = indexFilter_host || myApp.addView('#indexFilter-host',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-host"});
+  indexFilter_vm           = indexFilter_vm || myApp.addView('#indexFilter-vm',       {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-vm"});
+  indexFilter_storage = indexFilter_storage || myApp.addView('#indexFilter-storage',  {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-storage"});
+  
+  view_home                     = view_home || myApp.addView("#view-home",            {dynamicNavbar: false,domCache: true,linksView: "#view-home"});
+  view_business             = view_business || myApp.addView("#view-business",        {dynamicNavbar: false,domCache: true,linksView: "#view-business"});
+  view_pool                     = view_pool || myApp.addView("#view-pool",            {dynamicNavbar: false,domCache: true,linksView: "#view-pool"});
+  view_host                     = view_host || myApp.addView("#view-host",            {dynamicNavbar: false,domCache: true,linksView: "#view-host"});
+  view_vm                         = view_vm || myApp.addView("#view-vm",              {dynamicNavbar: false,domCache: true,linksView: "#view-vm"});
+  view_storage              =  view_storage || myApp.addView("#view-storage",         {dynamicNavbar: false,domCache: true,linksView: "#view-storage"});
+  view_settings_left   = view_settings_left || myApp.addView("#view-settings-left",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
+  view_settings_right = view_settings_right || myApp.addView("#view-settings-main",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
+
+  indexFilter_business.router.load({ url: "tpl/filter/filter_business.html",animatePages: false, reload:is_reload});
+  indexFilter_pool.router.load({     url: "tpl/filter/filter_pool.html",animatePages: false, reload:is_reload});
+  indexFilter_host.router.load({     url: "tpl/filter/filter_host.html",animatePages: false, reload:is_reload});
+  indexFilter_vm.router.load({       url: "tpl/filter/filter_vm.html",animatePages: false, reload:is_reload});
+  indexFilter_storage.router.load({  url: "tpl/filter/filter_storage.html",animatePages: false, reload:is_reload});
+
+  view_home.router.load({            url: "tpl/home/index.html",animatePages: false, reload:is_reload});  
+  view_business.router.load({        url: "tpl/business/index.html",animatePages: false, reload:is_reload});
+  view_pool.router.load({            url: "tpl/pool/index.html",animatePages: false, reload:is_reload});
+  view_host.router.load({            url: "tpl/host/index.html",animatePages: false, reload:is_reload});
+  view_vm.router.load({              url: "tpl/vm/index.html",animatePages: false, reload:is_reload});
+  view_storage.router.load({         url: "tpl/storage/index.html",animatePages: false, reload:is_reload});    
+  view_settings_left.router.load({   url: "tpl/settings/index.html",animatePages: false, reload:is_reload});
+  view_settings_right.router.load({  url: "tpl/settings/profile.html",animatePages: false, reload:is_reload});
+
+  myApp.showTab("#view-home");
+  is_reload = true;
+}

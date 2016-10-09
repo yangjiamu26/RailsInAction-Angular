@@ -73,7 +73,7 @@ function alertErrer(req, status, ex){
       }else{
         errerNUM[3]++;
         if(errerNUM[3]==1){
-          myApp.alert('服务器异常或停止运行！',function(){
+          myApp.alert('无法连接到服务器！',function(){
             errerNUM[3]=0;
           });
         }
