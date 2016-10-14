@@ -4,12 +4,12 @@
     <div class="navbar">
       <div class="navbar-inner">
           <div class="left">
-            <a href="#" class="link open-popover">
+            <a href="#" class="link open-popover" data-bind="with: dcInfo">
               <i class="icon icon-bars"></i>
-              <span>总览</span>
+              <span data-bind="text: name"></span>
             </a>
           </div>
-          <div class="center" data-bind="with: dcInfo"><span data-bind="text: name"></span>-资源总览</div>
+          <div class="center">概况</div>
           <div class=" right">
           </div>
       </div>
@@ -23,10 +23,10 @@
         <div class="dashboard_statistics" data-bind="with: infos">
           <div class="value name"><b data-bind="text: $root.dcInfo().name"></b></div>
           <div class="value vm">虚拟机 <b data-bind="text: vmNumber"></b>台</div>
-          <div class="value cpu">CPU <b data-bind="text: cpuCoreNumber">个</b><!-- <span class="mini">X86:</span><b data-bind="text: x86TotalCpu"></b><span class="mini">GHz 小型机:</span><b data-bind="text: pvmTotalCpu"></b><span class="mini">核</span> --></div>
-          <div class="value memory">内存 <b data-bind="text: memorySize"></b>GB</div>
-          <div class="value storage">存储 <b data-bind="text: storageSize"></b>TB</div>
-          <div class="value storagePool">存储池 <b data-bind="text: storageSize"></b>个</div>
+          <div class="value cpu">CPU <b>个</b><!-- <span class="mini">X86:</span><b data-bind="text: x86TotalCpu"></b><span class="mini">GHz 小型机:</span><b data-bind="text: pvmTotalCpu"></b><span class="mini">核</span> --></div>
+          <div class="value memory">内存 <b data-bind="text: memoryTotal"></b>GB</div>
+          <div class="value storage">存储 <b data-bind="text: storageTotal"></b>TB</div>
+          <div class="value storagePool">存储池 <b data-bind="text: storageTotal"></b>个</div>
           <div class="value business_domain">业务域 <b data-bind="text: busDomainNum"></b>个</div>
           <div class="value business">业务系统 <b data-bind="text: projectNum"></b>个</div>
           <div class="value pool">资源池 <b data-bind="text: resPoolNumber"></b>个</div>
@@ -51,44 +51,44 @@
                   <div class="item-content">
                     <div class="item-inner">
                       <div class="item-title"><i></i>CPU X86</div>
-                      <div class="item-after">共<span data-bind="text: x86TotalCpu || 0"></span>MHz,已分配<span data-bind="text: x86TotalCpu || 0"></span>MHz（<span data-bind="text: x86TotalCpu || 0"></span>%）</div>
+                      <div class="item-after">共<span data-bind="text: x86TotalCpu || 0"></span>GHz,已分配<span data-bind="text: x86UsedCpu || 0"></span>GHz（<span data-bind="text: $root.Calculat(x86UsedCpu,x86TotalCpu)"></span>%）</div>
                     </div>
                   </div>
                   <div style="margin:0 12px;">
-                    <div class="progress" style="height:2px;"><span class="progress-bar progress-bar-normal" style="width:10%"></span></div>
+                    <div class="progress" style="height:3px;"><span class="progress-bar" data-bind="attr:{'style':'width:'+$root.Calculat(x86UsedCpu,x86TotalCpu)+'%'},css:$root.Calculat(x86UsedCpu,x86TotalCpu)<60?'progress-bar-normal':$root.Calculat(x86UsedCpu,x86TotalCpu)<80?'progress-bar-warning':'progress-bar-danger'"></span></div>
                   </div>
                 </li>
                 <li>
                   <div class="item-content">
                     <div class="item-inner">
                       <div class="item-title"><i></i>CPU 小型机</div>
-                      <div class="item-after">共<span data-bind="text: pvmTotalCpu || 0"></span>MHz,已分配<span data-bind="text: pvmTotalCpu || 0"></span>MHz（<span data-bind="text: pvmTotalCpu || 0"></span>%）</div>
+                      <div class="item-after">共<span data-bind="text: pvmTotalCpu || 0"></span>核,已分配<span data-bind="text: pvmUsedCpu || 0"></span>核<span data-bind="text: $root.Calculat(pvmUsedCpu,pvmTotalCpu)"></span>%）</div>
                     </div>
                   </div>
                   <div style="margin:0 12px;">
-                    <div class="progress" style="height:2px;"><span class="progress-bar progress-bar-normal" style="width:10%"></span></div>
+                    <div class="progress" style="height:3px;"><span class="progress-bar progress-bar-normal" data-bind="attr:{'style':'width:'+$root.Calculat(pvmUsedCpu,pvmTotalCpu)+'%'},css:$root.Calculat(pvmUsedCpu,pvmTotalCpu)<60?'progress-bar-normal':$root.Calculat(pvmUsedCpu,pvmTotalCpu)<80?'progress-bar-warning':'progress-bar-danger'"></span></div>
                   </div>
                 </li>
                 <li>
                   <div class="item-content">
                     <div class="item-inner">
                       <div class="item-title"><i></i>内存</div>
-                      <div class="item-after">共<span data-bind="text: memoryTotal || 0"></span>GB,已分配<span data-bind="text: memoryTotal || 0"></span>GB<span data-bind="text: memoryTotal || 0"></span>%）</div>
+                      <div class="item-after">共<span data-bind="text: memoryTotal || 0"></span>GB,已分配<span data-bind="text: memoryUsed || 0"></span>GB（<span data-bind="text: $root.Calculat(memoryUsed,memoryTotal)"></span>%）</div>
                     </div>
                   </div>
                   <div style="margin:0 12px;">
-                    <div class="progress" style="height:2px;"><span class="progress-bar progress-bar-normal" style="width:10%"></span></div>
+                    <div class="progress" style="height:3px;"><span class="progress-bar progress-bar-normal" data-bind="attr:{'style':'width:'+$root.Calculat(memoryUsed,memoryTotal)+'%'},css:$root.Calculat(memoryUsed,memoryTotal)<60?'progress-bar-normal':$root.Calculat(memoryUsed,memoryTotal)<80?'progress-bar-warning':'progress-bar-danger'"></span></div>
                   </div>
                 </li>
                 <li>
                   <div class="item-content">
                     <div class="item-inner">
                       <div class="item-title"><i></i>存储</div>
-                      <div class="item-after">共<span data-bind="text: storageTotal || 0"></span>TB,已分配<span data-bind="text: storageTotal || 0"></span>TB<span data-bind="text: storageTotal || 0"></span>%）</div>
+                      <div class="item-after">共<span data-bind="text: storageTotal || 0"></span>TB,已分配<span data-bind="text: storageUsed || 0"></span>TB（<span data-bind="text: $root.Calculat(storageUsed,storageTotal)"></span>%）</div>
                     </div>
                   </div>
                   <div style="margin:0 12px;">
-                    <div class="progress" style="height:2px;"><span class="progress-bar progress-bar-normal" style="width:10%"></span></div>
+                    <div class="progress" style="height:3px;"><span class="progress-bar progress-bar-normal" data-bind="attr:{'style':'width:'+$root.Calculat(storageUsed,storageTotal)+'%'},css:$root.Calculat(storageUsed,storageTotal)<60?'progress-bar-normal':$root.Calculat(storageUsed,storageTotal)<80?'progress-bar-warning':'progress-bar-danger'"></span></div>
                   </div>
                 </li>
               </ul>

@@ -114,37 +114,10 @@ myApp.onPageInit("login", function(page) {
 });
 
 var indexFilter_business, indexFilter_pool, indexFilter_host, indexFilter_vm, indexFilter_storage, view_home, view_business, view_pool, view_host, view_vm, view_storage, view_settings_left, view_settings_right;
-var is_reload = true;
+var is_reload = false;
 function gotoMain(){
-  indexFilter_business=indexFilter_business || myApp.addView('#indexFilter-business', {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-business"});
-  indexFilter_pool       = indexFilter_pool || myApp.addView('#indexFilter-pool',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-pool"});
-  indexFilter_host       = indexFilter_host || myApp.addView('#indexFilter-host',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-host"});
-  indexFilter_vm           = indexFilter_vm || myApp.addView('#indexFilter-vm',       {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-vm"});
-  indexFilter_storage = indexFilter_storage || myApp.addView('#indexFilter-storage',  {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-storage"});
-  
   view_home                     = view_home || myApp.addView("#view-home",            {dynamicNavbar: false,domCache: true,linksView: "#view-home"});
-  view_business             = view_business || myApp.addView("#view-business",        {dynamicNavbar: false,domCache: true,linksView: "#view-business"});
-  view_pool                     = view_pool || myApp.addView("#view-pool",            {dynamicNavbar: false,domCache: true,linksView: "#view-pool"});
-  view_host                     = view_host || myApp.addView("#view-host",            {dynamicNavbar: false,domCache: true,linksView: "#view-host"});
-  view_vm                         = view_vm || myApp.addView("#view-vm",              {dynamicNavbar: false,domCache: true,linksView: "#view-vm"});
-  view_storage              =  view_storage || myApp.addView("#view-storage",         {dynamicNavbar: false,domCache: true,linksView: "#view-storage"});
-  view_settings_left   = view_settings_left || myApp.addView("#view-settings-left",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
-  view_settings_right = view_settings_right || myApp.addView("#view-settings-main",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
-
-  indexFilter_business.router.load({ url: "tpl/filter/filter_business.html",animatePages: false, reload:is_reload});
-  indexFilter_pool.router.load({     url: "tpl/filter/filter_pool.html",animatePages: false, reload:is_reload});
-  indexFilter_host.router.load({     url: "tpl/filter/filter_host.html",animatePages: false, reload:is_reload});
-  indexFilter_vm.router.load({       url: "tpl/filter/filter_vm.html",animatePages: false, reload:is_reload});
-  indexFilter_storage.router.load({  url: "tpl/filter/filter_storage.html",animatePages: false, reload:is_reload});
-
   view_home.router.load({            url: "tpl/home/index.html",animatePages: false, reload:is_reload});  
-  view_business.router.load({        url: "tpl/business/index.html",animatePages: false, reload:is_reload});
-  view_pool.router.load({            url: "tpl/pool/index.html",animatePages: false, reload:is_reload});
-  view_host.router.load({            url: "tpl/host/index.html",animatePages: false, reload:is_reload});
-  view_vm.router.load({              url: "tpl/vm/index.html",animatePages: false, reload:is_reload});
-  view_storage.router.load({         url: "tpl/storage/index.html",animatePages: false, reload:is_reload});    
-  view_settings_left.router.load({   url: "tpl/settings/index.html",animatePages: false, reload:is_reload});
-  view_settings_right.router.load({  url: "tpl/settings/profile.html",animatePages: false, reload:is_reload});
 
   myApp.showTab("#view-home");
   is_reload = true;

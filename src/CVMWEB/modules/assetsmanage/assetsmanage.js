@@ -1520,6 +1520,20 @@ angular.module('app')
 	           		return a-b
 	        	});
 			}
+			var newFreeU = [];
+        	var newbeginUs = [];
+        	for(var i=0;i<freeU.length;i++){
+				if (freeU[i]!=freeU[i+1]){
+					newFreeU.push(freeU[i]);
+				}
+			}
+			for(var i=0;i<beginUs.length;i++){
+				if (beginUs[i]!=beginUs[i+1]){
+					newbeginUs.push(beginUs[i]);
+				}
+			}
+			freeU = newFreeU;
+			beginUs = newbeginUs;
 			
 			$scope.availableU = freeU;
 			beginUs.pop();

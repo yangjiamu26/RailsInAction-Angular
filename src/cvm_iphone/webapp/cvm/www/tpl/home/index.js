@@ -1,14 +1,15 @@
 myApp.onPageInit("home-index", function(page) {
-  console.log(123123213)
+  myApp.hideToolbar('.toolbar');
   function ViewModel(){
+    var self = this;
     this.dcInfo = ko.observable({
         "id": "",
-        "name": ""
+        "name": "总览"
       });
     this.setDcInfo = function(){
       this.dcInfo({
-        "id": CVM_PAD.dcId,
-        "name": CVM_PAD.dcName
+        "id": CVM_IPHONE.dcId,
+        "name": CVM_IPHONE.dcName
       });
     }
     this.infos = ko.observable({
@@ -16,34 +17,54 @@ myApp.onPageInit("home-index", function(page) {
       "cpuCoreNumber":"",
       "x86TotalCpu": "",
       "pvmTotalCpu": "",
-      "memorySize": "",
-      "storageSize": "",
+      "memoryTotal": "",
+      "storageTotal": "",
       "busDomainNum": "",
       "projectNum": "",
       "resPoolNumber": "",
       "hostNubmer": ""
     });
     this.stat = ko.observable({
-      "vmNumber": "",
       "x86TotalCpu": "",
+      "x86UsedCpu": "",
       "pvmTotalCpu": "",
+      "pvmUsedCpu": "",
       "memoryTotal": "",
+      "memoryUsed": "",
       "storageTotal": "",
-      "busDomainNum": "",
-      "projectNum": "",
-      "resPoolNumber": "",
-      "hostNubmer": "",
+      "storageUsed": "",
       "isTB":false
     });
-    this.loadData = function(){
-      var self = this;
-      RestServiceJs.query(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceSummary",{},function(data){
+
+    this.infos2 = ko.observable({
+      "storageTotal":0,
+      "x86TotalCpu":0,
+      "pvmTotalCpu":0,
+      "memoryTotal":0,
+      "isTB":false
+    });
+    this.Calculat = function(num1,num2){
+      return (num1/num2*100).toFixed(2);
+    }
+    //this.loading = false;
+    this.loadData = function(DcId){
+      // if(this.loading) return;
+      // this.loading = true;
+      var url1,url2;
+      if(DcId){
+        url1 = BASE_URL+"/overallDetails/"+CVM_IPHONE.dcId+"/resourceSummary";
+        url2 = BASE_URL+"/overallDetails/"+CVM_IPHONE.dcId+"/resourceStat";
+      }else{
+        url1 = BASE_URL+"/overallDetails/resourceSummary";
+        url2 = BASE_URL+"/overallDetails/resourceStat";
+      }
+      RestServiceJs.query(url1,{},function(data){
         myApp.pullToRefreshDone();
         data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
         data.storageSize = Number((Number(data.storageSize)/1024).toFixed(2));
         self.infos(data);
       });
-      RestServiceJs.query(BASE_URL+"/overallDetails/"+CVM_PAD.dcId+"/resourceStat",{},function(data){
+      RestServiceJs.query(url2,{},function(data){
         data.x86TotalCpu = Number((Number(data.x86TotalCpu)/1000).toFixed(2));
         data.x86UsedCpu = Number((Number(data.x86UsedCpu)/1000).toFixed(2));
         data.memoryTotal = Number((Number(data.memoryTotal)/1024).toFixed(2));
@@ -61,324 +82,69 @@ myApp.onPageInit("home-index", function(page) {
         data.pvmTotalCpu = Number(Number(data.pvmTotalCpu).toFixed(2));
         data.pvmUsedCpu = Number(Number(data.pvmUsedCpu).toFixed(2));
         self.stat(data);
-        initTotal_cpu_chart_home(data);
-        initTotal_cpu_chart_home2(data);
-        initTotal_memory_chart_home(data);
-        initTotal_storage_chart_home(data);
       },null,true);
+    }
+    this.whichDc = ko.observable('');
+    this.changeDc = function(id,name){
+      if(id){
+        CVM_IPHONE.dcId = id;
+        CVM_IPHONE.dcName = name;
+      }else{
+        CVM_IPHONE.dcId = '';
+        CVM_IPHONE.dcName = name;
+      }
+      this.setDcInfo();
+      this.whichDc(id);
+      /*重载页面 start*/
+      reloadPages();
+      /*重载页面 end*/
     }
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
+  window.indexHome_viewModel = viewModel;
 
+  window.indexPopover_viewModel.loadDatacenters();
   viewModel.loadData();
-  viewModel.setDcInfo();
+  // viewModel.setDcInfo();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();
   });
 
 });
-// 首页cpu占比图
-function initTotal_cpu_chart_home(data) {
-    $('#total_cpu_chart_home').highcharts({
-      chart: {
-          marginTop: 0,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      tooltip: {
-          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
-          valueSuffix: ' GHz',
-          shared: true
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
 
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        // labelFormatter: function() {  
-        //             return this.name + '：' + '<span style="{color}">'+ this.y + 'GHz' + '</span>';  
-        // }, 
-        labelFormat: '{name}：<b>{y:.2f}</b>GHz',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: 'CPU',
-          data: [{
-                  name: '已用',
-                  y: data.x86UsedCpu,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.x86TotalCpu-data.x86UsedCpu,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
-function initTotal_cpu_chart_home2(data) {
-    $('#total_cpu_chart_home2').highcharts({
-      chart: {
-          marginTop: 0,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      tooltip: {
-          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
-          valueSuffix: ' 核',
-          shared: true
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
+var is_reload_pages = false;
+function reloadPages(){
 
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        labelFormat: '{name}：<b>{y:.2f}</b>核',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: 'CPU',
-          data: [{
-                  name: '已用',
-                  y: data.pvmUsedCpu,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.pvmTotalCpu-data.pvmUsedCpu,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
-// 首页内存占比图
-function initTotal_memory_chart_home(data) {
-    $('#total_memory_chart_home').highcharts({
-      chart: {
-          marginTop: 0,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      tooltip: {
-          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
-          valueSuffix: ' GB',
-          shared: true
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
+  indexFilter_business=indexFilter_business || myApp.addView('#indexFilter-business', {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-business"});
+  indexFilter_pool       = indexFilter_pool || myApp.addView('#indexFilter-pool',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-pool"});
+  indexFilter_host       = indexFilter_host || myApp.addView('#indexFilter-host',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-host"});
+  indexFilter_vm           = indexFilter_vm || myApp.addView('#indexFilter-vm',       {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-vm"});
+  indexFilter_storage = indexFilter_storage || myApp.addView('#indexFilter-storage',  {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-storage"});
+  
+  view_business             = view_business || myApp.addView("#view-business",        {dynamicNavbar: false,domCache: true,linksView: "#view-business"});
+  view_pool                     = view_pool || myApp.addView("#view-pool",            {dynamicNavbar: false,domCache: true,linksView: "#view-pool"});
+  view_host                     = view_host || myApp.addView("#view-host",            {dynamicNavbar: false,domCache: true,linksView: "#view-host"});
+  view_vm                         = view_vm || myApp.addView("#view-vm",              {dynamicNavbar: false,domCache: true,linksView: "#view-vm"});
+  view_storage              =  view_storage || myApp.addView("#view-storage",         {dynamicNavbar: false,domCache: true,linksView: "#view-storage"});
+  view_settings_left   = view_settings_left || myApp.addView("#view-settings-left",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
+  view_settings_right = view_settings_right || myApp.addView("#view-settings-main",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
 
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          
-          fontWeight: 'normal'
-        },
-        labelFormat: '{name}：<b>{y:.2f}</b>GB',
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: '内存',
-          data: [{
-                  name: '已用',
-                  y: data.memoryUsed,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.memoryTotal - data.memoryUsed,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
-}
-// 首页存储占比图
-function initTotal_storage_chart_home(data) {
-  var init = 'GB';
-  if(data.isTB) init = 'TB';
-    $('#total_storage_chart_home').highcharts({
-      chart: {
-          marginTop: 0,
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          backgroundColor: "none"
-      },
-      tooltip: {
-          pointFormat: '{series.name}: <b>{point.y:.2f}</b>',
-          valueSuffix: ' GB',
-          shared: true
-      },
-      exporting:{
-          enabled: false
-      },
-      credits:{
-          enabled: false,
-          text : ""
-      },
+  indexFilter_business.router.load({ url: "tpl/filter/filter_business.html",animatePages: false, reload:is_reload_pages});
+  indexFilter_pool.router.load({     url: "tpl/filter/filter_pool.html",animatePages: false, reload:is_reload_pages});
+  indexFilter_host.router.load({     url: "tpl/filter/filter_host.html",animatePages: false, reload:is_reload_pages});
+  indexFilter_vm.router.load({       url: "tpl/filter/filter_vm.html",animatePages: false, reload:is_reload_pages});
+  indexFilter_storage.router.load({  url: "tpl/filter/filter_storage.html",animatePages: false, reload:is_reload_pages});
 
-      title: {
-          floating:true,
-          text: ''
-      },
-      legend:{
-        enabled:true,
-        margin: 0,
-        layout: 'vertical',
-        backgroundColor:"none",
-        borderColor:"none",
-        itemStyle: {
-          fontWeight: 'normal'
-        },
-        labelFormat: '{name}：<b>{y:.2f}</b>'+init,
-      },
-      plotOptions: {
-          pie: {
-              innerSize: '70%',
-              borderWidth:1,
-              allowPointSelect: false,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: true,
-                  distance: -25,
-                  color: '#6d6d72',
-                  style:{
-                    fontSize:'13px'
-                  },
-                  connectorColor: '#000000',
-                  format: '{point.percentage:.1f} %'
-              },
-              showInLegend: true
-          }
-      },
-      series: [{
-          type: 'pie',
-          name: '存储',
-          data: [{
-                  name: '已用',
-                  y: data.storageUsed,
-                  color:"#4791d2"
-              },
-              {
-                  name: '未用',
-                  y: data.storageTotal - data.storageUsed,
-                  color:"#ffd800"
-              }
-          ]
-      }]
-    });   
+  view_business.router.load({        url: "tpl/business/index.html",animatePages: false, reload:is_reload_pages});
+  view_pool.router.load({            url: "tpl/pool/index.html",animatePages: false, reload:is_reload_pages});
+  view_host.router.load({            url: "tpl/host/index.html",animatePages: false, reload:is_reload_pages});
+  view_vm.router.load({              url: "tpl/vm/index.html",animatePages: false, reload:is_reload_pages});
+  view_storage.router.load({         url: "tpl/storage/index.html",animatePages: false, reload:is_reload_pages});    
+  view_settings_left.router.load({   url: "tpl/settings/index.html",animatePages: false, reload:is_reload_pages});
+  view_settings_right.router.load({  url: "tpl/settings/profile.html",animatePages: false, reload:is_reload_pages});
+
+  is_reload_pages = true;
+  reSetAllRequets();
 }

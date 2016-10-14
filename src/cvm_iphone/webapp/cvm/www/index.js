@@ -101,6 +101,19 @@ $(function(){
   ko.applyBindings(viewModel, document.getElementById("indexFilter"));
   window.indexFilter_viewModel = viewModel;
 
+  function popoverViewModel(){
+    var self = this;
+    this.datacenters = ko.observableArray([]);
+    this.loadDatacenters = function(){
+      RestServiceJs.query(BASE_URL+"/datacenters",{},function(data){
+        self.datacenters(data.data);
+      });
+    }
+  }
+  var popoverVO = new popoverViewModel();
+  ko.applyBindings(popoverVO, document.getElementById("popover"));
+  window.indexPopover_viewModel = popoverVO;
+
 
   /*assistive touch
   var win_w = parseInt($$("body").width());
@@ -168,38 +181,16 @@ $(function(){
 /*菜单tab页加载机制 start*/
 var clickedBusness = false;
 function clickBusness(){
-    window.indexFilter_viewModel.changePage('business');
+    //window.indexFilter_viewModel.changePage('business');
     if(clickedBusness) return;
-    window.indexFilter_busdomain_viewModel.getBusinessDomains();
     clickedBusness = true;
 }
-var clickedPool = false;
-function clickPool(){
-    window.indexFilter_viewModel.changePage('pool');
-    if(clickedPool) return;
+var clickedResouce = false;
+function clickResouce(){
+    //window.indexFilter_viewModel.changePage('pool');
+    if(clickedResouce) return;
     window.pool_index_viewModel.loadData();
-    clickedPool = true;
-}
-var clickedHost = false;
-function clickHost(){
-    window.indexFilter_viewModel.changePage('host');
-    if(clickedHost) return;
-    window.indexFilter_host_viewModel.getResPools();
-    clickedHost = true;
-}
-var clickedVm = false;
-function clickVm(){
-    window.indexFilter_viewModel.changePage('vm');
-    if(clickedVm) return;
-    window.vm_index_viewModel.loadData();
-    clickedVm = true;
-}
-var clickedStorage = false;
-function clickStorage(){
-    window.indexFilter_viewModel.changePage('storage');
-    if(clickedStorage) return;
-    window.storage_index_viewModel.loadData();
-    clickedStorage = true;
+    clickedResouce = true;
 }
 var clickedSetting = false;
 function clickSetting(){
@@ -210,15 +201,12 @@ function clickSetting(){
 
 function reSetAllRequets(){
   clickedBusness = false;
-  clickedPool = false;
-  clickedHost = false;
-  clickedVm = false;
-  clickedStorage = false;
+  clickedResouce = false;
   clickedSetting = false;
 }
 /*菜单tab页加载机制 end*/
 
-/*内容tab页加载机制 start*/
+/*内容tab页加载机制 start
 var hostListclicked = false;
 function innerTabclick_host(){
   if(hostListclicked) return;
