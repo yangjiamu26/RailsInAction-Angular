@@ -24,13 +24,23 @@
         <script type="text/javascript" src="index.js"></script>
         <script type="text/javascript" src="tpl/login.js"></script>
         <script type="text/javascript" src="tpl/home/index.js"></script>
+        <script type="text/javascript" src="tpl/filter/filter.js"></script>
+        <script type="text/javascript" src="tpl/pool/list_search.js"></script>
+        <script type="text/javascript" src="tpl/host/list_search.js"></script>
         <script type="text/javascript" src="tpl/business/index.js"></script>
         <script type="text/javascript" src="tpl/business/domain-list.js"></script>
         <script type="text/javascript" src="tpl/business/index-project.js"></script>
         <script type="text/javascript" src="tpl/business/project-list.js"></script>
-        <script type="text/javascript" src="tpl/business/index-vms.js"></script>
-
-        <script type="text/javascript" src="tpl/vm/vm-list.js"></script>
+        
+        <script type="text/javascript" src="tpl/pool/index.js"></script>
+        <script type="text/javascript" src="tpl/pool/summary.js"></script>
+        <script type="text/javascript" src="tpl/storage/index.js"></script>
+        <script type="text/javascript" src="tpl/storage/summary.js"></script>
+        <script type="text/javascript" src="tpl/host/index.js"></script>
+        <script type="text/javascript" src="tpl/host/list.js"></script>
+        <script type="text/javascript" src="tpl/host/summary.js"></script>
+        <script type="text/javascript" src="tpl/vm/list.js"></script>
+        <script type="text/javascript" src="tpl/vm/summary.js"></script>
 
     </head>
     <body class="theme-white">
@@ -40,7 +50,7 @@
         <div class="panel-overlay"></div>
 
         <!-- Should be a direct child of BODY -->
-        <div class="login-screen modal-in">
+        <div class="login-screen">
             <!-- Default view-page layout -->
             <div id="view-login" class="view">
                 <div class="pages navbar-fixed"></div>
@@ -98,26 +108,16 @@
                 </div>
                 <div id="view-storage" class="view tab">
                     <div class="pages navbar-fixed"></div>
-                </div>    
-                <div id="view-settings" class="views tab">
-                    <div id="view-settings-left" class="view view-left navbar-through">
-                        <div class="pages navbar-fixed"></div>
-                    </div>
-                    <div id="view-settings-main" class="view view-right navbar-through">
-                        <div class="pages navbar-fixed">
-                            <div class="page">
-                                <div class="page-content">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+                <div id="view-settings" class="view tab">
+                    <div class="pages navbar-fixed"></div>
                 </div>
 
-                <div class="toolbar tabbar tabbar-labels">
+                <div class="toolbar tabbar tabbar-labels" id="toolbar">
                     <div class="toolbar-inner">
-                        <a href="#view-home" class="tab-link active"> <i class="icon toolbar-icon-home"></i>概况</a>
+                        <a href="#view-home" onclick="clickHome()" class="tab-link active"> <i class="icon toolbar-icon-home"></i>概况</a>
                         <a href="#view-business" onclick="clickBusness()" class="tab-link"> <i class="icon toolbar-icon-business"></i>业务</a>
-                        <a href="#view-pool" onclick="clickResouce()" class="tab-link"> <i class="icon toolbar-icon-pool"></i>资源</a>
+                        <a data-bind="attr:{'href':'#'+resouce()}" onclick="clickResouce()" class="tab-link"> <i class="icon toolbar-icon-pool"></i>资源</a>
                         <a href="#view-settings" onclick="clickSetting()" class="tab-link"> <i class="icon toolbar-icon-settings"></i>设置</a>
                     </div>
                 </div>              
@@ -132,6 +132,7 @@
             <div class="popover-inner">
                 <div class="list-block content-block contacts-block">
                     <div class="list-group">
+                        <!-- ko if: inHome() -->
                         <ul>
                             <li>
                                 <div class="item-content">
@@ -150,18 +151,45 @@
                             </li>
                             <!-- /ko -->
                         </ul>
+                        <!-- /ko -->
+                        <!-- ko if: inResouce() -->
+                        <ul>
+                            <li>
+                                <div class="item-content">
+                                    <a onclick="clickPool()" href="#" style="width:100%;" class="close-popover">
+                                        <div class="item-inner">资源池</div>
+                                    </a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item-content">
+                                    <a onclick="clickStorage()" href="#" style="width:100%;" class="close-popover">
+                                        <div class="item-inner">存储池</div>
+                                    </a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item-content">
+                                    <a onclick="clickHost()" href="#" style="width:100%;" class="close-popover">
+                                        <div class="item-inner">物理机</div>
+                                    </a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item-content">
+                                    <a onclick="" href="#" style="width:100%;" class="close-popover">
+                                        <div class="item-inner">虚拟机</div>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                        <!-- /ko -->
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="panel panel-right panel-cover" id="indexFilter">
-
-          <div class="view view-panel-right" id="indexFilter-business" data-bind="visible: page()=='business'">
-            <div class="pages navbar-fixed">
-              
-            </div>
-          </div>
 
           <div class="view view-panel-right" id="indexFilter-pool" data-bind="visible: page()=='pool'">
             <div class="pages navbar-fixed">

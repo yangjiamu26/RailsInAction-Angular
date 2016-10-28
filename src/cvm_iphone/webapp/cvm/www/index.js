@@ -52,47 +52,34 @@ $$(document).on('ajaxStart', function (e) {
 $$(document).on('ajaxComplete', function () {
     myApp.hideIndicator();
 });
+myApp.CalculatPercent = function(num1,num2){
+  var num = Number(num1)/Number(num2)*100;
+  if(num) return (Number(num1)/Number(num2)*100).toFixed(2);
+  return 0;
+}
+myApp.CalculatPercentInt = function(num1,num2){
+  var num = Number(num1)/Number(num2)*100;
+  if(num) return parseInt(Number(num1)/Number(num2)*100);
+  return 0;
+}
 
-myApp.showAssisTime = true;
 $(function(){
 
   var infos = eval('(' + Storage.getItem('userInfo') + ')');
   if(infos&&infos.token&&infos.tokenKey){
     USER_INFO = infos;
-    BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
-    // if(!this.dashboard){
-    //   this.dashboard = myApp.addView('#view-dashboard', {dynamicNavbar: false,domCache: true});
-    // }
-    // this.dashboard.router.load({url: "tpl/dashboard.html",animatePages: false});
-    // myApp.popup('.popup-dashboard');
-
-    // setTimeout(function(){
-    //   if(myApp.showAssisTime){
-    //     $$("#assistive").show();
-    //   }
-    // },2000);
+    BASE_URL = Storage.getItem("baseNet") + "/phone/v3.0";
+    gotoMain();
   }else{
     myApp.addView('#view-login', {dynamicNavbar: false,domCache: true}).router.load({url: 'tpl/login.html',animatePages: false});
+    myApp.loginScreen();
   }
-
-  // function assistiveViewModel(){
-  //   this.isLow = ko.observable('false');
-  //   this.setLow = function(){
-  //     this.isLow('true');
-  //   }
-  //   this.setHigh = function(){
-  //     this.isLow('false');
-  //   }
-  // }
-  // var assisViewModel = new assistiveViewModel();
-  // ko.applyBindings(assisViewModel, document.getElementById("assistive"));
-  // window.Assistive_viewModel = assisViewModel;
 
 
   /*filter*/
   function ViewModel(){
     var self = this;
-    this.page = ko.observable("");
+    this.page = ko.observable("pool");
     this.changePage = function(str){
       this.page(str);
     }
@@ -109,88 +96,79 @@ $(function(){
         self.datacenters(data.data);
       });
     }
+    this.inHome = ko.observable(true);
+    this.inResouce = ko.observable();
   }
   var popoverVO = new popoverViewModel();
   ko.applyBindings(popoverVO, document.getElementById("popover"));
   window.indexPopover_viewModel = popoverVO;
 
-
-  /*assistive touch
-  var win_w = parseInt($$("body").width());
-  $$('.assistive').css("left",win_w-60+'px');
-  var def_y,def_x,new_y,new_x,_touch,def_left,def_top;
-  $$('.assistive').on('touchstart', function(event) {
-    ismove = false;
-    _touch = $$(this);
-    event.preventDefault();
-    var e = event.touches[0];
-    def_x = e.clientX;
-    def_y = e.clientY;
-    def_left = parseInt(_touch.css('left'));
-    def_top = parseInt(_touch.css('top'));
-    _touch.css({'-webkit-transition':'',"opacity":1});
-  });
-  $$('.assistive').on('touchmove', function(event) {
-    setTimeout(function(){
-      ismove = true;
-    },200)
-    
-    event.preventDefault();
-    var e = event.touches[0];
-    new_x = e.clientX;
-    new_y = e.clientY;
-    _touch.css({'left':def_left+(new_x-def_x)+'px','top':def_top+(new_y-def_y)+'px'});
-    event.stopPropagation();
-  });
-  function EndTouch(){
-    if(parseInt(_touch.css('left'))>win_w/2-30){
-      if(parseInt(_touch.css('top'))<0){
-        $$('.assistive').css({'left': (win_w-60)+'px','top': '10px','-webkit-transition': 'left 0.5s ease'});
-      }else if(parseInt(_touch.css('top'))>$$(window).height()-60){
-        $$('.assistive').css({'left': (win_w-60)+'px','top': $$(window).height()-70+'px','-webkit-transition': 'left 0.5s ease'});
-      }else{
-        $$('.assistive').css({'left': (win_w-60)+'px','-webkit-transition': 'left 0.5s ease'});
-      }
-    }else{
-      if(parseInt(_touch.css('top'))<0){
-        $$('.assistive').css({'left': '0px','top': '10px','-webkit-transition': 'left 0.5s ease'});
-      }else if(parseInt(_touch.css('top'))>$$(window).height()-60){
-        $$('.assistive').css({'left': '0px','top': $$(window).height()-70+'px','-webkit-transition': 'left 0.5s ease'});
-      }else{
-        $$('.assistive').css({'left': '0px','-webkit-transition': 'left 0.5s ease'});
-      }
+  function toolbarViewModel(){
+    var self = this;
+    this.resouce = ko.observable("view-pool");
+    this.changePage = function(str){
+      this.resouce(str);
     }
-    setTimeout(function(){
-      _touch.css({"opacity":0.5});
-    },1000);
   }
-  $$('.assistive').on('touchout', function(event) {
-    EndTouch();
-  });
-  $$('.assistive').on('touchend', function(event) {
-    EndTouch();
-  });
-  var ismove = false;
-  $$('.assistive').on('click', function(event) {
-    if(ismove) return;
-    myApp.popover($("#popover-datacenter").html(), event.target)
-  });*/
-
+  var ToolbarVO = new toolbarViewModel();
+  ko.applyBindings(ToolbarVO, document.getElementById("toolbar"));
+  window.indexToolbar_viewModel = ToolbarVO;
 });
 
 /*菜单tab页加载机制 start*/
+function clickHome(){
+    indexPopover_viewModel.inHome(true);
+    indexPopover_viewModel.inResouce(false);
+}
 var clickedBusness = false;
 function clickBusness(){
-    //window.indexFilter_viewModel.changePage('business');
     if(clickedBusness) return;
+    window.BusinessIndexVO.loadData();
     clickedBusness = true;
 }
 var clickedResouce = false;
 function clickResouce(){
-    //window.indexFilter_viewModel.changePage('pool');
+    indexPopover_viewModel.inHome(false);
+    indexPopover_viewModel.inResouce(true);
     if(clickedResouce) return;
     window.pool_index_viewModel.loadData();
     clickedResouce = true;
+}
+var clickedPool = false;
+function clickPool(){
+    window.indexToolbar_viewModel.resouce('view-pool');
+    myApp.showTab('#view-pool');
+    window.indexFilter_viewModel.changePage('pool');
+    if(clickedPool) return;
+    window.pool_index_viewModel.loadData();
+    clickedPool = true;
+}
+var clickedHost = false;
+function clickHost(){
+    window.indexToolbar_viewModel.resouce('view-host');
+    myApp.showTab('#view-host');
+    window.indexFilter_viewModel.changePage('host');
+    if(clickedHost) return;
+    window.indexFilter_host_viewModel.getResPools();
+    clickedHost = true;
+}
+var clickedVm = false;
+function clickVm(){
+    window.indexToolbar_viewModel.resouce('view-vm');
+    myApp.showTab('#view-vm');
+    window.indexFilter_viewModel.changePage('vm');
+    if(clickedVm) return;
+    window.vm_index_viewModel.loadData();
+    clickedVm = true;
+}
+var clickedStorage = false;
+function clickStorage(){
+    window.indexToolbar_viewModel.resouce('view-storage');
+    myApp.showTab('#view-storage');
+    window.indexFilter_viewModel.changePage('storage');
+    if(clickedStorage) return;
+    window.storage_index_viewModel.loadData();
+    clickedStorage = true;
 }
 var clickedSetting = false;
 function clickSetting(){
@@ -202,6 +180,10 @@ function clickSetting(){
 function reSetAllRequets(){
   clickedBusness = false;
   clickedResouce = false;
+  clickedPool = false;
+  clickedHost = false;
+  clickedVm = false;
+  clickedStorage = false;
   clickedSetting = false;
 }
 /*菜单tab页加载机制 end*/

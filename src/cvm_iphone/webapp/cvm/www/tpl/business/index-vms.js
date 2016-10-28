@@ -12,6 +12,6 @@ myApp.onPageInit("business-vms-index", function(page) {
   }
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
-  window.BusinessIndexVO = viewModel;
+  window.BusinessVmsIndexVO = viewModel;
   viewModel.loadData();
 });

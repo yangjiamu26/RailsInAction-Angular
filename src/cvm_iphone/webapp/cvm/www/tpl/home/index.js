@@ -26,13 +26,13 @@ myApp.onPageInit("home-index", function(page) {
     });
     this.stat = ko.observable({
       "x86TotalCpu": "",
-      "x86UsedCpu": "",
+      "x86UsedCpu": 0,
       "pvmTotalCpu": "",
-      "pvmUsedCpu": "",
+      "pvmUsedCpu": 0,
       "memoryTotal": "",
-      "memoryUsed": "",
+      "memoryUsed": 0,
       "storageTotal": "",
-      "storageUsed": "",
+      "storageUsed": 0,
       "isTB":false
     });
 
@@ -43,9 +43,7 @@ myApp.onPageInit("home-index", function(page) {
       "memoryTotal":0,
       "isTB":false
     });
-    this.Calculat = function(num1,num2){
-      return (num1/num2*100).toFixed(2);
-    }
+    
     //this.loading = false;
     this.loadData = function(DcId){
       // if(this.loading) return;
@@ -60,8 +58,8 @@ myApp.onPageInit("home-index", function(page) {
       }
       RestServiceJs.query(url1,{},function(data){
         myApp.pullToRefreshDone();
-        data.memorySize = Number((Number(data.memorySize)/1024).toFixed(2));
-        data.storageSize = Number((Number(data.storageSize)/1024).toFixed(2));
+        data.memoryTotal = Number((Number(data.memorySize)/1024).toFixed(2));
+        data.storageTotal = Number((Number(data.storageSize)/1024).toFixed(2));
         self.infos(data);
       });
       RestServiceJs.query(url2,{},function(data){
@@ -117,7 +115,6 @@ myApp.onPageInit("home-index", function(page) {
 var is_reload_pages = false;
 function reloadPages(){
 
-  indexFilter_business=indexFilter_business || myApp.addView('#indexFilter-business', {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-business"});
   indexFilter_pool       = indexFilter_pool || myApp.addView('#indexFilter-pool',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-pool"});
   indexFilter_host       = indexFilter_host || myApp.addView('#indexFilter-host',     {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-host"});
   indexFilter_vm           = indexFilter_vm || myApp.addView('#indexFilter-vm',       {dynamicNavbar: false,domCache: true,linksView: "#indexFilter-vm"});
@@ -128,10 +125,9 @@ function reloadPages(){
   view_host                     = view_host || myApp.addView("#view-host",            {dynamicNavbar: false,domCache: true,linksView: "#view-host"});
   view_vm                         = view_vm || myApp.addView("#view-vm",              {dynamicNavbar: false,domCache: true,linksView: "#view-vm"});
   view_storage              =  view_storage || myApp.addView("#view-storage",         {dynamicNavbar: false,domCache: true,linksView: "#view-storage"});
-  view_settings_left   = view_settings_left || myApp.addView("#view-settings-left",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
-  view_settings_right = view_settings_right || myApp.addView("#view-settings-main",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings-main"});
+  view_settings            =  view_settings || myApp.addView("#view-settings",   {dynamicNavbar: false,domCache: true,linksView: "#view-settings"});
+  
 
-  indexFilter_business.router.load({ url: "tpl/filter/filter_business.html",animatePages: false, reload:is_reload_pages});
   indexFilter_pool.router.load({     url: "tpl/filter/filter_pool.html",animatePages: false, reload:is_reload_pages});
   indexFilter_host.router.load({     url: "tpl/filter/filter_host.html",animatePages: false, reload:is_reload_pages});
   indexFilter_vm.router.load({       url: "tpl/filter/filter_vm.html",animatePages: false, reload:is_reload_pages});
@@ -142,8 +138,7 @@ function reloadPages(){
   view_host.router.load({            url: "tpl/host/index.html",animatePages: false, reload:is_reload_pages});
   view_vm.router.load({              url: "tpl/vm/index.html",animatePages: false, reload:is_reload_pages});
   view_storage.router.load({         url: "tpl/storage/index.html",animatePages: false, reload:is_reload_pages});    
-  view_settings_left.router.load({   url: "tpl/settings/index.html",animatePages: false, reload:is_reload_pages});
-  view_settings_right.router.load({  url: "tpl/settings/profile.html",animatePages: false, reload:is_reload_pages});
+  view_settings.router.load({   url: "tpl/settings/index.html",animatePages: false, reload:is_reload_pages});
 
   is_reload_pages = true;
   reSetAllRequets();

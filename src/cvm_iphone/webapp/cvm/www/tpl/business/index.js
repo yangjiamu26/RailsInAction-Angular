@@ -7,7 +7,14 @@ myApp.onPageInit("business-index", function(page) {
     this.dcInfo = ko.observable({
       "name":CVM_IPHONE.dcName,
       "id":CVM_IPHONE.dcId
-    })
+    });
+    this.showDomainSearch = ko.observable(true);
+    this.showDomain = function(){
+      this.showDomainSearch(true);
+    }
+    this.showProject = function(){
+      this.showDomainSearch(false);
+    }
 
     var view_business_domain,view_business_project;
     var is_reload = false;
@@ -22,5 +29,4 @@ myApp.onPageInit("business-index", function(page) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.BusinessIndexVO = viewModel;
-  viewModel.loadData();
 });

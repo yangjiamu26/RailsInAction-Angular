@@ -1,4 +1,4 @@
-myApp.onPageInit("vm-list", function(page) {
+myApp.onPageInit("vm-index", function(page) {
   function ViewModel(){
     var self=this;
     this.loadData = function(){

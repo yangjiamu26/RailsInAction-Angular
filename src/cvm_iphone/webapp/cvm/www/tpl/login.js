@@ -35,8 +35,6 @@ myApp.onPageInit("login", function(page) {
         USER_INFO = data;
         Storage.setItem("userInfo",JSON.stringify(data));
         Storage.setItem("cacheTime",new Date().getTime());
-
-        myApp.closeModal('.login-screen.modal-in');
         // if(!this.dashboard){
         //   this.dashboard = myApp.addView('#view-dashboard', {dynamicNavbar: false,domCache: true});
         // }
@@ -45,16 +43,13 @@ myApp.onPageInit("login", function(page) {
         // myApp.popup('.popup-dashboard');
 
         if(myApp.Login_Again){
-          window.overview_viewModel.loadData();
-          window.overview_viewModel.loadDatacenters();
-          window.overview_viewModel.changeDc('');
+          window.indexHome_viewModel.loadData();
+          window.indexPopover_viewModel.loadDatacenters();
+          window.indexHome_viewModel.changeDc('');
           //$$('#backToDasboard').hide();
           //window.Assistive_viewModel.setHigh();
         }
-
-        // setTimeout(function(){
-        //   $$("#assistive").show();
-        // },2000);
+        myApp.closeModal('.login-screen.modal-in');
         gotoMain();
       }
 
@@ -64,7 +59,7 @@ myApp.onPageInit("login", function(page) {
       }
 
       Storage.setItem("baseNet",this.network());
-      BASE_URL = Storage.getItem("baseNet") + "/pad/v3.0";
+      BASE_URL = Storage.getItem("baseNet") + "/phone/v3.0";
       
       checkNetWork(1,function(){
         $.ajax({
@@ -113,12 +108,12 @@ myApp.onPageInit("login", function(page) {
   ko.applyBindings(new ViewModel(), $$(page.container)[0]);
 });
 
-var indexFilter_business, indexFilter_pool, indexFilter_host, indexFilter_vm, indexFilter_storage, view_home, view_business, view_pool, view_host, view_vm, view_storage, view_settings_left, view_settings_right;
+var indexFilter_business, indexFilter_pool, indexFilter_host, indexFilter_vm, indexFilter_storage, view_home, view_business, view_pool, view_host, view_vm, view_storage, view_settings;
 var is_reload = false;
 function gotoMain(){
   view_home                     = view_home || myApp.addView("#view-home",            {dynamicNavbar: false,domCache: true,linksView: "#view-home"});
-  view_home.router.load({            url: "tpl/home/index.html",animatePages: false, reload:is_reload});  
-
+  view_home.router.load({            url: "tpl/home/index.html",animatePages: false, reload:is_reload});
+  
   myApp.showTab("#view-home");
   is_reload = true;
 }
