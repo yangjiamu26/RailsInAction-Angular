@@ -13,7 +13,7 @@ myApp.onPageInit("pool-list-search", function(page) {
       //var hype = hypervisor ? hypervisor : "";
       var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
       if(page.query.forPage == 'vm'){
-        window.vm_index_viewModel.loadData(false, self.hypervisor(), id);
+        window.vmIndexVO.loadData(false, self.hypervisor(), id);
       }
       if(page.query.forPage == 'storage'){
         window.storage_index_viewModel.loadData(false, self.hypervisor(), id);

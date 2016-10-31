@@ -87,15 +87,15 @@ myApp.onPageInit("host-index", function(page) {
               break;
             case 'RESTART':
               data.data[i].state='重启中';
-              data.data[i].stateCss='orange';
+              data.data[i].stateCss='danger';
               break;
             case 'DISCONNECT':
               data.data[i].state='未运行';
-              data.data[i].stateCss='gray';
+              data.data[i].stateCss='poweroff';
               break;
             case 'MAINTAIN':
               data.data[i].state='维护';
-              data.data[i].stateCss='gray';
+              data.data[i].stateCss='warning';
               break;
           }
           self.dataList.push(data.data[i]);

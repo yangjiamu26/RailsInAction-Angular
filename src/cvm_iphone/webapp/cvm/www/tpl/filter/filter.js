@@ -72,7 +72,7 @@ myApp.onPageInit("indexFilter-vm", function(page) {
       self.vmSelected(val);
       var hype = hypervisor ? hypervisor : "";
       //var id = val.indexOf("全部")>-1 ? "" : val.replace(/[^0-9]/ig,"");
-      window.vm_index_viewModel.loadData(false, hype);
+      window.vmIndexVO.loadData(false, hype);
     }
   }
   var vmViewModel = new vm_ViewModel();

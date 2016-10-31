@@ -4,9 +4,9 @@
         <div class="left sliding"><a href="#" class="back link"><i class="icon icon-back"></i><span>返回</span></a></div>
         <div class="center sliding"><span data-bind="text: title"></span></div>
         <div class="right sliding">
-          <a href="#" class="link">
+          <!-- <a href="#" class="link">
             <i class="icon icon-search" onclick="$$('#vm-search').toggleClass('hide');$$('#vm-search').hasClass('hide')?$$('#vm-search input').blur():$$('#vm-search input').focus()"></i>
-          </a>
+          </a> -->
         </div>
          
     </div>
@@ -21,18 +21,35 @@
       <div class="preloader"></div>
       <div class="pull-to-refresh-arrow"></div>
     </div>
+    
+    <table data-bind="visible: dataList().length==0" width="100%">
+      <tbody>
+        <tr>
+          <td colspan="4" align="center">暂无数据</td>
+        </tr>
+      </tbody>
+    </table>
+
     <!-- ko foreach: dataList-->
     <div class="list-block card">
-      <a data-bind="attr:{'href':'tpl/vm/summary.html?id='+id+'&hypervisor='+hypervisor+'&name='+name+'&fromPage='+$root.fromPage()+'&state='+state+'&stateCss='+stateCss}" class="item-link">
+      <a data-bind="attr:{'href':'tpl/vm/summary.html?id='+id+'&hypervisor='+hypervisor+'&name='+name+'&fromPage='+$root.fromPage()+'&belongTab='+$root.belongTab()+'&state='+state+'&stateCss='+stateCss}" class="item-link">
         <div class="item-content card-content">
           <div class="item-media"><span class="mini-state normal" data-bind="css: stateCss"></span><i class="icon icon-vm"></i></div>
           <div class="item-inner card-content-inner">
             <div class="cart-content-block">
               <strong data-bind="text: name"></strong>
               <div class="row">
+                <!-- ko if:$root.fromPage()=='project' -->
                 <span class="col-33">所属主机：</span><span class="col-66" data-bind="text: hostName"></span>
                 <span class="col-33">所属人：</span><span class="col-66" data-bind="text: creator"></span>
                 <span class="col-33">状态：</span><span class="col-66"><span class="button" data-bind="css: 'btn-'+stateCss,text: state"></span></span>
+                <!-- /ko -->
+                <!-- ko if:$root.fromPage()!='project' -->
+                <span class="col-33">系统版本：</span><span class="col-66" data-bind="text: osVersion"></span>
+                <span class="col-33">IP：</span><span class="col-66" data-bind="text: ip"></span>
+                <span class="col-33">vcpu数：</span><span class="col-66" data-bind="text: vcpu"></span>
+                <span class="col-33">状态：</span><span class="col-66"><span class="button" data-bind="css: 'btn-'+stateCss,text: state"></span></span>
+                <!-- /ko -->
               </div>
             </div>
           </div>
@@ -40,6 +57,8 @@
       </a>
     </div>
     <!-- /ko -->
+
+    <div class="text-center" data-bind="visible: noMore()&&dataList().length>0">所有数据加载完毕！</div>
     <div style="height:60px;"></div>
   </div>
 </div>

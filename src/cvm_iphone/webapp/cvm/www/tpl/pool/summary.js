@@ -18,7 +18,8 @@ myApp.onPageInit("pool-show", function(page) {
       'vmNum':4,
       'storageNum':3,
       'hypervisor':'',
-      'resourcePoolId':''
+      'resourcePoolId':'',
+      'resourcePoolName':''
     });
     this.storageNum = ko.observable('—');
     this.loadData = function(){

@@ -7,7 +7,7 @@
           <span>虚拟机</span>
         </a>
       </div>
-      <div class="center" data-bind="with: dcInfo"><span data-bind="text: name"></span>-资源</div>
+      <div class="center"><span data-bind="text: dcName"></span>-资源</div>
       <div class="right">
           <a href="#" class="link icon-only open-panel" data-panel="right">筛选</a>
       </div>
@@ -28,15 +28,15 @@
                 <div class="item-media"><i class="icon icon-vm"></i></div>
                 <div class="item-inner" style="bottom: -12px;">
                   <div class="item-title" style="font-size:23px;">虚拟机总数</div>
-                  <div class="item-after" style="font-size:20px;"><span style="font-size:50px;line-height:16px;">10</span>个</div>
+                  <div class="item-after" style="font-size:20px;"><span style="font-size:50px;line-height:16px;" data-bind="text: vmNum"></span>个</div>
                 </div>
               </div>
               <div style="margin:0 12px;color:#fff">
                 <div>运行状态：</div>
                 <div class="row">
-                  <div class="col-33"><span class="host-state poweroff"></span>已关机10台</div>
-                  <div class="col-33"><span class="host-state normal"></span>运行中10台</div>
-                  <div class="col-33"><span class="host-state"></span>其他10台</div>
+                  <div class="col-33"><span class="host-state poweroff"></span>已关机<span data-bind="text: stoppeStatedVm"></span>台</div>
+                  <div class="col-33"><span class="host-state normal"></span>运行中<span data-bind="text: okStateVm"></span>台</div>
+                  <div class="col-33"><span class="host-state"></span>其他<span data-bind="text: otherStatedVm"></span>台</div>
                 </div>
               </div>
             </li>
@@ -52,58 +52,37 @@
         </tr>
       </tbody>
     </table>
-
-    <div class="list-block card">
-      <a href="#" class="item-link">
-        <div class="item-content card-content">
-          <div class="item-media"><span class="mini-state normal"></span><i class="icon icon-vm"></i></div>
-          <div class="item-inner card-content-inner">
-            <div class="cart-content-block">
-              <strong>虚拟机11</strong>
-              <div class="row">
-                <span class="col-50">IP：</span><span class="col-50">192.168.1.1</span>
-                <span class="col-50">所属物理机：</span><span class="col-50">物理机1</span>
-                <span class="col-50">状态：</span><span class="col-50"><button class="button button-raised button-fill color-blue">运行中</button></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="content-block card pd10">
-          <div class="row">
-             <div class="col-33"><i class="icon icon-vcpu"></i>Vcpu：8个</div>
-             <div class="col-33"><i class="icon icon-vmenory"></i>内存：8G</div>
-             <div class="col-33"><i class="icon icon-vstorage"></i>存储：50G</div>
-          </div>
-        </div>
-      </a>
-    </div>
     
-    <div class="list-block card">   
-      <a href="#" class="item-link">
+    <!-- ko foreach: dataList -->
+    <div class="list-block card">
+      <a data-bind="attr:{'href':'tpl/vm/summary.html?id='+id+'&hypervisor='+hypervisor+'&name='+name+'&fromPage=vm&belongTab=vm'+'&state='+state+'&stateCss='+stateCss}" class="item-link">
         <div class="item-content card-content">
-          <div class="item-media"><span class="mini-state normal"></span><i class="icon icon-vm"></i></div>
+          <div class="item-media"><span class="mini-state normal" data-bind="css: stateCss"></span></span><i class="icon icon-vm"></i></div>
           <div class="item-inner card-content-inner">
             <div class="cart-content-block">
-              <strong>虚拟机11</strong>
+              <strong data-bind="text: name"></strong>
               <div class="row">
-                <span class="col-50">IP：</span><span class="col-50">192.168.1.1</span>
-                <span class="col-50">所属物理机：</span><span class="col-50">物理机1</span>
-                <span class="col-50">状态：</span><span class="col-50"><button class="button button-raised button-fill color-blue">运行中</button></span>
+                <span class="col-33">IP：</span><span class="col-66"><span data-bind="text: ip"></span></span>
+                <span class="col-33">系统版本：</span><span class="col-66"><span data-bind="text: osVersion"></span></span>
+                <span class="col-33">状态：</span><span class="col-66"><span class="button" data-bind="css: 'btn-'+stateCss,text: state"></span></span>
               </div>
             </div>
           </div>
         </div>
         <div class="content-block card pd10">
           <div class="row">
-             <div class="col-33"><i class="icon icon-vcpu"></i>Vcpu：8个</div>
-             <div class="col-33"><i class="icon icon-vmenory"></i>内存：8G</div>
-             <div class="col-33"><i class="icon icon-vstorage"></i>存储：50G</div>
+             <div class="col-33"><i class="icon icon-vcpu"></i>Vcpu：<span data-bind="text: vcpu"></span>个</div>
+             <div class="col-33"><i class="icon icon-vmenory"></i>内存：<span data-bind="text: memory"></span>G</div>
+             <div class="col-33"><i class="icon icon-vstorage"></i>存储：<span data-bind="text: storage"></span>G</div>
           </div>
         </div>
       </a>
     </div>
-    <div class="text-center" data-bind="visible: noMore()&&dataList().length>0">所有数据加载完毕！</div>
+    <!-- /ko -->
 
+    <div style="margin-top:10px;" class="text-center" data-bind="visible: noMore()&&dataList().length>0">所有数据加载完毕！</div>
+    <div style="height:60px;"></div>
+    
     <div class="infinite-scroll-preloader">
       <div class="preloader"></div>
     </div>
