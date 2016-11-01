@@ -7,30 +7,37 @@
          
     </div>
   </div>
-  <div class="page-content pull-to-refresh-content" data-bind="with: summary">
+  <div class="page-content pull-to-refresh-content">
     <div class="pull-to-refresh-layer">
       <div class="preloader"></div>
       <div class="pull-to-refresh-arrow"></div>
     </div>
-    <div class="list-block card" style="margin-top:0px;">
+    <div class="list-block card" style="margin-top:0px;" data-bind="with: summary">
       <div class="content-block padding30">
         <div class="row">
-          <span class="col-33">虚拟化：</span><span class="col-66">WinServer</span>
-          <span class="col-33">所属资源池：</span><span class="col-66">3台</span>
-          <span class="col-33">ip：</span><span class="col-66">3台</span>
-          <span class="col-33">状态：</span><span class="col-66">3台</span>
-          <span class="col-33">运行时间：</span><span class="col-66">3台</span>
-          <span class="col-33">CPU颗数：</span><span class="col-66">3台</span>
-          <span class="col-33">CPU逻辑单元：</span><span class="col-66">3台</span>
-          <span class="col-33">CPU频率：</span><span class="col-66">3台</span>
-          <span class="col-33">供应商：</span><span class="col-66">3台</span>
-          <span class="col-33">型号：</span><span class="col-66">3台</span>
-          <span class="col-33">虚拟机数：</span><span class="col-66">11台</span>
-          <span class="col-33">活动虚拟机数：</span><span class="col-66">11台</span>
+          <span class="col-33">虚拟化：</span><span class="col-66"><span data-bind="text: hypervisor"></span></span>
+          <span class="col-33">所属资源池：</span><span class="col-66"><span data-bind="text: resourcePoolName"></span></span>
+          <span class="col-33">ip：</span><span class="col-66"><span data-bind="text: hypervisor"></span></span>
+          <span class="col-33">状态：</span><span class="col-66"><span data-bind="visible: state=='OK'">运行中</span><span data-bind="visible: state=='RESTART'">重启</span><span data-bind="visible: state=='DISCONNECT'">未运行</span><span data-bind="visible: state=='MAINTAIN'">维护</span></span>
+          <!-- ko if: state=='OK' -->
+          <span class="col-33">运行时间：</span><span class="col-66"><span data-bind="text: runTime"></span></span>
+          <!-- /ko -->
+          <!-- ko if: hypervisor!='PowerVM' -->
+          <span class="col-33">CPU颗数：</span><span class="col-66"><span data-bind="text: cpuSlots"></span>颗</span>
+          <span class="col-33">CPU逻辑单元：</span><span class="col-66"><span data-bind="text: cpuUnit"></span>个</span>
+          <span class="col-33">CPU频率：</span><span class="col-66"><span data-bind="text: cpuSpeed"></span>GHz</span>
+          <!-- /ko -->
+          <!-- ko if: hypervisor=='PowerVM' -->
+          <span class="col-33">CPU核数：</span><span class="col-66"><span data-bind="text: cpuUnit"></span></span>
+          <!-- /ko -->
+          <span class="col-33">供应商：</span><span class="col-66"><span data-bind="text: vendor"></span></span>
+          <span class="col-33">型号：</span><span class="col-66"><span data-bind="text: model"></span></span>
+          <span class="col-33">虚拟机数：</span><span class="col-66"><span data-bind="text: vmNum"></span></span>
+          <span class="col-33">活动虚拟机数：</span><span class="col-66"><span data-bind="text: runningVmNum"></span></span>
         </div>
       </div>
     </div>
-    <div class="list-block card">
+    <div class="list-block card" data-bind="with: statics">
       <div class="card-header">资源情况</div>
       <div class="content-block padding30">
         <div class="row row-sm" style="margin:0 -15px;">
@@ -70,12 +77,12 @@
         </div>
       </div>
     </div>
-    <div class="list-block card">
+    <div class="list-block card" data-bind="with: summary">
       <div class="card-header">关联资源</div>
       <div class="content-block" style="padding:0;margin-top:-1px;margin-bottom: -1px;">
         <ul>
           <li>
-            <a href="tpl/vm/list.html" class="item-link">
+            <a data-bind="attr: {'href':'tpl/vm/list.html?id='+id+'&resourcePoolId='+$root.resPoolId()+'&hypervisor='+$root.hypervisor()+'&title='+name+'&fromPage=host'+'&belongTab='+$root.belongTab()}" class="item-link">
               <div class="item-content">
                 <div class="item-inner">
                   <div class="cart-content-block">
@@ -86,11 +93,11 @@
             </a>
           </li>
           <li>
-            <a href="tpl/storage/list.html" class="item-link">
+            <a data-bind="attr: {'href':'tpl/storage/list.html?id='+id+'&resourcePoolId='+$root.resPoolId()+'&hypervisor='+$root.hypervisor()+'&title='+name+'&fromPage=host'+'&belongTab='+$root.belongTab()}" class="item-link">
               <div class="item-content">
                 <div class="item-inner">
                   <div class="cart-content-block">
-                    <div class="item-title">存储池（<span data-bind="text: storageNum"></span>）</div>
+                    <div class="item-title">存储池（<span data-bind="text: $root.storageNum()"></span>）</div>
                   </div>
                 </div>
               </div>
@@ -99,6 +106,7 @@
         </ul>
       </div>
     </div>
+    <div style="height:60px;"></div>
 
   </div> 
 </div>                

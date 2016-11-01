@@ -15,10 +15,10 @@ myApp.onPageInit("domain-list", function(page) {
     	}
     };
     this.busdomain = {
-      list:ko.observableArray([]),
       busdomainNum:ko.observable(),
       projectNum:ko.observable()
     };
+    this.dataList = ko.observableArray([]);
 
     this.loading = false;
     this.page = 1;
@@ -40,7 +40,7 @@ myApp.onPageInit("domain-list", function(page) {
             myApp.attachInfiniteScroll($$(page.container).find('.infinite-scroll'));
           }
           self.isInit = false;
-          self.busdomain.list.removeAll();
+          self.dataList.removeAll();
 
           var dataLength
           if(!data.data){
@@ -54,7 +54,7 @@ myApp.onPageInit("domain-list", function(page) {
         }
         
         for(var i=0;i<data.data.length;i++){
-          self.busdomain.list.push(data.data[i]);
+          self.dataList.push(data.data[i]);
         }
         self.page++;
         if(is_loadMore && (data.data.length < PAGE_SIZE)){

@@ -193,12 +193,20 @@ function initNetwork_chart(data,xAxis) {
     this.name = ko.observable(page.query.name);
     this.fromPage = ko.observable(page.query.fromPage);
     this.belongTab = ko.observable(page.query.fromPage);
+    this.dataList = ko.observableArray([]);
     this.summary = ko.observable({
       "vcpu":'',
       "memoryType":'',
       "memory":'',
+      "storage":'',
       "type":'',
-      "osVersion":''
+      "osVersion":'',
+      "ip":'',
+      "hostName":'',
+      "resourcePoolName":'',
+      "runningTime":'',
+      "stateCss":'',
+      "state":''
     });
     this.showShare = ko.observable();
 
@@ -261,7 +269,11 @@ function initNetwork_chart(data,xAxis) {
         data.state = page.query.state;
         data.stateCss = page.query.stateCss;
         data.runningTime = getTheTime(data.runningTime);
-        data.type = page.query.type;
+        data.memory = Number((Number(data.memory)/1024).toFixed(2));
+        //data.type = page.query.type;
+        if(data.state=='已关机'){
+          self.isShowCharts(false);
+        }
 
         if(page.query.hypervisor=='winserver'){
           self.showShare(true);
@@ -281,6 +293,9 @@ function initNetwork_chart(data,xAxis) {
         }
         myApp.pullToRefreshDone();
 
+        //edit
+        data.storage = Number(page.query.storage);
+        //edit
         self.summary(data);
         if(self.hypervisor()=='PowerVM'){
           data.memory = (Number(data.memory)/1024).toFixed(2);
@@ -290,6 +305,45 @@ function initNetwork_chart(data,xAxis) {
           data.memory = (Number(data.memory)/1024).toFixed(2);
           self.vcpu(data.vcpu);
           self.loadPerformance('hour');
+        }
+      });
+      RestServiceJs.query(BASE_URL+"/vm/"+page.query.id+"/disk",{"dcId":CVM_IPHONE.dcId,"hypervisor":page.query.hypervisor},function(data){
+        self.loading = false;
+        self.dataList.removeAll();
+        for(var i=0; i<data.data.length; i++){
+          switch(data.data[i].type){
+            case 'system':
+              data.data[i].type = '系统盘';
+              break;
+            case 'data':
+              data.data[i].type = '数据盘';
+              break;
+            case 'unknown':
+              data.data[i].type = '未知';
+              break;
+            case 'SYSTEM':
+              data.data[i].type = '系统盘';
+              break;
+            case 'USER':
+              data.data[i].type = '数据盘';
+              break;
+            case 'SUSPEND':
+              data.data[i].type = '未知';
+              break;
+            case 'HA_STATEFILE':
+              data.data[i].type = '其他';
+              break;
+            case 'REDO_LOG':
+              data.data[i].type = '其他';
+              break;
+            case 'BLOCK':
+              data.data[i].type = '存储LUN';
+              break;
+            default:
+              data.data[i].type = '未知';
+              break;
+          }
+          self.dataList.push(data.data[i]);
         }
       });
     };
@@ -322,7 +376,7 @@ function initNetwork_chart(data,xAxis) {
             },
             onClose:function(p){
               if(Range.length==2){
-                self.loadData('cunstom',Range[0],Range[1]);
+                self.loadPerformance('cunstom',Range[0],Range[1]);
               }else if(Range.length==1){
                 myApp.alert('请选择一个时间范围！',function(){
                   calendarRange.open();

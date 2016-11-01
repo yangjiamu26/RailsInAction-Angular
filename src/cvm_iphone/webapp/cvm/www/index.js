@@ -117,8 +117,8 @@ $(function(){
 
 /*菜单tab页加载机制 start*/
 function clickHome(){
-    indexPopover_viewModel.inHome(true);
-    indexPopover_viewModel.inResouce(false);
+    window.indexPopover_viewModel.inHome(true);
+    window.indexPopover_viewModel.inResouce(false);
 }
 var clickedBusness = false;
 function clickBusness(){
@@ -158,7 +158,7 @@ function clickVm(){
     myApp.showTab('#view-vm');
     window.indexFilter_viewModel.changePage('vm');
     if(clickedVm) return;
-    window.vm_index_viewModel.loadData();
+    window.vmIndexVO.loadData();
     clickedVm = true;
 }
 var clickedStorage = false;
@@ -173,7 +173,6 @@ function clickStorage(){
 var clickedSetting = false;
 function clickSetting(){
     if(clickedSetting) return;
-    window.settings_profile_viewModel.loadInfo();
     clickedSetting = true;
 }
 

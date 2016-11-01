@@ -172,8 +172,11 @@ myApp.onPageInit("storage-index", function(page) {
   window.storage_index_viewModel = viewModel;
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
-    viewModel.loadData();
+    viewModel.loadData(false, viewModel.hypervisor(), viewModel.resPoolId(), viewModel.hostId());
   });
+  $$(page.container).find('.infinite-scroll').on('infinite', function () {
+    viewModel.loadData(true, viewModel.hypervisor(), viewModel.resPoolId(), viewModel.hostId());
+  }); 
 
 });
 

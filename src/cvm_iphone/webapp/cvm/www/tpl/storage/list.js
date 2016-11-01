@@ -6,6 +6,8 @@ myApp.onPageInit("storage-list", function(page) {
     this.fromPage=ko.observable("");
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.belongTab = ko.observable(page.query.belongTab);
+    this.fromPage = ko.observable(page.query.fromPage);
+    this.resourcePoolId = ko.observable('');
 
     this.loading = false;
     this.page = 1;
@@ -19,10 +21,10 @@ myApp.onPageInit("storage-list", function(page) {
     }
     this.startSearch = function(){
       if(!!self.searchVal()){
-        self.loadData(self.searchVal());
+        self.loadData(false,self.searchVal());
       }
     };
-    this.loadData = function(is_loadMore){
+    this.loadData = function(is_loadMore,searchVal){
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
@@ -31,6 +33,7 @@ myApp.onPageInit("storage-list", function(page) {
       switch(page.query.fromPage){
         case "pool":
           this.fromPage("pool");
+          this.resourcePoolId(page.query.resourcePoolId);
           url=BASE_URL+"/resPool/"+page.query.id+"/storagePool";
           break;
         case "host":
@@ -39,7 +42,7 @@ myApp.onPageInit("storage-list", function(page) {
           break;
       }
       
-      RestServiceJs.query(url,{"dcId":CVM_PAD.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(url,{"dcId":CVM_IPHONE.dcId,"hypervisor":page.query.hypervisor,"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
         //$.ajax("tpl/storage/index.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
@@ -154,6 +157,7 @@ myApp.onPageInit("storage-list", function(page) {
   var viewModel = new ViewModel();
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.storageList_viewModel = viewModel;
+  viewModel.loadData();
 
   $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
     viewModel.loadData();

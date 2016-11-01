@@ -5,6 +5,7 @@ myApp.onPageInit("host-list", function(page) {
     this.dataList = ko.observableArray([]);
     this.hypervisor = ko.observable(page.query.hypervisor);
     this.resPoolId = ko.observable(page.query.id);
+    this.resPoolName = ko.observable(page.query.resourcePoolName);
     this.belongTab = ko.observable(page.query.belongTab);
 
     this.loading = false;
@@ -23,25 +24,12 @@ myApp.onPageInit("host-list", function(page) {
       }
     };
     this.loadData = function(is_loadMore, hypervisor, resPoolId){
-      // if(hypervisor){
-      //   this.hypervisor(hypervisor);
-      // }else if(page.query.hypervisor){
-      //   this.hypervisor(page.query.hypervisor);
-      // }else{
-      //   this.hypervisor("");
-      // }
-      // if(resPoolId){
-      //   this.resPoolId(resPoolId);
-      // }else if(page.query.id){
-      //   this.resPoolId(page.query.id);
-      // }else{
-      //   this.resPoolId("");
-      // }
+
       if (self.loading) return;
       self.loading = true;
       if(!is_loadMore) self.page = 1;
 
-      RestServiceJs.query(BASE_URL+"/resPool/"+page.query.id+"/host",{"dcId":CVM_IPHONE.dcId,"hypervisor":this.hypervisor(),"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
+      RestServiceJs.query(BASE_URL+"/resPool/"+page.query.id+"/host",{"dcId":CVM_IPHONE.dcId,"resourcePoolId":self.resPoolId(),"hypervisor":self.hypervisor(),"firstResult":(self.page-1)*PAGE_SIZE,"maxResult":PAGE_SIZE},function(data){
       //$.ajax("tpl/host/list.json?id="+page.query.id+"&page="+self.page).done(function(data){
         self.loading = false;
         if(!is_loadMore){
@@ -62,15 +50,15 @@ myApp.onPageInit("host-list", function(page) {
               break;
             case 'RESTART':
               data.data[i].state='重启中';
-              data.data[i].stateCss='orange';
+              data.data[i].stateCss='danger';
               break;
             case 'DISCONNECT':
               data.data[i].state='未运行';
-              data.data[i].stateCss='gray';
+              data.data[i].stateCss='poweroff';
               break;
             case 'MAINTAIN':
               data.data[i].state='维护';
-              data.data[i].stateCss='gray';
+              data.data[i].stateCss='warning';
               break;
           }
           self.dataList.push(data.data[i]);
