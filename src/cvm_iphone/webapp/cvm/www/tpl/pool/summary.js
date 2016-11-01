@@ -21,7 +21,7 @@ myApp.onPageInit("pool-show", function(page) {
       'resourcePoolId':'',
       'resourcePoolName':''
     });
-    this.storageNum = ko.observable('—');
+    this.storageNum = ko.observable('-');
     this.loadData = function(){
       RestServiceJs.query(BASE_URL+"/storagePool",{"dcId":CVM_IPHONE.dcId,"resourcePoolId":page.query.id,"hypervisor":page.query.hypervisor},function(data){
         self.storageNum(data.size);

@@ -271,6 +271,9 @@ function initNetwork_chart(data,xAxis) {
         data.runningTime = getTheTime(data.runningTime);
         data.memory = Number((Number(data.memory)/1024).toFixed(2));
         //data.type = page.query.type;
+        if(data.state=='已关机'){
+          self.isShowCharts(false);
+        }
 
         if(page.query.hypervisor=='winserver'){
           self.showShare(true);
@@ -291,7 +294,7 @@ function initNetwork_chart(data,xAxis) {
         myApp.pullToRefreshDone();
 
         //edit
-        data.storage = 20;
+        data.storage = Number(page.query.storage);
         //edit
         self.summary(data);
         if(self.hypervisor()=='PowerVM'){
@@ -373,7 +376,7 @@ function initNetwork_chart(data,xAxis) {
             },
             onClose:function(p){
               if(Range.length==2){
-                self.loadData('cunstom',Range[0],Range[1]);
+                self.loadPerformance('cunstom',Range[0],Range[1]);
               }else if(Range.length==1){
                 myApp.alert('请选择一个时间范围！',function(){
                   calendarRange.open();
