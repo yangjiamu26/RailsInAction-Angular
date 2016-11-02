@@ -76,6 +76,7 @@ myApp.onPageInit("login", function(page) {
             goLogin(data);
           },  
           error: function(req, status, ex){
+            myApp.alert(req);
             checkNetWork(1,function(){
               if(!navigator.onLine){
                 myApp.alert('当前网络不可用，请检查您的网络设置！');
