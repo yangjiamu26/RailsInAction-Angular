@@ -55,5 +55,8 @@ myApp.onPageInit("pool-show", function(page) {
 
   window.poolShow_index_viewModel = viewModel;
 
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
 });
 

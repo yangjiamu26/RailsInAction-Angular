@@ -75,30 +75,9 @@ myApp.onPageInit("host-show", function(page) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.HostIndex_Summary_viewModel = viewModel;
   viewModel.loadData();
-});
 
-// {
-//   "id": 3,
-//   "resourcePoolId": 2,
-//   "resourcePoolName": "项目组测试环境",
-//   "name": "xenserver-103",
-//   "ip": "192.168.206.103",
-//   "vmNum": 8,
-//   "runningVmNum": 4,
-//   "hypervisor": "winserver",
-//   "cpuSpeed": 2660.00,
-//   "model": "Intel(R) Core(TM)2 Quad CPU    Q8400  @ 2.66GHz",
-//   "vendor": "GenuineIntel",
-//   "cpuUnit": 4.00,
-//   "memory": null,
-//   "availMemory": null,
-//   "storage": null,
-//   "availStorage": null,
-//   "state": "OK",
-//   "runTime": 1475027000,
-//   "cpuSlots": 1,
-//   "datacenterId": 0,
-//   "datacenterName": null,
-//   "availCpu": null,
-//   "totalCpu": null
-// }
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
+  
+});

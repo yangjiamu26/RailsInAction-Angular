@@ -143,4 +143,9 @@ myApp.onPageInit("storage-summary", function(page) {
   ko.applyBindings(viewModel, $$(page.container)[0]);
   window.HostIndex_Summary_viewModel = viewModel;
   viewModel.loadData();
+
+  $$(page.container).find('.pull-to-refresh-content').on('refresh', function (e) {
+    viewModel.loadData();
+  });
+  
 });

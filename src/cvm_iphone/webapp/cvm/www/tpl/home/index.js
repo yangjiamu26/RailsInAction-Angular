@@ -16,7 +16,7 @@ myApp.onPageInit("home-index", function(page) {
     });
   });
 
-  myApp.hideToolbar('.toolbar');
+  $$('.toolbar').hide();
   function ViewModel(){
     var self = this;
     this.dcInfo = ko.observable({
